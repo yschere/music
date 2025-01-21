@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="surface_bright">#FF313233</color>
+    <color name="background">#FFFBFCFC</color>
+
+    <!-- Default Light Color Section -->
+    <color name="primary_light">#FF885200</color>
+    <color name="on_primary_light">#FFFFFFFF</color>
+    <color name="primary_container_light">#FFFFAC46</color>
+    <color name="on_primary_container_light">#FF482900</color>
+
+    <color name="secondary_light">#FF7A5817</color>
+    <color name="on_secondary_light">#FFFFFFFF</color>
+    <color name="secondary_container_light">#FFFFD798</color>
+    <color name="on_secondary_container_light">#FF5C3F00</color>
+
+    <color name="tertiary_light">#FF994700</color>
+    <color name="on_tertiary_light">#FFFFFFFF</color>
+    <color name="tertiary_container_light">#FFFF801F</color>
+    <color name="on_tertiary_container_light">#FF2D1000</color>
+
+    <color name="error_light">#FFA4384A</color>
+    <color name="on_error_light">#FFFFFFFF</color>
+    <color name="error_container_light">#FFF87889</color>
+    <color name="on_error_container_light">#FF32000A</color>
+
+    <color name="background_light">#FFFFF8F4</color>
+    <color name="on_background_light">#FF221A11</color>
+
+    <color name="surface_light">#FFFFF8F4</color>
+    <color name="on_surface_light">#FF221A11</color>
+
+    <color name="surface_variant_light">#FFF7DEC8</color>
+    <color name="on_surface_variant_light">#FF544434</color>
+
+    <color name="outline_light">#FF877461</color>
+    <color name="outline_variant_light">#FFDAC3AD</color>
+
+    <color name="scrim_light">#FF000000</color>
+
+    <color name="inverse_surface_light">#FF382F25</color>
+    <color name="inverse_on_surface_light">#FFFFEEDF</color>
+    <color name="inverse_primary_light">#FFFFB868</color>
+    <color name="surface_dim_light">#FFE8D7C9</color>
+    <color name="surface_bright_light">#FFFFF8F4</color>
+
+    <color name="surface_container_lowest_light">#FFFFFFFF</color>
+    <color name="surface_container_low_light">#FFFFF1E6</color>
+    <color name="surface_container_light">#FFFCEBDC</color>
+    <color name="surface_container_high_light">#FFF6E5D7</color>
+    <color name="surface_container_highest_light">#FFF1E0D1</color>
+
+    <!-- Medium Contrast Light Color Section -->
+    <color name="primary_medium_contrast_light">#FF623A00</color>
+    <color name="on_primary_medium_contrast_light">#FFFFFFFF</color>
+    <color name="primary_container_medium_contrast_light">#FFA76600</color>
+    <color name="on_primary_container_medium_contrast_light">#FFFFFFFF</color>
+
+    <color name="secondary_medium_contrast_light">#FF5A3D00</color>
+    <color name="on_secondary_medium_contrast_light">#FFFFFFFF</color>
+    <color name="secondary_container_medium_contrast_light">#FF936E2B</color>
+    <color name="on_secondary_container_medium_contrast_light">#FFFFFFFF</color>
+
+    <color name="tertiary_medium_contrast_light">#FF6F3100</color>
+    <color name="on_tertiary_medium_contrast_light">#FFFFFFFF</color>
+    <color name="tertiary_container_medium_contrast_light">#FFBC5800</color>
+    <color name="on_tertiary_container_medium_contrast_light">#FFFFFFFF</color>
+
+    <color name="error_medium_contrast_light">#FF7F1B30</color>
+    <color name="on_error_medium_contrast_light">#FFFFFFFF</color>
+    <color name="error_container_medium_contrast_light">#FFC14E5F</color>
+    <color name="on_error_container_medium_contrast_light">#FFFFFFFF</color>
+
+    <color name="background_medium_contrast_light">#FFFFF8F4</color>
+    <color name="on_background_medium_contrast_light">#FF221A11</color>
+
+    <color name="surface_medium_contrast_light">#FFFFF8F4</color>
+    <color name="on_surface_medium_contrast_light">#FF221A11</color>
+
+    <color name="surface_variant_medium_contrast_light">#FFF7DEC8</color>
+    <color name="on_surface_variant_medium_contrast_light">#FF504030</color>
+
+    <color name="outline_medium_contrast_light">#FF6E5C4A</color>
+    <color name="outline_variant_medium_contrast_light">#FF8B7765</color>
+
+    <color name="scrim_medium_contrast_light">#FF000000</color>
+
+    <color name="inverse_surface_medium_contrast_light">#FF382F25</color>
+    <color name="inverse_on_surface_medium_contrast_light">#FFFFEEDF</color>
+    <color name="inverse_primary_medium_contrast_light">#FFFFB868</color>
+    <color name="surface_dim_medium_contrast_light">#FFE8D7C9</color>
+    <color name="surface_bright_medium_contrast_light">#FFFFF8F4</color>
+
+    <color name="surface_container_lowest_medium_contrast_light">#FFFFFFFF</color>
+    <color name="surface_container_low_medium_contrast_light">#FFFFF1E6</color>
+    <color name="surface_container_medium_contrast_light">#FFFCEBDC</color>
+    <color name="surface_container_high_medium_contrast_light">#FFF6E5D7</color>
+    <color name="surface_container_highest_medium_contrast_light">#FFF1E0D1</color>
+
+    <!-- High Contrast Light Color Section -->
+    <color name="primary_high_contrast_light">#FF351D00</color>
+    <color name="on_primary_high_contrast_light">#FFFFFFFF</color>
+    <color name="primary_container_high_contrast_light">#FF623A00</color>
+    <color name="on_primary_container_high_contrast_light">#FFFFFFFF</color>
+
+    <color name="secondary_high_contrast_light">#FF301F00</color>
+    <color name="on_secondary_high_contrast_light">#FFFFFFFF</color>
+    <color name="secondary_container_high_contrast_light">#FF5A3D00</color>
+    <color name="on_secondary_container_high_contrast_light">#FFFFFFFF</color>
+
+    <color name="tertiary_high_contrast_light">#FF3C1800</color>
+    <color name="on_tertiary_high_contrast_light">#FFFFFFFF</color>
+    <color name="tertiary_container_high_contrast_light">#FF6F3100</color>
+    <color name="on_tertiary_container_high_contrast_light">#FFFFFFFF</color>
+
+    <color name="error_high_contrast_light">#FF4C0014</color>
+    <color name="on_error_high_contrast_light">#FFFFFFFF</color>
+    <color name="error_container_high_contrast_light">#FF7F1B30</color>
+    <color name="on_error_container_high_contrast_light">#FFFFFFFF</color>
+
+    <color name="background_high_contrast_light">#FFFFF8F4</color>
+    <color name="on_background_high_contrast_light">#FF221A11</color>
+
+    <color name="surface_high_contrast_light">#FFFFF8F4</color>
+    <color name="on_surface_high_contrast_light">#FF000000</color>
+
+    <color name="surface_variant_high_contrast_light">#FFF7DEC8</color>
+    <color name="on_surface_variant_high_contrast_light">#FF2E2113</color>
+
+    <color name="outline_high_contrast_light">#FF504030</color>
+    <color name="outline_variant_high_contrast_light">#FF504030</color>
+
+    <color name="scrim_high_contrast_light">#FF000000</color>
+
+    <color name="inverse_surface_high_contrast_light">#FF382F25</color>
+    <color name="inverse_on_surface_high_contrast_light">#FFFFFFFF</color>
+    <color name="inverse_primary_high_contrast_light">#FFFFE8D4</color>
+    <color name="surface_dim_high_contrast_light">#FFE8D7C9</color>
+    <color name="surface_bright_high_contrast_light">#FFFFF8F4</color>
+
+    <color name="surface_container_lowest_high_contrast_light">#FFFFFFFF</color>
+    <color name="surface_container_low_high_contrast_light">#FFFFF1E6</color>
+    <color name="surface_container_high_contrast_light">#FFFCEBDC</color>
+    <color name="surface_container_high_high_contrast_light">#FFF6E5D7</color>
+    <color name="surface_container_highest_high_contrast_light">#FFF1E0D1</color>
+
+    <!-- Default Dark Color Section -->
+    <color name="primary_dark">#FFFFCF9E</color>
+    <color name="on_primary_dark">#FF482900</color>
+    <color name="primary_container_dark">#FFF79900</color>
+    <color name="on_primary_container_dark">#FF371E00</color>
+
+    <color name="secondary_dark">#FFFFFEFF</color>
+    <color name="on_secondary_dark">#FF422C00</color>
+    <color name="secondary_container_dark">#FFFBCC80</color>
+    <color name="on_secondary_container_dark">#FF553A00</color>
+
+    <color name="tertiary_dark">#FFFFB68B</color>
+    <color name="on_tertiary_dark">#FF522300</color>
+    <color name="tertiary_container_dark">#FFE76E00</color>
+    <color name="on_tertiary_container_dark">#FF000000</color>
+
+    <color name="error_dark">#FFFFB68B</color>
+    <color name="on_error_dark">#FF522300</color>
+    <color name="error_container_dark">#FFE76E00</color>
+    <color name="on_error_container_dark">#FF000000</color>
+
+    <color name="background_dark">#FF1A120A</color>
+    <color name="on_background_dark">#FFF1E0D1</color>
+
+    <color name="surface_dark">#FF1A120A</color>
+    <color name="on_surface_dark">#FFF1E0D1</color>
+
+    <color name="surface_variant_dark">#FF544434</color>
+    <color name="on_surface_variant_dark">#FFDAC3AD</color>
+
+    <color name="outline_dark">#FFA28D7A</color>
+    <color name="outline_variant_dark">#FF544434</color>
+
+    <color name="scrim_dark">#FF000000</color>
+
+    <color name="inverse_surface_dark">#FFF1E0D1</color>
+    <color name="inverse_on_surface_dark">#FF382F25</color>
+    <color name="inverse_primary_dark">#FF885200</color>
+    <color name="surface_dim_dark">#FF1A120A</color>
+    <color name="surface_bright_dark">#FF42372D</color>
+
+    <color name="surface_container_lowest_dark">#FF140D06</color>
+    <color name="surface_container_low_dark">#FF221A11</color>
+    <color name="surface_container_dark">#FF271E15</color>
+    <color name="surface_container_high_dark">#FF32281F</color>
+    <color name="surface_container_highest_dark">#FF3D3329</color>
+
+    <!-- Medium Contrast Dark Color Section -->
+    <color name="primary_medium_contrast_dark">#FFFFCF9E</color>
+    <color name="on_primary_medium_contrast_dark">#FF351D00</color>
+    <color name="primary_container_medium_contrast_dark">#FFF79900</color>
+    <color name="on_primary_container_medium_contrast_dark">#FF000000</color>
+
+    <color name="secondary_medium_contrast_dark">#FFFFFEFF</color>
+    <color name="on_secondary_medium_contrast_dark">#FF422C00</color>
+    <color name="secondary_container_medium_contrast_dark">#FFFBCC80</color>
+    <color name="on_secondary_container_medium_contrast_dark">#FF2C1C00</color>
+
+    <color name="tertiary_medium_contrast_dark">#FFFFBC95</color>
+    <color name="on_tertiary_medium_contrast_dark">#FF2A0E00</color>
+    <color name="tertiary_container_medium_contrast_dark">#FFE76E00</color>
+    <color name="on_tertiary_container_medium_contrast_dark">#FF000000</color>
+
+    <color name="error_medium_contrast_dark">#FFFFB8BE</color>
+    <color name="on_error_medium_contrast_dark">#FF36000C</color>
+    <color name="error_container_medium_contrast_dark">#FFE5697A</color>
+    <color name="on_error_container_medium_contrast_dark">#FF000000</color>
+
+    <color name="background_medium_contrast_dark">#FF1A120A</color>
+    <color name="on_background_medium_contrast_dark">#FFF1E0D1</color>
+
+    <color name="surface_medium_contrast_dark">#FF1A120A</color>
+    <color name="on_surface_medium_contrast_dark">#FFFFFAF8</color>
+
+    <color name="surface_variant_medium_contrast_dark">#FF544434</color>
+    <color name="on_surface_variant_medium_contrast_dark">#FFDEC7B1</color>
+
+    <color name="outline_medium_contrast_dark">#FFB59F8B</color>
+    <color name="outline_variant_medium_contrast_dark">#FF93806D</color>
+
+    <color name="scrim_medium_contrast_dark">#FF000000</color>
+
+    <color name="inverse_surface_medium_contrast_dark">#FFF1E0D1</color>
+    <color name="inverse_on_surface_medium_contrast_dark">#FF32281F</color>
+    <color name="inverse_primary_medium_contrast_dark">#FF693E00</color>
+    <color name="surface_dim_medium_contrast_dark">#FF1A120A</color>
+    <color name="surface_bright_medium_contrast_dark">#FF42372D</color>
+
+    <color name="surface_container_lowest_medium_contrast_dark">#FF140D06</color>
+    <color name="surface_container_low_medium_contrast_dark">#FF221A11</color>
+    <color name="surface_container_medium_contrast_dark">#FF271E15</color>
+    <color name="surface_container_high_medium_contrast_dark">#FF32281F</color>
+    <color name="surface_container_highest_medium_contrast_dark">#FF3D3329</color>
+
+    <!-- High Contrast Dark Color Section -->
+    <color name="primary_high_contrast_dark">#FFFFFAF8</color>
+    <color name="on_primary_high_contrast_dark">#FF000000</color>
+    <color name="primary_container_high_contrast_dark">#FFFFBE76</color>
+    <color name="on_primary_container_high_contrast_dark">#FF000000</color>
+
+    <color name="secondary_high_contrast_dark">#FFFFFEFF</color>
+    <color name="on_secondary_high_contrast_dark">#FF000000</color>
+    <color name="secondary_container_high_contrast_dark">#FFFBCC80</color>
+    <color name="on_secondary_container_high_contrast_dark">#FF000000</color>
+
+    <color name="tertiary_high_contrast_dark">#FFFFFAF8</color>
+    <color name="on_tertiary_high_contrast_dark">#FF000000</color>
+    <color name="tertiary_container_high_contrast_dark">#FFFFBC95</color>
+    <color name="on_tertiary_container_high_contrast_dark">#FF000000</color>
+
+    <color name="error_high_contrast_dark">#FFFFF9F9</color>
+    <color name="on_error_high_contrast_dark">#FF000000</color>
+    <color name="error_container_high_contrast_dark">#FFFFB8BE</color>
+    <color name="on_error_container_high_contrast_dark">#FF000000</color>
+
+    <color name="background_high_contrast_dark">#FF1A120A</color>
+    <color name="on_background_high_contrast_dark">#FFF1E0D1</color>
+
+    <color name="surface_high_contrast_dark">#FF1A120A</color>
+    <color name="on_surface_high_contrast_dark">#FFFFFFFF</color>
+
+    <color name="surface_variant_high_contrast_dark">#FF544434</color>
+    <color name="on_surface_variant_high_contrast_dark">#FFFFFAF8</color>
+
+    <color name="outline_high_contrast_dark">#FFDEC7B1</color>
+    <color name="outline_variant_high_contrast_dark">#FFDEC7B1</color>
+
+    <color name="scrim_high_contrast_dark">#FF000000</color>
+
+    <color name="inverse_surface_high_contrast_dark">#FFF1E0D1</color>
+    <color name="inverse_on_surface_high_contrast_dark">#FF000000</color>
+    <color name="inverse_primary_high_contrast_dark">#FF3F2400</color>
+    <color name="surface_dim_high_contrast_dark">#FF1A120A</color>
+    <color name="surface_bright_high_contrast_dark">#FF42372D</color>
+
+    <color name="surface_container_lowest_high_contrast_dark">#FF140D06</color>
+    <color name="surface_container_low_high_contrast_dark">#FF221A11</color>
+    <color name="surface_container_high_contrast_dark">#FF271E15</color>
+    <color name="surface_container_high_high_contrast_dark">#FF32281F</color>
+    <color name="surface_container_highest_high_contrast_dark">#FF3D3329</color>
+
+    <!-- Blue toned Dark Color Section -->
+    <color name="primary_blue_dark">#FF8FCBE6</color>
+    <color name="on_primary_blue_dark">#FF0C394C</color>
+    <color name="primary_container_blue_dark">#FF104B66</color>
+    <color name="on_primary_container_blue_dark">#FFA9D3E6</color>
+
+    <color name="secondary_blue_dark">#FFAEB6E6</color>
+    <color name="on_secondary_blue_dark">#FF23294C</color>
+    <color name="secondary_container_blue_dark">#FF2F3766</color>
+    <color name="on_secondary_container_blue_dark">#FFBEC4E6</color>
+
+    <color name="tertiary_blue_dark">#FFE6C3CE</color>
+    <color name="on_tertiary_blue_dark">#FF4C323B</color>
+    <color name="tertiary_container_blue_dark">#FF66434F</color>
+    <color name="on_tertiary_container_blue_dark">#FFE6CDD5</color>
+
+    <color name="error_blue_dark">#FFE69490</color>
+    <color name="on_error_blue_dark">#FF4C100D</color>
+    <color name="error_container_blue_dark">#FF661511</color>
+    <color name="on_error_container_blue_dark">#FFE6ACA9</color>
+
+    <color name="background_blue_dark">#FF313233</color>
+    <color name="on_background_blue_dark">#FFe2e5e6</color>
+
+    <color name="surface_blue_dark">#FF313233</color>
+    <color name="on_surface_blue_dark">#FFE2E5E6</color>
+
+    <color name="surface_variant_blue_dark">#FF556166</color>
+    <color name="on_surface_variant_blue_dark">#FFD4E0E6</color>
+
+    <color name="outline_blue_dark">#FF283F43</color>
+    <color name="outline_variant_blue_dark">#FF7F9199</color>
+
+    <!-- Blue toned Light Color Section -->
+    <color name="primary_blue_light">#FF25ACE8</color>
+    <color name="on_primary_blue_light">#FFFFFFFF</color>
+    <color name="primary_container_blue_light">#FFA9D3E6</color>
+    <color name="on_primary_container_blue_light">#FF082633</color>
+
+    <color name="secondary_blue_light">#FF6173D5</color>
+    <color name="on_secondary_blue_light">#FFFFFFFF</color>
+    <color name="secondary_container_blue_light">#FFBEC4E6</color>
+    <color name="on_secondary_container_blue_light">#FF171C33</color>
+
+    <color name="tertiary_blue_light">#FF7D5260</color>
+    <color name="on_tertiary_blue_light">#FFFFFFFF</color>
+    <color name="tertiary_container_blue_light">#FFE6CDD5</color>
+    <color name="on_tertiary_container_blue_light">#FF332227</color>
+
+    <color name="error_blue_light">#FFB3261E</color>
+    <color name="on_error_blue_light">#FFFFFFFF</color>
+    <color name="error_container_blue_light">#FFE6ACA9</color>
+    <color name="on_error_container_blue_light">#FF330B09</color>
+
+    <color name="background_blue_light">#FFFBFCFC</color>
+    <color name="on_background_blue_light">#FF313233</color>
+
+    <color name="surface_blue_light">#FFFBFCFC</color>
+    <color name="on_surface_blue_light">#FF313233</color>
+
+    <color name="surface_variant_blue_light">#FFD9E2E6</color>
+    <color name="on_surface_variant_blue_light">#FF556166</color>
+
+    <color name="outline_blue_light">#FF7F9199</color>
+    <color name="outline_variant_blue_light">#FF283F43</color>
+
+
+</resources>

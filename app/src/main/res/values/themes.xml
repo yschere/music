@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Original Theme.Music here -->
+<!--    <style name="Theme.Music" parent="android:Theme.Material.Light.NoActionBar" />-->
+
+    <!-- Trying different theme to see if it changes preview / emulator rendering -->
+    <style name="Theme.Music" parent="android:Theme.Material.Light.DarkActionBar" />
+</resources>

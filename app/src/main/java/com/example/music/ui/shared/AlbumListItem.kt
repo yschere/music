@@ -1,0 +1,413 @@
+/*
+ * Copyright 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.example.music.ui.shared
+
+import android.annotation.SuppressLint
+import androidx.compose.material3.FloatingActionButton
+import android.content.res.Configuration
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.DensityLarge
+import androidx.compose.material.icons.filled.DensityMedium
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircleFilled
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.Reorder
+import androidx.compose.material.icons.rounded.PlayCircleFilled
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
+import androidx.compose.ui.unit.min
+import com.example.music.R
+import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.component.HtmlTextContainer
+import com.example.music.designsys.theme.MusicShapes
+import com.example.music.domain.testing.PreviewAlbums
+import com.example.music.domain.testing.PreviewArtists
+import com.example.music.domain.testing.PreviewSongs
+import com.example.music.domain.testing.getSongData
+import com.example.music.domain.testing.getAlbumData
+import com.example.music.domain.testing.getArtistData
+import com.example.music.model.AlbumInfo
+import com.example.music.model.ArtistInfo
+import com.example.music.model.SongInfo
+import com.example.music.player.model.PlayerSong
+import com.example.music.ui.player.formatString
+import com.example.music.ui.theme.MusicTheme
+import java.time.Duration
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import kotlin.math.min
+
+@Composable
+fun AlbumListItem(
+    album: AlbumInfo,
+    onClick: (AlbumInfo) -> Unit,
+    //TODO: will want to add navigateToAlbumDetails onClick action at some point as well as declaration and implementation
+    //TODO: will want to add onQueueAlbum onClick action if I keep the FAB over each album in box version
+    modifier: Modifier = Modifier,
+    boxOrRow: Boolean, //using to set if viewing as box version(true) or row version(false)
+    /*//not passing in artistInfo from ArtistDetailsScreen because want to use album's album artist id info instead
+    // onQueueSong: (PlayerSong) -> Unit, //don't think onQueueSong will be needed for list item, but maybe a navigate to album details screen btn instead
+    // showAlbumImage: Boolean, //this should be true all the time, so is unnecessary for album list item
+    // showAlbumTitle: Boolean, //this should be true all the time, so is unnecessary for album list item
+    // maybe a song count property? if that can be shown or is wanted? wait no that's part of albumWithExtraInfo,
+    // so would need to pass that instead of Album
+    */
+) {
+    // TWO TYPES OF VIEWABLE OPTIONS
+    // BOX for album overhead details
+        //this would need header and footer, header for the album image section, footer for the album title section
+    // ROW for album overhead details
+        //this would look similar to song list item, album image first in row, album name with album artist name below it in second section, more options btn on the far right side
+    //For now keeping both as separate options thru boolean check: box(true) or row(false)
+    //information i want to show: album name, album image, album artist name
+    //information i could show: song count
+    Box(modifier = modifier.padding(0.dp)) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.background,
+            onClick = {},
+            //modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            if (boxOrRow){
+                AlbumListItemBox(
+                    album = album,
+                    onClick = onClick,
+                    modifier = modifier,
+                )
+            } else {
+                AlbumListItemRow(
+                    album = album,
+                    onClick = onClick,
+                    modifier = modifier,
+                )
+            }
+        }
+    }
+}
+
+//TODO: see if it would be better to use Card?
+@Composable
+private fun AlbumListItemBox(
+    album: AlbumInfo,
+    onClick: (AlbumInfo) -> Unit,
+    modifier: Modifier,
+) {
+    /*
+    maybe want the box with constraints thing up here?
+     and then within it have base column structure?
+     maybe have header and footer with their own separate constraints? that adhere to parent constraint
+    */
+/*      //////// VERSION 1 /////////
+//    Column(
+//        modifier = Modifier.padding(10.dp).size(210.dp, 280.dp)
+//    ) {
+//        // Top Part
+//        AlbumListItemHeader(
+//            album = album, //miiiight want this to be album with extra info, so that song count can be passed in here
+//            onClick = {},
+//            modifier = Modifier.padding(bottom = 8.dp)
+//            //this one should have the floating action button in it
+//        )
+//
+//        // Bottom Part
+//        AlbumListItemFooter(
+//            album = album, //miiiight want a way to have album artist name passed in here
+//            onClick = {},
+//            //onQueueSong = onQueueSong,
+//            modifier = Modifier.padding(bottom = 8.dp)
+//            //this one should have the more options button in it
+//        )
+//    }
+*/
+
+    //////// VERSION 2 //////// trying with box with constraints and actually setting constraints
+
+    /*
+        want to make it so that
+        min width and min height are passed-in, default values
+        max width and max height are dependent on size of phone screen or grid rules
+        use of grid rules would need to be made from the calling object
+    */
+
+        Column(
+            modifier = Modifier.padding(8.dp).background(MaterialTheme.colorScheme.background),
+                //.size(maxHeaderWidth, maxHeaderHeight)
+                //.size(200.dp, 280.dp) //for future context: width 200.dp by height 280.dp had the width of the box go passed half way on the pixel 7, the height was a 3rd of the screen. no padding to the outside of the box so its flat against the window sides
+                //more future context: in landscape mode, width 200 by height 280 meant the height covered most of the screen when taking status bar and bottom screen bar into acct
+                //.size(boxWithConstraintsScope.maxWidth/3, boxWithConstraintsScope.maxHeight/4)
+        ) {
+            // Top Part
+            AlbumListItemHeader(
+                album = album, //miiiight want this to be album with extra info, so that song count can be passed in here
+                onClick = {},
+                //modifier = Modifier.padding(bottom = 8.dp)
+                //this one should have the floating action button in it
+            )
+
+            // Bottom Part
+            AlbumListItemFooter(
+                album = album, //miiiight want a way to have album artist name passed in here
+                onClick = {},
+                //onQueueSong = onQueueSong,
+                //modifier = Modifier.padding(bottom = 8.dp)
+                //this one should have the more options button in it
+            )
+    }
+}
+
+@Composable
+private fun AlbumListItemRow(
+    album: AlbumInfo,
+    onClick: (AlbumInfo) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    //uses same structural concept as song list item row
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(8.dp).background(MaterialTheme.colorScheme.background),
+    ) {
+        AlbumListItemImage(
+            album = album,
+            modifier = Modifier
+                .size(56.dp)
+                .clip(MaterialTheme.shapes.small)
+        )
+
+        Column(modifier.weight(1f)) {
+            Text(
+                text = album.title,
+                maxLines = 1,
+                minLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
+            )
+            Row(
+                modifier = modifier.padding(horizontal = 10.dp)
+            ) {
+                Text(
+                    text = getArtistData(album.albumArtistId!!).name,
+                    maxLines = 1,
+                    minLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(vertical = 2.dp),
+                )
+                Text(
+                    text = " • " + album.songCount.toString() + if(album.songCount == 1) " song" else " songs",
+                    maxLines = 1,
+                    minLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(vertical = 2.dp),
+                )
+            }
+        }
+
+        IconButton( //more options button
+            //modifier = Modifier.padding(0.dp),
+            onClick = { /* TODO */ }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
+        ) {
+            Icon( //more options icon
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.cd_more),
+                //tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AlbumListItemFooter(
+    album: AlbumInfo,
+    //onQueueSong: (PlayerSong) -> Unit,
+    onClick: (AlbumInfo) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    //want a main row that contains two parts, first part is a column of album + album artist, second part is more options btn
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
+        Column(modifier = modifier.weight(1f)) {
+            Text(
+                text = album.title,
+                maxLines = 1,
+                minLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(4.dp)
+            )
+            Text(
+                text = getArtistData(album.albumArtistId!!).name,
+                maxLines = 1,
+                minLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(4.dp)
+            )
+        }
+        IconButton(//more options button
+            modifier = Modifier.padding(vertical = 12.dp),
+            onClick = { /* TODO */ }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
+        ) {
+            Icon( //more options icon
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.cd_more),
+                //tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.primary,
+                //modifier = Modifier.padding(4.dp)
+            )
+        }
+    }
+}
+
+//TODO: see if it would be better to use Card?
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+private fun AlbumListItemHeader(
+    album: AlbumInfo,
+    onClick: (AlbumInfo) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    //need a way to set the album image as the "background" of the header, and have the
+    // song count as the foreground
+    // the FAB / floating action button will be on the bottom right of the box
+    BoxWithConstraints (
+        modifier = modifier,
+        contentAlignment = Alignment.BottomStart,
+        propagateMinConstraints = true,
+    ) {
+        //val boxWithConstraintsScope = this
+        val maxHeaderWidth = max(150.dp, this.maxWidth/2)
+        val maxHeaderHeight = maxHeaderWidth// + 70.dp
+        AlbumListItemImage(
+            album = album,
+            modifier = Modifier
+                .fillMaxWidth()
+                //.height(210.dp)
+                .size(maxHeaderWidth, maxHeaderHeight)
+                .clip(MaterialTheme.shapes.medium)
+        )
+
+        Text(
+            text = album.songCount.toString() + if (album.songCount == 1) " song" else " songs",
+            maxLines = 1,
+            minLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.surface,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(10.dp)
+        )
+        //floating action button here
+        SmallFloatingActionButton(
+            content = { Icon( Icons.Filled.PlayArrow,"Play Album" )},
+            onClick = {},
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(6.dp),
+            shape = CircleShape,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+    }
+}
+
+@Composable
+private fun AlbumListItemImage(
+    album: AlbumInfo,
+    modifier: Modifier = Modifier
+) {
+    AlbumImage(
+        //albumImage = album.artwork!!,
+        //albumImage = R.drawable.bpicon,
+        contentDescription = null,
+        modifier = modifier,
+    )
+}
+
+@Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
+//@Preview( name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES )
+@Composable
+private fun AlbumListItem_BOXPreview() {
+    MusicTheme {
+        AlbumListItem(
+            album = PreviewAlbums[0],
+            onClick = {},
+            modifier = Modifier,
+            boxOrRow = true,
+        )
+    }
+}
+
+@Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
+@Composable
+private fun AlbumListItem_ROWPreview() {
+    MusicTheme {
+        AlbumListItem(
+            album = PreviewAlbums[4],
+            onClick = {},
+            modifier = Modifier,
+            boxOrRow = false,
+        )
+    }
+}
