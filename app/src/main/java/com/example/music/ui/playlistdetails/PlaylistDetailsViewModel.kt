@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.example.music.ui.album
+package com.example.music.ui.playlistdetails
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.data.repository.AlbumStore
-import com.example.music.data.repository.SongStore
-import com.example.music.model.AlbumInfo
+import com.example.music.data.repository.PlaylistStore
+import com.example.music.model.PlaylistInfo
 import com.example.music.model.SongInfo
 import com.example.music.model.asExternalModel
 import com.example.music.player.SongPlayer
@@ -33,52 +32,48 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
-sealed interface AlbumUiState {
-    data object Loading : AlbumUiState
+sealed interface PlaylistUiState {
+    data object Loading : PlaylistUiState
     data class Ready(
-        val album: AlbumInfo,
+        val playlist: PlaylistInfo,
         val songs: List<SongInfo>,
-    ) : AlbumUiState
+    ) : PlaylistUiState
 }
 
 /**
- * ViewModel that handles the business logic and screen state of the Album details screen.
+ * ViewModel that handles the business logic and screen state of the Playlist details screen.
  */
-@HiltViewModel(assistedFactory = AlbumDetailsViewModel.AlbumDetailsViewModelFactory::class)
-class AlbumDetailsViewModel @AssistedInject constructor(
-    private val songStore: SongStore,
+@HiltViewModel(assistedFactory = PlaylistDetailsViewModel.PlaylistDetailsViewModelFactory::class)
+class PlaylistDetailsViewModel @AssistedInject constructor(
     private val songPlayer: SongPlayer,
-    private val albumStore: AlbumStore,
-    @Assisted val albumId: Long,
-    //albumId is an argument needed for the album details to view
+    private val playlistStore: PlaylistStore,
+    @Assisted val playlistId: Long,
 ) : ViewModel() {
 
     @AssistedFactory
-    interface AlbumDetailsViewModelFactory {
-        fun create(albumId: Long): AlbumDetailsViewModel
+    interface PlaylistDetailsViewModelFactory {
+        fun create(albumId: Long): PlaylistDetailsViewModel
     }
 
-    val state: StateFlow<AlbumUiState> =
+    val state: StateFlow<PlaylistUiState> =
         combine( //want to use this to store the information needed to correctly determine the album and songs to view
-            albumStore.albumWithExtraInfo(albumId),
-            songStore.songsInAlbum(albumId)
-        ) { album, songsToAlbum ->
-            val songs = songsToAlbum.map { it.song.asExternalModel() }
-            AlbumUiState.Ready(
-                album = album.album.asExternalModel(),//.copy(isSubscribed = podcast.isFollowed),
+            playlistStore.getPlaylistExtraInfo(playlistId),
+            playlistStore.getSongsInPlaylistSortedByTrackNumberAsc(playlistId)
+        ) { playlist, _songs ->
+            val songs = _songs.map { it.asExternalModel() }
+            PlaylistUiState.Ready(
+                playlist = playlist.asExternalModel(),
                 songs = songs,
             )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = AlbumUiState.Loading
+            initialValue = PlaylistUiState.Loading
         )
 
     fun onQueueSong(playerSong: PlayerSong) {
         songPlayer.addToQueue(playerSong)
     }
-
 
 }

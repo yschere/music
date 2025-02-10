@@ -81,7 +81,7 @@ class ArtistDetailsViewModel @AssistedInject constructor(
             initialValue = ArtistUiState.Loading
         )
 
-        //miiiiight very likely need a line for navigate to album details btn
+        //might very likely need a line for navigate to album details btn
 
 //    fun onQueueSong(playerSong: PlayerSong) {
 //        songPlayer.addToQueue(playerSong)

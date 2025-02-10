@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package com.example.music.ui.album
+package com.example.music.ui.playlistdetails
 
 import android.content.res.Configuration
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.EaseOutExpo
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -37,46 +32,36 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -84,34 +69,25 @@ import androidx.compose.ui.unit.min
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
-import com.example.music.data.database.model.SongToAlbum
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.Keyline1
 import com.example.music.domain.testing.PreviewAlbums
+import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.testing.getArtistData
-import com.example.music.domain.testing.getAlbumData
-import com.example.music.domain.testing.getSongData
-import com.example.music.domain.testing.getGenreData
 import com.example.music.model.AlbumInfo
+import com.example.music.model.PlaylistInfo
 import com.example.music.model.SongInfo
 import com.example.music.player.model.PlayerSong
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.SongListItem
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
-import com.example.music.designsys.theme.MusicTypography
-import com.example.music.designsys.theme.blueDarkSet
-import com.example.music.designsys.theme.blueLightSet
-import com.example.music.model.AlbumToSongInfo
-import com.example.music.model.ArtistInfo
-import com.example.music.ui.theme.blueDarkColorSet
-import com.example.music.ui.theme.blueLightColorSet
 import com.example.music.ui.theme.MusicTheme
 
 @Composable
-fun AlbumDetailsScreen(
-    viewModel: AlbumDetailsViewModel = hiltViewModel(),
+fun PlaylistDetailsScreen(
+    viewModel: PlaylistDetailsViewModel = hiltViewModel(),
     navigateToPlayer: (SongInfo) -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -119,14 +95,14 @@ fun AlbumDetailsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     when (val s = state) {
-        is AlbumUiState.Loading -> {
-            AlbumDetailsLoadingScreen(
+        is PlaylistUiState.Loading -> {
+            PlaylistDetailsLoadingScreen(
                 modifier = Modifier.fillMaxSize()
             )
         } // screen to show when ui state is in loading
-        is AlbumUiState.Ready -> {
-            AlbumDetailsScreen(
-                album = s.album,
+        is PlaylistUiState.Ready -> {
+            PlaylistDetailsScreen(
+                playlist = s.playlist,
                 songs = s.songs,
                 onQueueSong = viewModel::onQueueSong,
                 navigateToPlayer = navigateToPlayer,
@@ -139,13 +115,13 @@ fun AlbumDetailsScreen(
 }
 
 @Composable
-private fun AlbumDetailsLoadingScreen(
+private fun PlaylistDetailsLoadingScreen(
     modifier: Modifier = Modifier
 ) { Loading(modifier = modifier) }
 
 @Composable
-fun AlbumDetailsScreen(
-    album: AlbumInfo,
+fun PlaylistDetailsScreen(
+    playlist: PlaylistInfo,
     songs: List<SongInfo>,
     onQueueSong: (PlayerSong) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
@@ -162,7 +138,7 @@ fun AlbumDetailsScreen(
         modifier = modifier.fillMaxSize(), //says to use max size of screen?
         topBar = { // lambda function? that contains if check for topbar showing back button??
             if (showBackButton) {
-                AlbumDetailsTopAppBar(
+                PlaylistDetailsTopAppBar(
                     navigateBack = navigateBack,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -174,8 +150,8 @@ fun AlbumDetailsScreen(
         //contentColor = MaterialTheme.colorScheme.background,
         //containerColor = MaterialTheme.colorScheme.surfaceVariant,
     ) { contentPadding -> //not sure why content padding into content function done in this way
-        AlbumDetailsContent(
-            album = album,
+        PlaylistDetailsContent(
+            playlist = playlist,
             songs = songs,
             onQueueSong = {
                 coroutineScope.launch { //use the onQueueSong btn onClick to trigger snackbar
@@ -190,8 +166,8 @@ fun AlbumDetailsScreen(
 }
 
 @Composable
-fun AlbumDetailsContent(
-    album: AlbumInfo,
+fun PlaylistDetailsContent(
+    playlist: PlaylistInfo,
     songs: List<SongInfo>,
     onQueueSong: (PlayerSong) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
@@ -234,8 +210,8 @@ fun AlbumDetailsContent(
                 //album = album,
                 //modifier = Modifier.fillMaxWidth()
             //)
-            AlbumDetailsHeader(
-                album = album,
+            PlaylistDetailsHeader(
+                playlist = playlist,
                 songSize = songs.size,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -244,6 +220,7 @@ fun AlbumDetailsContent(
             SongListItem( //call the SongListItem function to display each one, include the data needed to display item in full,
                 //and should likely share context from where this call being made incase specific data needs to be shown / not shown
                 song = song,
+                //artist = artist,
                 album = album,
                 onClick = navigateToPlayer,
                 onQueueSong = onQueueSong,
@@ -259,8 +236,8 @@ fun AlbumDetailsContent(
 }
 
 @Composable
-fun AlbumDetailsHeaderItem(
-    album: AlbumInfo,
+fun PlaylistDetailsHeaderItem(
+    playlist: PlaylistInfo,
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
@@ -280,18 +257,18 @@ fun AlbumDetailsHeaderItem(
                         //.background(MaterialTheme.colorScheme.onPrimary),
                     //albumImage = album.artwork!!,//album.imageUrl or album.artwork when that is fixed
                     albumImage = 1,
-                    contentDescription = album.title
+                    contentDescription = playlist.name
                 )
                 Column(
                     modifier = Modifier.padding(start = 16.dp)
                 ) {
                     Text(
-                        text = album.title,
+                        text = playlist.name,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.headlineMedium
                     )
-                    AlbumDetailsHeaderItemButtons(
+                    PlaylistDetailsHeaderItemButtons(
                         onClick = {},
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -301,10 +278,9 @@ fun AlbumDetailsHeaderItem(
     }
 }
 
-
 @Composable
-fun AlbumDetailsHeader(
-    album: AlbumInfo,
+fun PlaylistDetailsHeader(
+    playlist: PlaylistInfo,
     songSize: Int,
     modifier: Modifier = Modifier
 ) {
@@ -328,7 +304,7 @@ fun AlbumDetailsHeader(
                     modifier = Modifier.padding(start = 16.dp)
                 ) {
                     Text(
-                        text = album.title,
+                        text = playlist.name,
                         color = MaterialTheme.colorScheme.primary,
                         maxLines = 2,
                         overflow = TextOverflow.Visible,
@@ -354,12 +330,10 @@ fun AlbumDetailsHeader(
     }
 }
 
-
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun AlbumDetailsHeaderLargeAlbumCover(
-    album: AlbumInfo,
+fun PlaylistDetailsHeaderLargeAlbumCover(
+    playlist: PlaylistInfo,
     modifier: Modifier = Modifier,
 ) { //used to show album image as screen header
     Box(modifier = modifier.padding(Keyline1)) {
@@ -370,7 +344,7 @@ fun AlbumDetailsHeaderLargeAlbumCover(
                     .clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.onPrimary),
                 //albumImage = album.artwork!!,//album.imageUrl or album.artwork when that is fixed
                 albumImage = 1,
-                contentDescription = album.title
+                contentDescription = playlist.name
             )
         }
     }
@@ -399,7 +373,7 @@ fun AlbumDetailsHeaderLargeAlbumCover(
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        text = album.title
+                        text = playlist.name
                     )
                 }
             )
@@ -421,11 +395,10 @@ fun AlbumDetailsHeaderLargeAlbumCover(
             )
         }
     }
-
 }
 
 @Composable
-fun AlbumDetailsHeaderItemButtons(
+fun PlaylistDetailsHeaderItemButtons(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -470,7 +443,7 @@ fun AlbumDetailsHeaderItemButtons(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlbumDetailsTopAppBar(
+fun PlaylistDetailsTopAppBar(
     navigateBack: () -> Unit,
     //should include album more options btn action here,
     //pretty sure that button also needs a context driven options set
@@ -507,23 +480,13 @@ fun AlbumDetailsTopAppBar(
 //@Preview (name = "light mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Preview (name = "dark mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun AlbumDetailsHeaderItemPreview() {
+fun PlaylistDetailsHeaderItemPreview() {
     MusicTheme {
-        AlbumDetailsHeaderItem(
-            album = PreviewAlbums[0],
+        PlaylistDetailsHeaderItem(
+            playlist = PreviewPlaylists[1],
         )
     }
 }
-
-//@Preview
-//@Composable
-//fun HeaderAlbumCoverPreview() {
-//    MusicTheme {
-//        AlbumDetailsHeaderLargeAlbumCover(
-//            album = PreviewAlbums[0]
-//        )
-//    }
-//}
 
 @Preview
 //@Preview (name = "light mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
@@ -531,8 +494,8 @@ fun AlbumDetailsHeaderItemPreview() {
 @Composable
 fun AlbumDetailsScreenPreview() {
     MusicTheme {
-        AlbumDetailsScreen(
-            album = PreviewAlbums[0],
+        PlaylistDetailsScreen(
+            playlist = PreviewPlaylists[0],
             songs = PreviewSongs,
             onQueueSong = { },
             navigateToPlayer = { },

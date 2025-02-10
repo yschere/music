@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.music.ui.library.genre
+package com.example.music.ui.home.genre
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -146,10 +146,10 @@ private fun GenreAlbumRow(
             key = { it.id }
         ) { album ->
             TopAlbumRowItem(
-                albumTitle = album.title,//com.example.music.ui.albumdetails.title,
-                albumImageId = "image",//com.example.music.ui.albumdetails.imageUrl,
-                //isFollowed = true,//com.example.music.ui.albumdetails.isSubscribed ?: false,
-                //onToggleFollowClicked = { onTogglePodcastFollowed(com.example.music.ui.albumdetails) },
+                albumTitle = album.title,//com.example.music.ui.album.title,
+                albumImageId = "image",//com.example.music.ui.album.imageUrl,
+                //isFollowed = true,//com.example.music.ui.album.isSubscribed ?: false,
+                //onToggleFollowClicked = { onTogglePodcastFollowed(com.example.music.ui.album) },
                 modifier = Modifier
                     .width(128.dp)
                     .clickable {
