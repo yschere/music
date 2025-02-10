@@ -1,10 +1,9 @@
 package com.example.music.domain
 
-import com.example.music.data.database.model.Album
-import com.example.music.data.database.model.AlbumWithExtraInfo
-import com.example.music.data.repository.AlbumStore
-import com.example.music.model.AlbumInfo
-import com.example.music.model.AlbumSortModel
+import com.example.music.data.database.model.Genre
+import com.example.music.data.repository.GenreRepo
+import com.example.music.model.GenreInfo
+import com.example.music.model.GenreSortModel
 import com.example.music.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -16,56 +15,46 @@ import javax.inject.Inject
 /**
  * Use case for retrieving library albums to populate Albums List in Library Screen.
  */
-class GetLibraryAlbumsUseCase @Inject constructor(
-    private val albumStore: AlbumStore
+class GetLibraryGenresUseCase @Inject constructor(
+    private val genreRepo: GenreRepo
 ) {
     /**
-     * Create a [AlbumSortModel] from the list of albums in [albumStore].
-     * @param sortOption: the column to sort by. If not met, default to sorting by album title.
+     * Create a [GenreSortModel] from the list of genres in [genreRepo].
+     * @param sortOption: the column to sort by. If not met, default to sorting by genre name.
      * @param isAscending: the order to sort by. If true, sort Ascending. Else false, sort Descending.
      */
-    operator fun invoke(sortOption: String, isAscending: Boolean): Flow<AlbumSortModel> {
+    operator fun invoke(sortOption: String, isAscending: Boolean): Flow<GenreSortModel> {
         //how to choose which one is mapped, since either one can happen
-        var albumsList: Flow<List<Album>> = flowOf()
-        var albumsExtraList: Flow<List<AlbumWithExtraInfo>> = flowOf()
+        var genresList: Flow<List<Genre>> = flowOf()
         when (sortOption) {
-            "artist" -> {
-                albumsList = if (isAscending) albumStore.sortAlbumsByAlbumArtistAsc() else albumStore.sortAlbumsByAlbumArtistDesc()
-                return albumsList.map { albums ->
-                    AlbumSortModel(
-                        albums = albums.map { it.asExternalModel() },
-                        count = albumStore.count()
-                    )
-                }
-            }
-            "dateLastPlayed" -> {
-                albumsExtraList = if (isAscending) albumStore.sortAlbumsByDateLastPlayedAsc() else albumStore.sortAlbumsByDateLastPlayedDesc()
-                return albumsExtraList.map { albums ->
-                    AlbumSortModel(
-                        albums = albums.map { it.asExternalModel() },
-                        count = albumStore.count()
+            "albumCount" -> {
+                genresList = if (isAscending) genreRepo.sortGenresByAlbumCountAsc() else genreRepo.sortGenresByAlbumCountDesc()
+                return genresList.map { genres ->
+                    GenreSortModel(
+                        genres = genres.map { it.asExternalModel() },
+                        count = genreRepo.count()
                     )
                 }
             }
             "songCount" -> {
-                albumsExtraList = if (isAscending) albumStore.sortAlbumsBySongCountAsc() else albumStore.sortAlbumsBySongCountDesc()
-                return albumsExtraList.map { albums ->
-                    AlbumSortModel(
-                        albums = albums.map { it.asExternalModel() },
-                        count = albumStore.count()
+                genresList = if (isAscending) genreRepo.sortGenresBySongCountAsc() else genreRepo.sortGenresBySongCountDesc()
+                return genresList.map { genres ->
+                    GenreSortModel(
+                        genres = genres.map { it.asExternalModel() },
+                        count = genreRepo.count()
                     )
                 }
             }
             else -> {
-                albumsList = if (isAscending) albumStore.sortAlbumsByTitleAsc() else albumStore.sortAlbumsByTitleDesc()
+                genresList = if (isAscending) genreRepo.sortGenresByNameAsc() else genreRepo.sortGenresByNameDesc()
             }
         }
 
         //using this as the final catch all, but using the when cases to return if the option is met
-        return albumsList.map { albums ->
-            AlbumSortModel(
-                albums = albums.map { it.asExternalModel() },
-                count = albumStore.count()
+        return genresList.map { genres ->
+            GenreSortModel(
+                genres = genres.map { it.asExternalModel() },
+                count = genreRepo.count()
             )
         }
     }

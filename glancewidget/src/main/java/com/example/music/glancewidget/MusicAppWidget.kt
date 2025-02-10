@@ -1,19 +1,3 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.glancewidget
 
 import android.content.Context
@@ -67,17 +51,12 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-//import com.example.music.designsys.component.AlbumImage
-//import com.example.music.designsys.component.AlbumImage_Widget
 import com.example.music.designsys.theme.blueDarkSet
 import com.example.music.designsys.theme.blueLightSet
-//import coil.ImageLoader
-//import coil.request.ErrorResult
-//import coil.request.ImageRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-internal val TAG = "MusicAppWidegt"
+internal const val TAG = "MusicAppWidget"
 
 /**
  * Implementation of App Widget functionality.
@@ -300,7 +279,8 @@ private fun WidgetAsyncImage(
 //            provider = ImageProvider(bitmap),
 //            contentDescription = contentDescription,
 //            contentScale = ContentScale.FillBounds,
-//            modifier = modifier.cornerRadius(12.dp) // TODO: confirm radius with design
+//            modifier = modifier.cornerRadius(12.dp)
+            // TODO: confirm radius with design
 //        )
 //    }
 }

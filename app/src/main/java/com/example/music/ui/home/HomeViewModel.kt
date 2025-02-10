@@ -1,91 +1,60 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.ui.home
 
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.data.database.model.SongToAlbum
-import com.example.music.data.repository.AlbumStore
-import com.example.music.data.repository.GenreStore
-import com.example.music.data.repository.SongStore
-import com.example.music.domain.AlbumGenreFilterUseCase
-import com.example.music.domain.FilterableGenresUseCase
-import com.example.music.domain.testing.PreviewAlbumSongs
-import com.example.music.model.AlbumGenreFilterResult
+import com.example.music.data.database.model.Artist
+import com.example.music.data.repository.PlaylistRepo
+import com.example.music.data.repository.SongRepo
+import com.example.music.domain.FeaturedLibraryItemsUseCase
+import com.example.music.domain.GetAlbumDataUseCase
+import com.example.music.domain.GetArtistDataUseCase
 import com.example.music.model.AlbumInfo
-import com.example.music.model.FilterableGenresModel
-import com.example.music.model.GenreInfo
-import com.example.music.model.LibraryInfo
-import com.example.music.model.asAlbumToSongInfo
-import com.example.music.model.asExternalModel
+import com.example.music.model.ArtistInfo
+import com.example.music.model.FeaturedLibraryItemsFilterResult
+import com.example.music.model.PlaylistInfo
 import com.example.music.player.SongPlayer
 import com.example.music.player.model.PlayerSong
+import com.example.music.player.model.toPlayerSong
+import com.example.music.ui.Screen
+import com.example.music.util.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.collections.immutable.PersistentList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toPersistentList
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import org.apache.log4j.BasicConfigurator
 import javax.inject.Inject
 
-//is this where all the possible views for home screen goes?
+private val logger = KotlinLogging.logger{}
 //this is where all the components to create the HomeScreen view are stored/collected
-//TODO: list our the components needed for HomeScreen, and attach needed stores, repositories, models, useCases
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val albumGenreFilterUseCase: AlbumGenreFilterUseCase,
-    private val filterableGenresUseCase: FilterableGenresUseCase,
-    //private val playlistStore: PlaylistStore,
-    private val albumStore: AlbumStore,
-    //private val artistStore: ArtistStore,
-    private val genreStore: GenreStore,
-    private val songStore: SongStore,
+    private val featuredLibraryItemsUseCase: FeaturedLibraryItemsUseCase,
+    private val getArtistDataUseCase: GetArtistDataUseCase,
+    private val getAlbumDataUseCase: GetAlbumDataUseCase,
     private val songPlayer: SongPlayer
 ) : ViewModel() {
-    //TODO: mutable flow state objects that home screen needs should be determined
-    // before trying to edit this any further. Not sure what views I want to have
-    // on the Home screen just yet.
+    /* ------ Current running UI needs:  ------
+        objects: FeaturedLibraryItemsFilterResult, which contains
+            Recent Playlists: list of most recently played playlists, limit passed as int 5
+            Recently Added Songs: list of most recently added songs to library, limit passed as int 10
+        means of retrieving object: FeaturedLibraryItemsUseCase
+     */
 
+    private val selectedLibraryPlaylist = MutableStateFlow<PlaylistInfo?>(null)
 
-    // Holds our currently selected album, playlist, genre in the library
-    //private val selectedLibraryPodcast = MutableStateFlow<PodcastInfo?>(null)
-    private val selectedLibraryAlbum = MutableStateFlow<AlbumInfo?>(null)
-    //private val selectedLibraryPlaylist = MutableStateFlow<PlaylistInfo?>(null)
-    private val selectedLibraryGenre = MutableStateFlow<GenreInfo?>(null)
-
-    // Holds our currently selected home category
-    private val selectedHomeCategory = MutableStateFlow(HomeCategory.Discover) //where tf is home category from
-
-    // Holds the currently available home categories
-    private val homeCategories = MutableStateFlow(HomeCategory.entries)
-
-    // Holds our currently selected category
-    //private val _selectedCategory = MutableStateFlow<CategoryInfo?>(null)
-    private val _selectedGenre = MutableStateFlow<GenreInfo?>(null)
-    //private val _selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
+    private val featuredLibraryItems = featuredLibraryItemsUseCase() //returns Flow<FeaturedLibraryItemsFilterResult>
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     // Holds our view state which the UI collects via [state]
     private val _state = MutableStateFlow(HomeScreenUiState())
@@ -93,67 +62,65 @@ class HomeViewModel @Inject constructor(
     // Holds the view state if the UI is refreshing for new data
     private val refreshing = MutableStateFlow(false)
 
-//    private val subscribedPodcasts = podcastStore.followedPodcastsSortedByLastEpisode(limit = 10)
-//        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-    //using subscribedPodcasts as base for determining this variable's necessity
-    //private val genreId = if (_selectedGenre.value) _selectedGenre.value!!.id else 0
+    /* ------ Objects used in previous iterations:  ------
+    private val _featuredLibraryItems = MutableStateFlow<FeaturedLibraryItemsFilterResult?>(null)
 
-    //TODO: need way to adjust this from genre to album
-    private val latestAlbums = albumStore.albumsSortedByLastPlayedSong()
+    private val featuredLibraryItems1 = MutableStateFlow(FeaturedLibraryItemsUseCase(songRepo, playlistRepo))
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-//    private val albumsInGenre = genreStore.albumsInGenreSortedByLastPlayedSong(genreId)
-//        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    private val featuredLibraryItems3 = featuredLibraryItemsUseCase()
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    private val featuredPlaylists = playlistRepo.sortPlaylistsByDateLastPlayedDesc(5)
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    private val featuredSongs = songRepo.sortSongsByDateLastPlayedDesc(10)
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+    */
 
     val state: StateFlow<HomeScreenUiState>
         get() = _state
 
     init {
+        BasicConfigurator.configure()
+        logger.info { "Home View Model - viewModelScope launch start" }
         viewModelScope.launch {
             // Combines the latest value from each of the flows, allowing us to generate a
             // view state instance which only contains the latest values.
-            com.example.music.util.combine(
-                homeCategories,
-                selectedHomeCategory,
-                latestAlbums, //using in place of subscribedPodcasts -- Podcasts to allow for
-                // something for selectedHomeCategory.value
-                // to compare against in if statement
+            combine(
+                //featuredPlaylists,
+                //featuredSongs,
                 refreshing,
-                _selectedGenre.flatMapLatest { selectedGenre ->
-                    filterableGenresUseCase(selectedGenre)
-                },
-                _selectedGenre.flatMapLatest {
-                    albumGenreFilterUseCase(it)
-                },
-                latestAlbums.flatMapLatest { albums ->
-                    songStore.songsInAlbums(
-                        albumIds = albums.map { it.album.id },
-                        limit = 10
-                    )
-                }
+                featuredLibraryItems,
             ) {
-                homeCategories,
-                homeCategory,
-                albums,
+                //playlists,
+                //songs,
                 refreshing,
-                filterableGenres,
-                albumGenreFilterResult,
-                librarySongs ->
+                libraryItems,
+                ->
 
-                _selectedGenre.value = filterableGenres.selectedGenre
-
-                // Override selected home category to show 'DISCOVER' if there are no
-                // featured podcasts
-                selectedHomeCategory.value =
-                    if (albums.isEmpty()) HomeCategory.Discover else homeCategory
+                logger.info { "Home View Model - viewModelScope launch - combine start" }
+                logger.info { "Home View Model - viewModelScope launch - combine - refreshing: $refreshing" }
+                logger.info { "Home View Model - viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}" }
+                logger.info { "Home View Model - viewModelScope launch - combine - libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}" }
 
                 HomeScreenUiState(
                     isLoading = refreshing,
-                    homeCategories = homeCategories,
-                    selectedHomeCategory = homeCategory,
-                    featuredAlbums = albums.map { it.asExternalModel() }.toPersistentList(),
-                    filterableGenresModel = filterableGenres,
-                    albumGenreFilterResult = albumGenreFilterResult,
-                    library = librarySongs.asLibrary()
+                    featuredLibraryItemsFilterResult = libraryItems,
+                    //featuredPlaylists = playlists.map { it.asExternalModel() }.toPersistentList(),
+                    //featuredSongs = songs.map { it.asExternalModel() }.toPersistentList(),
+                    playerSongs = libraryItems.recentlyAddedSongs.map { item ->
+                        logger.info { "Song to PlayerSong: ${item.id}" }
+                        val art = getArtistDataUseCase(item).first() ?: ArtistInfo()
+                        logger.info { " art: ${art.name}" }
+                        val alb = getAlbumDataUseCase(item).first() ?: AlbumInfo()
+                        logger.info { "alb: ${alb.title}" }
+                        PlayerSong(
+                            item,
+                            art,
+                            alb,
+                        )
+                    }//TODO: PlayerSong support
                 )
             }.catch { throwable ->
                 emit(
@@ -168,13 +135,17 @@ class HomeViewModel @Inject constructor(
         }
 
         refresh(force = false)
+
+        logger.info { "Home View Model - init end" }
     }
 
     fun refresh(force: Boolean = true) {
+        BasicConfigurator.configure()
+        logger.info { "Home View Model - refresh function start" }
+        logger.info { "Home View Model - refreshing: ${refreshing.value}" }
         viewModelScope.launch {
             runCatching {
                 refreshing.value = true
-                //podcastsRepository.updatePodcasts(force)
             }
             // TODO: look at result of runCatching and show any errors
 
@@ -182,70 +153,62 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    //TODO: retro fit this for library
     fun onHomeAction(action: HomeAction) {
         when (action) {
-            is HomeAction.GenreSelected -> onGenreSelected(action.genre)
-            is HomeAction.HomeCategorySelected -> onHomeCategorySelected(action.homeCategory)
-            //is HomeAction.LibraryPlaylistSelected -> onLibraryPlaylistSelected(action.playlist)
-            is HomeAction.LibraryAlbumSelected -> onLibraryAlbumSelected(action.album)
-            is HomeAction.LibraryGenreSelected -> onLibraryGenreSelected(action.genre)
+            //is HomeAction.ToggleNavMenu -> onNavigationViewMenu()
+            is HomeAction.LibraryPlaylistSelected -> onLibraryPlaylistSelected(action.playlist)
+            is HomeAction.EmptyLibraryView -> onEmptyPlaylistView()
             is HomeAction.QueueSong -> onQueueSong(action.song)
         }
     }
-
-    private fun onGenreSelected(genre: GenreInfo) {
-        _selectedGenre.value = genre
-    }
-
-    private fun onHomeCategorySelected(homeCategory: HomeCategory) {
-        selectedHomeCategory.value = homeCategory
-    }
-
-    private fun onLibraryAlbumSelected(album: AlbumInfo) {
-        selectedLibraryAlbum.value = album
-    }
-
-    private fun onLibraryGenreSelected(genre: GenreInfo) {
-        selectedLibraryGenre.value = genre
-    }
-
-//    private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
-//        selectedLibraryPlaylist.value = playlist
+//
+//    private fun onGenreSelected(genre: GenreInfo) {
+//        _selectedGenre.value = genre
 //    }
+//
+//    private fun onHomeCategorySelected(homeCategory: HomeCategory) {
+//        selectedHomeCategory.value = homeCategory
+//    }
+//
+//    private fun onLibraryAlbumSelected(album: AlbumInfo) {
+//        selectedLibraryAlbum.value = album
+//    }
+//
+//    private fun onLibraryGenreSelected(genre: GenreInfo) {
+//        selectedLibraryGenre.value = genre
+//    }
+    private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
+    selectedLibraryPlaylist.value = playlist
+    }
+
+//    private fun onNavigationViewMenu() {
+//        //toggle NavMenu view here
+//    }
+
+    private fun onEmptyPlaylistView() {
+        //featuredPlaylists = null
+    }
 
     private fun onQueueSong(song: PlayerSong) {
         songPlayer.addToQueue(song)
     }
 }
 
-//TODO: what does this one need to be if the List<SongInfo> cannot be SongInfo?
-// Do I have to make something else?
-// Can SongPlayerData or PlaylistToSongInfo be used to compensate?
-// Turned it into SongToAlbum so it can contain both song and album data
-private fun List<SongToAlbum>.asLibrary(): LibraryInfo =
-    LibraryInfo(
-        songs = this.map { it.asAlbumToSongInfo() }
-    )
-
 /**
  * Enumerated list of Home Screen tab options as Home Screen Categories.
  * --DIFFERENT FROM PODCAST CATEGORY/GENRE--
  * The second half of the Home Screen main pane generates tabs based on these home categories
- * Your Library ... not sure what this is supposed to show yet
+ * Your Library shows latest songs in library (sorted list of songs by last played desc
  * Discover shows chips of genres in library (currently pulling form domainTesting/PreviewData.kt)
  *  And within the selected genre, shows list of albums within that genre (currently pulling from domainTesting/PreviewData.kt)
  */
-enum class HomeCategory {
-    Library, Discover//, PlaylistView
-}
 
 @Immutable
 sealed interface HomeAction {
-    data class GenreSelected(val genre: GenreInfo) : HomeAction
-    data class HomeCategorySelected(val homeCategory: HomeCategory) : HomeAction
-    data class LibraryAlbumSelected(val album: AlbumInfo) : HomeAction
-    data class LibraryGenreSelected(val genre: GenreInfo) : HomeAction
-    //data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
+    //data class ToggleNavMenu(): HomeAction,
+    data class EmptyLibraryView(val playlist: PlaylistInfo) : HomeAction
+    data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
     data class QueueSong(val song: PlayerSong) : HomeAction
 }
 
@@ -253,10 +216,9 @@ sealed interface HomeAction {
 data class HomeScreenUiState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
-    val featuredAlbums: PersistentList<AlbumInfo> = persistentListOf(),
-    val selectedHomeCategory: HomeCategory = HomeCategory.Discover,
-    val homeCategories: List<HomeCategory> = emptyList(),
-    val filterableGenresModel: FilterableGenresModel = FilterableGenresModel(),
-    val albumGenreFilterResult: AlbumGenreFilterResult = AlbumGenreFilterResult(),
-    val library: LibraryInfo = LibraryInfo(),
+    val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult = FeaturedLibraryItemsFilterResult(),
+    //val featuredPlaylists: PersistentList<PlaylistInfo> = persistentListOf(),
+    //val featuredSongs: PersistentList<SongInfo> = persistentListOf(),
+    //val featuredSongs: LibraryInfo = LibraryInfo(),
+    val playerSongs: List<PlayerSong> = emptyList() //TODO: PlayerSong support
 )

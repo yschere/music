@@ -4,9 +4,24 @@
     <string name="connection_error_title">Connection error</string>
     <string name="connection_error_message">Unable to fetch podcasts feeds.\nCheck your internet connection and try again.</string>
     <string name="retry_label">Retry</string>
-    <string name="home_library">Your library</string>
-    <string name="home_discover">Discover</string>
-    <string name="latest_songs">Latest songs</string>
+<!--    <string name="home_library">Your library</string>-->
+<!--    <string name="home_discover">Discover</string>-->
+    <string name="recent_playlists">Recent Playlists</string>
+    <string name="recent_songs">Recently Added Songs</string>
+
+    <string name="all_songs">All Songs</string>
+    <string name="all_playlists">All Playlists</string>
+    <string name="all_artists">All Artists</string>
+    <string name="all_albums">All Albums</string>
+    <string name="all_genres">All Genres</string>
+    <string name="all_composers">All Composers</string>
+
+    <string name="library_playlists">Playlists</string>
+    <string name="library_songs">Songs</string>
+    <string name="library_artists">Artists</string>
+    <string name="library_albums">Albums</string>
+    <string name="library_genres">Genres</string>
+    <string name="library_composers">Composers</string>
 
     <string name="updated_longer">Updated a while ago</string>
     <plurals name="updated_weeks_ago">
@@ -19,9 +34,33 @@
     </plurals>
     <string name="updated_today">Updated today</string>
 
+    <plurals name="playlists">
+        <item quantity="one">%d playlist</item>
+        <item quantity="other">%d playlists</item>
+    </plurals>
+    <plurals name="songs">
+        <item quantity="one">%d song</item>
+        <item quantity="other">%d songs</item>
+    </plurals>
+    <plurals name="artists">
+        <item quantity="one">%d artist</item>
+        <item quantity="other">%d artists</item>
+    </plurals>
+    <plurals name="albums">
+        <item quantity="one">%d album</item>
+        <item quantity="other">%d albums</item>
+    </plurals>
+    <plurals name="genres">
+        <item quantity="one">%d genre</item>
+        <item quantity="other">%d genres</item>
+    </plurals>
+    <plurals name="composers">
+        <item quantity="one">%d composer</item>
+        <item quantity="other">%d composers</item>
+    </plurals>
+
     <string name="song_date_duration">%1$s &#8226; %2$d mins</string>
 
-    <string name="cd_account">Account</string>
     <string name="cd_add">Add</string>
     <string name="cd_back">Back</string>
     <string name="cd_more">More</string>
@@ -41,4 +80,7 @@
     <string name="cd_album_image">Album image</string>
     <string name="see_more">See more</string>
     <string name="an_error_has_occurred">An error has occurred.</string>
+
+    <string name="media_notification_channel">Music Player</string>
+    <string name="media_notification_channel_description">Shows the currently playing music</string>
 </resources>

@@ -1,21 +1,6 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.player
 
+import com.example.music.data.repository.RepeatType
 import com.example.music.player.model.PlayerSong
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +25,8 @@ class MockSongPlayer(
     private val _currentSong = MutableStateFlow<PlayerSong?>(null)
     private val queue = MutableStateFlow<List<PlayerSong>>(emptyList())
     private val isPlaying = MutableStateFlow(false)
+    private val isShuffled = MutableStateFlow(false)
+    private val repeatingState = MutableStateFlow(RepeatType.OFF)
     private val timeElapsed = MutableStateFlow(Duration.ZERO)
     private val _playerSpeed = MutableStateFlow(DefaultPlaybackSpeed)
     private val coroutineScope = CoroutineScope(mainDispatcher)
@@ -186,11 +173,31 @@ class MockSongPlayer(
     }
 
     override fun onShuffle() {
-        TODO("Not yet implemented")
+        if (isShuffled.value) {
+            isShuffled.value = false
+            //TODO: change the queue to be in normal order
+        }
+        else {
+            isShuffled.value = true
+            //TODO: change the queue to be randomized order
+        }
     }
 
     override fun onRepeat() {
-        TODO("Not yet implemented")
+        when(repeatingState.value) {
+            RepeatType.ON -> {
+                repeatingState.value = RepeatType.ONE
+                //TODO: figure out how the queue / player needs to change
+            }
+            RepeatType.OFF -> {
+                repeatingState.value = RepeatType.ON
+                //TODO: figure out how the queue / player needs to change
+            }
+            RepeatType.ONE -> {
+                repeatingState.value = RepeatType.OFF
+                //TODO: figure out how the queue / player needs to change
+            }
+        }
     }
 
     override fun increaseSpeed(speed: Duration) {

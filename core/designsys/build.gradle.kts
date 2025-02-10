@@ -1,68 +1,63 @@
 plugins {
-  alias(libs.plugins.android.library)
-  alias(libs.plugins.kotlin.android)
-  alias(libs.plugins.compose)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose)
 }
 
 android {
-  namespace = "com.example.music.designsys"
-  compileSdk = 34
+    namespace = "com.example.music.designsys"
+    compileSdk = 34
 
-  defaultConfig {
-    minSdk = 34
-    vectorDrawables.useSupportLibrary = true
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-  }
-
-  buildTypes {
-    release {
-      isMinifyEnabled = false
-      proguardFiles(getDefaultProguardFile(
-        "proguard-android-optimize.txt"),
-        "proguard-rules.pro")
+    defaultConfig {
+        minSdk = 34
+        vectorDrawables.useSupportLibrary = true
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-  }
 
-  buildFeatures {
-    compose = true
-    buildConfig = true
-  }
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile(
+            "proguard-android-optimize.txt"),
+            "proguard-rules.pro")
+        }
+    }
 
-//  compileOptions {
-//    sourceCompatibility = JavaVersion.VERSION_11
-//    targetCompatibility = JavaVersion.VERSION_11
-//  } //switching between 11 and 17 to test ksp, kotlin, hilt versioning support
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 
-  kotlinOptions {
-    jvmTarget = "17"
-  }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 
 }
 
-//kotlin {
-//  jvmToolchain(17)
-//}
-
 dependencies {
-  implementation(platform(libs.androidx.compose.bom))
-  androidTestImplementation(platform(libs.androidx.compose.bom))
-  implementation(libs.androidx.compose.foundation)
-  implementation(libs.androidx.compose.material3)
-//  implementation(libs.androidx.glance) // commenting out until I understand glance with compose better
-//  implementation(libs.androidx.glance.appwidget)
-//  implementation(libs.androidx.glance.material3)
-  implementation(libs.androidx.ui)
-  implementation(libs.androidx.ui.tooling)
-  implementation(libs.androidx.ui.tooling.preview)
-  implementation(libs.androidx.ui.text)
-  implementation(libs.androidx.ui.graphics)
-  implementation(libs.coil.kt.compose)
-  implementation(libs.coil3.kt.compose)
+    // Kotlin Support
+    implementation(libs.androidx.core.ktx)
 
-  implementation(libs.androidx.core.ktx)
-  implementation(libs.androidx.appcompat)
+    // Compose
+    implementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.text)
+    implementation(libs.androidx.ui.tooling)
+    implementation(libs.androidx.ui.tooling.preview)
+
+    // Image Loading
+    implementation(libs.coil.kt.compose)
+    implementation(libs.coil3.kt.compose)
+
+    // Backwards Compatibility for older App versions to new APIs
+    implementation(libs.androidx.appcompat)
 }

@@ -1,34 +1,31 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.ui.artistdetails
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,33 +34,43 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
-import com.example.music.domain.testing.PreviewAlbums
+import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.theme.Keyline1
 import com.example.music.domain.testing.PreviewArtists
-import com.example.music.domain.testing.PreviewSongs
+import com.example.music.domain.testing.getAlbumData
+import com.example.music.domain.testing.getAlbumsByArtist
+import com.example.music.domain.testing.getSongsByArtist
 import com.example.music.model.AlbumInfo
 import com.example.music.model.ArtistInfo
 import com.example.music.model.SongInfo
-import com.example.music.ui.shared.AlbumListItem
+import com.example.music.player.model.PlayerSong
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.SongListItem
+import com.example.music.util.fullWidthItem
+import com.example.music.util.radialGradientScrim
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.launch
 
-// Stateful version of Artist Details Screen
+/**
+ * Stateful version of Artist Details Screen
+ */
 @Composable
 fun ArtistDetailsScreen(
     viewModel: ArtistDetailsViewModel = hiltViewModel(),
@@ -87,7 +94,7 @@ fun ArtistDetailsScreen(
                 albums = s.albums,
                 songs = s.songs,
                 boxOrRow = boxOrRow, // TODO change how this works when doing real call and not preview
-                //onQueueSong = viewModel::onQueueSong,
+                onQueueSong = viewModel::onQueueSong,
                 navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
                 navigateBack = navigateBack,
@@ -103,14 +110,16 @@ private fun ArtistDetailsLoadingScreen(
     modifier: Modifier = Modifier
 ) { Loading(modifier = modifier) }
 
-// Stateless version of Artist Details Screen
+/**
+ * Stateless version of Artist Details Screen
+ */
 @Composable
 fun ArtistDetailsScreen(
     artist: ArtistInfo,
-    albums: List<AlbumInfo>,
-    songs: List<SongInfo>,
+    albums: PersistentList<AlbumInfo>,
+    songs: PersistentList<SongInfo>,
     boxOrRow: Boolean,
-    //onQueueSong: (PlayerSong) -> Unit,
+    onQueueSong: (PlayerSong) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateBack: () -> Unit,
@@ -123,37 +132,38 @@ fun ArtistDetailsScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.song_added_to_your_queue)
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            if (showBackButton) {
+
+    ArtistDetailsScreenBackground(
+        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
+    ) {
+        Scaffold(
+            modifier = modifier.fillMaxSize(),
+            topBar = {
                 ArtistDetailsTopAppBar(
                     navigateBack = navigateBack,
                     modifier = Modifier.fillMaxWidth()
                 )
-            }
-        },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
-    ) { contentPadding ->
-        Column(modifier.padding(contentPadding)) {
-            //needed to create a column around artist details content so that the header
-            // would not get hidden underneath the scaffold's top bar
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            containerColor = Color.Transparent
+        ) { contentPadding ->
+
             ArtistDetailsContent(
                 artist = artist,
                 albums = albums,
                 songs = songs,
                 boxOrRow = boxOrRow,
-//            onQueueSong = {
-//                coroutineScope.launch {
-//                    snackbarHostState.showSnackbar(snackBarText)
-//                }
-//                onQueueSong(it)
-//            },
+                onQueueSong = {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(snackBarText)
+                    }
+                    onQueueSong(it)
+                },
                 navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
-                modifier = Modifier
+                modifier = Modifier.padding(contentPadding)
             )
         }
     }
@@ -162,67 +172,67 @@ fun ArtistDetailsScreen(
 @Composable
 fun ArtistDetailsContent(
     artist: ArtistInfo,
-    albums: List<AlbumInfo>,
-    songs: List<SongInfo>,
+    albums: PersistentList<AlbumInfo>,
+    songs: PersistentList<SongInfo>,
     boxOrRow: Boolean,
-    //onQueueSong: (PlayerSong) -> Unit,
+    onQueueSong: (PlayerSong) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
     /*
         ------- VERSION 1: box/row albums -------
-        set TRUE -- for box version of albumdetails list item, use grid system
-        set FALSE -- for row version of albumdetails list item, use 1 column lazy vertical grid
+        set TRUE -- for box version of album list item, use grid system
+        set FALSE -- for row version of album list item, use 1 column lazy vertical grid
     */
-//    if (boxOrRow) {
-//        LazyVerticalGrid(
-//            columns = GridCells.Adaptive(minSize = 150.dp),
-//            //contentPadding = PaddingValues(12.dp),
-//            //modifier.fillMaxSize()
-//        ) {
-//            fullWidthItem {
-//                ArtistDetailsHeaderItem(
-//                    artist = artist,
-//                    modifier = Modifier.fillMaxWidth()
-//                )
-//            }
-//            items(albums, key = { it.id }) { albumdetails ->
-//                AlbumListItem( //TODO create new AlbumListItem object in shared
-//                    albumdetails = albumdetails,
-//                    onClick = {},
-//                    //onClick = navigateToAlbumDetails,
-//                    //onQueueSong = onQueueSong,
-//                    boxOrRow = boxOrRow,
-//                    modifier = Modifier.fillMaxWidth(),
-//                )
-//            }
-//        }
-//
-//    } else {
-//        //want this for row version for now
-//        LazyVerticalGrid(
-//            columns = GridCells.Fixed(1),
-//            modifier.fillMaxSize()
-//        ) {
-//            fullWidthItem {
-//                ArtistDetailsHeaderItem(
-//                    artist = artist,
-//                    modifier = Modifier.fillMaxWidth()
-//                )
-//            }
-//            items(albums, key = { it.id }) { albumdetails ->
-//                AlbumListItem( //TODO create new AlbumListItem object in shared
-//                    albumdetails = albumdetails,
-//                    onClick = {},
-//                    //onClick = navigateToAlbumDetails,
-//                    //onQueueSong = onQueueSong,
-//                    boxOrRow = boxOrRow,
-//                    modifier = Modifier.fillMaxWidth(),
-//                )
-//            }
-//        }
-//    }
+    /*if (boxOrRow) {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 150.dp),
+            //contentPadding = PaddingValues(12.dp),
+            //modifier.fillMaxSize()
+        ) {
+            fullWidthItem {
+                ArtistDetailsHeaderItem(
+                    artist = artist,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            items(albums, key = { it.id }) { album ->
+                AlbumListItem( //TODO create new AlbumListItem object in shared
+                    album = album,
+                    onClick = {},
+                    //onClick = navigateToAlbumDetails,
+                    //onQueueSong = onQueueSong,
+                    boxOrRow = boxOrRow,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+
+    } else {
+        //want this for row version for now
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(1),
+            modifier.fillMaxSize()
+        ) {
+            fullWidthItem {
+                ArtistDetailsHeaderItem(
+                    artist = artist,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            items(albums, key = { it.id }) { album ->
+                AlbumListItem( //TODO create new AlbumListItem object in shared
+                    album = album,
+                    onClick = {},
+                    //onClick = navigateToAlbumDetails,
+                    //onQueueSong = onQueueSong,
+                    boxOrRow = boxOrRow,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }*/
 
     /*
         ------- VERSION 2: albums and songs combined -------
@@ -233,7 +243,67 @@ fun ArtistDetailsContent(
         Future consideration: include shuffle and play btns between song pane 'title' and list
      */
 
+    // --- Version 2: Iteration 2 Start ---
+    val pagerState = rememberPagerState { albums.size }
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(1),
+        modifier = modifier.fillMaxSize()//.padding(8.dp),
+    ) {
+        fullWidthItem {
+            //section 1: header item
+            ArtistDetailsHeaderItem(
+                artist = artist,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
+        //section 2: albums list
+        fullWidthItem {
+            Text(
+                text = if (albums.size == 1) "${albums.size} album" else "${albums.size} albums",
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+        fullWidthItem {
+            FeaturedAlbumItem(
+                pagerState = pagerState,
+                items = albums,
+                navigateToAlbumDetails = navigateToAlbumDetails,
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+        }
+
+        //section 3: songs list
+        fullWidthItem {
+            Text(
+                text = if (songs.size == 1) "${songs.size} song" else "${songs.size} songs",
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+
+        items(songs, key = { it.id }) { song ->
+            SongListItem(
+                song = song,
+                album = getAlbumData(song.albumId!!), //gets PreviewData
+                onClick = {},
+                isListEditable = false,
+                showAlbumTitle = true,
+                showArtistName = true,
+                showAlbumImage = true,
+                showDuration = true,
+                onQueueSong = onQueueSong,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+    // --- Version 2: Iteration 2 End --
+
+    /* -------- Version 2: Iteration 1 --------
     Column(
         modifier = Modifier.padding(8.dp)
     ) {
@@ -245,10 +315,10 @@ fun ArtistDetailsContent(
 
         //section 2: albums list
         Text(
-            text = if (albums.size == 1) "${albums.size} albumdetails" else "${albums.size} albums",
+            text = if (albums.size == 1) "${albums.size} album" else "${albums.size} albums",
             textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(vertical = 4.dp)
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(8.dp)
         )
         BoxWithConstraints {
 //            val constraints = if (minWidth < 600.dp) { //portait view
@@ -281,9 +351,9 @@ fun ArtistDetailsContent(
 //            verticalArrangement = Arrangement.spacedBy(16.dp),
 //            //modifier.fillMaxSize()
 //        ) {
-//            items(albums, key = { it.id }) { albumdetails ->
+//            items(albums, key = { it.id }) { album ->
 //                AlbumListItem(
-//                    albumdetails = albumdetails,
+//                    album = album,
 //                    onClick = {},
 //                    boxOrRow = boxOrRow,
 //                    modifier = Modifier.fillMaxWidth(),
@@ -295,8 +365,8 @@ fun ArtistDetailsContent(
         Text(
             text = if (songs.size == 1) "${songs.size} song" else "${songs.size} songs",
             textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(vertical = 4.dp)
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(8.dp)
         )
         LazyVerticalGrid(
             columns = GridCells.Fixed(1),
@@ -305,7 +375,7 @@ fun ArtistDetailsContent(
             items(songs, key = { it.id }) { song ->
                 SongListItem(
                     song = song,
-                    album = albums[0],//TODO change this so it collects the song's corresponding albumdetails from albums
+                    album = albums[0],//TODO change this so it collects the song's corresponding album from albums
                     onClick = {},
                     isListEditable = false,
                     showAlbumTitle = true,
@@ -317,6 +387,99 @@ fun ArtistDetailsContent(
                 )
             }
         }
+    } */
+}
+
+
+private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
+
+@Composable
+private fun FeaturedAlbums(
+    pagerState: PagerState,
+    items: PersistentList<AlbumInfo>,
+    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // TODO: Using BoxWithConstraints is not quite performant since it requires 2 passes to compute
+    // the content padding. This should be revisited once a carousel component is available.
+    // Alternatively, version 1.7.0-alpha05 of Compose Foundation supports `snapPosition`
+    // which solves this problem and avoids this calculation altogether. Once 1.7.0 is
+    // stable, this implementation can be updated.
+    BoxWithConstraints(
+        modifier = modifier.background(Color.Transparent)
+    ) {
+        val horizontalPadding = (this.maxWidth - FEATURED_ALBUM_IMAGE_SIZE_DP) / 2
+        HorizontalPager(
+            state = pagerState,
+            contentPadding = PaddingValues(
+                horizontal = horizontalPadding,
+                vertical = 16.dp,
+            ),
+            pageSpacing = 24.dp,
+            pageSize = PageSize.Fixed(FEATURED_ALBUM_IMAGE_SIZE_DP)
+        ) { page ->
+            val album = items[page]
+            FeaturedAlbumCarouselItem(
+                albumImage = 1,//album.artwork!!,
+                albumName = album.title,
+                //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable {
+                        navigateToAlbumDetails(album)
+                    }
+            )
+        }
+    }
+}
+
+@Composable
+private fun FeaturedAlbumCarouselItem(
+    albumName: String,
+    //albumImage: String,
+    albumImage: Int,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        Box(
+            Modifier
+                .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            AlbumImage(
+                albumImage = albumImage,
+                contentDescription = albumName,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(MaterialTheme.shapes.medium),
+            )
+        }
+        Text(
+            text = albumName,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .align(Alignment.CenterHorizontally)
+        )
+    }
+}
+
+@Composable
+private fun FeaturedAlbumItem(
+    pagerState: PagerState,
+    items: PersistentList<AlbumInfo>,
+    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        FeaturedAlbums(
+            pagerState = pagerState,
+            items = items,
+            navigateToAlbumDetails = navigateToAlbumDetails,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -326,10 +489,10 @@ fun ArtistDetailsHeaderItem(
     modifier: Modifier = Modifier
 ) {
     //TODO choose if want 1 image or multi image view for artist header
-    // and for the 1 image, should it be the 1st albumdetails, or an image for externally of the artist?
+    // and for the 1 image, should it be the 1st album, or an image for externally of the artist?
     BoxWithConstraints(
-        modifier = modifier
-        //modifier = modifier.padding(Keyline1)
+        //modifier = modifier
+        modifier = modifier.padding(Keyline1)
     ) {
         //val widthConstraint = this.maxWidth
         val maxImageSize = this.maxWidth / 2
@@ -338,21 +501,21 @@ fun ArtistDetailsHeaderItem(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-//            AlbumImage(
-//                modifier = Modifier
-//                    .size(widthConstraint, 200.dp)
-//                    .fillMaxSize()
-//                    .clip(MaterialTheme.shapes.large),
-//                albumImage = 0,//albumdetails.artwork!!,//albumdetails.imageUrl or albumdetails.artwork when that is fixed
-//                contentDescription = "artist Image"
-//            )
+            AlbumImage(
+                modifier = Modifier
+                    //.size(widthConstraint, 200.dp)
+                    .fillMaxSize()
+                    .clip(MaterialTheme.shapes.large),
+                albumImage = R.drawable.bpicon,//album.artwork!!,//album.imageUrl or album.artwork when that is fixed
+                contentDescription = "artist Image"
+            )
             Text(
                 text = artist.name,
                 maxLines = 2,
                 minLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.primary,
+                //color = MaterialTheme.colorScheme.primaryContainer,
                 style = MaterialTheme.typography.headlineMedium
             )
         }
@@ -365,7 +528,32 @@ fun ArtistDetailsTopAppBar(
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    TopAppBar(
+    Row(
+        //horizontalArrangement = Arrangement.End,
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.Transparent)
+            //.padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        IconButton(onClick = navigateBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                //tint = MaterialTheme.colorScheme.onPrimary,
+                contentDescription = stringResource(id = R.string.cd_back)
+            )
+        }
+        //right align objects after this space
+        Spacer(Modifier.weight(1f))
+        // search btn
+        IconButton(onClick = {}) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                //tint = MaterialTheme.colorScheme.onPrimary,
+                contentDescription = stringResource(R.string.cd_more)
+            )
+        }
+    }
+    /*TopAppBar(
         title = { },
         navigationIcon = {
             IconButton(onClick = navigateBack) {
@@ -384,7 +572,28 @@ fun ArtistDetailsTopAppBar(
             }
         },
         modifier = modifier
-    )
+    )*/
+}
+
+/**
+ * Composable for Artist Details Screen's Background.
+ */
+@Composable
+private fun ArtistDetailsScreenBackground(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
+        )
+        content()
+    }
 }
 
 //@Preview
@@ -398,14 +607,22 @@ fun ArtistDetailsHeaderItemPreview() {
 @Preview
 @Composable
 fun ArtistDetailsScreenPreview() {
-    //want to map specific albumdetails so navigateToAlbumDetails will point to there
-    // might not really be a thing for preview to handle though ...
-    // which might be why navigateBack and navigateToPlayer were always empty Units
     ArtistDetailsScreen(
+//        artist = PreviewArtists[0],
+//        albums = PreviewAlbums.toPersistentList(),
+//        songs = PreviewSongs.toPersistentList(),
+
+        //Paramore
+//        artist = PreviewArtists[1],
+//        albums = getAlbumsByArtist(22).toPersistentList(),
+//        songs = getSongsByArtist(22).toPersistentList(),
+
+        //ACIDMAN
         artist = PreviewArtists[0],
-        albums = PreviewAlbums,
-        songs = PreviewSongs,
-        //onQueueSong = { },
+        albums = getAlbumsByArtist(113).toPersistentList(),
+        songs = getSongsByArtist(113).toPersistentList(),
+
+        onQueueSong = {},
         navigateToAlbumDetails = {},
         navigateToPlayer = {},
         navigateBack = {},

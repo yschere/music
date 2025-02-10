@@ -1,24 +1,8 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.example.music.ui.artist
+package com.example.music.ui.artistdetails
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.data.repository.ArtistStore
+import com.example.music.data.repository.ArtistRepo
 import com.example.music.model.AlbumInfo
 import com.example.music.model.ArtistInfo
 import com.example.music.model.SongInfo
@@ -29,30 +13,33 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 sealed interface ArtistUiState {
     data object Loading : ArtistUiState
     data class Ready(
         val artist: ArtistInfo,
-        val albums: List<AlbumInfo>,
-        val songs: List<SongInfo>,
+        val albums: PersistentList<AlbumInfo> = persistentListOf(),
+        val songs: PersistentList<SongInfo> = persistentListOf(),
     ) : ArtistUiState
 }
 
 /**
- * ViewModel that handles the business logic and screen state of the Podcast details screen.
+ * ViewModel that handles the business logic and screen state of the Artist details screen.
  */
 @HiltViewModel(assistedFactory = ArtistDetailsViewModel.ArtistDetailsViewModelFactory::class)
 class ArtistDetailsViewModel @AssistedInject constructor(
-    //private val songStore: SongStore,
     private val songPlayer: SongPlayer,
-    private val artistStore: ArtistStore,
+    private val artistRepo: ArtistRepo,
     @Assisted private val artistId: Long,
-    //artistId is an argument needed for the selected details to view
+    //artistId is an argument needed for the selected artist details to view
 ) : ViewModel() {
 
     @AssistedFactory
@@ -66,14 +53,14 @@ class ArtistDetailsViewModel @AssistedInject constructor(
             //if the details screen will contain both songs and albums, then yes i think
             //if the details screen will contain only albums, then only need to combine that
                 //which, if it is just albums, how do i store the songs? and what do i do if someone selects to see songs list
-            artistStore.getArtistById(artistId),
-            artistStore.getAlbumsByArtistId(artistId),
-            artistStore.getSongsByArtistId(artistId)
+            artistRepo.getArtistById(artistId),
+            artistRepo.getAlbumsByArtistId(artistId),
+            artistRepo.getSongsByArtistId(artistId)
         ) { artist, albums, songs ->
             ArtistUiState.Ready(
                 artist = artist.asExternalModel(),
-                albums = albums.map{it.asExternalModel()},
-                songs = songs.map{it.asExternalModel()},
+                albums = albums.map{it.asExternalModel()}.toPersistentList(),
+                songs = songs.map{it.asExternalModel()}.toPersistentList(),
             )
         }.stateIn(
             scope = viewModelScope,
@@ -81,9 +68,13 @@ class ArtistDetailsViewModel @AssistedInject constructor(
             initialValue = ArtistUiState.Loading
         )
 
-        //might very likely need a line for navigate to album details btn
+    fun onAlbumSelect(album: AlbumInfo) {
+        viewModelScope.launch{
+            //TODO: load albumDetails page for album selected here?
+        }
+    }
 
-//    fun onQueueSong(playerSong: PlayerSong) {
-//        songPlayer.addToQueue(playerSong)
-//    } //keeping this here for now, but would only be in use if songs list does appear on ArtistDetailsScreen
+    fun onQueueSong(playerSong: PlayerSong) {
+        songPlayer.addToQueue(playerSong)
+    } //keeping this here for now, but would only be in use if songs list does appear on ArtistDetailsScreen
 }

@@ -1,21 +1,6 @@
-/*
- * Copyright 2021 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -33,16 +18,20 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 
 /**
- * List of screens for [MusicApp]
+ * List of navigation accessible screens for [MusicApp]
  */
 sealed class Screen(val route: String) {
     object Home : Screen("home")
-    //object Library : Screen("library")
-    object Player : Screen("player/{$arg_song_id}") {
+
+    object Library : Screen("library")
+
+    object Player : Screen("player/{$ARG_SONG_ID}") {
         fun createRoute(songId: Long) = "player/$songId"
-    } //TODO: correlates to MusicAppState navController function navigateTo___
+    }
+
     object QueueList : Screen("queue")
 
+    /*
     object Artists : Screen("artists")
     object Albums : Screen("albums")
     object Genres : Screen("genres")
@@ -51,50 +40,56 @@ sealed class Screen(val route: String) {
     object LibAlbums : Screen("library/albums")
     object LibGenres : Screen("library/genres")
 
-//not sure if this is gonna be song details or edit tags, maybe make both as separate screen objects
-//    object SongDetails : Screen("song/{$arg_song_id}") {
-//        val SONG_ID = "songId"
-//        fun createRoute(songId: Long) = "song/$songId"
-//    } // correlates to MusicAppState navController function navigateTo___
+    //not sure if this is gonna be song details or edit tags, maybe make both as separate screen objects
+    object SongDetails : Screen("song/{$arg_song_id}") {
+        val SONG_ID = "songId"
+        fun createRoute(songId: Long) = "song/$songId"
+    } // correlates to MusicAppState navController function navigateTo___
+    */
 
-    object AlbumDetails : Screen("album/{$arg_album_id}") {
+    object AlbumDetails : Screen("album/{$ARG_ALBUM_ID}") {
         //val ALBUM_ID = "albumId"
         fun createRoute(albumId: Long) = "album/$albumId"
-    } // correlates to MusicAppState navController function navigateTo___
+    }
 
-    object ArtistDetails : Screen("artist/{$arg_artist_id}") {
+    object ArtistDetails : Screen("artist/{$ARG_ARTIST_ID}") {
         //val ARTIST_ID = "artistId"
         fun createRoute(artistId: Long) = "artist/$artistId"
-    } // correlates to MusicAppState navController function navigateTo___
+    }
+
+    object PlaylistDetails : Screen("playlist/{$ARG_PLAYLIST_ID}") {
+        //val PLAYLIST_ID = "playlistId"
+        fun createRoute(playlistId: Long) = "playlist/$playlistId"
+    }
 
     companion object {
-        //val ARG_PODCAST_URI = "podcastUri"
-        //val ARG_EPISODE_URI = "episodeUri"
-        val arg_song_id = "songId"
-        val arg_album_id = "albumId"
-        val arg_artist_id = "artistId"
+        const val ARG_SONG_ID = "songId"
+        const val ARG_ALBUM_ID = "albumId"
+        const val ARG_ARTIST_ID = "artistId"
+        const val ARG_PLAYLIST_ID = "playlistId"
+        //const val ARG_GENRE_ID = "genreId"
+        //const val ARG_COMPOSER_ID = "composerId"
     }
 
     /*  multiple screens needed for this
-        home screen
-        player screen
-        all playlists screen
-        all artists screen
-        all albums screen
-        all songs screen
-        all genres screen
-        all years screen (?)
+        home screen -> should have context-less navigation
+        player screen -> should have context-less navigation
+        all playlists screen -> should have context-less navigation
+        all artists screen -> should have context-less navigation
+        all albums screen -> should have context-less navigation
+        all songs screen -> should have context-less navigation
+        all genres screen -> should have context-less navigation
+        all composers screen -> should have context-less navigation
 
-        selected playlist screen
-        selected artist screen
-        selected album screen
-        selected genre screen
-        selected year screen
+        selected playlist screen -> needs context of selected item
+        selected artist screen -> needs context of selected item
+        selected album screen -> needs context of selected item
+        selected genre screen -> needs context of selected item
+        selected composer screen -> needs context of selected item
 
-        edit song tags screen
-        edit album tags screen
-
-        options screen
+        edit song tags screen -> needs context of prev screen
+        settings screen -> should have context-less navigation
+        item options screen -> needs context of selected item
 
 
         need to figure out if popups are separate screen or context popup for:
@@ -125,13 +120,27 @@ class MusicAppState(
         isOnline = checkIfOnline()
     }
 
-    //TODO: maybe this won't be needed if this is a list view that is not a separate navigation screen?
+    /* //TODO: maybe this won't be needed if this is a list view that is not a separate navigation screen?
     // same for ArtistsList and GenresList and Playlists
-//    fun navigateToAlbumsList(from: NavBackStackEntry) {
-//        if (from.lifecycleIsResumed()) {
-//            navController.navigate(Screen.Albums.createRoute())
-//        }
-//    }
+    fun navigateToAlbumsList(from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(Screen.Albums.createRoute())
+        }
+    } */
+
+    fun navigateToHome(from: NavBackStackEntry) {
+        // In order to discard duplicated navigation events, we check the Lifecycle
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(Screen.Home)
+        }
+    }
+
+    fun navigateToLibrary(from: NavBackStackEntry) {
+        // In order to discard duplicated navigation events, we check the Lifecycle
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(Screen.Library)
+        }
+    }
 
     fun navigateToPlayer(songId: Long, from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
@@ -141,25 +150,46 @@ class MusicAppState(
     }
 
     fun navigateToArtistDetails(artistId: Long, from: NavBackStackEntry) {
+        // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
             navController.navigate(Screen.ArtistDetails.createRoute(artistId))
         }
     }
 
     fun navigateToAlbumDetails(albumId: Long, from: NavBackStackEntry) {
+        // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
             navController.navigate(Screen.AlbumDetails.createRoute(albumId))
         }
     }
 
-    //TODO: determine if this is the song data page or the song edit tags page
+    fun navigateToPlaylistDetails(playlistId: Long, from: NavBackStackEntry) {
+        // In order to discard duplicated navigation events, we check the Lifecycle
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(Screen.PlaylistDetails.createRoute(playlistId))
+        }
+    }
+
+    /* fun navigateToGenreDetails(genreId: Long, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(Screen.GenreDetails.createRoute(genreId))
+        }
+    } */
+
+    /* fun navigateToComposerDetails(composerId: Long, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(Screen.ComposerDetails.createRoute(composerId))
+        }
+    } */
+
+    /* //TODO: determine if this is the song data page or the song edit tags page
     // I have a feeling in either case it will still have the same questions
     // as the AlbumsList and ArtistsList screens
-//    fun navigateToSongDetails(songId: Long, from: NavBackStackEntry) {
-//        if (from.lifecycleIsResumed()) {
-//            navController.navigate(Screen.SongDetails.createRoute(songId))
-//        }
-//    }
+    fun navigateToSongDetails(songId: Long, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            navController.navigate(Screen.SongDetails.createRoute(songId))
+        }
+    } */
 
     //TODO: determine if this is a separate navigable screen or is in similar
     // vein to AlbumsList and ArtistsList
@@ -173,6 +203,7 @@ class MusicAppState(
         navController.popBackStack()
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     @Suppress("DEPRECATION")
     private fun checkIfOnline(): Boolean {
         val cm = getSystemService(context, ConnectivityManager::class.java)
@@ -189,7 +220,6 @@ class MusicAppState(
 
 /**
  * If the lifecycle is not resumed it means this NavBackStackEntry already processed a nav event.
- *
  * This is used to de-duplicate navigation events.
  */
 private fun NavBackStackEntry.lifecycleIsResumed() =

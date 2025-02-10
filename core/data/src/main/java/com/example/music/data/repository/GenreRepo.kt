@@ -1,19 +1,3 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.repository
 
 import com.example.music.data.database.dao.AlbumsDao
@@ -21,14 +5,22 @@ import com.example.music.data.database.dao.ArtistsDao
 import com.example.music.data.database.dao.GenresDao
 import com.example.music.data.database.dao.SongsDao
 import com.example.music.data.database.model.Album
-import com.example.music.data.database.model.AlbumWithExtraInfo
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.Genre
 import com.example.music.data.database.model.Song
 import com.example.music.data.database.model.SongToAlbum
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineTransform
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transform
 
-interface GenreStore {
+interface GenreRepo {
 
     fun getAllGenres(): Flow<List<Genre>>
 
@@ -129,6 +121,11 @@ interface GenreStore {
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<SongToAlbum>> */
 
+    fun songsAndAlbumsInGenre(
+        genreId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<SongToAlbum>>
+
     suspend fun addGenre(genre: Genre): Long
 
     suspend fun count(): Int
@@ -139,12 +136,12 @@ interface GenreStore {
 /**
  * A data repository for [Genre] instances.
  */
-class LocalGenreStore(
+class GenreRepoImpl(
     private val genreDao: GenresDao,
     private val artistDao: ArtistsDao,
     private val albumDao: AlbumsDao,
     private val songDao: SongsDao,
-) : GenreStore {
+) : GenreRepo {
 
     override fun getAllGenres(): Flow<List<Genre>> =
         genreDao.getAllGenres()
@@ -203,6 +200,24 @@ class LocalGenreStore(
     //equivalent of categories episodesFromPodcastsInCategory
     /* override fun songsAndAlbumsInGenre(genreId: Long, limit: Int): Flow<List<SongToAlbum>> =
         songDao.getSongsAndAlbumsInGenreSortedByLastPlayed(genreId, limit) */
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun songsAndAlbumsInGenre(genreId: Long, limit: Int): Flow<List<SongToAlbum>> {
+        val flowAlbums = albumDao.sortAlbumsInGenreByTitleAsc(genreId, limit)
+        //flowAlbums.transform(suspend List<Album>())
+        val songs = combine(flowAlbums) { arrayAlbum ->
+            arrayAlbum.forEach { listAlbum ->
+                listAlbum.forEach {
+                    return@combine songDao.getSongsAndAlbumByAlbumId(it.id)
+                }
+            }
+        }
+        return songs.transform { List<SongToAlbum>(
+            songs.count(),
+            init = TODO()
+        ) }
+    }
+
 
     override suspend fun addGenre(genre: Genre): Long = genreDao.insert(genre)
 

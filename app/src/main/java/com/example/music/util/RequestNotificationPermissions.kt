@@ -8,7 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.example.music.Manifest
+//import com.example.music.Manifest
+import android.Manifest
 
 /**
  * Composable function to request notification permissions.

@@ -1,20 +1,4 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.example.music.ui.home.genre
+package com.example.music.ui.library.genre
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -52,8 +36,9 @@ import com.example.music.player.model.PlayerSong
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
-
-fun LazyListScope.albumGenre(
+//called from Discover, used to output the list of albums
+// and songs within selected genre
+fun LazyListScope.genre(
     albumGenreFilterResult: AlbumGenreFilterResult,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
@@ -83,7 +68,7 @@ fun LazyListScope.albumGenre(
     }
 }
 
-fun LazyGridScope.albumGenre(
+fun LazyGridScope.genre(
     albumGenreFilterResult: AlbumGenreFilterResult,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
@@ -146,10 +131,8 @@ private fun GenreAlbumRow(
             key = { it.id }
         ) { album ->
             TopAlbumRowItem(
-                albumTitle = album.title,//com.example.music.ui.album.title,
-                albumImageId = "image",//com.example.music.ui.album.imageUrl,
-                //isFollowed = true,//com.example.music.ui.album.isSubscribed ?: false,
-                //onToggleFollowClicked = { onTogglePodcastFollowed(com.example.music.ui.album) },
+                albumTitle = album.title,//album.title,
+                albumImageId = "image",//album.imageUrl,
                 modifier = Modifier
                     .width(128.dp)
                     .clickable {
@@ -200,7 +183,7 @@ private fun TopAlbumRowItem(
 
 @Preview
 @Composable
-fun PreviewGenreAlbums() {
+fun PreviewGenre() {
     MusicTheme {
         GenreAlbums(
             topAlbums = PreviewAlbums,
@@ -211,7 +194,7 @@ fun PreviewGenreAlbums() {
 
 @Preview
 @Composable
-fun PreviewSongListItem() {
+fun PreviewSongList() {
     MusicTheme {
         SongListItem(
             song = PreviewSongs[0],

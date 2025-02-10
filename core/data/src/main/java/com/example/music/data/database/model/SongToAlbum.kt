@@ -1,19 +1,3 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.database.model
 
 /**
@@ -30,6 +14,12 @@ import androidx.room.Ignore
 import androidx.room.Relation
 import java.util.Objects
 
+//TODO: fix SongToAlbum so that it is actually either all columns of song and album, or is both objects as a whole
+// in current state, will have a song object and an albumId. but this means that every time I've been using SongToAlbum,
+// I wanted it to be a combination of both song object and album object
+// High likelihood this isn't really even necessary since it just means i'm adding album_id as a column twice. So this should
+// be repurposed as a different class altogether. Very likely that the more correct version is the direction i was going in
+// for SongPlayerData, that is a combined version of the data needed for UI
 class SongToAlbum {
     @Embedded
     lateinit var song: Song
@@ -55,40 +45,3 @@ class SongToAlbum {
 
     override fun hashCode(): Int = Objects.hash(song, _albums)
 }
-
-
-//
-//@Entity(tableName = "albums",
-//    indices = [
-//        Index("id", unique = true),
-//        Index("album_artist_id"),
-//        Index("genre_id")
-//    ],
-//    foreignKeys = [
-//        ForeignKey(
-//            entity = Artist::class,
-//            parentColumns = ["id"],
-//            childColumns = ["album_artist_id"],
-//            onUpdate = ForeignKey.CASCADE,
-//            onDelete = ForeignKey.CASCADE
-//        ),
-//        ForeignKey(
-//            entity = Genre::class,
-//            parentColumns = ["id"],
-//            childColumns = ["genre_id"],
-//            onUpdate = ForeignKey.CASCADE,
-//            onDelete = ForeignKey.CASCADE
-//        )
-//    ]
-//)
-//data class SongToAlbum(
-//    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
-//    @ColumnInfo(name = "title") var title: String,
-//    @ColumnInfo(name = "album_artist_id") var albumArtistId: Long? = null,
-//    @ColumnInfo(name = "year") var year: Int?,
-//    @ColumnInfo(name = "genre_id") var genreId: Long?,
-//    @ColumnInfo(name = "track_total") var trackTotal: Int?,
-//    @ColumnInfo(name = "disc_number") var discNumber: Int?,
-//    @ColumnInfo(name = "disc_total") var discTotal: Int?
-//    // @ColumnInfo(name = "artwork") var artwork: Bitmap?
-//)

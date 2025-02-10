@@ -1,29 +1,10 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.database.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.RewriteQueriesToDropUnusedColumns
 import androidx.room.Transaction
-import com.example.music.data.database.model.Album
-import com.example.music.data.database.model.AlbumWithExtraInfo
 import com.example.music.data.database.model.Artist
-import com.example.music.data.database.model.ArtistWithGenre
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -32,14 +13,12 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 abstract class ArtistsDao : BaseDao<Artist> {
 
-    //return artist names in alphabetical order
     @Query(
         """
         SELECT * FROM artists
-        ORDER BY name ASC
         """
     )
-    abstract fun artists(): Flow<Artist>
+    abstract fun getAllArtists(): Flow<List<Artist>>
 
     //select artist info based on artists.id
     @Query(
@@ -49,6 +28,111 @@ abstract class ArtistsDao : BaseDao<Artist> {
     )
     abstract fun getArtistById(id: Long): Flow<Artist>
 
+    @Query(
+        """
+        SELECT * FROM artists
+        ORDER BY name ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsByNameAsc(limit: Int): Flow<List<Artist>>
+
+    @Query(
+        """
+        SELECT * FROM artists
+        ORDER BY name DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsByNameDesc(limit: Int): Flow<List<Artist>>
+
+    @Transaction
+    @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """
+        SELECT artists.* FROM artists
+        INNER JOIN (
+            SELECT album_artist_id, COUNT(id) AS album_count FROM albums
+            GROUP BY album_artist_id
+        ) as albums ON albums.album_artist_id = artists.id
+        ORDER BY album_count ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsByAlbumCountAsc(
+        limit: Int
+    ): Flow<List<Artist>>
+
+    @Transaction
+    @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """
+        SELECT artists.* FROM artists
+        INNER JOIN (
+            SELECT album_artist_id, COUNT(id) AS album_count FROM albums
+            GROUP BY album_artist_id
+        ) as albums ON albums.album_artist_id = artists.id
+        ORDER BY album_count DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsByAlbumCountDesc(
+        limit: Int
+    ): Flow<List<Artist>>
+
+    /* //sortArtistsByDateLastPlayedAsc not needed atm
+    @Transaction
+    @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """
+        SELECT artists.* FROM artists
+        INNER JOIN (
+            SELECT artist_id, COUNT(id) AS song_count FROM songs
+            GROUP BY artist_id
+        ) AS songs ON songs.artist_id = artists.id
+        ORDER BY song_count ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsByDateLastPlayedAsc(
+        limit: Int
+    ): Flow<List<Artist>> */
+
+    /* //sortArtistsByDateLastPlayedDesc not needed atm
+    @Transaction
+    @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """
+        SELECT artists.* FROM artists
+        INNER JOIN (
+            SELECT artist_id, COUNT(id) AS song_count FROM songs
+            GROUP BY artist_id
+        ) AS songs ON songs.artist_id = artists.id
+        ORDER BY song_count DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsByDateLastPlayedDesc(
+        limit: Int
+    ): Flow<List<Artist>> */
+
+    @Transaction
+    @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """
+        SELECT artists.* FROM artists
+        INNER JOIN (
+            SELECT artist_id, COUNT(id) AS song_count FROM songs
+            GROUP BY artist_id
+        ) as songs ON songs.artist_id = artists.id
+        ORDER BY song_count ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsBySongCountAsc(
+        limit: Int
+    ): Flow<List<Artist>>
+
     @Transaction
     @RewriteQueriesToDropUnusedColumns
     @Query(
@@ -62,74 +146,125 @@ abstract class ArtistsDao : BaseDao<Artist> {
         LIMIT :limit
         """
     )
-    abstract fun artistsSortedByLastPlayedSong(
+    abstract fun sortArtistsBySongCountDesc(
         limit: Int
     ): Flow<List<Artist>>
 
-    //composers joined to songs on composer_id
-    //group by composer_id, order by song count
+    /* //sortArtistsInGenreByDateLastPlayedAsc not needed atm
     @Transaction
     @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """
+        SELECT artists.* FROM artists
+        LEFT JOIN (
+            SELECT songs.artist_id, songs.genre_id, songs.date_last_played
+            FROM songs
+            GROUP BY songs.artist_id
+        ) as songs on artists.id = songs.artist_id
+        WHERE songs.genre_id = :genreId
+        GROUP BY songs.artist_id
+        ORDER BY songs.date_last_played ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsInGenreByDateLastPlayedAsc(
+        genreId: Long,
+        limit: Int
+    ): Flow<List<Artist>> */
+
+    /* //sortArtistsInGenreByDateLastPlayedDesc not needed atm
+    @Transaction
+    @RewriteQueriesToDropUnusedColumns
+    @Query(
+        """
+        SELECT artists.* FROM artists
+        LEFT JOIN (
+            SELECT songs.artist_id, songs.genre_id, songs.date_last_played
+            FROM songs
+            GROUP BY songs.artist_id
+        ) as songs on artists.id = songs.artist_id
+        WHERE songs.genre_id = :genreId
+        GROUP BY songs.artist_id
+        ORDER BY songs.date_last_played DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsInGenreByDateLastPlayedDesc(
+        genreId: Long,
+        limit: Int
+    ): Flow<List<Artist>> */
+
+    @Query(
+        """
+        SELECT artists.* FROM artists
+        INNER JOIN songs ON songs.artist_id = artists.id
+        WHERE songs.genre_id = :genreId
+        ORDER BY artists.name ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsInGenreByNameAsc(
+        genreId: Long,
+        limit: Int
+    ): Flow<List<Artist>>
+
     @Query(
         """
         SELECT artists.* FROM artists
         INNER JOIN (
-            SELECT artist_id, COUNT(id) AS song_count FROM songs
-            GROUP BY artist_id
-        ) as songs ON songs.artist_id = artists.id
-        ORDER BY song_count DESC
+            SELECT songs.genre_id, songs.artist_id FROM songs
+            WHERE songs.genre_id = :genreId
+        ) AS songs ON songs.artist_id = artists.id
+        ORDER BY artists.name DESC
         LIMIT :limit
         """
     )
-    abstract fun artistsSortedBySongCount(
+    abstract fun sortArtistsInGenreByNameDesc(
+        genreId: Long,
         limit: Int
     ): Flow<List<Artist>>
 
-    //return count of artists
-    @Query("SELECT COUNT(*) FROM artists")
-    abstract suspend fun count(): Int
-
-    @Transaction
-    @RewriteQueriesToDropUnusedColumns
+    /* //TODO: not sure if sortArtistsInGenreBySongCountAsc is needed
     @Query(
         """
         SELECT artists.* FROM artists
         LEFT JOIN (
-            SELECT songs.artist_id, COUNT(id) as count
+            SELECT songs.artist_id, songs.genre_id, COUNT(id) as count
             FROM songs
             GROUP BY songs.artist_id
         ) as songs on artists.id = songs.artist_id
-        WHERE artists.genre_id = :genreId
+        WHERE songs.genre_id = :genreId
+        GROUP BY songs.artist_id
+        ORDER BY songs.count ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortArtistsInGenreBySongCountAsc(
+        genreId: Long,
+        limit: Int
+    ): Flow<List<Artist>> */
+
+    /* //TODO: not sure if sortArtistsInGenreBySongCountDesc is needed
+    @Query(
+        """
+        SELECT artists.* FROM artists
+        LEFT JOIN (
+            SELECT songs.artist_id, songs.genre_id, COUNT(id) as count
+            FROM songs
+            GROUP BY songs.artist_id
+        ) as songs on artists.id = songs.artist_id
+        WHERE songs.genre_id = :genreId
         GROUP BY songs.artist_id
         ORDER BY songs.count DESC
         LIMIT :limit
         """
     )
-    abstract fun artistsInGenreSortedByLastPlayedSong(
+    abstract fun sortArtistsInGenreBySongCountDesc(
         genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
+        limit: Int
+    ): Flow<List<Artist>> */
 
-    @Query(
-        """
-        SELECT artists.* FROM artists
-        LEFT JOIN (
-            SELECT songs.artist_id, COUNT(id) as count
-            FROM songs
-            GROUP BY songs.artist_id
-        ) as songs on artists.id = songs.artist_id
-        WHERE artists.genre_id = :genreId
-        GROUP BY songs.artist_id
-        ORDER BY songs.count DESC
-        LIMIT :limit
-        """
-    )
-    abstract fun artistsInGenreSortedBySongCount(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
-
-    //return artists info and genres info
+    /* //return artists info and genres info
     //what intent is this call trying to serve?
     //why would i need artist info and the genre name
     //is this meant to be a list of artists and a list of genres? or a list of artists under one genre and that genre's name? why?
@@ -141,9 +276,9 @@ abstract class ArtistsDao : BaseDao<Artist> {
 //        WHERE artists.id = :id
 //        """
 //    )
-//    abstract fun artistsAndGenres(id: Long): Flow<ArtistWithGenre>
+//    abstract fun artistsAndGenres(id: Long): Flow<ArtistWithGenre> */
 
-    //search album titles by param query
+    //search artist names by param query
     @Transaction
     @Query(
         """
@@ -162,4 +297,7 @@ abstract class ArtistsDao : BaseDao<Artist> {
     )
     abstract fun searchArtistByName(query: String, limit: Int): Flow<List<Artist>>
 
+    //return count of artists
+    @Query("SELECT COUNT(*) FROM artists")
+    abstract suspend fun count(): Int
 }

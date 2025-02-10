@@ -22,29 +22,29 @@ android {
                 "proguard-rules.pro")
         }
     }
-//    compileOptions {
-//        isCoreLibraryDesugaringEnabled = true
-//        sourceCompatibility = JavaVersion.VERSION_11
-//        targetCompatibility = JavaVersion.VERSION_11
-//    } //switching between 11 and 17 to test ksp, kotlin, hilt versioning support
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
 }
 
-//kotlin {
-//    jvmToolchain(17)
-//}
-
 dependencies {
-    implementation(libs.androidx.core.ktx)
+    // Internal Project Modules
     implementation(projects.core.data)
+
+    // Kotlin Support
+    implementation(libs.androidx.core.ktx)
+
+    // Backwards Compatibility
     coreLibraryDesugaring(libs.core.jdk.desugaring)
+
+    // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }

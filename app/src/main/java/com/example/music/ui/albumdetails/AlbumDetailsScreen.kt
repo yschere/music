@@ -1,19 +1,3 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.ui.albumdetails
 
 import android.content.res.Configuration
@@ -21,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -29,9 +14,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -40,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -58,6 +46,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
@@ -72,16 +61,17 @@ import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.Keyline1
 import com.example.music.domain.testing.PreviewAlbums
-import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.testing.getArtistData
+import com.example.music.domain.testing.getSongsInAlbum
 import com.example.music.model.AlbumInfo
 import com.example.music.model.SongInfo
 import com.example.music.player.model.PlayerSong
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.SongListItem
-import com.example.music.util.fullWidthItem
-import kotlinx.coroutines.launch
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.util.fullWidthItem
+import com.example.music.util.radialGradientScrim
+import kotlinx.coroutines.launch
 
 @Composable
 fun AlbumDetailsScreen(
@@ -131,35 +121,39 @@ fun AlbumDetailsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.song_added_to_your_queue) //used to hold the little popup text that appears after an onClick event
 
-    //base layer structure component
-    Scaffold(
-        modifier = modifier.fillMaxSize(), //says to use max size of screen?
-        topBar = { // lambda function? that contains if check for topbar showing back button??
-            if (showBackButton) {
-                AlbumDetailsTopAppBar(
-                    navigateBack = navigateBack,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        snackbarHost = { // setting the snackbar hoststate to the scaffold
-            SnackbarHost(hostState = snackbarHostState)
-        },
-        //contentColor = MaterialTheme.colorScheme.background,
-        //containerColor = MaterialTheme.colorScheme.surfaceVariant,
-    ) { contentPadding -> //not sure why content padding into content function done in this way
-        AlbumDetailsContent(
-            album = album,
-            songs = songs,
-            onQueueSong = {
-                coroutineScope.launch { //use the onQueueSong btn onClick to trigger snackbar
-                    snackbarHostState.showSnackbar(snackBarText)
+    AlbumDetailsScreenBackground(
+        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
+    ) {
+        //base layer structure component
+        Scaffold(
+            modifier = modifier.fillMaxSize(), //says to use max size of screen?
+            topBar = { // lambda function? that contains if check for topbar showing back button??
+                if (showBackButton) {
+                    AlbumDetailsTopAppBar(
+                        navigateBack = navigateBack,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-                onQueueSong(it)
             },
-            navigateToPlayer = navigateToPlayer,
-            modifier = Modifier.padding(contentPadding)
-        )
+            snackbarHost = { // setting the snackbar hoststate to the scaffold
+                SnackbarHost(hostState = snackbarHostState)
+            },
+            //contentColor = MaterialTheme.colorScheme.background,
+            containerColor = Color.Transparent
+        ) { contentPadding -> //not sure why content padding into content function done in this way
+            AlbumDetailsContent(
+                album = album,
+                songs = songs,
+                onQueueSong = {
+                    coroutineScope.launch { //use the onQueueSong btn onClick to trigger snackbar
+                        snackbarHostState.showSnackbar(snackBarText)
+                    }
+                    onQueueSong(it)
+                },
+                navigateToPlayer = navigateToPlayer,
+                modifier = Modifier.padding(contentPadding)
+            )
+        }
     }
 }
 
@@ -171,49 +165,54 @@ fun AlbumDetailsContent(
     navigateToPlayer: (SongInfo) -> Unit,
     modifier: Modifier = Modifier
 ) { //determines content of details screen
-
-//    Column { ///this iteration has the first header overlapping with the TopAppBar for some reason
-//        AlbumDetailsHeaderItem( //header item uses album data to show album info
-//            album = album,
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//        AlbumDetailsHeader(
-//            album = album,
-//            songSize = songs.size,
-//            modifier = Modifier.fillMaxWidth()
-//        )
-//        LazyColumn {
-//            items(songs, key = { it.id }) { song -> // for each song in list:
-//                SongListItem( //call the SongListItem function to display each one, include the data needed to display item in full,
-//                    //and should likely share context from where this call being made incase specific data needs to be shown / not shown
-//                    song = song,
-//                    album = album,
-//                    onClick = navigateToPlayer,
-//                    onQueueSong = onQueueSong,
-//                    modifier = Modifier.fillMaxWidth(),
-//                    showAlbumImage = false,
-//                    showSummary = false
-//                )
-//            }
-//        }
-//    }
-
+/*
+    Column { ///this iteration has the first header overlapping with the TopAppBar for some reason
+        AlbumDetailsHeaderItem( //header item uses album data to show album info
+            album = album,
+            modifier = Modifier.fillMaxWidth()
+        )
+        AlbumDetailsHeader(
+            album = album,
+            songSize = songs.size,
+            modifier = Modifier.fillMaxWidth()
+        )
+        LazyColumn {
+            items(songs, key = { it.id }) { song -> // for each song in list:
+                SongListItem( //call the SongListItem function to display each one, include the data needed to display item in full,
+                    //and should likely share context from where this call being made incase specific data needs to be shown / not shown
+                    song = song,
+                    album = album,
+                    onClick = navigateToPlayer,
+                    onQueueSong = onQueueSong,
+                    modifier = Modifier.fillMaxWidth(),
+                    showAlbumImage = false,
+                    showSummary = false
+                )
+            }
+        }
+    }*/
 
     LazyVerticalGrid( //uses lazy vertical grid to store header and items list below it
         columns = GridCells.Adaptive(362.dp),
         modifier.fillMaxSize()
     ) {
-        fullWidthItem { //not sure why fullWidthItem specified
+        fullWidthItem {
+            //section 1: header item
+            /* --- version 1 ---
             //AlbumDetailsHeaderItem( //header item uses album data to show album info
                 //album = album,
                 //modifier = Modifier.fillMaxWidth()
-            //)
+            //) */
+
+            // --- version 2 ---
             AlbumDetailsHeader(
                 album = album,
                 songSize = songs.size,
                 modifier = Modifier.fillMaxWidth()
             )
         }
+
+        //section 2: songs list
         items(songs, key = { it.id }) { song -> // for each song in list:
             SongListItem( //call the SongListItem function to display each one, include the data needed to display item in full,
                 //and should likely share context from where this call being made incase specific data needs to be shown / not shown
@@ -222,10 +221,10 @@ fun AlbumDetailsContent(
                 album = album,
                 onClick = navigateToPlayer,
                 onQueueSong = onQueueSong,
-                modifier = Modifier.fillMaxWidth(),
+                //modifier = Modifier.fillMaxWidth(),
                 isListEditable = false,
+                showAlbumImage = false,
                 showArtistName = true,
-                showAlbumImage = true,
                 showAlbumTitle = false,
                 showDuration = true,
             )
@@ -246,7 +245,7 @@ fun AlbumDetailsHeaderItem(
         Column {
             Row(
                 verticalAlignment = Alignment.Bottom,
-                modifier = Modifier.fillMaxWidth()//.background(MaterialTheme.colorScheme.secondary)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 AlbumImage(
                     modifier = Modifier
@@ -304,24 +303,24 @@ fun AlbumDetailsHeader(
                 ) {
                     Text(
                         text = album.title,
-                        color = MaterialTheme.colorScheme.primary,
+                        //color = MaterialTheme.colorScheme.onPrimary,
                         maxLines = 2,
                         overflow = TextOverflow.Visible,
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Text(
                         text = getArtistData(album.albumArtistId!!).name,
-                        color = MaterialTheme.colorScheme.primary,
+                        //color = MaterialTheme.colorScheme.onPrimary,
                         maxLines = 1,
                         overflow = TextOverflow.Visible,
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = if (songSize == 1) "$songSize song" else "$songSize songs",
-                        color = MaterialTheme.colorScheme.primary,
+                        //color = MaterialTheme.colorScheme.onPrimary,
                         maxLines = 1,
                         overflow = TextOverflow.Visible,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
             }
@@ -360,12 +359,6 @@ fun AlbumDetailsHeaderLargeAlbumCover(
                 navigationIcon = {
                     IconButton(
                         onClick = {},
-//                        colors = IconButtonColors(
-//                            MaterialTheme.colorScheme.primary,
-//                            MaterialTheme.colorScheme.secondaryContainer,
-//                            MaterialTheme.colorScheme.primary,
-//                            MaterialTheme.colorScheme.background
-//                        )
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "backNavIcon")
                     }
@@ -407,16 +400,6 @@ fun AlbumDetailsHeaderItemButtons(
     Row(modifier.padding(top = 16.dp)) {
         Button( //following/follow button
             onClick = onClick,
-//            colors = ButtonDefaults.buttonColors(
-//                //options are containerColor, contentColor, disabledContainerColor, disabledContentColor
-//                //elevatedButtonColors() = MaterialTheme.colorScheme.defaultElevatedButtonColors has same set of options, seems like all buttons have these 4 properties
-//                containerColor = if (isSystemInDarkTheme())
-//                    blueDarkColorSet.tertiaryContainer //TODO
-//                    //MaterialTheme.colorScheme.tertiary
-//                else
-//                    blueLightColorSet.primary //TODO
-//                    //MaterialTheme.colorScheme.secondary
-//            ),
             modifier = Modifier.semantics(mergeDescendants = true) { }
         ) {
             Icon(
@@ -451,41 +434,61 @@ fun AlbumDetailsTopAppBar(
     //pretty sure that button also needs a context driven options set
     modifier: Modifier = Modifier
 ) {
-    TopAppBar( // calls experimental material3 TopAppBar to display top bar
-        //properties include: title, modifier, navigationIcon, actions, expandedHeight, windowInsets, colors, scrollBehavior
-        title = { },
-        navigationIcon = {
-            IconButton(onClick = navigateBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = stringResource(id = R.string.cd_back)
-                )
-            }
-        },
-        //actions for this screen will either be the search button AND the moreOptions, or just moreOptions, or just search btn
-        actions = { //this is intended to be for the icon buttons that will appear Right Aligned
-            IconButton(
-                onClick = { /* TODO */ },
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = "More Options"
-                )
-            }
-        },
+    Row(
+        //horizontalArrangement = Arrangement.End,
         modifier = modifier
-    )
+            .fillMaxWidth()
+            .background(Color.Transparent)
+            //.padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        IconButton(onClick = navigateBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                //tint = MaterialTheme.colorScheme.onPrimary,
+                contentDescription = stringResource(id = R.string.cd_back)
+            )
+        }
+        //right align objects after this space
+        Spacer(Modifier.weight(1f))
+        // search btn
+        IconButton(onClick = {}) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                //tint = MaterialTheme.colorScheme.onPrimary,
+                contentDescription = stringResource(R.string.cd_more)
+            )
+        }
+    }
 }
 
-//@Preview (name = "light mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Preview (name = "dark mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+/**
+ * Composable for Album Details Screen's Background.
+ */
+@Composable
+private fun AlbumDetailsScreenBackground(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
+        )
+        content()
+    }
+}
+
+//@Preview (name = "light mode", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview (name = "dark mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun AlbumDetailsHeaderItemPreview() {
     MusicTheme {
         AlbumDetailsHeaderItem(
-            album = PreviewAlbums[0],
+            album = PreviewAlbums[6],
         )
     }
 }
@@ -501,14 +504,23 @@ fun AlbumDetailsHeaderItemPreview() {
 //}
 
 @Preview
-//@Preview (name = "light mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Preview (name = "dark mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Preview (name = "light mode", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview (name = "dark mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun AlbumDetailsScreenPreview() {
     MusicTheme {
         AlbumDetailsScreen(
-            album = PreviewAlbums[0],
-            songs = PreviewSongs,
+//            album = PreviewAlbums[0],
+//            songs = PreviewSongs,
+
+            //Slow Rain
+            album = PreviewAlbums[2],
+            songs = getSongsInAlbum(281),
+
+            //Kingdom Hearts Piano Collection
+//            album = PreviewAlbums[6],
+//            songs = getSongsInAlbum(307),
+
             onQueueSong = { },
             navigateToPlayer = { },
             navigateBack = { },
@@ -517,23 +529,13 @@ fun AlbumDetailsScreenPreview() {
     }
 }
 
-
 /*
 what would it take to make the larger album image details screen?
-
 scaffold:
-
     header would be the album image scaled to the full width?
-
     details would be split into content header and content song list
-
         content header contains the album name, album artist, # songs, artist image(?), more options btn
-
         content list contains the song list items
-
             need that to share the context of it being from album details
             so it should show the song.albumTrackNumber, showArtistName = false, showDuration = true, showListEdit = false, showAlbum = false
-
-
-
  */

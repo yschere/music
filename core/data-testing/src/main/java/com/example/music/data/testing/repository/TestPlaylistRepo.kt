@@ -1,36 +1,19 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.testing.repository
 
 import com.example.music.data.database.model.Playlist
 import com.example.music.data.database.model.PlaylistWithExtraInfo
 import com.example.music.data.database.model.Song
-import com.example.music.data.repository.PlaylistStore
+import com.example.music.data.repository.PlaylistRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 /**
- * A [PlaylistStore] used for testing.
+ * A [PlaylistRepo] used for testing.
  */
-class TestPlaylistStore : PlaylistStore {
+class TestPlaylistRepo : PlaylistRepo {
 
     private val playlistsFlow =
         MutableStateFlow<List<Playlist>>(emptyList())
@@ -136,7 +119,7 @@ class TestPlaylistStore : PlaylistStore {
 //    override fun getCategory(name: String): Flow<Category?> = flowOf()
 
 //    /**
-//     * Test-only API for setting the list of playlists backed by this [TestPlaylistStore].
+//     * Test-only API for setting the list of playlists backed by this [TestPlaylistRepo].
 //     */
 //    fun setPlaylists(playlists: List<Playlist>) {
 //        playlistsFlow.value = playlists
@@ -144,7 +127,7 @@ class TestPlaylistStore : PlaylistStore {
 
 //    /**
 //     * Test-only API for setting the list of songs in a playlist backed by this
-//     * [TestPlaylistStore].
+//     * [TestPlaylistRepo].
 //     */
 //    fun setPodcastsInCategory(categoryId: Long, podcastsInCategory: List<PodcastWithExtraInfo>) {
 //        podcastsInCategoryFlow.update {
@@ -154,7 +137,7 @@ class TestPlaylistStore : PlaylistStore {
 
 //    /**
 //     * Test-only API for setting the list of podcasts in a category backed by this
-//     * [TestPlaylistStore].
+//     * [TestPlaylistRepo].
 //     */
 //    fun setEpisodesFromPodcast(categoryId: Long, podcastsInCategory: List<EpisodeToPodcast>) {
 //        episodesFromPodcasts.update {

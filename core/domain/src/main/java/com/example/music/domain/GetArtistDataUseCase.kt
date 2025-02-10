@@ -1,25 +1,37 @@
 package com.example.music.domain
 
-import com.example.music.data.database.model.Album
-import com.example.music.data.repository.AlbumRepo
-import com.example.music.model.AlbumInfo
+import com.example.music.data.repository.ArtistRepo
+import com.example.music.model.ArtistInfo
 import com.example.music.model.SongInfo
 import com.example.music.model.asExternalModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.map
+import org.apache.log4j.BasicConfigurator
 import javax.inject.Inject
 
+private val logger = KotlinLogging.logger{}
+
+/**
+ * Retrieves Flow<[ArtistInfo]> for given
+ * @param song [SongInfo]
+ * because the artistId from song can be null,
+ * it's possible for ArtistInfo to be null. So in this case,
+ * it will return flow of empty ArtistInfo
+ */
 class GetArtistDataUseCase @Inject constructor(
-    private val albumRepo: AlbumRepo,
+    private val artistRepo: ArtistRepo,
 ){
-//    suspend operator fun invoke(song: SongInfo): AlbumInfo {
-//        return albumRepo.getAlbumById(song.id).single().asExternalModel()
-//    }//would like this to return AlbumInfo, but might very likely need to return Flow<AlbumInfo>
+    operator fun invoke(song: SongInfo): Flow<ArtistInfo> {
+        BasicConfigurator.configure()
+        logger.info { "GetArtistDataUseCase start" }
+        logger.info { "song.id: ${song.id}; song.artistId: ${song.artistId}"}
 
-    operator fun invoke(song: SongInfo): Flow<AlbumInfo> {
-        return albumRepo.getAlbumById(song.id).transform<Album,AlbumInfo> {  }
+        return if (song.artistId != null) {
+            artistRepo.getArtistById(song.artistId).map { it.asExternalModel() }
+        } else {
+            flowOf(ArtistInfo())
+        }
     }
-
 }

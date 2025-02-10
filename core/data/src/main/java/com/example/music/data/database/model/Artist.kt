@@ -15,20 +15,10 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "artists",
     indices = [
         Index("id", unique = true),
-        Index("genre_id")
-    ],
-    foreignKeys = [
-        ForeignKey(
-            entity = Genre::class,
-            parentColumns = ["id"],
-            childColumns = ["genre_id"],
-            onUpdate = ForeignKey.CASCADE,
-            onDelete = ForeignKey.CASCADE
-        )]
+    ]
 )
 
 data class Artist(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
     @ColumnInfo(name = "name") var name: String = "",
-    @ColumnInfo(name = "genre_id") var genreId: Long? = null
 )

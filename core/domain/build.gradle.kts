@@ -24,11 +24,6 @@ android {
                 "proguard-rules.pro")
         }
     }
-//    compileOptions {
-//        isCoreLibraryDesugaringEnabled = true
-//        sourceCompatibility = JavaVersion.VERSION_11
-//        targetCompatibility = JavaVersion.VERSION_11
-//    } //switching between 11 and 17 to test ksp, kotlin, hilt versioning support
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -41,19 +36,28 @@ android {
     }
 }
 
-//kotlin {
-//    jvmToolchain(17)
-//}
-
 dependencies {
-    coreLibraryDesugaring(libs.core.jdk.desugaring)
+    //Internal Project Modules
     implementation(projects.core.data)
     implementation(projects.core.dataTesting)
 
     // Dependency injection
     implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.dagger.hilt.compiler)
+
+    // Logging
+    implementation(libs.kotlin.logging)
+    implementation(libs.slf4j.log)
+
+    // Media3 Controls
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.session)
+
+    // Backwards Compatibility for older APIs to new App versions
+    coreLibraryDesugaring(libs.core.jdk.desugaring)
 
     // Testing
     testImplementation(libs.junit)

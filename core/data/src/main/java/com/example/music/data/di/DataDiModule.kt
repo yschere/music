@@ -1,25 +1,15 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.di
 
 import android.content.Context
+import androidx.datastore.core.DataMigration
+import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import coil3.ImageLoader
-import com.example.music.data.BuildConfig
 import com.example.music.data.Dispatcher
 import com.example.music.data.MusicDispatchers
 import com.example.music.data.database.MusicDatabase
@@ -29,65 +19,90 @@ import com.example.music.data.database.dao.GenresDao
 import com.example.music.data.database.dao.PlaylistsDao
 import com.example.music.data.database.dao.SongsDao
 import com.example.music.data.database.dao.TransactionRunner
-import com.example.music.data.repository.AlbumStore
-import com.example.music.data.repository.ArtistStore
-import com.example.music.data.repository.GenreStore
-import com.example.music.data.repository.LocalAlbumStore
-import com.example.music.data.repository.LocalArtistStore
-import com.example.music.data.repository.LocalGenreStore
-import com.example.music.data.repository.LocalPlaylistStore
-import com.example.music.data.repository.LocalSongStore
-import com.example.music.data.repository.PlaylistStore
-import com.example.music.data.repository.SongStore
+import com.example.music.data.repository.AlbumRepo
+import com.example.music.data.repository.ArtistRepo
+import com.example.music.data.repository.GenreRepo
+import com.example.music.data.repository.AlbumRepoImpl
+import com.example.music.data.repository.ArtistRepoImpl
+import com.example.music.data.repository.GenreRepoImpl
+import com.example.music.data.repository.PlaylistRepoImpl
+import com.example.music.data.repository.SongRepoImpl
+import com.example.music.data.repository.PlaylistRepo
+import com.example.music.data.repository.SongRepo
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.LoggingEventListener
 import java.io.File
 import javax.inject.Singleton
 
+private const val CURRENT_PREFERENCES = "current_preferences"
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DataDiModule {
 
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(
-        @ApplicationContext context: Context
-    ): OkHttpClient = OkHttpClient.Builder()
-        .cache(Cache(File(context.cacheDir, "http_cache"), (20 * 1024 * 1024).toLong()))
-        .apply {
-            if (BuildConfig.DEBUG) eventListenerFactory(LoggingEventListener.Factory())
-        }
-        .build() //TODO do i still need this if I do not want my app to rely on network calls?
+//    @Provides
+//    @Singleton
+//    fun provideOkHttpClient(
+//        @ApplicationContext context: Context
+//    ): OkHttpClient = OkHttpClient.Builder()
+//        .cache(Cache(File(context.cacheDir, "http_cache"), (20 * 1024 * 1024).toLong()))
+//        .apply {
+//            if (BuildConfig.DEBUG) eventListenerFactory(LoggingEventListener.Factory())
+//        }
+//        .build() //TODO do i still need this if I do not want my app to rely on network calls?
 
     @Provides
     @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context
     ): MusicDatabase =
-        Room.databaseBuilder(context, MusicDatabase::class.java, "data.db")
+        Room.databaseBuilder(context, MusicDatabase::class.java, "music.db")
             // This is not recommended for normal apps, but the goal of this sample isn't to
             // showcase all of Room.
             // TODO why is this not recommended for normal apps?
+
             .fallbackToDestructiveMigration()
+            .createFromAsset("preview_data.db")
+            //.fallbackToDestructiveMigration()
             .build()
 
+//    @Provides
+//    @Singleton
+//    fun provideImageLoader(
+//        @ApplicationContext context: Context
+//    ): ImageLoader = ImageLoader.Builder(context)
+//        // Disable `Cache-Control` header support as some 'podcast' images disable disk caching.
+//        //.respectCacheHeaders(false)
+//        .build()
 
     @Provides
     @Singleton
-    fun provideImageLoader(
-        @ApplicationContext context: Context
-    ): ImageLoader = ImageLoader.Builder(context)
-        // Disable `Cache-Control` header support as some com.example.music.ui.album images disable disk caching.
-        //.respectCacheHeaders(false)
-        .build()
+    fun providePreferencesDataStore(@ApplicationContext appContext: Context): DataStore<Preferences> {
+        return PreferenceDataStoreFactory.create(
+            corruptionHandler = ReplaceFileCorruptionHandler(
+                produceNewData = { emptyPreferences() }
+            ),
+            migrations = listOf(
+                object : DataMigration<Preferences> {
+                    override suspend fun cleanUp() { TODO("Not yet implemented") }
+                    override suspend fun migrate(currentData: Preferences): Preferences { TODO("Not yet implemented") }
+                    override suspend fun shouldMigrate(currentData: Preferences): Boolean { TODO("Not yet implemented") }
+                },
+            ),
+            scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+            produceFile = { appContext.preferencesDataStoreFile(CURRENT_PREFERENCES) }
+        )
+    }
 
     @Provides
     @Singleton
@@ -139,39 +154,39 @@ object DataDiModule {
     @Singleton
     fun provideMainDispatcher(): CoroutineDispatcher = Dispatchers.Main
 
-    //composerStore??
+    //composerRepo??
     //would use song-playlist-dao as localStore param
 
     @Provides
     @Singleton
-    fun provideAlbumStore(
+    fun provideAlbumRepo(
         albumDao: AlbumsDao,
         songDao: SongsDao,
-    ): AlbumStore = LocalAlbumStore(
+    ): AlbumRepo = AlbumRepoImpl(
         albumDao = albumDao,
         songDao = songDao
     )
 
     @Provides
     @Singleton
-    fun provideArtistStore(
+    fun provideArtistRepo(
         albumDao: AlbumsDao,
         artistDao: ArtistsDao,
         songDao: SongsDao,
-    ): ArtistStore = LocalArtistStore(
-        albumDao = albumDao,
+    ): ArtistRepo = ArtistRepoImpl(
         artistDao = artistDao,
+        albumDao = albumDao,
         songDao = songDao
     )
 
     @Provides
     @Singleton
-    fun provideGenreStore(
+    fun provideGenreRepo(
         genreDao: GenresDao,
         albumDao: AlbumsDao,
         artistDao: ArtistsDao,
         songDao: SongsDao,
-    ): GenreStore = LocalGenreStore(
+    ): GenreRepo = GenreRepoImpl(
         genreDao = genreDao,
         albumDao = albumDao,
         artistDao = artistDao,
@@ -180,17 +195,17 @@ object DataDiModule {
 
     @Provides
     @Singleton
-    fun providePlaylistStore(
+    fun providePlaylistRepo(
         playlistDao: PlaylistsDao
-    ): PlaylistStore = LocalPlaylistStore(
+    ): PlaylistRepo = PlaylistRepoImpl(
         playlistDao = playlistDao
     )
 
     @Provides
     @Singleton
-    fun provideSongStore(
+    fun provideSongRepo(
         songDao: SongsDao
-    ): SongStore = LocalSongStore(
+    ): SongRepo = SongRepoImpl(
         songDao = songDao
     )
 

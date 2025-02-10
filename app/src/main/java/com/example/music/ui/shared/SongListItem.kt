@@ -1,19 +1,3 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.ui.shared
 
 import android.content.res.Configuration
@@ -21,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -70,6 +55,7 @@ import com.example.music.model.AlbumInfo
 import com.example.music.model.ArtistInfo
 import com.example.music.model.SongInfo
 import com.example.music.player.model.PlayerSong
+import com.example.music.ui.Screen
 import com.example.music.ui.player.formatString
 import com.example.music.ui.theme.MusicTheme
 import java.time.Duration
@@ -95,25 +81,17 @@ fun SongListItem(
     //need to include show__ boolean options with Item, like showAlbumImage and showSummary
     //remove the play and queue buttons, shift the album image to the far left, keep moreVert on the far right
 
-    Box(modifier = modifier.padding(8.dp)) {
+    Box(modifier = modifier.padding(4.dp)) {
         Surface(
             shape = MaterialTheme.shapes.large,
             //color = MaterialTheme.colorScheme.background,
-            color = MaterialTheme.colorScheme.surfaceContainer, //FOR SOME REASON surfaceContainer is the only one that changes with light/dark mode
-            onClick = { onClick(song) },
-            //modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            onClick = { onClick(song) }, //this is how navigateToPlayer should be used for each song ListItem, as the passed in onClick event
         ) {
-
-            //TODO: determine if the call to SongListItem is for every individual item at a time or is being done on the list as a whole
-            //TODO: this would change whether or not the item row call
-            // has a Column surrounding it HERE or
-            // if that Column has to be around every invocation of SongListItem
-            // currently have AlbumDetailsScreen call this within its viewModel which has it sitting inside a LazyVerticalGrid
             SongListItemRow(
                     song = song,
                     //artist = artist,
                     album = album,
-                    onClick = onClick,
                     isListEditable = isListEditable,
                     showArtistName = showArtistName,
                     showAlbumImage = showAlbumImage,
@@ -122,13 +100,96 @@ fun SongListItem(
                     modifier = modifier,
                 )
 
-            //this iteration had the padding within songlistitemrow as part of the row surrounding the call itself
+            //this iteration had the padding within song list item row as part of the row surrounding the call itself
 //            Row(
 //                //modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
 //            ) {
 //                SongListItemRow(
 //                    song = song,
-//                    artist = artist,
+//                    //artist = artist,
+//                    album = album,
+//                    onClick = onClick,
+//                    isListEditable = false,
+//                    showArtistName = true,
+//                    showAlbumImage = true,
+//                    showAlbumTitle = true,
+//                    showDuration = true,
+//                    modifier = modifier,
+//                )
+//            }
+
+            //this is the original iteration of song list item that is the episode item modified
+//            Column(
+//                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+//            ) {
+//                // Top Part
+//                SongListItemHeader(
+//                    song = song,
+//                    album = album,
+//                    showAlbumImage = showAlbumImage,
+//                    showSummary = showSummary,
+//                    modifier = Modifier.padding(bottom = 8.dp)
+//                )
+//
+//                // Bottom Part
+//                SongListItemFooter(
+//                    song = song,
+//                    album = album,
+//                    onQueueSong = onQueueSong,
+//                )
+//            }
+        }
+    }
+}
+
+/**
+ * PlayerSong supported version
+ */
+@Composable
+fun SongListItem(
+//    song: SongInfo,
+//    artist: ArtistInfo,
+//    album: AlbumInfo,
+//    onClick: (SongInfo) -> Unit,
+    song: PlayerSong,
+    onClick: (PlayerSong) -> Unit,
+    onQueueSong: (PlayerSong) -> Unit,
+    isListEditable: Boolean,
+    showArtistName: Boolean,
+    showAlbumImage: Boolean,
+    showAlbumTitle: Boolean,
+    showDuration: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    //want one row to show all items
+    //want song title on separate row from extra info items (artist, album, duration)
+    //need to include show__ boolean options with Item, like showAlbumImage and showSummary
+    //remove the play and queue buttons, shift the album image to the far left, keep moreVert on the far right
+
+    Box(modifier = modifier.padding(4.dp)) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            //color = MaterialTheme.colorScheme.background,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            onClick = { onClick(song) }, //this is how navigateToPlayer should be used for each song ListItem, as the passed in onClick event
+        ) {
+            SongListItemRow(
+                song = song,
+                isListEditable = isListEditable,
+                showArtistName = showArtistName,
+                showAlbumImage = showAlbumImage,
+                showAlbumTitle = showAlbumTitle,
+                showDuration = showDuration,
+                modifier = modifier//.padding(4.dp),
+            )
+
+            //this iteration had the padding within song list item row as part of the row surrounding the call itself
+//            Row(
+//                //modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+//            ) {
+//                SongListItemRow(
+//                    song = song,
+//                    //artist = artist,
 //                    album = album,
 //                    onClick = onClick,
 //                    isListEditable = false,
@@ -169,7 +230,6 @@ private fun SongListItemRow(
     song: SongInfo,
     //artist: ArtistInfo,
     album: AlbumInfo,
-    onClick: (SongInfo) -> Unit,
     isListEditable: Boolean,
     showArtistName: Boolean,
     showAlbumImage: Boolean,
@@ -182,10 +242,10 @@ private fun SongListItemRow(
     //the item is being viewed as what determines which properties get shown
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
     ) {
         //want the logic to be:
-            //want to show Album Image on NOT albumlist screens, NOT edit list screen. so expect showAlbumImage to be false coming from AlbumDetailsScreen or any EditListScreen
+            //want to show Album Image on NOT album list screens, NOT edit list screen. so expect showAlbumImage to be false coming from AlbumDetailsScreen or any EditListScreen
             //so should be true for GenreScreen, ArtistScreen, SongsList, PlaylistScreen, (?)ComposerScreen
             //AND if showAlbumImage is true, then isListEditable should be false
             //then if showAlbumImage is false, use else to check if isListEditable is true. if true, place edit icon btn where image would be
@@ -236,11 +296,12 @@ private fun SongListItemRow(
                 modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
             )
             Row(
-                modifier = modifier.padding(horizontal = 10.dp)
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.padding(horizontal = 10.dp)
             ) {
                 if (showArtistName) { //if showArtistName is true
                     Text(
-                        text = getArtistData(song.artistId!!).name,
+                        text = getArtistData(song.artistId!!).name,//artist.name,//
                         maxLines = 1,
                         minLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -313,9 +374,157 @@ private fun SongListItemRow(
     }
 }
 
+/**
+ * PlayerSong supported version
+ */
 @Composable
+private fun SongListItemRow(
+    song: PlayerSong,
+    isListEditable: Boolean,
+    showArtistName: Boolean,
+    showAlbumImage: Boolean,
+    showAlbumTitle: Boolean,
+    showDuration: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+        //want the logic to be:
+        //want to show Album Image on NOT album list screens, NOT edit list screen. so expect showAlbumImage to be false coming from AlbumDetailsScreen or any EditListScreen
+        //so should be true for GenreScreen, ArtistScreen, SongsList, PlaylistScreen, (?)ComposerScreen
+        //AND if showAlbumImage is true, then isListEditable should be false
+        //then if showAlbumImage is false, use else to check if isListEditable is true. if true, place edit icon btn where image would be
+        //if isListEditable is false, show trackNumber?? not sure what to do here
+
+        if (showAlbumImage) {
+            SongListItemImage(
+                album = song.albumTitle,
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(MaterialTheme.shapes.small)
+            )
+        } else {
+            if (isListEditable) {
+                Box(modifier = modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)))
+                IconButton(
+                    onClick = {},
+                    enabled = isListEditable,
+                    modifier = Modifier,
+                ) {
+                    Icon( //more options icon
+                        imageVector = Icons.Outlined.Reorder,
+                        contentDescription = stringResource(R.string.cd_more),
+                        //tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            } else {
+                //show the item's track number i guess?
+                Box(modifier = modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)))
+                Text(
+                    text = song.trackNumber.toString(), //TODO: FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songinfo, albumInfo)
+                    minLines = 1,
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 15.dp),
+                )
+            }
+        }
+
+        Column(modifier.weight(1f)) {
+            Text(
+                text = song.title,
+                maxLines = 1,
+                minLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
+            )
+            Row(
+                modifier = modifier.padding(horizontal = 10.dp)
+            ) {
+                if (showArtistName) { //if showArtistName is true
+                    Text(
+                        text = song.artistName,//original code: getArtistData(song.artistId!!).name, //based on song: SongInfo, get PreviewData's PreviewArtist
+                        maxLines = 1,
+                        minLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 2.dp),
+                    )
+                } else { //if showArtist is false, show nothing?? //TODO
+
+                }
+                if (showAlbumTitle) {//(showArtistName) { //if showArtistName is true
+                    Text(
+                        //text = if (showArtistName) " • " + album.title else album.title, //original code, based on album: AlbumInfo
+                        text = (if (showArtistName) " • " + song.albumTitle else song.albumTitle),
+                        maxLines = 1,
+                        minLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 2.dp),
+                    )
+                } else { //if showArtist is false, show nothing?? //TODO
+
+                }
+                if (showDuration) { //(showDuration) { //if showDuration is true
+                    Text(
+                        text = if (showArtistName || showAlbumTitle) " • " + song.duration!!.formatStr() else song.duration!!.formatStr(),
+                        maxLines = 1,
+                        minLines = 1,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 2.dp)//, horizontal = 8.dp),
+                    )
+
+                } else { //if showDuration is false, show nothing?? //TODO
+//                    val duration = song.duration
+//                    Text(
+//                        text = when {
+//                            duration != null -> {
+//                                // If we have the duration, we combine the date/duration via a
+//                                // formatted string
+//                                stringResource(
+//                                    R.string.song_date_duration,
+//                                    duration.toMinutes().toInt()
+//                                )
+//                            }
+//                            // Otherwise we just use the date
+//                            else -> MediumDateFormatter.format(song.dateLastPlayed)
+//                        },
+//                        maxLines = 1,
+//                        overflow = TextOverflow.Ellipsis,
+//                        style = MaterialTheme.typography.bodySmall,
+//                        modifier = Modifier
+//                            .padding(horizontal = 8.dp)
+//                            .weight(1f)
+//                    )
+
+                }
+            }
+
+        }
+
+        IconButton( //more options button
+            //modifier = Modifier.padding(0.dp),
+            onClick = { /* TODO */ }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
+        ) {
+            Icon( //more options icon
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.cd_more),
+                //tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+/*@Composable
 private fun SongListItemFooter(
     song: SongInfo,
+    artist: ArtistInfo,
     album: AlbumInfo,
     onQueueSong: (PlayerSong) -> Unit,
     modifier: Modifier = Modifier
@@ -367,6 +576,7 @@ private fun SongListItemFooter(
                 onQueueSong(
                     PlayerSong(
                         albumInfo = album,
+                        artistInfo = artist,
                         songInfo = song,
                     )
                 )
@@ -391,11 +601,12 @@ private fun SongListItemFooter(
             )
         }
     }
-}
+}*/
 
-@Composable
+/*@Composable
 private fun SongListItemHeader(
     song: SongInfo,
+    artist: ArtistInfo,
     album: AlbumInfo,
     showAlbumImage: Boolean,
     showSummary: Boolean,
@@ -446,11 +657,24 @@ private fun SongListItemHeader(
             )
         }
     }
-}
+}*/
 
 @Composable
 private fun SongListItemImage(
     album: AlbumInfo,
+    modifier: Modifier = Modifier
+) {
+    AlbumImage(
+        //albumImage = album.artwork!!,
+        //albumImage = R.drawable.bpicon,
+        contentDescription = null,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun SongListItemImage(
+    album: String,
     modifier: Modifier = Modifier
 ) {
     AlbumImage(

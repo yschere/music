@@ -1,19 +1,3 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.ui.shared
 
 import android.annotation.SuppressLint
@@ -36,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -119,7 +104,7 @@ fun AlbumListItem(
     //For now keeping both as separate options thru boolean check: box(true) or row(false)
     //information i want to show: album name, album image, album artist name
     //information i could show: song count
-    Box(modifier = modifier.padding(0.dp)) {
+    Box(modifier = modifier.padding(2.dp)) {
         Surface(
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.background,
@@ -161,7 +146,7 @@ private fun AlbumListItemBox(
 //    ) {
 //        // Top Part
 //        AlbumListItemHeader(
-//            album = album, //miiiight want this to be album with extra info, so that song count can be passed in here
+//            album = album, //might want this to be album with extra info, so that song count can be passed in here
 //            onClick = {},
 //            modifier = Modifier.padding(bottom = 8.dp)
 //            //this one should have the floating action button in it
@@ -169,7 +154,7 @@ private fun AlbumListItemBox(
 //
 //        // Bottom Part
 //        AlbumListItemFooter(
-//            album = album, //miiiight want a way to have album artist name passed in here
+//            album = album, //might want a way to have album artist name passed in here
 //            onClick = {},
 //            //onQueueSong = onQueueSong,
 //            modifier = Modifier.padding(bottom = 8.dp)
@@ -188,7 +173,9 @@ private fun AlbumListItemBox(
     */
 
         Column(
-            modifier = Modifier.padding(8.dp).background(MaterialTheme.colorScheme.background),
+            modifier = Modifier
+                .padding(8.dp)
+                .background(MaterialTheme.colorScheme.background),
                 //.size(maxHeaderWidth, maxHeaderHeight)
                 //.size(200.dp, 280.dp) //for future context: width 200.dp by height 280.dp had the width of the box go passed half way on the pixel 7, the height was a 3rd of the screen. no padding to the outside of the box so its flat against the window sides
                 //more future context: in landscape mode, width 200 by height 280 meant the height covered most of the screen when taking status bar and bottom screen bar into acct
@@ -196,7 +183,7 @@ private fun AlbumListItemBox(
         ) {
             // Top Part
             AlbumListItemHeader(
-                album = album, //miiiight want this to be album with extra info, so that song count can be passed in here
+                album = album, //might want this to be album with extra info, so that song count can be passed in here
                 onClick = {},
                 //modifier = Modifier.padding(bottom = 8.dp)
                 //this one should have the floating action button in it
@@ -204,7 +191,7 @@ private fun AlbumListItemBox(
 
             // Bottom Part
             AlbumListItemFooter(
-                album = album, //miiiight want a way to have album artist name passed in here
+                album = album, //might want a way to have album artist name passed in here
                 onClick = {},
                 //onQueueSong = onQueueSong,
                 //modifier = Modifier.padding(bottom = 8.dp)
@@ -339,13 +326,14 @@ private fun AlbumListItemHeader(
     ) {
         //val boxWithConstraintsScope = this
         val maxHeaderWidth = max(150.dp, this.maxWidth/2)
-        val maxHeaderHeight = maxHeaderWidth// + 70.dp
+        val maxHeaderHeight = 200.dp//maxHeaderWidth// + 70.dp
         AlbumListItemImage(
             album = album,
             modifier = Modifier
                 .fillMaxWidth()
+                .sizeIn(100.dp, 100.dp, maxHeaderWidth, maxHeaderHeight)
                 //.height(210.dp)
-                .size(maxHeaderWidth, maxHeaderHeight)
+                //.size(maxHeaderWidth, maxHeaderHeight)
                 .clip(MaterialTheme.shapes.medium)
         )
 
@@ -359,16 +347,16 @@ private fun AlbumListItemHeader(
             modifier = Modifier.padding(10.dp)
         )
         //floating action button here
-        SmallFloatingActionButton(
-            content = { Icon( Icons.Filled.PlayArrow,"Play Album" )},
-            onClick = {},
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(6.dp),
-            shape = CircleShape,
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
+//        SmallFloatingActionButton(
+//            content = { Icon( Icons.Filled.PlayArrow,"Play Album" )},
+//            onClick = {},
+//            modifier = Modifier
+//                .align(Alignment.BottomEnd)
+//                .padding(6.dp),
+//            shape = CircleShape,
+//            containerColor = MaterialTheme.colorScheme.primaryContainer,
+//            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+//        )
     }
 }
 

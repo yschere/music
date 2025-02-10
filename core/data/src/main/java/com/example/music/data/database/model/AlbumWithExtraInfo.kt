@@ -1,19 +1,3 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.database.model
 
 import androidx.room.ColumnInfo
@@ -21,40 +5,41 @@ import androidx.room.Embedded
 import java.time.OffsetDateTime
 import java.util.Objects
 
-//album with extra info ??
-//could combine album and last accessed date
 /**
- * Class object PlaylistExtraInfo contains album object
- * and the count of songs within the album.
- * Used to be last accessed date, but count is easier to test for now.
+ * Class object AlbumWithExtraInfo contains album object, the count of songs,
+ * and the max value of date_last_played from songs in album.
  */
-
 class AlbumWithExtraInfo {
     @Embedded
     lateinit var album: Album
 
-    @ColumnInfo(name = "song_count")
-    var songCount: Int? = 0
-
-    @ColumnInfo(name = "date_last_played") //TODO: changed from last_played to count for now
+    //this is the MAX("date_last_played") value from songs in album,
+    // should default to null unless there is at least one song that
+    // has this value set and is the MAX value if multiple are set
+    @ColumnInfo(name = "date_last_played")
     var dateLastPlayed: OffsetDateTime? = null
+
+    //this is the song count within library NOT album's trackTotal,
+    // since trackTotal is the number for the album's actual track list count
+    @ColumnInfo(name = "song_count")
+    var songCount: Int = 0
 
     /**
      * Allow consumers to destruct this class
      */
     operator fun component1() = album
-    operator fun component2() = songCount
-    operator fun component3() = dateLastPlayed
+    operator fun component2() = dateLastPlayed
+    operator fun component3() = songCount
 
     override fun equals(other: Any?): Boolean = when {
         other === this -> true
         other is AlbumWithExtraInfo -> {
             album == other.album &&
-                    songCount == other.songCount &&
-                    dateLastPlayed == other.dateLastPlayed
+                    dateLastPlayed == other.dateLastPlayed &&
+                    songCount == other.songCount
         }
         else -> false
     }
-    override fun hashCode(): Int = Objects.hash(album, songCount, dateLastPlayed)
+    override fun hashCode(): Int = Objects.hash(album, dateLastPlayed, songCount)
 
 }

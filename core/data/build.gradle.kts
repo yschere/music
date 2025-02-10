@@ -28,69 +28,64 @@ android {
 
     buildFeatures {
         buildConfig = true
+        //viewBinding = true
     }
 
-//    compileOptions {
-//        isCoreLibraryDesugaringEnabled = true
-//        sourceCompatibility = JavaVersion.VERSION_11
-//        targetCompatibility = JavaVersion.VERSION_11
-//    } //switching between 11 and 17 to test ksp, kotlin, hilt versioning support
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-    kotlinOptions { //
+
+    kotlinOptions {
         jvmTarget = "17"
     }
-
 }
 
-//kotlin {
-//    jvmToolchain(17)
-//}
-
 dependencies {
+    // Kotlin Support
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.compose.runtime)
-    //implementation("androidx.compose.runtime:runtime:1.7.6")
-
-    // Image loading
-    implementation(libs.coil.kt.compose)
-    implementation(libs.coil3.kt.compose)
-    //implementation("io.coil-kt.coil3:coil-compose:3.0.1")
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
-    //implementation(platform("androidx.compose:compose-bom:2024.12.01"))
+    androidTestImplementation(platform(libs.androidx.compose.bom))
 
     // Dependency injection
     implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.dagger.hilt.android)
+    implementation(libs.transport.api)
+    ksp(libs.dagger.hilt.compiler)
+
+    // Image Loading
+    implementation(libs.coil.kt.compose)
+    implementation(libs.coil3.kt.compose)
 
     // Networking
     implementation(libs.okhttp3)
     implementation(libs.okhttp.logging)
+    implementation(libs.rometools.rome)
+    //implementation(libs.rometools.modules)
 
     // Database
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.datastore) // preferences datastore support
 
-    implementation(libs.rometools.rome)
-    //implementation(libs.rometools.modules)
-
+    // Backwards Compatibility for older APIs to new App versions
     coreLibraryDesugaring(libs.core.jdk.desugaring)
+
+    // Backwards Compatibility for older App versions to new APIs
+    implementation(libs.androidx.appcompat)
 
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
 }

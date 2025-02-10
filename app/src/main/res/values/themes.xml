@@ -2,8 +2,10 @@
 <resources>
 
     <!-- Original Theme.Music here -->
-<!--    <style name="Theme.Music" parent="android:Theme.Material.Light.NoActionBar" />-->
-
+    <style name="Theme.Music" parent="android:Theme.Material.Light.NoActionBar" >
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
     <!-- Trying different theme to see if it changes preview / emulator rendering -->
-    <style name="Theme.Music" parent="android:Theme.Material.Light.DarkActionBar" />
+<!--    <style name="Theme.Music" parent="android:Theme.Material.Light.DarkActionBar" />-->
 </resources>

@@ -1,25 +1,6 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-@file:OptIn(ExperimentalFoundationApi::class)
-
 package com.example.music.ui.home
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,26 +14,33 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.MenuOpen
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -61,10 +49,6 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabPosition
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.Posture
@@ -104,25 +88,22 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.domain.testing.PreviewAlbumSongs
-import com.example.music.domain.testing.PreviewAlbums
-import com.example.music.domain.testing.PreviewGenres
-import com.example.music.model.AlbumGenreFilterResult
-import com.example.music.model.AlbumInfo
-import com.example.music.model.FilterableGenresModel
-import com.example.music.model.LibraryInfo
+import com.example.music.domain.testing.PreviewPlayerSongs
+import com.example.music.domain.testing.PreviewPlaylists
+import com.example.music.domain.testing.PreviewSongs
+import com.example.music.model.FeaturedLibraryItemsFilterResult
+import com.example.music.model.PlaylistInfo
 import com.example.music.model.SongInfo
-import com.example.music.ui.album.AlbumDetailsScreen
-import com.example.music.ui.album.AlbumDetailsViewModel
-import com.example.music.ui.home.discover.discoverItems
-import com.example.music.ui.home.library.libraryItems
+import com.example.music.player.model.PlayerSong
+import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.theme.MusicTheme
+//import com.example.music.util.MenuItem
 import com.example.music.util.fullWidthItem
 import com.example.music.util.isCompact
 import com.example.music.util.quantityStringResource
 import com.example.music.util.radialGradientScrim
+import com.example.music.util.verticalGradientScrim
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.oshai.kotlinlogging.slf4j.logger
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
@@ -214,29 +195,37 @@ private val logger = KotlinLogging.logger{}
 @Composable
 fun MainScreen(
     windowSizeClass: WindowSizeClass,
+    navigateToLibrary: () -> Unit,
+    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     BasicConfigurator.configure()
     val homeScreenUiState by viewModel.state.collectAsStateWithLifecycle()
     val uiState = homeScreenUiState
     Box {
+        logger.info { "Main Screen function start" }
         HomeScreenReady(
             uiState = uiState,
             windowSizeClass = windowSizeClass,
+            navigateToPlaylistDetails = navigateToPlaylistDetails,
+            navigateToLibrary = navigateToLibrary,
             navigateToPlayer = navigateToPlayer,
+            navigateToPlayerSong = navigateToPlayerSong,
             viewModel = viewModel,
         )
 
         if (uiState.errorMessage != null) {
             HomeScreenError(onRetry = viewModel::refresh)
         }
+        logger.info { "Main Screen function end" }
     }
 }
 
-//keep as is
 @Composable
 private fun HomeScreenError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    logger.info { "Home Screen Error function start" }
     Surface(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -254,23 +243,19 @@ private fun HomeScreenError(onRetry: () -> Unit, modifier: Modifier = Modifier) 
     }
 }
 
-//keep as is
-//@Preview
-@Composable
-fun HomeScreenErrorPreview() {
-    MusicTheme {
-        HomeScreenError(onRetry = {})
-    }
-}
-
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 private fun HomeScreenReady(
     uiState: HomeScreenUiState,
     windowSizeClass: WindowSizeClass,
+    navigateToLibrary: () -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    logger.info { "Home Screen Ready function start" }
+
     val navigator = rememberSupportingPaneScaffoldNavigator<String>(
         scaffoldDirective = calculateScaffoldDirective(currentWindowAdaptiveInfo())
     )
@@ -284,142 +269,47 @@ private fun HomeScreenReady(
             directive = navigator.scaffoldDirective,
             mainPane = {
                 HomeScreen(
-                    //for now so I can see anything load in emulator, gonna put some preview values
                     windowSizeClass = windowSizeClass,
                     isLoading = uiState.isLoading,
-                    //for now so I can see anything load in emulator
-                    featuredAlbums = PreviewAlbums.toPersistentList(),
-                    homeCategories = HomeCategory.entries,
-                    selectedHomeCategory = HomeCategory.Library,
-                    filterableGenresModel = FilterableGenresModel(
-                        genres = PreviewGenres,
-                        selectedGenre = PreviewGenres.firstOrNull()
-                    ),
-                    albumGenreFilterResult = AlbumGenreFilterResult(
-                        topAlbums = PreviewAlbums,
-                        songs = PreviewAlbumSongs
-                    ),
-                    library = LibraryInfo(PreviewAlbumSongs),
-                    onHomeAction = {},
-                    navigateToAlbumDetails = {},
-                    /*
-                    featuredAlbums = uiState.featuredAlbums, //featuredPlaylists = uiState.featuredPlaylists,
-                    homeCategories = uiState.homeCategories,
-                    selectedHomeCategory = uiState.selectedHomeCategory,
-                    filterableGenresModel = uiState.filterableGenresModel,
-                    albumGenreFilterResult = uiState.albumGenreFilterResult,
-                    library = uiState.library,
+                    featuredLibraryItemsFilterResult = uiState.featuredLibraryItemsFilterResult,
+                    librarySongs = uiState.playerSongs, //TODO: PlayerSong support
                     onHomeAction = viewModel::onHomeAction,
-                    navigateToAlbumDetails = { //was navigateToPodcastDetails,
-                        // then navigateToPlaylistDetails but uiState
-                        // doesn't share playlistInfo, but it can
-                        // share genre, album, song infos
-                        // could make this navigateToAlbumDetails. would need an albumInfo that
-                        // can encapsulate the type of properties needed that Podcast has
+                    /*navigateToPlaylistDetails = {
                         navigator.navigateTo(SupportingPaneScaffoldRole.Supporting, it.id.toString())
-                    },
-                     */
+                        //navigator to supporting pane scaffold
+                    },*/
+                    navigateToPlaylistDetails = navigateToPlaylistDetails,
+                    navigateToLibrary = navigateToLibrary,
                     navigateToPlayer = navigateToPlayer,
-                    modifier = Modifier.fillMaxSize()
+                    navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
+                    modifier = Modifier
+                        .fillMaxSize()
                 )
             },
             //TODO: when navigateTo___Details determined, need to update this. it's based on PodcastDetailsViewModel
             supportingPane = {
-                val albumId = navigator.currentDestination?.content
-                if (!albumId.isNullOrEmpty()) {
-                    val albumDetailsViewModel = hiltViewModel<AlbumDetailsViewModel, AlbumDetailsViewModel.AlbumDetailsViewModelFactory>(
-                            key = albumId
-                        ) { it.create(albumId.toLong()) }
-                    //TODO: change the podcastDetails section to handle playlist Details view
-                    //TODO: or to handle album/artist Details
-                    AlbumDetailsScreen(
-                        viewModel = albumDetailsViewModel,
-                        navigateToPlayer = navigateToPlayer,
-                        navigateBack = {
-                            if (navigator.canNavigateBack()) {
-                                navigator.navigateBack()
-                            }
-                        },
-                        showBackButton = navigator.isMainPaneHidden(),
-                    )
-                }
+//                val albumId = navigator.currentDestination?.content
+//                if (!albumId.isNullOrEmpty()) {
+//                    val albumDetailsViewModel = hiltViewModel<AlbumDetailsViewModel, AlbumDetailsViewModel.AlbumDetailsViewModelFactory>(
+//                            key = albumId
+//                        ) { it.create(albumId.toLong()) }
+//                    //TODO: change the podcastDetails section to handle playlist Details view
+//                    //TODO: or to handle album/artist Details
+//                    AlbumDetailsScreen(
+//                        viewModel = albumDetailsViewModel,
+//                        navigateToPlayer = navigateToPlayer,
+//                        navigateBack = {
+//                            if (navigator.canNavigateBack()) {
+//                                navigator.navigateBack()
+//                            }
+//                        },
+//                        showBackButton = navigator.isMainPaneHidden(),
+//                    )
+//                }
             },
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
-
-/**
- * Composable for Home Screen's Top App Bar.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun HomeAppBar(
-    isExpanded: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    var queryText by remember {
-        mutableStateOf("")
-    }
-    Row(
-        horizontalArrangement = Arrangement.End,
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color.Transparent)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        SearchBar(
-            inputField = {
-                SearchBarDefaults.InputField(
-                    query = queryText,
-                    onQueryChange = { queryText = it },
-                    onSearch = {},
-                    expanded = false,
-                    onExpandedChange = {},
-                    enabled = true,
-                    placeholder = {
-                        Text(stringResource(id = R.string.cd_search))
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = stringResource(R.string.cd_account)
-                        )
-                    },
-                    interactionSource = null,
-                    modifier = if (isExpanded) Modifier.fillMaxWidth() else Modifier
-                )
-            },
-            expanded = false,
-            onExpandedChange = {}
-        ) {}
-    }
-}
-
-/**
- * Composable for Home Screen's Background.
- */
-@Composable
-private fun HomeScreenBackground(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
-) {
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
         )
-        content()
     }
 }
 
@@ -431,62 +321,72 @@ private fun HomeScreenBackground(
 private fun HomeScreen(
     windowSizeClass: WindowSizeClass,
     isLoading: Boolean,
-    featuredAlbums: PersistentList<AlbumInfo>,
-    selectedHomeCategory: HomeCategory,
-    homeCategories: List<HomeCategory>,
-    filterableGenresModel: FilterableGenresModel,
-    albumGenreFilterResult: AlbumGenreFilterResult,
-    library: LibraryInfo,
+    featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
+    //featuredPlaylists: PersistentList<PlaylistInfo>,
+    //featuredSongs: PersistentList<SongInfo>,
+    //library: LibraryInfo,
+    librarySongs: List<PlayerSong>, //TODO: PlayerSong support
     onHomeAction: (HomeAction) -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToLibrary: () -> Unit,
+    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) {
+    logger.info { "Home Screen function start" }
+
     // Effect that changes the home category selection when there are no subscribed podcasts
-    LaunchedEffect(key1 = featuredAlbums) {
-        if (featuredAlbums.isEmpty()) {
-            onHomeAction(HomeAction.HomeCategorySelected(HomeCategory.Discover))
+    //TODO: repurpose this for RecentPlaylists, so that if there's no recent playlists as featured playlists, have a defaulted view
+    LaunchedEffect(key1 = featuredLibraryItemsFilterResult.recentPlaylists) {
+        if (featuredLibraryItemsFilterResult.recentPlaylists.isEmpty()) {
+            onHomeAction(HomeAction.EmptyLibraryView(PlaylistInfo()))
         }
     }
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val snackBarText = stringResource(id = R.string.song_added_to_your_queue) //TODO: update if need to
+    //create scaffoldState here for drawerNav
+    //val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
     HomeScreenBackground(
         modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         Scaffold(
             topBar = {
-                Column {
-                    HomeAppBar(
-                        isExpanded = windowSizeClass.isCompact,
-                        modifier = Modifier.fillMaxWidth(),
+                HomeAppBar(
+                    isExpanded = windowSizeClass.isCompact,
+                    isSearchOn = false,
+//                    drawerState = drawerState,
+//                    //if include navMenu, would also have
+//                    onNavigationIconClick = {
+//                        coroutineScope.launch {
+//                            drawerState.close()
+//                        }
+//                    },
+                    navigateToLibrary = navigateToLibrary,
+                )
+                if (isLoading) {
+                    LinearProgressIndicator(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
                     )
-                    if (isLoading) {
-                        LinearProgressIndicator(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                        )
-                    }
                 }
             },
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
-            containerColor = Color.Transparent
+            //modifier = modifier,
+            containerColor = Color.Transparent,
         ) { contentPadding ->
             // Main Content
-            val snackBarText = stringResource(id = R.string.song_added_to_your_queue)
-            val showHomeCategoryTabs = featuredAlbums.isNotEmpty() && homeCategories.isNotEmpty()
             HomeContent(
-                showHomeCategoryTabs = showHomeCategoryTabs,
-                featuredAlbums = featuredAlbums,
-                selectedHomeCategory = selectedHomeCategory,
-                homeCategories = homeCategories,
-                filterableGenresModel = filterableGenresModel,
-                albumGenreFilterResult = albumGenreFilterResult,
-                library = library,
-                modifier = Modifier.padding(contentPadding),
+                featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
+                //featuredPlaylists = featuredLibraryItemsFilterResult.recentPlaylists.toPersistentList(),
+                //featuredSongs = featuredLibraryItemsFilterResult.recentlyAddedSongs.toPersistentList(),
+                librarySongs = librarySongs, //TODO: PlayerSong support
+                modifier = modifier/*.statusBarsPadding()*/.padding(contentPadding), //this contentPadding comes from the Scaffold
                 onHomeAction = { action ->
                     if (action is HomeAction.QueueSong) {
                         coroutineScope.launch {
@@ -495,221 +395,345 @@ private fun HomeScreen(
                     }
                     onHomeAction(action)
                 },
-                navigateToAlbumDetails = navigateToAlbumDetails,
+                navigateToPlaylistDetails = navigateToPlaylistDetails,
                 navigateToPlayer = navigateToPlayer,
+                navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
             )
         }
     }
 }
 
+/**
+ * Composable for Home Screen's Background.
+ */
+@Composable
+private fun HomeScreenBackground(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    logger.info { "Home Background function start" }
+
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .radialGradientScrim(MaterialTheme.colorScheme.primary)
+        )
+        content()
+    }
+}
+
+/**
+ * Composable for Home Screen's Top App Bar.
+ */
+@Composable
+private fun HomeAppBar(
+    isSearchOn: Boolean,
+//    drawerState: DrawerState,
+    isExpanded: Boolean,
+    navigateToLibrary: () -> Unit,
+//    onNavigationIconClick: () -> Unit, //use this to capture navDrawer open/close action
+    modifier: Modifier = Modifier,
+) {
+    logger.info { "Home App Bar function start" }
+
+    var queryText by remember {
+        mutableStateOf("")
+    }
+    Row(
+        //horizontalArrangement = Arrangement.End,
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 8.dp)
+        //.background(Color.Transparent)
+    ) {
+        //if (!isSearchOn) {
+
+        //not search time
+        //IconButton(onClick = {}) { //
+        IconButton(onClick = {}) {//onNavigationIconClick) {
+            Icon(
+                imageVector = Icons.Outlined.Menu,
+                contentDescription = stringResource(R.string.cd_more)
+            )
+        }
+
+        //right align objects after this space
+        Spacer(Modifier.weight(1f))
+
+        // search btn
+        IconButton(onClick = { /* TODO */ }) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = stringResource(R.string.cd_more)
+            )
+        }
+        /*} else {
+            // search time
+            //back button
+            IconButton(onClick = { }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.cd_back)
+                )
+            }
+
+            //right align objects after this space
+            Spacer(Modifier.weight(1f))
+
+            SearchBar( //TODO: determine if this can be a shared item & if this can have visibility functionality
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = queryText,
+                        onQueryChange = { queryText = it },
+                        onSearch = {},
+                        expanded = true,
+                        onExpandedChange = {},
+                        enabled = true,
+                        placeholder = {
+                            Text(stringResource(id = R.string.cd_search))
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null
+                            )
+                        },
+//                        trailingIcon = {
+//                            Icon(
+//                                imageVector = Icons.Default.AccountCircle,
+//                                contentDescription = stringResource(R.string.cd_account)
+//                            )
+//                        },
+                        interactionSource = null,
+                        modifier = if (isExpanded) Modifier.fillMaxWidth() else Modifier
+                    )
+                },
+                expanded = false,
+                onExpandedChange = {}
+            ) {}
+        }*/
+    }
+}
+
+/* //Nav Menu Composable
+@Composable
+fun NavDrawerHeader() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 20.dp)
+    ) {
+        Text(text = "Musicality", style = MaterialTheme.typography.displaySmall)
+    }
+}
+
+data class MenuItem(
+    val id: Long,
+    val title: String,
+    val contentDescription: String,
+    val dest: Screen,
+    val isClickable: Boolean
+)
+
+@Composable
+fun NavDrawerBody(
+    items: List<MenuItem>,
+    modifier: Modifier = Modifier,
+    onItemClick: (MenuItem) -> Unit,
+) {
+    LazyColumn(modifier) {
+        items(items) { item ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable{
+                        onItemClick(item)
+                    }.padding(16.dp)
+            ) {
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = item.title,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}*/
+
 @Composable
 private fun HomeContent(
-    showHomeCategoryTabs: Boolean,
-    featuredAlbums: PersistentList<AlbumInfo>,
-    selectedHomeCategory: HomeCategory,
-    homeCategories: List<HomeCategory>,
-    filterableGenresModel: FilterableGenresModel,
-    albumGenreFilterResult: AlbumGenreFilterResult,
-    library: LibraryInfo,
+    featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
+    //featuredPlaylists: PersistentList<PlaylistInfo>,
+    //featuredSongs: PersistentList<SongInfo>,
+    //library: LibraryInfo,
+    librarySongs: List<PlayerSong>, //TODO: PlayerSong support
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
 ) {
+    // Main Content on Home screen
     logger.info { "Home Content function start" }
-    val pagerState = rememberPagerState { featuredAlbums.size }
-    LaunchedEffect(pagerState, featuredAlbums) {
+    val pLists = featuredLibraryItemsFilterResult.recentPlaylists.toPersistentList()
+    val pagerState = rememberPagerState { pLists.size }
+    LaunchedEffect(pagerState, pLists) {
         snapshotFlow { pagerState.currentPage }
             .collect {
-                val album = featuredAlbums.getOrNull(it)
-                //onHomeAction(HomeAction.LibraryAlbumSelected(album))
-                album?.let { it1 -> HomeAction.LibraryAlbumSelected(it1) }
-                    ?.let { it2 -> onHomeAction(it2) }
-                //TODO: fix HomeAction's LibraryPodcastSelected fun
-            }
-    }
-
+//                val playlist = pLists.getOrNull(it)
+//                playlist?.let { it1 -> HomeAction.LibraryPlaylistSelected(it1) }
+//                    ?.let { it2 -> onHomeAction(it2) }
+            }//crashes the app on Home screen redraw
+    } //this section is called on every redraw for Home Screen
+    logger.info { "Home Content - HomeContentGrid function call" }
     HomeContentGrid(
-        showHomeCategoryTabs = showHomeCategoryTabs,
         pagerState = pagerState,
-        featuredAlbums = featuredAlbums,
-        selectedHomeCategory = selectedHomeCategory,
-        homeCategories = homeCategories,
-        filterableGenresModel = filterableGenresModel,
-        albumGenreFilterResult = albumGenreFilterResult,
-        library = library,
+        featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
+        //featuredPlaylists = featuredPlaylists,
+        //featuredSongs = featuredSongs,
+        //library = library,
+        librarySongs = librarySongs, //TODO: PlayerSong support
         modifier = modifier,
         onHomeAction = onHomeAction,
-        navigateToAlbumDetails = navigateToAlbumDetails,
+        navigateToPlaylistDetails = navigateToPlaylistDetails,
         navigateToPlayer = navigateToPlayer,
+        navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
     )
 }
 
 @Composable
 private fun HomeContentGrid(
-    showHomeCategoryTabs: Boolean,
     pagerState: PagerState,
-    featuredAlbums: PersistentList<AlbumInfo>,
-    selectedHomeCategory: HomeCategory,
-    homeCategories: List<HomeCategory>,
-    filterableGenresModel: FilterableGenresModel,
-    albumGenreFilterResult: AlbumGenreFilterResult,
-    library: LibraryInfo,
+    featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
+    //featuredPlaylists: PersistentList<PlaylistInfo>,
+    //featuredSongs: PersistentList<SongInfo>,
+    //library: LibraryInfo,
+    librarySongs: List<PlayerSong>, //TODO: PlayerSong support
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
 ) {
+    logger.info { "Home Content Grid function start" }
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(362.dp),
-        modifier = modifier.fillMaxSize()
+        //columns = GridCells.Adaptive(362.dp),
+        //columns = GridCells.Adaptive(250.dp),
+        columns = GridCells.Fixed(1),
+        modifier = modifier.fillMaxSize()//.padding(horizontal = 4.dp)
     ) {
-        if (featuredAlbums.isNotEmpty()) {
+        logger.info { "Home Content Grid - layer vertical grid start" }
+        logger.info { "featuredLibraryItemsFilterResult - recentPlaylists size: ${featuredLibraryItemsFilterResult.recentPlaylists.size}" }
+        if (featuredLibraryItemsFilterResult.recentPlaylists.isNotEmpty()) {
             fullWidthItem {
-                //TODO: adjust FollowedPodcastItem and all FollowedPodcast / subscribedPodcast viewmodels to support Genres
-                //FollowedPodcastItem(
-                FeaturedAlbumItem(
+                Text(
+                    text = "Recent Playlists",
+                    minLines = 1,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                )
+            }
+            fullWidthItem {
+                //recent playlists as featured playlists would go here
+                FeaturedPlaylistItem(
                     pagerState = pagerState,
-                    items = featuredAlbums,
-                    //onPodcastUnfollowed = { onHomeAction(HomeAction.PodcastUnfollowed(it)) },
-                    navigateToAlbumDetails = navigateToAlbumDetails,
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    items = featuredLibraryItemsFilterResult.recentPlaylists.toPersistentList(),
+                    navigateToPlaylistDetails = navigateToPlaylistDetails,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
 
-        if (showHomeCategoryTabs) {
+        logger.info { "featuredLibraryItemsFilterResult - recentlyAddedSongs size: ${featuredLibraryItemsFilterResult.recentlyAddedSongs.size}" }
+        if (featuredLibraryItemsFilterResult.recentlyAddedSongs.isNotEmpty()) { //featuredSongs as recent songs would go here and would need isNotEmpty check
             fullWidthItem {
-                Row {
-                    HomeCategoryTabs(
-                        homeCategories = homeCategories,
-                        selectedHomeCategory = selectedHomeCategory,
-                        showHorizontalLine = false,
-                        onHomeCategorySelected = { onHomeAction(HomeAction.HomeCategorySelected(it)) },
-                        modifier = Modifier.width(240.dp)
+                Text(
+                    text = stringResource(R.string.recent_songs),
+                    minLines = 1,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                )
+            }
+            /**
+             * ORIGINAL VERSION: using featuredLibraryItemsFilterResult.recentlyAddedSongs which is List<SongInfo>
+             */
+            /*items(featuredLibraryItemsFilterResult.recentlyAddedSongs, key = {it.id}) { song ->
+                //recently added songs as featured songs would go here, limit 5-10. More btn would take to fuller list of songs, limit 100
+                SongListItem(
+                    song = song,
+                    album = getAlbumData(song.albumId!!),
+                    onClick = navigateToPlayer,
+                    onQueueSong = { },
+                    modifier = Modifier.fillMaxWidth(),
+                    isListEditable = false,
+                    showArtistName = true,
+                    showAlbumImage = true,
+                    showAlbumTitle = true,
+                    showDuration = true,
+                )
+            }*/
+
+            /**
+             * PLAYERSONG SUPPORT VERSION: using HomeScreen's uiState.librarySongs which is List<PlayerSong>
+             */
+            items(librarySongs) { song ->
+                logger.info { "Home Content Grid - songs layout for song ${song.id}" }
+                //recently added songs as featured songs would go here, limit 5-10. More btn would take to fuller list of songs, limit 100
+                Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
+                    SongListItem(
+                        song = song,
+                        onClick = navigateToPlayerSong,
+                        onQueueSong = { },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        isListEditable = false,
+                        showArtistName = true,
+                        showAlbumImage = true,
+                        showAlbumTitle = true,
+                        showDuration = true,
                     )
                 }
             }
         }
-
-        when (selectedHomeCategory) {
-            HomeCategory.Library -> {
-                libraryItems(
-                    library = library,
-                    navigateToPlayer = navigateToPlayer,
-                    onQueueSong = { onHomeAction(HomeAction.QueueSong(it)) }
-                )
-            }
-
-            HomeCategory.Discover -> {
-                discoverItems(
-                    filterableGenresModel = filterableGenresModel,
-                    albumGenreFilterResult = albumGenreFilterResult,
-                    navigateToAlbumDetails = navigateToAlbumDetails,
-                    navigateToPlayer = navigateToPlayer,
-                    onGenreSelected = { onHomeAction(HomeAction.GenreSelected(it)) },
-//                    onTogglePodcastFollowed = {
-//                        onHomeAction(HomeAction.TogglePodcastFollowed(it))
-//                    },
-                    onQueueSong = { onHomeAction(HomeAction.QueueSong(it)) },
-                )
-            }
-        }
+        logger.info { "Home Content Grid - lazy vertical grid end" }
     }
+    logger.info { "Home Content Grid function end" }
 }
 
 @Composable
-private fun FeaturedAlbumItem(
+private fun FeaturedPlaylistItem(
     pagerState: PagerState,
-    items: PersistentList<AlbumInfo>,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    items: PersistentList<PlaylistInfo>,
+    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    logger.info { "Featured Playlist Item function start" }
     Column(modifier = modifier) {
-        Spacer(Modifier.height(16.dp))
-
-        FeaturedAlbums(
+        FeaturedPlaylists(
             pagerState = pagerState,
             items = items,
-            navigateToAlbumDetails = navigateToAlbumDetails,
+            navigateToPlaylistDetails = navigateToPlaylistDetails,
             modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(Modifier.height(16.dp))
     }
 }
 
-@Composable
-private fun HomeCategoryTabs(
-    homeCategories: List<HomeCategory>,
-    selectedHomeCategory: HomeCategory,
-    onHomeCategorySelected: (HomeCategory) -> Unit,
-    showHorizontalLine: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    if (homeCategories.isEmpty()) {
-        return
-    }
-
-    val selectedIndex = homeCategories.indexOfFirst { it == selectedHomeCategory }
-    val indicator = @Composable { tabPositions: List<TabPosition> ->
-        HomeCategoryTabIndicator(
-            Modifier.tabIndicatorOffset(tabPositions[selectedIndex])
-        )
-    }
-
-    TabRow(
-        selectedTabIndex = selectedIndex,
-        containerColor = Color.Transparent,
-        indicator = indicator,
-        modifier = modifier,
-        divider = {
-            if (showHorizontalLine) {
-                HorizontalDivider()
-            }
-        }
-    ) {
-        homeCategories.forEachIndexed { index, homeCategory ->
-            Tab(
-                selected = index == selectedIndex,
-                onClick = { onHomeCategorySelected(homeCategory) },
-                text = {
-                    Text(
-                        text = when (homeCategory) {
-                            HomeCategory.Library -> stringResource(R.string.home_library)
-                            HomeCategory.Discover -> stringResource(R.string.home_discover)
-                        },
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            )
-        }
-    }
-}
+private val FEATURED_PLAYLIST_IMAGE_SIZE_DP = 160.dp
 
 @Composable
-private fun HomeCategoryTabIndicator(
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Spacer(
-        modifier
-            .padding(horizontal = 24.dp)
-            .height(4.dp)
-            .background(color, RoundedCornerShape(topStartPercent = 100, topEndPercent = 100))
-    )
-}
-
-private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
-
-@Composable
-private fun FeaturedAlbums(
+private fun FeaturedPlaylists(
     pagerState: PagerState,
-    items: PersistentList<AlbumInfo>,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    items: PersistentList<PlaylistInfo>,
+    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    logger.info { "Featured Playlists function start" }
     // TODO: Using BoxWithConstraints is not quite performant since it requires 2 passes to compute
     // the content padding. This should be revisited once a carousel component is available.
     // Alternatively, version 1.7.0-alpha05 of Compose Foundation supports `snapPosition`
@@ -718,7 +742,7 @@ private fun FeaturedAlbums(
     BoxWithConstraints(
         modifier = modifier.background(Color.Transparent)
     ) {
-        val horizontalPadding = (this.maxWidth - FEATURED_ALBUM_IMAGE_SIZE_DP) / 2
+        val horizontalPadding = (this.maxWidth - FEATURED_PLAYLIST_IMAGE_SIZE_DP) / 2
         HorizontalPager(
             state = pagerState,
             contentPadding = PaddingValues(
@@ -726,17 +750,18 @@ private fun FeaturedAlbums(
                 vertical = 16.dp,
             ),
             pageSpacing = 24.dp,
-            pageSize = PageSize.Fixed(FEATURED_ALBUM_IMAGE_SIZE_DP)
+            pageSize = PageSize.Fixed(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
         ) { page ->
-            val album = items[page]
-            FeaturedAlbumCarouselItem(
-                albumImage = 1,//album.artwork!!,
-                albumTitle = album.title,
+            val playlist = items[page]
+            logger.info { "Home Content Grid - playlists layout for playlist ${playlist.id}" }
+            FeaturedPlaylistCarouselItem(
+                playlistImage = 1,//album.artwork!!,
+                playlistTitle = playlist.name,
                 //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable {
-                        navigateToAlbumDetails(album)
+                        navigateToPlaylistDetails(playlist)
                     }
             )
         }
@@ -744,28 +769,29 @@ private fun FeaturedAlbums(
 }
 
 @Composable
-private fun FeaturedAlbumCarouselItem(
-    albumTitle: String,
+private fun FeaturedPlaylistCarouselItem(
+    playlistTitle: String,
     //albumImage: String,
-    albumImage: Int,
+    playlistImage: Int,
     modifier: Modifier = Modifier,
 ) {
+    logger.info { "Featured Playlist Carousel Item function start" }
     Column(modifier) {
         Box(
             Modifier
-                .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
+                .size(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
                 .align(Alignment.CenterHorizontally)
         ) {
             AlbumImage(
-                albumImage = albumImage,
-                contentDescription = albumTitle,
+                albumImage = playlistImage,
+                contentDescription = playlistTitle,
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(MaterialTheme.shapes.medium),
             )
         }
         Text(
-            text = albumTitle,
+            text = playlistTitle,
             style = MaterialTheme.typography.bodySmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -793,17 +819,6 @@ private fun lastUpdated(updated: OffsetDateTime): String {
     }
 }
 
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Preview
-@Composable
-private fun HomeAppBarPreview() {
-    MusicTheme {
-        HomeAppBar(
-            isExpanded = false,
-        )
-    }
-}
-
 private val CompactWindowSizeClass = WindowSizeClass.compute(360f, 780f)
 
 //@DevicePreviews
@@ -814,21 +829,19 @@ private fun PreviewHome() {
         HomeScreen(
             windowSizeClass = CompactWindowSizeClass,
             isLoading = false,
-            featuredAlbums = PreviewAlbums.toPersistentList(),
-            homeCategories = HomeCategory.entries,
-            selectedHomeCategory = HomeCategory.Library,
-            filterableGenresModel = FilterableGenresModel(
-                genres = PreviewGenres,
-                selectedGenre = PreviewGenres.firstOrNull()
+            featuredLibraryItemsFilterResult = FeaturedLibraryItemsFilterResult(
+                recentPlaylists = PreviewPlaylists,
+                recentlyAddedSongs = PreviewSongs
             ),
-            albumGenreFilterResult = AlbumGenreFilterResult(
-                topAlbums = PreviewAlbums,
-                songs = PreviewAlbumSongs
-            ),
-            library = LibraryInfo(PreviewAlbumSongs),
+            //featuredPlaylists = PreviewPlaylists.toPersistentList(),
+            //featuredSongs = PreviewSongs.toPersistentList(),
+            //library = LibraryInfo(PreviewAlbumSongs),
+            librarySongs = PreviewPlayerSongs,
             onHomeAction = {},
-            navigateToAlbumDetails = {},
+            navigateToLibrary = {},
+            navigateToPlaylistDetails = {},
             navigateToPlayer = {},
+            navigateToPlayerSong = {},
         )
     }
 }
@@ -837,11 +850,10 @@ private fun PreviewHome() {
 @Composable
 private fun PreviewPodcastCard() {
     MusicTheme {
-        FeaturedAlbumCarouselItem(
+        FeaturedPlaylistCarouselItem(
             modifier = Modifier.size(128.dp),
-            albumTitle = "Listof",
-            albumImage = 0,
-            //onUnfollowedClick = {}
+            playlistTitle = "List of",
+            playlistImage = 0,
         )
     }
 }

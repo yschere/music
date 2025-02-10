@@ -22,11 +22,6 @@ android {
                 "proguard-rules.pro")
         }
     }
-//    compileOptions {
-//        isCoreLibraryDesugaringEnabled = true
-//        sourceCompatibility = JavaVersion.VERSION_11
-//        targetCompatibility = JavaVersion.VERSION_11
-//    } //switching between 11 and 17 to test ksp, kotlin, hilt versioning support
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -39,16 +34,15 @@ android {
     }
 }
 
-//kotlin {
-//    jvmToolchain(17)
-//}
-
 dependencies {
+    //Internal Project Modules
     implementation(projects.core.domain)
 
+    // Backwards Compatibility for older APIs to new App versions
     coreLibraryDesugaring(libs.core.jdk.desugaring)
 
-    testImplementation(libs.junit)
+    // Testing
+    androidTestImplementation(libs.androidx.test.espresso.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.junit)
 }

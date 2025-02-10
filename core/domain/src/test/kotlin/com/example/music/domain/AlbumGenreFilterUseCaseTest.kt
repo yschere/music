@@ -1,19 +1,3 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.domain
 
 import com.example.music.data.database.model.Album
@@ -21,7 +5,7 @@ import com.example.music.data.database.model.Genre
 import com.example.music.data.database.model.SongToAlbum
 import com.example.music.data.database.model.Song
 import com.example.music.data.database.model.AlbumWithExtraInfo
-import com.example.music.data.testing.repository.TestGenreStore
+import com.example.music.data.testing.repository.TestGenreRepo
 import com.example.music.model.asAlbumToSongInfo
 import com.example.music.model.asExternalModel
 import java.time.OffsetDateTime
@@ -35,7 +19,7 @@ import java.time.ZoneOffset
 
 class AlbumGenreFilterUseCaseTest {
 
-    private val genresStore = TestGenreStore()
+    private val genresRepo = TestGenreRepo()
     private val testSongToAlbum = listOf(
         SongToAlbum().apply {
             song = Song(
@@ -56,7 +40,7 @@ class AlbumGenreFilterUseCaseTest {
                     id = 1145,
                     title = "88 / ...With Vampire - Single",
                     albumArtistId = 113,
-                    genreId = 2,
+                    //genreId = 2,
                     artwork = "",
                 )
             )
@@ -77,7 +61,7 @@ class AlbumGenreFilterUseCaseTest {
                     id = 281,
                     title = "Slow Rain",
                     albumArtistId = 9381,
-                    genreId = 3,
+                    //genreId = 3,
                     artwork = "",
                 )
             )
@@ -101,7 +85,7 @@ class AlbumGenreFilterUseCaseTest {
                     id = 307,
                     title = "Kingdom Hearts Piano Collections - Field & Battle",
                     albumArtistId = 6,
-                    genreId = 1,
+                    //genreId = 1,
                     artwork = "",
                 )
             )
@@ -110,15 +94,15 @@ class AlbumGenreFilterUseCaseTest {
     private val testGenre = Genre(1, "Soundtrack")
 
     val useCase = AlbumGenreFilterUseCase(
-        genreStore = genresStore
+        genreRepo = genresRepo
     )
 
     @Test
     fun whenGenreNull_emptyFlow() = runTest {
         val resultFlow = useCase(null)
 
-        genresStore.setSongsFromAlbum(testGenre.id, testSongToAlbum) //songsAndAlbumsInGenre(genreId: Long
-        genresStore.setAlbumsInGenre(testGenre.id, testAlbums)
+        genresRepo.setSongsFromAlbum(testGenre.id, testSongToAlbum) //songsAndAlbumsInGenre(genreId: Long
+        genresRepo.setAlbumsInGenre(testGenre.id, testAlbums)
 
         val result = resultFlow.first()
         assertTrue(result.topAlbums.isEmpty())
@@ -129,8 +113,8 @@ class AlbumGenreFilterUseCaseTest {
     fun whenGenreNotNull_validFlow() = runTest {
         val resultFlow = useCase(testGenre.asExternalModel())
 
-        genresStore.setSongsFromAlbum(testGenre.id, testSongToAlbum)
-        genresStore.setAlbumsInGenre(testGenre.id, testAlbums)
+        genresRepo.setSongsFromAlbum(testGenre.id, testSongToAlbum)
+        genresRepo.setAlbumsInGenre(testGenre.id, testAlbums)
 
         val result = resultFlow.first()
         assertEquals(
@@ -147,11 +131,11 @@ class AlbumGenreFilterUseCaseTest {
     fun whenGenreInfoNotNull_verifyLimitFlow() = runTest {
         val resultFlow = useCase(testGenre.asExternalModel())
 
-        genresStore.setSongsFromAlbum(
+        genresRepo.setSongsFromAlbum(
             testGenre.id,
             List(8) { testSongToAlbum }.flatten()
         )
-        genresStore.setAlbumsInGenre(
+        genresRepo.setAlbumsInGenre(
             testGenre.id,
             List(4) { testAlbums }.flatten()
         )
@@ -163,13 +147,7 @@ class AlbumGenreFilterUseCaseTest {
 }
 
 val testAlbums = listOf(
-    AlbumWithExtraInfo().apply {
-        album = Album(id = 45, title = "Now in Android")
-    },
-    AlbumWithExtraInfo().apply {
-        album = Album(id = 13, title = "Android Developers Backstage")
-    },
-    AlbumWithExtraInfo().apply {
-        album = Album(id = 9, title = "Techcrunch")
-    },
+    Album(id = 45, title = "Now in Android"),
+    Album(id = 13, title = "Android Developers Backstage"),
+    Album(id = 9, title = "Tech crunch"),
 )

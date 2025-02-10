@@ -1,9 +1,10 @@
 package com.example.music.domain
 
-import com.example.music.data.database.model.Song
-import com.example.music.data.repository.SongStore
-import com.example.music.model.SongInfo
-import com.example.music.model.SongSortModel
+import com.example.music.data.database.model.Playlist
+import com.example.music.data.database.model.PlaylistWithExtraInfo
+import com.example.music.data.repository.PlaylistRepo
+import com.example.music.model.PlaylistInfo
+import com.example.music.model.PlaylistSortModel
 import com.example.music.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -13,43 +14,70 @@ import kotlinx.coroutines.flow.single
 import javax.inject.Inject
 
 /**
- * Use case for retrieving library songs to populate Songs List in Library Screen.
+ * Use case for retrieving library playlists to populate Playlists List in Library Screen.
  */
-class GetLibrarySongsUseCase @Inject constructor(
-    private val songStore: SongStore
+class GetLibraryPlaylistsUseCase @Inject constructor(
+    private val playlistRepo: PlaylistRepo
 ) {
     /**
-     * Create a [SongSortModel] from the list of songs in [songStore].
-     * @param sortOption: the column to sort by. If not met, default to sorting by song title.
+     * Create a [PlaylistSortModel] from the list of playlists in [playlistRepo].
+     * @param sortOption: the column to sort by. If not met, default to sorting by playlist title.
      * @param isAscending: the order to sort by. If true, sort Ascending. Else false, sort Descending.
      */
-    operator fun invoke(sortOption: String, isAscending: Boolean): Flow<SongSortModel> {
-        var songsList: Flow<List<Song>> = flowOf()
+    operator fun invoke(sortOption: String, isAscending: Boolean): Flow<PlaylistSortModel> {
+        //how to choose which one is mapped, since either one can happen
+        var playlistsList: Flow<List<Playlist>> = flowOf()
+        var playlistsExtraList: Flow<List<PlaylistWithExtraInfo>> = flowOf()
         when (sortOption) {
-            "artist" -> {
-                songsList = if (isAscending) songStore.sortSongsByArtistAsc() else songStore.sortSongsByArtistDesc()
+            "dateCreated" -> {
+                playlistsList = if (isAscending) playlistRepo.sortPlaylistsByDateCreatedAsc() else playlistRepo.sortPlaylistsByDateCreatedDesc()
+                return playlistsList.map { playlists ->
+                    PlaylistSortModel(
+                        playlists = playlists.map { it.asExternalModel() },
+                        count = playlistRepo.count()
+                    )
+                }
             }
-            "album" -> {
-                songsList = if (isAscending) songStore.sortSongsByAlbumAsc() else songStore.sortSongsByAlbumDesc()
-            }
-            "dateAdded" -> {
-                songsList = if (isAscending) songStore.sortSongsByDateAddedAsc() else songStore.sortSongsByDateAddedDesc()
+            "dateLastAccessed" -> {
+                playlistsList = if (isAscending) playlistRepo.sortPlaylistsByDateLastAccessedAsc() else playlistRepo.sortPlaylistsByDateLastAccessedDesc()
+                return playlistsList.map { playlists ->
+                    PlaylistSortModel(
+                        playlists = playlists.map { it.asExternalModel() },
+                        count = playlistRepo.count()
+                    )
+                }
             }
             "dateLastPlayed" -> {
-                songsList = if (isAscending) songStore.sortSongsByDateLastPlayedAsc() else songStore.sortSongsByDateLastPlayedDesc()
+                playlistsExtraList = if (isAscending) playlistRepo.sortPlaylistsByDateLastPlayedAsc() else playlistRepo.sortPlaylistsByDateLastPlayedDesc()
+                return playlistsExtraList.map { playlists ->
+                    PlaylistSortModel(
+                        playlists = playlists.map { it.asExternalModel() },
+                        count = playlistRepo.count()
+                    )
+                }
+            }
+            "songCount" -> {
+                playlistsExtraList = if (isAscending) playlistRepo.sortPlaylistsBySongCountAsc() else playlistRepo.sortPlaylistsBySongCountDesc()
+                return playlistsExtraList.map { playlists ->
+                    PlaylistSortModel(
+                        playlists = playlists.map { it.asExternalModel() },
+                        count = playlistRepo.count()
+                    )
+                }
             }
 //            "duration" -> {
 //
 //            }
             else -> {
-                songsList = if (isAscending) songStore.sortSongsByTitleAsc() else songStore.sortSongsByTitleDesc()
+                playlistsList = if (isAscending) playlistRepo.sortPlaylistsByNameAsc() else playlistRepo.sortPlaylistsByNameDesc()
             }
         }
 
-        return songsList.map { songs ->
-            SongSortModel(
-                songs = songs.map { it.asExternalModel() },
-                count = songStore.count()
+        //using this as the final catch all, but using the when cases to return if the option is met
+        return playlistsList.map { playlists ->
+            PlaylistSortModel(
+                playlists = playlists.map { it.asExternalModel() },
+                count = playlistRepo.count()
             )
         }
     }

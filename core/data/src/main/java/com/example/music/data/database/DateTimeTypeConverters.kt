@@ -1,25 +1,10 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.database
 
 import androidx.room.TypeConverter
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 /**
@@ -29,7 +14,13 @@ object DateTimeTypeConverters {
     @TypeConverter
     @JvmStatic
     fun toOffsetDateTime(value: String?): OffsetDateTime? {
-        return value?.let { OffsetDateTime.parse(it) }
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+        return value?.let { OffsetDateTime.of(LocalDateTime.parse(it, formatter), ZoneOffset.of("-0800"))}
+        //return value?.let { OffsetDateTime.parse(it, formatter) }
+        /* Updated this due to the songs table date_ columns using
+        local date time, needed to include Zone Offset, as well as
+        ofPattern formatter to properly parse into app db's
+        OffsetDateTime */
     }
 
     @TypeConverter
@@ -53,12 +44,15 @@ object DateTimeTypeConverters {
     @TypeConverter
     @JvmStatic
     fun toDuration(value: Long?): Duration? {
-        return value?.let { Duration.ofMillis(it) }
+        //duration = Duration.ofSeconds(236) //pulled from PreviewData.kt, used this as basis for songs table duration values
+        //return value?.let { Duration.ofMillis(it) } //original code
+        return value?.let { Duration.ofSeconds(it) }
     }
 
     @TypeConverter
     @JvmStatic
     fun fromDuration(value: Duration?): Long? {
-        return value?.toMillis()
+        //return value?.toMillis() //original code
+        return value?.toSeconds() //pulled from PreviewData.kt, used this as basis for songs table duration values
     }
 }

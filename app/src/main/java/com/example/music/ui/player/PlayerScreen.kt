@@ -95,6 +95,8 @@ import com.example.music.ui.theme.blueDarkColorSet
 import com.example.music.ui.theme.blueLightColorSet
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
+import com.example.music.domain.testing.PreviewPlayerSongs
+import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.player.SongPlayerState
 import com.example.music.player.model.PlayerSong
@@ -103,25 +105,31 @@ import com.example.music.util.verticalGradientScrim
 import kotlinx.coroutines.launch
 import java.time.Duration
 
-//TODO: rework com.example.music.ui.album episode things to song things
 //might/likely need a current state for repeat and shuffle
 
-//StateFUL version of player screen
+/**
+ * StateFUL version of player screen
+ */
 @Composable
 fun PlayerScreen(
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
-    onBackPress: () -> Unit,
-    onShowQueuePress: () -> Unit, //not added in jetcaster
+    navigateBack: () -> Unit,
+    navigateToHome: () -> Unit,
+    navigateToLibrary: () -> Unit,
+    onShowQueuePress: () -> Unit, //not added in jet caster
     viewModel: PlayerViewModel = hiltViewModel(),
     //modifier: Modifier,
 ) {
-    val uiState = viewModel.uiState
+    val uiState = viewModel.uiState //original code: not sure why its the only uiState that doesn't have state.collectAsStateWithLifecycle()
+    //is it because of savedStateHandle? lets try it with playlistdetails
     PlayerScreen(
         uiState = uiState,
         windowSizeClass = windowSizeClass,
         displayFeatures = displayFeatures,
-        onBackPress = onBackPress,
+        navigateBack = navigateBack,
+        navigateToHome = navigateToHome,
+        navigateToLibrary = navigateToLibrary,
         onShowQueuePress = onShowQueuePress, //when not added, is part of viewModel::onAddToQueue
         onStop = viewModel::onStop,
         playerControlActions = PlayerControlActions(
@@ -137,13 +145,17 @@ fun PlayerScreen(
     )
 }
 
-//StateLESS version of player screen
+/**
+ * StateLESS version of player screen
+ */
 @Composable
 private fun PlayerScreen(
     uiState: PlayerUiState,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
-    onBackPress: () -> Unit,
+    navigateBack: () -> Unit,
+    navigateToHome: () -> Unit,
+    navigateToLibrary: () -> Unit,
     onShowQueuePress: () -> Unit, //was onAddToQueue: () -> Unit
     onStop: () -> Unit,
     playerControlActions: PlayerControlActions,
@@ -158,18 +170,25 @@ private fun PlayerScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackBarText = stringResource(id = R.string.song_added_to_your_queue)
     val snackbarHostState = remember { SnackbarHostState() }
+
+    //other screens use ScreenBackground call here and pass the Scaffold as the content for it
     Scaffold(
+        //other screens add their topBar here, since they use LazyVerticalGrid.
+        // Player Screen does not use lazyList/lazyGrid so no need for that here,
+        // can show all the elements in one large column with correctly layered components
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
         modifier = modifier
+        //other screens add containerColor = Color.Transparent, not needed here since use different
+        // background function
     ) { contentPadding ->
         if (uiState.songPlayerState.currentSong != null) {
             PlayerContentWithBackground(
                 uiState = uiState,
                 windowSizeClass = windowSizeClass,
                 displayFeatures = displayFeatures,
-                onBackPress = onBackPress,
+                navigateBack = navigateBack,
                 onShowQueuePress = {
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(snackBarText)
@@ -186,8 +205,8 @@ private fun PlayerScreen(
 }
 
 //TODO: see if this can be used to adjust background based on album artwork
+// how to rework this to be on the song data
 @Composable
-//TODO: how to rework this to be on the song data
 private fun PlayerBackground(
     song: PlayerSong?,
     //album: Album?,
@@ -199,7 +218,7 @@ private fun PlayerBackground(
         //url = song?.podcastImageUrl,
         imageId = "fake link", //need to make this come from PlayerSong
         colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
-        //color = Color(0x0fffffff),//blueDarkColorSet.primary, //TODO
+        //colors = listOf(MaterialTheme.colorScheme.onPrimaryContainer,MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.onTertiary),//blueDarkColorSet.primary, //TODO
         modifier = modifier,
     )
 }
@@ -210,7 +229,7 @@ fun PlayerContentWithBackground(
     uiState: PlayerUiState,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
-    onBackPress: () -> Unit,
+    navigateBack: () -> Unit,
     onShowQueuePress: () -> Unit, //was onAddToQueue
     playerControlActions: PlayerControlActions,
     modifier: Modifier = Modifier,
@@ -219,18 +238,16 @@ fun PlayerContentWithBackground(
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         PlayerBackground(
             song = uiState.songPlayerState.currentSong,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
+            modifier = Modifier.fillMaxSize()
         )
         PlayerContent(
             uiState = uiState,
             windowSizeClass = windowSizeClass,
             displayFeatures = displayFeatures,
-            onBackPress = onBackPress,
+            navigateBack = navigateBack,
             onShowQueuePress = onShowQueuePress,
             playerControlActions = playerControlActions,
-            //modifier = Modifier
+            //modifier = Modifier.padding(contentPadding)
         )
     }
 }
@@ -255,7 +272,7 @@ fun PlayerContent(
     uiState: PlayerUiState,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
-    onBackPress: () -> Unit,
+    navigateBack: () -> Unit,
     onShowQueuePress: () -> Unit, //was onAddToQueue
     playerControlActions: PlayerControlActions,
     modifier: Modifier = Modifier
@@ -265,14 +282,11 @@ fun PlayerContent(
 
     //this was in the else as the most regular iteration
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .systemBarsPadding()
-            .padding(horizontal = 8.dp)
+        modifier = modifier.fillMaxSize()
     ) {
         PlayerContentRegular (
             uiState = uiState,
-            onBackPress = onBackPress,
+            navigateBack = navigateBack,
             onShowQueuePress = onShowQueuePress,
             playerControlActions = playerControlActions,
             modifier = modifier
@@ -286,7 +300,7 @@ fun PlayerContent(
 @Composable
 private fun PlayerContentRegular(
     uiState: PlayerUiState,
-    onBackPress: () -> Unit, //call seekToPreviousMediaTime
+    navigateBack: () -> Unit, //call seekToPreviousMediaTime
     onShowQueuePress: () -> Unit,
     playerControlActions: PlayerControlActions, // call from seek toNextMedium Item
     modifier: Modifier = Modifier
@@ -302,11 +316,11 @@ private fun PlayerContentRegular(
                 startYPercentage = 1f,
                 endYPercentage = 0f
             )
-            .systemBarsPadding()
+            .systemBarsPadding()//why is this getting called again when it was passed into the column around PlayerContentRegular?
             .padding(horizontal = 8.dp)
     ) {
-        TopAppBar(
-            onBackPress = onBackPress,
+        PlayerTopAppBar(
+            navigateBack = navigateBack,
             onShowQueuePress = onShowQueuePress,
         )
         Column(
@@ -317,7 +331,7 @@ private fun PlayerContentRegular(
 
             Spacer(modifier = Modifier.weight(1f))
             PlayerImage(
-                albumImage = currentSong.artwork!!,
+                albumImage = currentSong.title,//currentSong.artwork!!, //TODO: fix this when artwork fixed
                 modifier = Modifier.weight(10f)
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -338,7 +352,7 @@ private fun PlayerContentRegular(
                 PlayerButtons(
                     hasNext = playerSong.queue.isNotEmpty(),
                     isPlaying = playerSong.isPlaying,
-                    isShuffled = playerSong.isPlaying, //TODO: fix this
+                    isShuffled = true, //TODO: fix this
                     repeatingState = "on", //TODO: fix this
                     onPlayPress = playerControlActions.onPlayPress,
                     onPausePress = playerControlActions.onPausePress,
@@ -356,14 +370,14 @@ private fun PlayerContentRegular(
 
 //no background, icons only, default top bar
 @Composable
-private fun TopAppBar(
-    onBackPress: () -> Unit,
+private fun PlayerTopAppBar(
+    navigateBack: () -> Unit,
     onShowQueuePress: () -> Unit
 ){
     Row(Modifier.fillMaxWidth()) {
 
         //back button
-        IconButton(onClick = onBackPress) {
+        IconButton(onClick = navigateBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.cd_back)
@@ -373,7 +387,7 @@ private fun TopAppBar(
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
-        //add to playlist button
+        //show queue button
         IconButton(onClick = onShowQueuePress) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.QueueMusic,
@@ -452,7 +466,7 @@ private fun PlayerImage(
     modifier: Modifier = Modifier
 ) {
     AlbumImage(
-        albumImage = 1,//albumImage,
+        //albumImage = albumImage,
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = modifier
@@ -775,8 +789,8 @@ fun TopAppBarPreview() {
     //uses music ui theme to display
     MusicTheme {
         //default top bar
-        TopAppBar(
-            onBackPress = {},
+        PlayerTopAppBar(
+            navigateBack = {},
             onShowQueuePress = {},
             //action to call for more options button would go here
         )
@@ -849,23 +863,16 @@ fun PlayerScreenPreview() {
             PlayerScreen(
                 PlayerUiState(
                     songPlayerState = SongPlayerState(
-                        currentSong = PlayerSong(
-                            title = PreviewSongs[0].title,
-                            duration = PreviewSongs[0].duration,
-                            artistName = PreviewArtists[0].name,
-                            albumTitle = PreviewAlbums[0].title,
-                        ),
+                        currentSong = PreviewPlayerSongs[0],
                         isPlaying = false,
-                        queue = listOf(
-                            PlayerSong(),
-                            PlayerSong(),
-                            PlayerSong(),
-                        )
+                        queue = PreviewPlayerSongs
                     ),
                 ),
                 displayFeatures = emptyList(),
                 windowSizeClass = WindowSizeClass.compute(maxWidth.value, maxHeight.value),
-                onBackPress = { },
+                navigateToHome = { },
+                navigateToLibrary = { },
+                navigateBack = { },
                 onShowQueuePress = {},
                 onStop = {},
                 playerControlActions = PlayerControlActions(

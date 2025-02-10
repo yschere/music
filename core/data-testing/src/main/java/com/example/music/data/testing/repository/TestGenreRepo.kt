@@ -1,41 +1,24 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.testing.repository
 
 import com.example.music.data.database.model.Album
-import com.example.music.data.database.model.AlbumWithExtraInfo
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.Genre
 import com.example.music.data.database.model.Song
 import com.example.music.data.database.model.SongToAlbum
-import com.example.music.data.repository.GenreStore
+import com.example.music.data.repository.GenreRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 /**
- * A [GenreStore] used for testing.
+ * A [GenreRepo] used for testing.
  */
-class TestGenreStore : GenreStore {
+class TestGenreRepo : GenreRepo {
 
     private val genresFlow = MutableStateFlow<List<Genre>>(emptyList())
+    private val songsFlow = MutableStateFlow<List<Song>>(emptyList())
     private val albumsInGenreFlow =
         MutableStateFlow<Map<Long, List<Album>>>(emptyMap())
     private val artistsInGenreFlow =
@@ -142,7 +125,7 @@ class TestGenreStore : GenreStore {
     }
 
     //equivalent of categories episodesFromPodcastsInCategory
-    /* override fun songsAndAlbumsInGenre(
+    override fun songsAndAlbumsInGenre(
         genreId: Long,
         limit: Int,
     ): Flow<List<SongToAlbum>> =
@@ -154,7 +137,7 @@ class TestGenreStore : GenreStore {
                     song = s
                 }
             }
-        } */
+        }
 
     override suspend fun addGenre(genre: Genre): Long = -1
 
@@ -166,7 +149,7 @@ class TestGenreStore : GenreStore {
         genresFlow.first().isEmpty()
 
     /**
-     * Test-only API for setting the list of genres backed by this [TestGenreStore].
+     * Test-only API for setting the list of genres backed by this [TestGenreRepo].
      */
     fun setGenres(genres: List<Genre>) {
         genresFlow.value = genres
@@ -174,17 +157,17 @@ class TestGenreStore : GenreStore {
 
     /**
      * Test-only API for setting the list of albums in a genre backed by this
-     * [TestGenreStore].
+     * [TestGenreRepo].
      */
-//    fun setAlbumsInGenre(genreId: Long, albumsInGenre: List<AlbumWithExtraInfo>) {
-//        albumsInGenreFlow.update {
-//            it + Pair(genreId, albumsInGenre)
-//        }
-//    }
+    fun setAlbumsInGenre(genreId: Long, albumsInGenre: List<Album>) {
+        albumsInGenreFlow.update {
+            it + Pair(genreId, albumsInGenre)
+        }
+    }
 
     /**
      * Test-only API for setting the list of songs in an album backed by this
-     * [TestGenreStore].
+     * [TestGenreRepo].
      */
     fun setSongsFromAlbum(genreId: Long, albumsInGenre: List<SongToAlbum>) {
         songsFromAlbums.update {

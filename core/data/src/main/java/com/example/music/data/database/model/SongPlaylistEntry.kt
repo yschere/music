@@ -1,19 +1,3 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.database.model
 
 import androidx.room.ColumnInfo
@@ -34,7 +18,6 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "song_playlist_entries",
-    //primaryKeys = ["playlist_id", "song_id"],
     foreignKeys = [
         ForeignKey(
             entity = Playlist::class,
@@ -52,15 +35,14 @@ import androidx.room.PrimaryKey
         )
     ],
     indices = [
+        Index("id", unique = true),
         Index("playlist_id"),
         Index("song_id")
     ]
 )
 
 data class SongPlaylistEntry(
-    //singular id primary key might not be necessary
-    //could use combo playlistId, songId as primary
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
     @ColumnInfo(name = "playlist_id") var playlistId: Long,
     @ColumnInfo(name = "song_id") var songId: Long,
     @ColumnInfo(name = "playlist_track_number") var playlistTrackNumber: Int

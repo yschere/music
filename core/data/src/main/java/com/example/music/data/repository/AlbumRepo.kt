@@ -1,19 +1,3 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.repository
 
 import com.example.music.data.database.dao.AlbumsDao
@@ -23,7 +7,7 @@ import com.example.music.data.database.model.AlbumWithExtraInfo
 import com.example.music.data.database.model.SongToAlbum
 import kotlinx.coroutines.flow.Flow
 
-interface AlbumStore {
+interface AlbumRepo {
 
     fun getAllAlbums(): List<Album>
 
@@ -95,7 +79,7 @@ interface AlbumStore {
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<AlbumWithExtraInfo>>
 
-    /* //TODO: not sure if searchAlbumByTitleAndGenre is needed
+    /* //not sure if searchAlbumByTitleAndGenre is needed
     fun searchAlbumByTitleAndGenre(
         query: String,
         genreIdList: List<Long>,
@@ -114,10 +98,10 @@ interface AlbumStore {
 /**
  * A data repository for [Album] instances.
  */
-class LocalAlbumStore(
+class AlbumRepoImpl(
     private val albumDao: AlbumsDao,
     private val songDao: SongsDao,
-) : AlbumStore {
+) : AlbumRepo {
 
     override fun getAllAlbums(): List<Album> =
         albumDao.getAllAlbums()
@@ -190,7 +174,7 @@ class LocalAlbumStore(
         albumDao.searchAlbumByTitle(query, limit) //equivalent of podcastsDao.searchPodcastByTitle
 
     //equivalent of podcastStore.searchPodcastByTitleAndAlbum
-    /* //TODO: not sure if searchAlbumByTitleAndGenre is needed
+    /* //not sure if searchAlbumByTitleAndGenre is needed
     override fun searchAlbumByTitleAndGenre(
         query: String,
         genreIdList: List<Long>,
@@ -205,7 +189,6 @@ class LocalAlbumStore(
 
     /**
      * Add a new [Album] to this store.
-     *
      * This automatically switches to the main thread to maintain thread consistency.
      */
     override suspend fun addAlbum(album: Album) {
