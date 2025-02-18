@@ -1,48 +1,49 @@
 package com.example.music.ui.library
 
+import android.content.Context
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.data.database.model.SongToAlbum
-import com.example.music.domain.GetAlbumDataUseCase
-import com.example.music.domain.GetArtistDataUseCase
+import com.example.music.data.repository.AppPreferences
+import com.example.music.domain.GetLibraryAlbumsUseCase
+import com.example.music.domain.GetLibraryArtistsUseCase
+import com.example.music.domain.GetLibraryComposersUseCase
+import com.example.music.domain.GetLibraryGenresUseCase
 import com.example.music.domain.GetLibraryPlaylistsUseCase
 import com.example.music.domain.GetLibrarySongsUseCase
-import com.example.music.model.LibraryInfo
-import com.example.music.model.PlaylistSortModel
-import com.example.music.model.SongSortModel
-import com.example.music.model.asAlbumToSongInfo
+import com.example.music.domain.GetAppPreferencesUseCase
+import com.example.music.domain.GetTotalCountsUseCase
+import com.example.music.model.AlbumInfo
+import com.example.music.model.ArtistInfo
+import com.example.music.model.ComposerInfo
+import com.example.music.model.GenreInfo
+import com.example.music.model.PlaylistInfo
+import com.example.music.model.SongInfo
 import com.example.music.player.SongPlayer
 import com.example.music.player.model.PlayerSong
+import com.example.music.util.combine
+import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.coroutines.coroutineContext
 
-/* sealed interface LibraryScreenUiState {
-    data object Loading : LibraryScreenUiState
-    data class Ready(
-        val libraryCategories: List<LibraryCategory> = emptyList(),
-        val selectedLibraryCategory: LibraryCategory = LibraryCategory.PlaylistView,
-        val librarySongsModel: SongSortModel = SongSortModel(),
-        val libraryPlaylistsModel: PlaylistSortModel = PlaylistSortModel(),
-    ) : LibraryScreenUiState
-} */
-
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val getLibrarySongsUseCase: GetLibrarySongsUseCase,
-    private val getLibraryPlaylistsUseCase: GetLibraryPlaylistsUseCase,
-    private val getAlbumDataUseCase: GetAlbumDataUseCase, //using this to be able to get AlbumInfo from SongInfo
-    private val getArtistDataUseCase: GetArtistDataUseCase,
+    getLibrarySongsUseCase: GetLibrarySongsUseCase,
+    getLibraryPlaylistsUseCase: GetLibraryPlaylistsUseCase,
+    getLibraryGenresUseCase: GetLibraryGenresUseCase,
+    getLibraryComposersUseCase: GetLibraryComposersUseCase,
+    getLibraryArtistsUseCase: GetLibraryArtistsUseCase,
+    getLibraryAlbumsUseCase: GetLibraryAlbumsUseCase,
+    getTotalCountsUseCase: GetTotalCountsUseCase,
+    getAppPreferences: GetAppPreferencesUseCase, //checks AppPreferencesDataStore
     private val songPlayer: SongPlayer,
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
@@ -60,16 +61,26 @@ class LibraryViewModel @Inject constructor(
     // Holds our currently selected category
     private val selectedLibraryCategory = MutableStateFlow(LibraryCategory.Playlists)
 
-    // Holds our view state which the UI collects via [state]
-    private val _state = MutableStateFlow(LibraryScreenUiState())
-
-    // Holds the view state if the UI is refreshing for new data
-    private val refreshing = MutableStateFlow(false)
-
-    private val sortedSongs = getLibrarySongsUseCase("title", true) //TODO: set up with values that retrieve sortOptions from preferences data store
+    /*//TODO: set up with values that retrieve sortOptions from preferences data store
+    private val sortedSongs = getLibrarySongsUseCase("title", true)
+        //.stateIn(viewModelScope)//, SharingStarted.WhileSubscribed())
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-    private val sortedPlaylists = getLibraryPlaylistsUseCase("name", true) //TODO: set up with values that retrieve sortOptions from preferences data store
+
+    private val sortedPlaylists = getLibraryPlaylistsUseCase("name", true)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    private val sortedAlbums = getLibraryAlbumsUseCase("title", true)
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    private val sortedArtists = getLibraryArtistsUseCase("name", true)
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    private val sortedComposers = getLibraryComposersUseCase("name", true)
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    private val sortedGenres = getLibraryGenresUseCase("name", true)
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())*/
+
 
     /* ------ Objects used in previous iterations:  ------
     private val songs = songRepo.getAllSongs()
@@ -83,63 +94,98 @@ class LibraryViewModel @Inject constructor(
     private val playlistSortModel = playlists1.value
     */
 
+    // Holds the sorting preferences saved in the data store
+    //private val sortPrefs = getAppPreferences()
+
+    // Holds our view state which the UI collects via [state]
+    private val _state = MutableStateFlow(LibraryScreenUiState())
+
+    // Holds the view state if the UI is refreshing for new data
+    private val refreshing = MutableStateFlow(false)
+
     val state: StateFlow<LibraryScreenUiState>
         get() = _state
 
     init {
+        logger.info { "Library View Model - viewModelScope launch start" }
         viewModelScope.launch {
+            val counts = getTotalCountsUseCase()
+
             // Combines the latest value from each of the flows, allowing us to generate a
             // view state instance which only contains the latest values.
-            com.example.music.util.combine(
+            combine(
                 libraryCategories,
                 selectedLibraryCategory,
                 refreshing,
-                sortedSongs,
-                sortedPlaylists,
-                sortedSongs.map { items ->
-                    items.songs.map { item ->
-                        PlayerSong(
-                            item,
-                            getArtistDataUseCase(item).first(),
-                            getAlbumDataUseCase(item).first(),
-                        )
-
-                    }
-                }
-//                songs.flatMapLatest { songAlbums ->
-//                    songRepo.getSongsAndAlbumsByAlbumIds(songAlbums.map { song -> song.albumId!! })
-//                },
-//                playlists.flatMapLatest { playlist ->
-//                    playlistRepo.getPlaylistsByIds(playlist.map { p -> p.id })
-//                },
-//                playlists1,
-                //playlistSortModel,
+                getLibraryAlbumsUseCase("title", true),//sortedAlbums,
+                getLibraryArtistsUseCase("name", true),//sortedArtists,
+                getLibraryComposersUseCase("name", true),//sortedComposers,
+                getLibraryGenresUseCase("name", true),//sortedGenres,
+                getLibraryPlaylistsUseCase("name", true),//sortedPlaylists,
+                getLibrarySongsUseCase("title", true),//sortedSongs,
             ) {
+
+            /*combine(
+                libraryCategories,
+                selectedLibraryCategory,
+                refreshing,
+                sortPrefs.transform<AppPreferences,List<AlbumInfo>> { values ->
+                    getLibraryAlbumsUseCase(values.albumSortOrder.name, values.isAlbumAsc)//sortedAlbums,
+                },
+                sortPrefs.transform<AppPreferences,List<ArtistInfo>> { values ->
+                    getLibraryArtistsUseCase(values.artistSortOrder.name, values.isArtistAsc)//sortedArtists,
+                },
+                sortPrefs.transform<AppPreferences,List<ComposerInfo>> { values ->
+                    getLibraryComposersUseCase(values.composerSortOrder.name, values.isComposerAsc)//sortedComposers,
+                },
+                sortPrefs.transform<AppPreferences,List<GenreInfo>> { values ->
+                    getLibraryGenresUseCase(values.genreSortOrder.name, values.isGenreAsc)//sortedGenres,
+                },
+                sortPrefs.transform<AppPreferences,List<PlaylistInfo>> { values ->
+                    getLibraryPlaylistsUseCase(values.playlistSortOrder.name, values.isPlaylistAsc)//sortedPlaylists,
+                },
+                sortPrefs.transform<AppPreferences,List<SongInfo>> { values ->
+                    getLibrarySongsUseCase(values.songSortOrder.name, values.isSongAsc)//sortedSongs,
+                },
+            ){*/
                 libraryCategories,
                 libraryCategory,
                 refreshing,
-                librarySongs,
+                libraryAlbums,
+                libraryArtists,
+                libraryComposers,
+                libraryGenres,
                 libraryPlaylists,
-                sortedPlayerSongs ->
+                librarySongs,
+                ->
 
-//                val libraryPlaylists = playlists.map { p ->
-//                    p.asExternalModel()
-//                }
-                //val playlistSortModel = playlists1.invoke("name", true)
+                logger.info { "Library View Model - LibraryScreenUiState:"}
+                logger.info { "Library View Model - isLoading: $refreshing"}
+                logger.info { "Library View Model - libraryCategories: $libraryCategories"}
+                logger.info { "Library View Model - selectedLibraryCategory: $libraryCategory"}
 
-                //libraryPlaylists = playlistSortModel.
-
+                val libraryPlayerSongs = librarySongs.map { item->
+                    PlayerSong(
+                        item,
+                        libraryArtists.find { it.id == item.artistId }?: ArtistInfo(),
+                        libraryAlbums.find { it.id == item.albumId }?: AlbumInfo(),
+                    )
+                }
                 LibraryScreenUiState(
                     isLoading = refreshing,
                     libraryCategories = libraryCategories,
                     selectedLibraryCategory = libraryCategory,
-                    librarySongsModel = librarySongs,
-                    //librarySongs = librarySongs.asLibrary(), //og version using AlbumToSong to transform into libraryInfo
-                    //librarySongs = librarySongs.songs.map { it.toPlayerSong() }, //version that would transform librarySongs to List<PlayerSong>
-                    libraryPlaylistsModel = libraryPlaylists,
-                    libraryPlayerSongs = sortedPlayerSongs,
+                    libraryAlbums = libraryAlbums,
+                    libraryArtists = libraryArtists,
+                    libraryComposers = libraryComposers,
+                    libraryGenres = libraryGenres,
+                    libraryPlaylists = libraryPlaylists,
+                    librarySongs = librarySongs,
+                    libraryPlayerSongs = libraryPlayerSongs,
+                    totals = counts
                 )
             }.catch { throwable ->
+                logger.info { "Library View Model - Error Caught: ${throwable.message}"}
                 emit(
                     LibraryScreenUiState(
                         isLoading = false,
@@ -155,13 +201,17 @@ class LibraryViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
+        logger.info { "Library View Model - Refresh call" }
         viewModelScope.launch {
             runCatching {
+                logger.info { "Library View Model - Refresh runCatching" }
                 refreshing.value = true
                 //podcastsRepository.updatePodcasts(force)
-            }
-            // TODO: look at result of runCatching and show any errors
+            }.onFailure {
+                logger.info { "$it ::: runCatching, not sure what is failing here tho" }
+            } // TODO: look at result of runCatching and show any errors
 
+            logger.info { "Library View Model - refresh to be false -> sets Library to ready state" }
             refreshing.value = false
         }
     }
@@ -185,16 +235,6 @@ class LibraryViewModel @Inject constructor(
 
 }
 
-//TODO: what does this one need to be if the List<SongInfo> cannot be SongInfo?
-// Do I have to make something else?
-// Can SongPlayerData or PlaylistToSongInfo be used to compensate?
-// Turned it into SongToAlbum so it can contain both song and album data
-private fun List<SongToAlbum>.asLibrary(): LibraryInfo =
-    LibraryInfo(
-        songs = this.map { it.asAlbumToSongInfo() }
-    )
-
-
 enum class LibraryCategory {
     Playlists, Songs, Artists, Albums, Genres, Composers
 }
@@ -205,19 +245,26 @@ sealed interface LibraryAction {
     data class QueueSong(val song: PlayerSong) : LibraryAction
 }
 
-
 data class LibraryScreenUiState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val libraryCategories: List<LibraryCategory> = emptyList(),
     val selectedLibraryCategory: LibraryCategory = LibraryCategory.Playlists,
-    val librarySongsModel: SongSortModel = SongSortModel(),
-    val libraryPlaylistsModel: PlaylistSortModel = PlaylistSortModel(),
+    val libraryAlbums: List<AlbumInfo> = emptyList(),
+    val libraryArtists: List<ArtistInfo> = emptyList(),
+    val libraryComposers: List<ComposerInfo> = emptyList(),
+    val libraryGenres: List<GenreInfo> = emptyList(),
+    val libraryPlaylists: List<PlaylistInfo> = emptyList(),
     val libraryPlayerSongs: List<PlayerSong> = emptyList(),//TODO: PlayerSong support
-    //val libraryPlaylists: List<PlaylistInfo> = emptyList(),
-    //val librarySongs: LibraryInfo = LibraryInfo(),
-    //val featuredArtists: List<ArtistInfo> = emptyList(),
-    //val featuredAlbums: List<AlbumInfo> = emptyList(),
-    //val featuredGenres: List<GenreInfo> = emptyList(),
-    //val featuredComposers: List<ComposerInfo> = emptyList(),
+    val librarySongs: List<SongInfo> = emptyList(),
+    val totals: List<Int> = emptyList()
 )
+/* sealed interface LibraryScreenUiState {
+    data object Loading : LibraryScreenUiState
+    data class Ready(
+        val libraryCategories: List<LibraryCategory> = emptyList(),
+        val selectedLibraryCategory: LibraryCategory = LibraryCategory.PlaylistView,
+        val librarySongsModel: SongAppModel = SongSortModel(),
+        val libraryPlaylistsModel: PlaylistSortModel = PlaylistSortModel(),
+    ) : LibraryScreenUiState
+} */

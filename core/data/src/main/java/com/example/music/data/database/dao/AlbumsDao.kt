@@ -13,25 +13,32 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 abstract class AlbumsDao : BaseDao<Album> {
 
-    //return ids and titles of all albums
+    /**
+     * Returns all the records within albums
+     */
     @Query(
         """
         SELECT * FROM albums
         """
     )
     abstract fun getAllAlbums(): List<Album>
-    //TODO: SUGGESTION: place in ViewModel or Repository to update UI with albums
 
-    //return album info based on param album Id
+    /**
+     * Returns a flow of the album record matching the specified id
+     * @param id [Long]
+     */
     @Query(
         """
         SELECT * FROM albums WHERE id = :id
         """
     )
-    abstract fun getAlbumById(id: Long): Flow<Album>
-    //equivalent of PodcastsDao.podcastWithUri
+    abstract fun getAlbumById(id: Long): Flow<Album> //equivalent of PodcastsDao.podcastWithUri
 
-    //return albums by album artist id
+    /**
+     * Returns a flow of the list of filtered albums records matching the specified album_artist_id
+     * @param albumArtistId [Long] the album_artist_id to match on
+     * @param limit [Int] an optional limit on the records returned
+     */
     @Transaction
     @Query(
         """
@@ -42,51 +49,108 @@ abstract class AlbumsDao : BaseDao<Album> {
     )
     abstract fun getAlbumsByAlbumArtistId(albumArtistId: Long, limit: Int): Flow<List<Album>>
 
+    /**
+     * Returns a flow of the album record and its aggregated songs data,
+     * song_count: the amount of songs within album.
+     * date_last_played: the MAX date_last_played value within the album's songs.
+     * If song_count is null, it will be replaced as 0.
+     * @param albumId [Long] the album_id to match on
+     */
     @Transaction
     @Query(
         """
-        SELECT albums.*, song_count, date_last_played
-        FROM albums 
+        SELECT albums.*, COALESCE(song_count, 0) AS song_count, date_last_played FROM albums 
         INNER JOIN (
-            SELECT album_id, count(*) as song_count, max(songs.date_last_played) as date_last_played
+            SELECT album_id, COUNT(*) AS song_count, MAX(songs.date_last_played) AS date_last_played
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
         WHERE albums.id = :albumId
-        ORDER BY datetime(date_last_played) DESC
         """
     )
     abstract fun getAlbumWithExtraInfo(albumId: Long): Flow<AlbumWithExtraInfo> //equivalent of PodcastsDao.podcastWithExtraInfo
 
+    /**
+     * Returns a flow of the list of filtered albums records matching the specified album_artist_id
+     * @param albumArtistId [Long] the album_artist_id to match on
+     * @param limit [Int] an optional limit on the records returned
+     */
     @Transaction
     @Query(
         """
-        SELECT albums.* from albums
-        INNER JOIN artists ON albums.album_artist_id = artists.id
-        ORDER BY artists.name ASC
-        LIMIT :limit
-        """
-    )
-    abstract fun sortAlbumsByAlbumArtistAsc(limit: Int): Flow<List<Album>>
-
-    @Transaction
-    @Query(
-        """
-        SELECT albums.* from albums
-        INNER JOIN artists ON albums.album_artist_id = artists.id
-        ORDER BY artists.name DESC
-        LIMIT :limit
-        """
-    )
-    abstract fun sortAlbumsByAlbumArtistDesc(limit: Int): Flow<List<Album>>
-
-    @Transaction
-    @Query(
-        """
-        SELECT albums.*, song_count, date_last_played
-        FROM albums
+        SELECT albums.*, COALESCE(song_count, 0) AS song_count, date_last_played FROM albums 
         INNER JOIN (
-            SELECT album_id, count(*) as song_count, max(date_last_played) as date_last_played
+            SELECT album_id, COUNT(*) AS song_count, MAX(songs.date_last_played) AS date_last_played
+            FROM songs
+            GROUP BY album_id
+        ) AS songs ON albums.id = songs.album_id
+        WHERE albums.album_artist_id = :albumArtistId
+        LIMIT :limit
+        """
+    )
+    abstract fun getAlbumsWithExtraInfoByAlbumArtistId(albumArtistId: Long, limit: Int): Flow<List<AlbumWithExtraInfo>>
+
+    /**
+     * Returns a flow of the list of album records and their aggregated song data,
+     * sorted by their album artist's name in ascending order.
+     * NOTE: Setting of null song_count to 0 is used as a protective measure until support,
+     * for removing an album record when no songs with album's id are present, is added.
+     * @param limit [Int] an optional limit on the records returned
+     */
+    @Transaction
+    @Query(
+        """
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
+        LEFT JOIN (
+            SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
+            FROM songs
+            GROUP BY album_id
+        ) AS songs ON albums.id = songs.album_id
+        ORDER BY artists.name ASC, albums.title ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortAlbumsByAlbumArtistAsc(limit: Int): Flow<List<AlbumWithExtraInfo>>
+
+    /**
+     * Returns a flow of the list of album records and their aggregated song data,
+     * sorted by their album artist's name in descending order.
+     * NOTE: Setting of null song_count to 0 is used as a protective measure until support,
+     * for removing an album record when no songs with album's id are present, is added.
+     * @param limit [Int] an optional limit on the records returned
+     */
+    @Transaction
+    @Query(
+        """
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
+        LEFT JOIN (
+            SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
+            FROM songs
+            GROUP BY album_id
+        ) AS songs ON albums.id = songs.album_id
+        ORDER BY artists.name DESC, albums.title DESC 
+        LIMIT :limit
+        """
+    )
+    abstract fun sortAlbumsByAlbumArtistDesc(limit: Int): Flow<List<AlbumWithExtraInfo>>
+
+    /**
+     * Returns a flow of the list of album records and their aggregated song data,
+     * sorted by their song's date_last_played in ascending order.
+     * If songs.date_last_played is null, it will be set as the current local datetime
+     * and sorted to the end of results list.
+     * NOTE: Setting of null song_count to 0 is used as a protective measure until support,
+     * for removing an album record when no songs with album's id are present, is added.
+     * @param limit [Int] an optional limit on the records returned
+     */
+    @Transaction
+    @Query(
+        """
+        SELECT albums.*, COALESCE(date_last_played, datetime(current_timestamp, 'localtime')) as date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        INNER JOIN (
+            SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
@@ -98,13 +162,21 @@ abstract class AlbumsDao : BaseDao<Album> {
         limit: Int
     ): Flow<List<AlbumWithExtraInfo>>
 
+    /**
+     * Returns a flow of the list of album records and their aggregated song data,
+     * sorted by their song's date_last_played in descending order.
+     * If songs.date_last_played is null, it will be set as '1900-01-01 00:00:00.000'
+     * and sorted to the end of results list.
+     * NOTE: Setting of null song_count to 0 is used as a protective measure until support,
+     * for removing an album record when no songs with album's id are present, is added.
+     * @param limit [Int] an optional limit on the records returned
+     */
     @Transaction
     @Query(
         """
-        SELECT albums.*, song_count, date_last_played
-        FROM albums
+        SELECT albums.*, COALESCE(date_last_played,'1900-01-01 00:00:00.000') AS date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
         INNER JOIN (
-            SELECT album_id, count(*) as song_count, max(date_last_played) as date_last_played
+            SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
@@ -116,17 +188,23 @@ abstract class AlbumsDao : BaseDao<Album> {
         limit: Int
     ): Flow<List<AlbumWithExtraInfo>>
 
+    /**
+     * Returns a flow of the list of album records and their aggregated songs data,
+     * sorted by song_count in ascending order.
+     * NOTE: Setting of null song_count to 0 is used as a protective measure until support,
+     * for removing an album record when no songs with album's id are present, is added.
+     * @param limit [Int] an optional limit on the records returned
+     */
     @Transaction
     @Query(
         """
-        SELECT albums.*, song_count, date_last_played
-        FROM albums
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
         INNER JOIN (
-            SELECT album_id, count(*) as song_count, max(date_last_played) as date_last_played
+            SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
-        ORDER BY song_count ASC
+        ORDER BY song_count ASC, albums.title ASC
         LIMIT :limit
         """
     )
@@ -134,17 +212,23 @@ abstract class AlbumsDao : BaseDao<Album> {
         limit: Int
     ): Flow<List<AlbumWithExtraInfo>>
 
+    /**
+     * Returns a flow of the list of album records and their aggregated songs data,
+     * sorted by song_count in descending order.
+     * NOTE: Setting of null song_count to 0 is used as a protective measure until support,
+     * for removing an album record when no songs with album's id are present, is added.
+     * @param limit [Int] an optional limit on the records returned
+     */
     @Transaction
     @Query(
         """
-        SELECT albums.*, song_count, date_last_played
-        FROM albums
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
         INNER JOIN (
-            SELECT album_id, count(*) as song_count, max(date_last_played) as date_last_played
+            SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
-        ORDER BY song_count DESC
+        ORDER BY song_count DESC, albums.title DESC
         LIMIT :limit
         """
     )
@@ -152,29 +236,52 @@ abstract class AlbumsDao : BaseDao<Album> {
         limit: Int
     ): Flow<List<AlbumWithExtraInfo>>
 
+    /**
+     * Returns a flow of the list of album records and their aggregated songs data,
+     * sorted by album's title attribute in ascending order.
+     * NOTE: Setting of null song_count to 0 is used as a protective measure until support,
+     * for removing an album record when no songs with album's id are present, is added.
+     * @param limit [Int] an optional limit on the records returned
+     */
     @Query(
         """
-        SELECT * FROM albums
-        ORDER BY title ASC
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        INNER JOIN (
+            SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
+            FROM songs
+            GROUP BY album_id
+        ) AS songs ON albums.id = songs.album_id
+        ORDER BY albums.title ASC
         LIMIT :limit
         """
     )
-    abstract fun sortAlbumsByTitleAsc(limit: Int): Flow<List<Album>>
+    abstract fun sortAlbumsByTitleAsc(limit: Int): Flow<List<AlbumWithExtraInfo>>
 
+    /**
+     * Returns a flow of the list of album records and their aggregated songs data,
+     * sorted by album's title attribute in descending order.
+     * NOTE: Setting of null song_count to 0 is used as a protective measure until support,
+     * for removing an album record when no songs with album's id are present, is added.
+     * @param limit [Int] an optional limit on the records returned
+     */
     @Query(
         """
-        SELECT * FROM albums
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        INNER JOIN (
+            SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
+            FROM songs
+            GROUP BY album_id
+        ) AS songs ON albums.id = songs.album_id
         ORDER BY title DESC
         LIMIT :limit
         """
     )
-    abstract fun sortAlbumsByTitleDesc(limit: Int): Flow<List<Album>>
+    abstract fun sortAlbumsByTitleDesc(limit: Int): Flow<List<AlbumWithExtraInfo>>
 
-    @Transaction
+    /*@Transaction
     @Query(
         """
-        SELECT albums.*
-        FROM albums
+        SELECT albums.* FROM albums
         INNER JOIN (
             SELECT songs.id, songs.album_id, songs.genre_id
             FROM songs
@@ -188,13 +295,12 @@ abstract class AlbumsDao : BaseDao<Album> {
     abstract fun sortAlbumsInGenreByTitleAsc( //equivalent of PodcastsDao.podcastsInCategorySortedByLastEpisode
         genreId: Long,
         limit: Int
-    ): Flow<List<Album>>
+    ): Flow<List<Album>>*/
 
-    @Transaction
+    /*@Transaction
     @Query(
         """
-        SELECT albums.*
-        FROM albums
+        SELECT albums.* FROM albums
         INNER JOIN (
             SELECT songs.id, songs.album_id, songs.genre_id
             FROM songs
@@ -208,7 +314,7 @@ abstract class AlbumsDao : BaseDao<Album> {
     abstract fun sortAlbumsInGenreByTitleDesc( //equivalent of PodcastsDao.podcastsInCategorySortedByLastEpisode
         genreId: Long,
         limit: Int
-    ): Flow<List<Album>>
+    ): Flow<List<Album>>*/
 
     //return albums joined to the genresSortedByAlbumCount
     /* //sortAlbumsInGenreByDateLastPlayedAsc not needed atm
@@ -254,19 +360,23 @@ abstract class AlbumsDao : BaseDao<Album> {
         limit: Int
     ): Flow<List<AlbumWithExtraInfo>> */
 
-    //search album titles by param query
+    /**
+     * Returns a flow of the list of albums that have at least a partial match on their
+     * title attribute to the query string, sorted by title in ascending order.
+     * @param query [String] value of search query
+     * @param limit [Int] an optional limit on the records returned
+     */
     @Transaction
     @Query(
         """
-        SELECT albums.*, song_count, date_last_played
-        FROM albums
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
         INNER JOIN (
-            SELECT album_id, count(*) as song_count, max(date_last_played) as date_last_played
+            SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
-        ) as songs ON albums.id = songs.album_id
+        ) AS songs ON albums.id = songs.album_id
         WHERE albums.title LIKE '%' || :query || '%'
-        ORDER BY datetime(date_last_played) DESC
+        ORDER BY albums.title ASC
         LIMIT :limit
         """
     )
@@ -295,7 +405,10 @@ abstract class AlbumsDao : BaseDao<Album> {
         limit: Int
     ): Flow<List<AlbumWithExtraInfo>> */
 
-    //return count of albums
+    /**
+     * Returns the integer value of the total amount of records in albums table.
+     * NOTE: Must be called within a coroutine, since it doesn't return a flow.
+     */
     @Query("SELECT COUNT(*) FROM albums")
     abstract suspend fun count(): Int
 

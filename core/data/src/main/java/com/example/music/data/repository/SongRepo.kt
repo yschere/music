@@ -6,6 +6,9 @@ import com.example.music.data.database.model.SongToAlbum
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
+/**
+ * Interface for [SongsDao] abstract functions
+ */
 interface SongRepo {
 
     fun getAllSongs(): Flow<List<Song>>
@@ -108,7 +111,6 @@ interface SongRepo {
 
     /**
      * Add a new [Song] to this store.
-     *
      * This automatically switches to the main thread to maintain thread consistency.
      */
     suspend fun addSong(song: Song): Long
@@ -122,7 +124,6 @@ interface SongRepo {
  * A data repository for [Song] instances.
  */
 class SongRepoImpl @Inject constructor(
-//class SongRepoImpl(
     private val songDao: SongsDao
 ) : SongRepo {
 
@@ -253,7 +254,6 @@ class SongRepoImpl @Inject constructor(
 
     /**
      * Add a new [Song] to this store.
-     *
      * This automatically switches to the main thread to maintain thread consistency.
      */
     override suspend fun addSong(song: Song): Long = songDao.insert(song)

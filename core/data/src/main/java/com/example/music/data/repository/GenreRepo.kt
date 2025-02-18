@@ -7,24 +7,25 @@ import com.example.music.data.database.dao.SongsDao
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.Genre
+import com.example.music.data.database.model.GenreWithExtraInfo
 import com.example.music.data.database.model.Song
-import com.example.music.data.database.model.SongToAlbum
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.combineTransform
-import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.transform
 
+/**
+ * Interface for [GenresDao] abstract functions
+ */
 interface GenreRepo {
 
+    /**
+     * Interface for [Genre] [getAllGenres]
+     * @see [getAllGenres]
+     */
     fun getAllGenres(): Flow<List<Genre>>
 
     fun getGenreById(id: Long): Flow<Genre>
+
+    fun getGenreWithExtraInfo(id: Long): Flow<GenreWithExtraInfo>
 
     /**
      * Returns a flow containing a list of genres which are sorted by the
@@ -32,23 +33,23 @@ interface GenreRepo {
      */
     fun sortGenresByNameAsc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Genre>>
+    ): Flow<List<GenreWithExtraInfo>>
 
     fun sortGenresByNameDesc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Genre>>
+    ): Flow<List<GenreWithExtraInfo>>
 
     /**
      * Returns a flow containing a list of genres which are sorted by the
      * number of albums in each genre
      */
-    fun sortGenresByAlbumCountAsc(
+    /*fun sortGenresByAlbumCountAsc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Genre>>
+    ): Flow<List<Genre>>*/
 
-    fun sortGenresByAlbumCountDesc(
+    /*fun sortGenresByAlbumCountDesc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Genre>>
+    ): Flow<List<Genre>>*/
 
     /**
      * Returns a flow containing a list of genres which are sorted by the
@@ -56,35 +57,35 @@ interface GenreRepo {
      */
     fun sortGenresBySongCountAsc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Genre>>
+    ): Flow<List<GenreWithExtraInfo>>
 
     fun sortGenresBySongCountDesc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Genre>>
+    ): Flow<List<GenreWithExtraInfo>>
 
     /**
      * Returns a flow containing a list of albums in the genre with the
      * given [genreId] sorted by their last played date.
      */
-    fun sortAlbumsInGenreByTitleAsc(
+    /*fun sortAlbumsInGenreByTitleAsc(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Album>>
+    ): Flow<List<Album>>*/
 
-    fun sortAlbumsInGenreByTitleDesc(
+    /*fun sortAlbumsInGenreByTitleDesc(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Album>>
+    ): Flow<List<Album>>*/
 
-    fun sortArtistsInGenreByNameAsc(
+    /*fun sortArtistsInGenreByNameAsc(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
+    ): Flow<List<Artist>>*/
 
-    fun sortArtistsInGenreByNameDesc(
+    /*fun sortArtistsInGenreByNameDesc(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
+    ): Flow<List<Artist>>*/
 
     /* fun sortArtistsInGenreBySongCountAsc(
         genreId: Long,
@@ -121,10 +122,10 @@ interface GenreRepo {
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<SongToAlbum>> */
 
-    fun songsAndAlbumsInGenre(
+    /*fun songsAndAlbumsInGenre(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<SongToAlbum>>
+    ): Flow<List<SongToAlbum>>*/
 
     suspend fun addGenre(genre: Genre): Long
 
@@ -149,35 +150,38 @@ class GenreRepoImpl(
     override fun getGenreById(id: Long): Flow<Genre> =
         genreDao.getGenreById(id)
 
-    override fun sortGenresByNameAsc(limit: Int): Flow<List<Genre>> =
+    override fun getGenreWithExtraInfo(id: Long): Flow<GenreWithExtraInfo> =
+        genreDao.getGenreWithExtraInfo(id)
+
+    override fun sortGenresByNameAsc(limit: Int): Flow<List<GenreWithExtraInfo>> =
         genreDao.sortGenresByNameAsc(limit)
 
-    override fun sortGenresByNameDesc(limit: Int): Flow<List<Genre>> =
+    override fun sortGenresByNameDesc(limit: Int): Flow<List<GenreWithExtraInfo>> =
         genreDao.sortGenresByNameDesc(limit)
 
-    override fun sortGenresByAlbumCountAsc(limit: Int): Flow<List<Genre>> =
-        genreDao.sortGenresByAlbumCountAsc(limit)
+    /*override fun sortGenresByAlbumCountAsc(limit: Int): Flow<List<Genre>> =
+        genreDao.sortGenresByAlbumCountAsc(limit)*/
 
-    override fun sortGenresByAlbumCountDesc(limit: Int): Flow<List<Genre>> =
-        genreDao.sortGenresByAlbumCountDesc(limit)
+    /*override fun sortGenresByAlbumCountDesc(limit: Int): Flow<List<Genre>> =
+        genreDao.sortGenresByAlbumCountDesc(limit)*/
 
-    override fun sortGenresBySongCountAsc(limit: Int): Flow<List<Genre>> =
+    override fun sortGenresBySongCountAsc(limit: Int): Flow<List<GenreWithExtraInfo>> =
         genreDao.sortGenresBySongCountAsc(limit)
 
-    override fun sortGenresBySongCountDesc(limit: Int): Flow<List<Genre>> =
+    override fun sortGenresBySongCountDesc(limit: Int): Flow<List<GenreWithExtraInfo>> =
         genreDao.sortGenresBySongCountDesc(limit)
 
-    override fun sortAlbumsInGenreByTitleAsc(genreId: Long, limit: Int): Flow<List<Album>> =
-        albumDao.sortAlbumsInGenreByTitleAsc(genreId, limit)
+    /*override fun sortAlbumsInGenreByTitleAsc(genreId: Long, limit: Int): Flow<List<Album>> =
+        albumDao.sortAlbumsInGenreByTitleAsc(genreId, limit)*/
 
-    override fun sortAlbumsInGenreByTitleDesc(genreId: Long, limit: Int): Flow<List<Album>> =
-        albumDao.sortAlbumsInGenreByTitleDesc(genreId, limit)
+    /*override fun sortAlbumsInGenreByTitleDesc(genreId: Long, limit: Int): Flow<List<Album>> =
+        albumDao.sortAlbumsInGenreByTitleDesc(genreId, limit)*/
 
-    override fun sortArtistsInGenreByNameAsc(genreId: Long, limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsInGenreByNameAsc(genreId, limit)
+    /*override fun sortArtistsInGenreByNameAsc(genreId: Long, limit: Int): Flow<List<Artist>> =
+        artistDao.sortArtistsInGenreByNameAsc(genreId, limit)*/
 
-    override fun sortArtistsInGenreByNameDesc(genreId: Long, limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsInGenreByNameDesc(genreId, limit)
+    /*override fun sortArtistsInGenreByNameDesc(genreId: Long, limit: Int): Flow<List<Artist>> =
+        artistDao.sortArtistsInGenreByNameDesc(genreId, limit)*/
 
     /* override fun sortArtistsInGenreBySongCountAsc(genreId: Long, limit: Int): Flow<List<Artist>> =
         artistDao.sortArtistsInGenreBySongCountAsc(genreId, limit) */
@@ -202,7 +206,7 @@ class GenreRepoImpl(
         songDao.getSongsAndAlbumsInGenreSortedByLastPlayed(genreId, limit) */
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun songsAndAlbumsInGenre(genreId: Long, limit: Int): Flow<List<SongToAlbum>> {
+    /*override fun songsAndAlbumsInGenre(genreId: Long, limit: Int): Flow<List<SongToAlbum>> {
         val flowAlbums = albumDao.sortAlbumsInGenreByTitleAsc(genreId, limit)
         //flowAlbums.transform(suspend List<Album>())
         val songs = combine(flowAlbums) { arrayAlbum ->
@@ -216,8 +220,7 @@ class GenreRepoImpl(
             songs.count(),
             init = TODO()
         ) }
-    }
-
+    }*/
 
     override suspend fun addGenre(genre: Genre): Long = genreDao.insert(genre)
 

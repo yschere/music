@@ -1,18 +1,17 @@
 package com.example.music.domain
 
-import com.example.music.data.repository.PlayerPreferences
-import com.example.music.data.repository.PlayerPreferencesRepository
+import com.example.music.data.repository.AppPreferences
+import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.data.repository.RepeatType
 import com.example.music.data.repository.ShuffleType
-import kotlinx.coroutines.flow.Flow
 import com.example.music.util.domainLogger
 import javax.inject.Inject
 
 /**
- * Functions for updating [PlayerPreferences] from Preferences DataStore
+ * Functions for updating [AppPreferences] from Preferences DataStore
  */
-class UpdatePlayerPreferences @Inject constructor(
-    private val playerPrefRepo: PlayerPreferencesRepository,
+class UpdateAppPreferences @Inject constructor(
+    private val playerPrefRepo: AppPreferencesRepo,
 ) {
 
     suspend fun updateRepeatType(rpType: RepeatType) {

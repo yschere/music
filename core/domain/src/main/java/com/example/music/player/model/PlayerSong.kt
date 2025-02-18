@@ -5,6 +5,8 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.example.music.data.database.model.Song
 import com.example.music.data.database.model.SongToAlbum
+import com.example.music.data.repository.ArtistRepo
+import com.example.music.domain.GetSongArtistDataUseCase
 import com.example.music.model.AlbumInfo
 import com.example.music.model.ArtistInfo
 import com.example.music.model.SongInfo
@@ -40,7 +42,7 @@ data class PlayerSong(
         albumTitle = albumInfo.title,
         duration = songInfo.duration,
         artwork = albumInfo.artwork,
-        trackNumber = songInfo.albumTrackNumber, //TODO: temporary to support SongListItem's albumTrackNumber for use case when album artwork is not visible
+        trackNumber = songInfo.trackNumber, //TODO: temporary to support SongListItem's albumTrackNumber for use case when album artwork is not visible
     )
 }
 
@@ -48,21 +50,28 @@ fun SongToAlbum.toPlayerSong(): PlayerSong =
     PlayerSong(
         id = song.id,
         title = song.title,
-        //artistName = artist.name,
+        artistName = "PLACEHOLDER",
         albumTitle = album.title,
         duration = song.duration,
         artwork = album.artwork,
     )
 
-fun SongInfo.toPlayerSong(): PlayerSong =
-    PlayerSong(
+fun SongInfo.toPlayerSong(): PlayerSong {
+    //PlayerSong(
+    //    item,
+    //    getArtistDataUseCase(item).firstOrNull() ?: ArtistInfo(),
+    //    getAlbumDataUseCase(item).firstOrNull() ?: AlbumInfo(),
+    //)
+    return PlayerSong(
         id = id,
         title = title,
         artistName = "PLACEHOLDER",
         albumTitle = "PLACEHOLDER",
         duration = duration,
-        trackNumber = albumTrackNumber
+        trackNumber = trackNumber
     )
+}
+
 
 //convert a song into media playable item
 @UnstableApi
@@ -71,5 +80,5 @@ fun MediaItem.asExternalModel() = PlayerSong(
     title = mediaMetadata.title.toString(),
     artistName = mediaMetadata.artist.toString(),
     albumTitle = mediaMetadata.albumTitle.toString(),
-    duration = mediaMetadata.durationMs?.let { Duration.ofMillis(it) }//.toDuration()?,
+    duration = mediaMetadata.durationMs?.let { ofMillis(it) }//.toDuration()?,
 )

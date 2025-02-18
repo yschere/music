@@ -1,6 +1,5 @@
 package com.example.music.ui.playlistdetails
 
-import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,9 +73,12 @@ import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
+import com.example.music.util.quantityStringResource
 import com.example.music.util.radialGradientScrim
-import kotlinx.coroutines.launch
 
+/**
+ * Stateful version of Playlist Details Screen
+ */
 @Composable
 fun PlaylistDetailsScreen(
     navigateToPlayer: (SongInfo) -> Unit,
@@ -83,31 +87,29 @@ fun PlaylistDetailsScreen(
     modifier: Modifier = Modifier,
     viewModel: PlaylistDetailsViewModel = hiltViewModel(),
 ) {
-    // written to support adjustment to PlaylistDetailsViewModel that removed assistInject on playlistId
-    // attempting to use HomeViewModel and PlayerViewModel as basis for savedStateHandle, navigation
-    val playlistUiState by viewModel.state.collectAsStateWithLifecycle()
-    val uiState = playlistUiState
-    Surface {
-        if (uiState.errorMessage != null) {
-            PlaylistDetailsError(onRetry = viewModel::refresh)
-        }
-        if (uiState.isReady) {
-            PlaylistDetailsScreen(
-                playlist = uiState.playlist,
-                songs = uiState.songs,
-                pSongs = uiState.pSongs, //TODO: PlayerSong support
-                onQueueSong = viewModel::onQueueSong,
-                navigateToPlayer = navigateToPlayer,
-                navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
-                navigateBack = navigateBack,
-                modifier = modifier,
-            )
-        } else {
-            PlaylistDetailsLoadingScreen(
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+    //logger.info { "Playlist Details Screen - hilt view model function start" }
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+
+    if (uiState.errorMessage != null) {
+        PlaylistDetailsError(onRetry = viewModel::refresh)
     }
+    if (uiState.isReady) {
+        PlaylistDetailsScreen(
+            playlist = uiState.playlist,
+            songs = uiState.songs,
+            pSongs = uiState.pSongs, //TODO: PlayerSong support
+            onQueueSong = viewModel::onQueueSong,
+            navigateToPlayer = navigateToPlayer,
+            navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
+            navigateBack = navigateBack,
+            modifier = modifier,
+        )
+    } else {
+        PlaylistDetailsLoadingScreen(
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+
     /* -------ORIGINAL VERSION ---------
     val state by viewModel.state.collectAsStateWithLifecycle()
     when (val s = state) {
@@ -132,6 +134,9 @@ fun PlaylistDetailsScreen(
     }*/
 }
 
+/**
+ * Error Screen
+ */
 @Composable
 private fun PlaylistDetailsError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
     Surface(modifier = modifier) {
@@ -157,6 +162,9 @@ private fun PlaylistDetailsLoadingScreen(
 ) { Loading(modifier = modifier) }
 //full screen circular progress - loading screen
 
+/**
+ * Stateless version of Playlist Details Screen
+ */
 @Composable
 fun PlaylistDetailsScreen(
     playlist: PlaylistInfo,
@@ -168,6 +176,7 @@ fun PlaylistDetailsScreen(
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) { //base level screen data / coroutine setter / screen component(s) caller
+    //logger.info{ "Playlist Details Screen function start" }
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -178,60 +187,117 @@ fun PlaylistDetailsScreen(
     ) {
         //base layer structure component
         Scaffold(
-            modifier = modifier.fillMaxSize().systemBarsPadding(),
-            topBar = { // lambda function? that contains if check for topbar showing back button??
-                //if (showBackButton) {
-                    PlaylistDetailsTopAppBar(
-                        navigateBack = navigateBack, //since using topAppBar here, separating navigateBack from the other navigate functions here
-                        //modifier = Modifier.fillMaxWidth()
-                    )
-                //}
+            topBar = {
+                PlaylistDetailsTopAppBar(
+                    navigateBack = navigateBack, //since using topAppBar here, separating navigateBack from the other navigate functions here
+                )
             },
             snackbarHost = { // setting the snackbar hoststate to the scaffold
                 SnackbarHost(hostState = snackbarHostState)
             },
-            containerColor = Color.Transparent
-            //contentColor = MaterialTheme.colorScheme.background,
-            //containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = modifier.fillMaxSize().systemBarsPadding(),
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ) { contentPadding -> //not sure why content padding into content function done in this way
+            //logger.info { "Playlist Details Screen - Content function call" }
             PlaylistDetailsContent(
                 playlist = playlist,
                 songs = songs,
-                pSongs = pSongs, //TODO: PlayerSong support
-                onQueueSong = {
+                pSongs = pSongs,//.toPersistentList(), //TODO: PlayerSong support
+                /*onQueueSong = {
                     coroutineScope.launch { //use the onQueueSong btn onClick to trigger snackbar
                         snackbarHostState.showSnackbar(snackBarText)
                     }
                     onQueueSong(it)
-                },
-                navigateToPlayer = navigateToPlayer,
+                },*/
+                //navigateToPlayer = navigateToPlayer,
                 navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
-                modifier = Modifier.padding(contentPadding).padding(horizontal = 8.dp)
+                modifier = Modifier.padding(contentPadding)//.padding(horizontal = 8.dp)
+            )
+        }
+    }
+    //logger.info{ "Playlist Details Screen function end" }
+}
+
+/**
+ * Composable for Playlist Details Screen's Background.
+ */
+@Composable
+private fun PlaylistDetailsScreenBackground(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
+        )
+        content()
+    }
+}
+
+/**
+ * Composable for Playlist Details Screen's Top App Bar.
+ */
+@Composable
+fun PlaylistDetailsTopAppBar(
+    navigateBack: () -> Unit,
+    //should include album more options btn action here,
+    //pretty sure that button also needs a context driven options set
+    //modifier: Modifier = Modifier
+) {
+    Row(
+        Modifier.fillMaxWidth()
+            .padding(horizontal = 8.dp)
+    ) {
+        //back button
+        IconButton(onClick = navigateBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(id = R.string.cd_back)
+            )
+        }
+
+        //right align objects after this space
+        Spacer(Modifier.weight(1f))
+
+        // search btn
+        IconButton(onClick = { /* TODO */ }) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = stringResource(R.string.cd_more)
             )
         }
     }
 }
 
+/**
+ * Composable for Playlist Details Screen's Content.
+ */
 @Composable
 fun PlaylistDetailsContent(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
     pSongs: List<PlayerSong>, //TODO: PlayerSong support
-    onQueueSong: (PlayerSong) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    //onQueueSong: (PlayerSong) -> Unit,
+    //navigateToPlayer: (SongInfo) -> Unit,
     navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) { //determines content of details screen
-
+    //logger.info { "Playlist Details Content function start" }
     LazyVerticalGrid( //uses lazy vertical grid to store header and items list below it
         columns = GridCells.Adaptive(362.dp),
-        modifier.fillMaxSize().padding(horizontal = 4.dp)
+        modifier.fillMaxSize().padding(horizontal = 12.dp)
     ) {
+        //logger.info { "Playlist Details Content - lazy vertical grid start" }
         fullWidthItem {
             //section 1: header item
             PlaylistDetailsHeader(
                 playlist = playlist,
-                songSize = songs.size,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -259,7 +325,6 @@ fun PlaylistDetailsContent(
                     showArtistName = true,
                     showAlbumImage = true,
                     showAlbumTitle = true,
-                    showDuration = true,
                 )
             }
         } */
@@ -268,23 +333,23 @@ fun PlaylistDetailsContent(
          * PLAYERSONG VERSION: using pSongs: List<PlayerSong>
          */
         items(pSongs) { song ->
-            Box {
+            //logger.info { "Playlist Details Content - songs layout for song ${song.id}" }
+            Box(Modifier.padding(horizontal = 4.dp, vertical = 0.dp)) {
                 SongListItem(
-                    //call the SongListItem function to display each one, include the data needed to display item in full,
-                    //and should likely share context from where this call being made incase specific data needs to be shown / not shown
                     song = song,
                     onClick = navigateToPlayerSong, //TODO: FOUND, spot where conversion to PlayerSong would need to be extensive
-                    onQueueSong = onQueueSong,
+                    //onQueueSong = onQueueSong,
                     modifier = Modifier.fillMaxWidth(),
                     isListEditable = false,
                     showArtistName = true,
                     showAlbumImage = true,
                     showAlbumTitle = true,
-                    showDuration = true,
                 )
             }
         }
+        //logger.info { "Playlist Details Content - lazy vertical grid end" }
     }
+    //logger.info { "Playlist Details Content function end" }
 }
 
 @Composable
@@ -333,7 +398,6 @@ fun PlaylistDetailsHeaderItem(
 @Composable
 fun PlaylistDetailsHeader(
     playlist: PlaylistInfo,
-    songSize: Int,
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
@@ -360,17 +424,61 @@ fun PlaylistDetailsHeader(
                         //color = MaterialTheme.colorScheme.primary,
                         maxLines = 2,
                         overflow = TextOverflow.Visible,
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Text(
-                        text = if (songSize == 1) "$songSize song" else "$songSize songs",
+                        text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount)) {
+                            it.value.uppercase()
+                        },
+                        //text = quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount),
                         //color = MaterialTheme.colorScheme.primary,
                         maxLines = 1,
                         overflow = TextOverflow.Visible,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun PlaylistDetailsHeaderItemButtons(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(modifier.padding(top = 16.dp)) {
+        Button( // shuffle btn
+            onClick = onClick,
+            modifier = Modifier.semantics(mergeDescendants = true) { }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Shuffle,
+                contentDescription = null
+            )
+        }
+
+        Button( //play btn
+            onClick = onClick,
+            modifier = Modifier.semantics(mergeDescendants = true) { }
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = null
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        IconButton(
+            onClick = { /* TODO */ },
+            modifier = Modifier.padding(start = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                //tint = MaterialTheme.colorScheme.primary,
+                contentDescription = stringResource(R.string.cd_more)
+            )
         }
     }
 }
@@ -421,7 +529,7 @@ fun PlaylistDetailsHeaderLargeAlbumCover(
 //        contentColor = MaterialTheme.colorScheme.primary,
 //        containerColor = MaterialTheme.colorScheme.background,
 
-        ) { innerPadding ->
+    ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -433,121 +541,6 @@ fun PlaylistDetailsHeaderLargeAlbumCover(
                     .fillMaxWidth()
             )
         }
-    }
-}
-
-@Composable
-fun PlaylistDetailsHeaderItemButtons(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(modifier.padding(top = 16.dp)) {
-        Button( //following/follow button
-            onClick = onClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = if (false)
-                    Icons.Default.Check
-                else
-                    Icons.Default.Add,
-                contentDescription = null
-            )
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        IconButton(
-            onClick = { /* TODO */ },
-            modifier = Modifier.padding(start = 8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                //tint = MaterialTheme.colorScheme.primary,
-                contentDescription = stringResource(R.string.cd_more)
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PlaylistDetailsTopAppBar(
-    navigateBack: () -> Unit,
-    //should include album more options btn action here,
-    //pretty sure that button also needs a context driven options set
-    //modifier: Modifier = Modifier
-) {
-    /* --------- Version 1 ---------
-    TopAppBar( // calls experimental material3 TopAppBar to display top bar
-        //properties include: title, modifier, navigationIcon, actions, expandedHeight, windowInsets, colors, scrollBehavior
-        title = { },
-        navigationIcon = {
-            IconButton(onClick = navigateBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = stringResource(id = R.string.cd_back)
-                )
-            }
-        },
-        //actions for this screen will either be the search button AND the moreOptions, or just moreOptions, or just search btn
-        actions = { //this is intended to be for the icon buttons that will appear Right Aligned
-            IconButton(
-                onClick = { /* TODO */ },
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = "More Options"
-                )
-            }
-        },
-        modifier = modifier
-    ) */
-
-    // --------- Version 2 ---------
-    Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
-
-        //back button
-        IconButton(onClick = navigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(id = R.string.cd_back)
-            )
-        }
-
-        //right align objects after this space
-        Spacer(Modifier.weight(1f))
-
-        // search btn
-        IconButton(onClick = { /* TODO */ }) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.cd_more)
-            )
-        }
-    }
-}
-
-/**
- * Composable for Playlist Details Screen's Background.
- */
-@Composable
-private fun PlaylistDetailsScreenBackground(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
-) {
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
-        )
-        content()
     }
 }
 
@@ -564,7 +557,7 @@ fun PlaylistDetailsHeaderItemPreview() {
 
 @Preview
 //@Preview (name = "light mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Preview (name = "dark mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Preview (name = "dark mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun PlaylistDetailsScreenPreview() {
     MusicTheme {
@@ -583,9 +576,9 @@ fun PlaylistDetailsScreenPreview() {
 //            songs = getPlaylistSongs(2),
 
             //TODO: PlayerSong support
-            playlist = PreviewPlaylists[0],
-            songs = getPlaylistSongs(0),
-            pSongs = getPlaylistPlayerSongs(PreviewPlaylists[0]),
+            playlist = PreviewPlaylists[2],
+            songs = getPlaylistSongs(2),
+            pSongs = getPlaylistPlayerSongs(2),
 
             onQueueSong = { },
             navigateToPlayer = { },

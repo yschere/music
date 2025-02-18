@@ -1,19 +1,3 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.data.database.model
 
 import androidx.room.ColumnInfo
@@ -28,8 +12,6 @@ import java.time.OffsetDateTime
  * Entity for table songs / data class Song.
  * Used to contain base song information.
  * Columns album_artist_id and artwork not included.
- * Album_artist_id can either be from album or saved as song element,
- * not sure which is better.
  */
 
 @Entity(
@@ -73,6 +55,26 @@ import java.time.OffsetDateTime
     ]
 )
 
+/**
+ * SongPlaylistEntry data class is the internal representation for the
+ * song_playlist_entries database table.
+ * @property id [Long] primary key for record. Serves as the reference point for foreign keys on song_id.
+ * @property title [String] song title.
+ * @property artistId [Long] foreign key for artists table.
+ * @property albumId [Long] foreign key for albums table.
+ * @property genreId [Long] foreign key for genres table.
+ * @property year [Int] release year for song.
+ * @property albumTrackNumber [Int] the song's track number within the album
+ * @property lyrics [String] the song's lyrics
+ * @property composerId [Long] foreign key for composers table.
+ * @property dateAdded [OffsetDateTime] the datetime when the song entered the database/when the originating file was created
+ * @property dateModified [OffsetDateTime] the latest datetime when the song was modified
+ * @property dateLastPlayed [OffsetDateTime] the latest datetime when the song was played within the app
+ * @property duration [Duration] the length of play time of the song
+ * TODO future properties to be supported: album_artwork or song_artwork.
+ *  Consideration: song's also contain an album_artist value,
+ *  but that is getting set as a property for albums instead
+ */
 data class Song(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
     @ColumnInfo(name = "title") var title: String = "",
@@ -88,5 +90,5 @@ data class Song(
     @ColumnInfo(name = "date_added") var dateAdded: OffsetDateTime = OffsetDateTime.now(),
     @ColumnInfo(name = "date_modified") var dateModified: OffsetDateTime = OffsetDateTime.now(),
     @ColumnInfo(name = "date_last_played") var dateLastPlayed: OffsetDateTime? = null,
-    @ColumnInfo(name = "duration") var duration: Duration? = null
+    @ColumnInfo(name = "duration") var duration: Duration = Duration.ZERO
 )

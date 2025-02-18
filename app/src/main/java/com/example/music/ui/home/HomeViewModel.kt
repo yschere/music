@@ -7,8 +7,9 @@ import com.example.music.data.database.model.Artist
 import com.example.music.data.repository.PlaylistRepo
 import com.example.music.data.repository.SongRepo
 import com.example.music.domain.FeaturedLibraryItemsUseCase
-import com.example.music.domain.GetAlbumDataUseCase
-import com.example.music.domain.GetArtistDataUseCase
+import com.example.music.domain.GetSongAlbumDataUseCase
+import com.example.music.domain.GetSongArtistDataUseCase
+import com.example.music.domain.GetTotalCountsUseCase
 import com.example.music.model.AlbumInfo
 import com.example.music.model.ArtistInfo
 import com.example.music.model.FeaturedLibraryItemsFilterResult
@@ -31,17 +32,16 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
-import org.apache.log4j.BasicConfigurator
 import javax.inject.Inject
+import com.example.music.util.logger
 
-private val logger = KotlinLogging.logger{}
 //this is where all the components to create the HomeScreen view are stored/collected
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val featuredLibraryItemsUseCase: FeaturedLibraryItemsUseCase,
-    private val getArtistDataUseCase: GetArtistDataUseCase,
-    private val getAlbumDataUseCase: GetAlbumDataUseCase,
+    featuredLibraryItemsUseCase: FeaturedLibraryItemsUseCase,
+    getTotalCountsUseCase: GetTotalCountsUseCase,
+    private val getArtistDataUseCase: GetSongArtistDataUseCase,
+    private val getAlbumDataUseCase: GetSongAlbumDataUseCase,
     private val songPlayer: SongPlayer
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
@@ -82,19 +82,17 @@ class HomeViewModel @Inject constructor(
         get() = _state
 
     init {
-        BasicConfigurator.configure()
         logger.info { "Home View Model - viewModelScope launch start" }
         viewModelScope.launch {
+            // Holds the counts of songs, artists, albums, playlists in library for NavDrawer
+            val counts = getTotalCountsUseCase()
+
             // Combines the latest value from each of the flows, allowing us to generate a
             // view state instance which only contains the latest values.
             combine(
-                //featuredPlaylists,
-                //featuredSongs,
                 refreshing,
                 featuredLibraryItems,
             ) {
-                //playlists,
-                //songs,
                 refreshing,
                 libraryItems,
                 ->
@@ -107,20 +105,19 @@ class HomeViewModel @Inject constructor(
                 HomeScreenUiState(
                     isLoading = refreshing,
                     featuredLibraryItemsFilterResult = libraryItems,
-                    //featuredPlaylists = playlists.map { it.asExternalModel() }.toPersistentList(),
-                    //featuredSongs = songs.map { it.asExternalModel() }.toPersistentList(),
                     playerSongs = libraryItems.recentlyAddedSongs.map { item ->
-                        logger.info { "Song to PlayerSong: ${item.id}" }
-                        val art = getArtistDataUseCase(item).first() ?: ArtistInfo()
-                        logger.info { " art: ${art.name}" }
-                        val alb = getAlbumDataUseCase(item).first() ?: AlbumInfo()
-                        logger.info { "alb: ${alb.title}" }
+                        logger.info { "Song to PlayerSong: ID: ${item.id} - song: ${item.title}" }
+                        val art = getArtistDataUseCase(item).first()
+                        logger.info { "Song to PlayerSong: artist: ${art.name}" }
+                        val alb = getAlbumDataUseCase(item).first()
+                        logger.info { "Song to PlayerSong: album: ${alb.title}" }
                         PlayerSong(
                             item,
                             art,
                             alb,
                         )
-                    }//TODO: PlayerSong support
+                    },//TODO: PlayerSong support
+                    totals = counts
                 )
             }.catch { throwable ->
                 emit(
@@ -140,7 +137,6 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        BasicConfigurator.configure()
         logger.info { "Home View Model - refresh function start" }
         logger.info { "Home View Model - refreshing: ${refreshing.value}" }
         viewModelScope.launch {
@@ -162,7 +158,7 @@ class HomeViewModel @Inject constructor(
             is HomeAction.QueueSong -> onQueueSong(action.song)
         }
     }
-//
+
 //    private fun onGenreSelected(genre: GenreInfo) {
 //        _selectedGenre.value = genre
 //    }
@@ -178,8 +174,9 @@ class HomeViewModel @Inject constructor(
 //    private fun onLibraryGenreSelected(genre: GenreInfo) {
 //        selectedLibraryGenre.value = genre
 //    }
+
     private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
-    selectedLibraryPlaylist.value = playlist
+        selectedLibraryPlaylist.value = playlist
     }
 
 //    private fun onNavigationViewMenu() {
@@ -206,7 +203,6 @@ class HomeViewModel @Inject constructor(
 
 @Immutable
 sealed interface HomeAction {
-    //data class ToggleNavMenu(): HomeAction,
     data class EmptyLibraryView(val playlist: PlaylistInfo) : HomeAction
     data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
     data class QueueSong(val song: PlayerSong) : HomeAction
@@ -217,8 +213,6 @@ data class HomeScreenUiState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult = FeaturedLibraryItemsFilterResult(),
-    //val featuredPlaylists: PersistentList<PlaylistInfo> = persistentListOf(),
-    //val featuredSongs: PersistentList<SongInfo> = persistentListOf(),
-    //val featuredSongs: LibraryInfo = LibraryInfo(),
-    val playerSongs: List<PlayerSong> = emptyList() //TODO: PlayerSong support
+    val playerSongs: List<PlayerSong> = emptyList(), //TODO: PlayerSong support
+    val totals: List<Int> = emptyList()
 )

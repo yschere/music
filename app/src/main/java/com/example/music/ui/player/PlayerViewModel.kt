@@ -21,8 +21,8 @@ import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.session.MediaSession
 import coil3.Uri
 import com.example.music.data.MusicDispatchers
-import com.example.music.data.repository.CurrentPreferencesRepository
 import com.example.music.data.repository.SongRepo
+import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.domain.GetSongDataUseCase
 import com.example.music.model.asExternalModel
 import com.example.music.player.SongPlayer
@@ -31,9 +31,10 @@ import com.example.music.player.model.toPlayerSong
 import com.example.music.ui.Screen
 //import com.example.music.util.MediaNotificationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.music.util.logger
+import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-//import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
@@ -48,15 +49,16 @@ import javax.inject.Inject
 data class PlayerUiState(
     val songPlayerState: SongPlayerState = SongPlayerState()
 )
-//private val logger = KotlinLogging.logger{}
+
 /**
  * ViewModel that handles the business logic and screen state of the Player screen
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
+//    context: Context,
     songRepo: SongRepo,
-    //private val currentPreferencesRepository: CurrentPreferencesRepository,
+//    appPreferencesRepo: AppPreferencesRepo,
     private val getSongDataUseCase: GetSongDataUseCase,
     private val songPlayer: SongPlayer, //equivalent of musicController
     //val mediaPlayer: MediaPlayer,
@@ -75,8 +77,7 @@ class PlayerViewModel @Inject constructor(
     private val songId = _songId.toLong()
     var uiState by mutableStateOf(PlayerUiState())
         private set
-//    BasicConfigurator.configure()
-//    logger.info { "Home Content function start" }
+
 //    private lateinit var notificationManager: MediaNotificationManager
 //    protected lateinit var mediaSession: MediaSession
 //    private val serviceJob = SupervisorJob()
@@ -84,7 +85,13 @@ class PlayerViewModel @Inject constructor(
 //    private var isStarted = false
 
     init {
+        logger.info { "Player View Model - init viewModelScope launch start" }
+        logger.info { "Player View Model - songID: $songId"}
         viewModelScope.launch {
+//            appPreferencesRepo.appPreferencesFlow.collect{ values ->
+////                songPlayer.
+//
+//            }
             //TODO: using for comparison between SongToAlbum/SongInfo against PlayerSong for populating Player Screen
             //songRepo.getSongAndAlbumBySongId(songId).flatMapConcat { //original code: used to get SongToAlbum to convert to PlayerSong,
             songRepo.getSongById(songId).flatMapConcat {

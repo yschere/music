@@ -1,19 +1,19 @@
 package com.example.music.domain
 
-import com.example.music.data.repository.SortPreferences
-import com.example.music.data.repository.SortPreferencesRepository
+import com.example.music.data.repository.AppPreferences
+import com.example.music.data.repository.AppPreferencesRepo
 import kotlinx.coroutines.flow.Flow
 import com.example.music.util.domainLogger
 import javax.inject.Inject
 
 /**
- * Retrieves Flow<[SortPreferences]> from Preferences DataStore
+ * Retrieves Flow<[AppPreferences]> from Preferences DataStore
  */
-class GetSortPreferencesUseCase @Inject constructor(
-    private val sortPrefRepo: SortPreferencesRepository,
+class GetAppPreferencesUseCase @Inject constructor(
+    private val appPrefRepo: AppPreferencesRepo,
 ) {
-    operator fun invoke(): Flow<SortPreferences> {
-        domainLogger.info { "Get Sort Preferences Flow" }
-        return sortPrefRepo.sortPreferencesFlow
+    operator fun invoke(): Flow<AppPreferences> {
+        domainLogger.info { "Get App Preferences Flow" }
+        return appPrefRepo.appPreferencesFlow
     }
 }

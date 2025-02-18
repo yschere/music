@@ -1,4 +1,5 @@
 package com.example.music.util
 
-class Logger {
-}
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+val logger = KotlinLogging.logger("Logger")

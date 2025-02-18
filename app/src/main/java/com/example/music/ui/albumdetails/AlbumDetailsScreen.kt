@@ -1,6 +1,5 @@
 package com.example.music.ui.albumdetails
 
-import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -27,6 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
@@ -66,57 +69,96 @@ import com.example.music.domain.testing.getSongsInAlbum
 import com.example.music.model.AlbumInfo
 import com.example.music.model.SongInfo
 import com.example.music.player.model.PlayerSong
+import com.example.music.player.model.toPlayerSong
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
+import com.example.music.util.quantityStringResource
 import com.example.music.util.radialGradientScrim
-import kotlinx.coroutines.launch
 
+/**
+ * Stateful version of Album Details Screen
+ */
 @Composable
 fun AlbumDetailsScreen(
-    viewModel: AlbumDetailsViewModel = hiltViewModel(),
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: AlbumDetailsViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    when (val s = state) {
-        is AlbumUiState.Loading -> {
-            AlbumDetailsLoadingScreen(
-                modifier = Modifier.fillMaxSize()
-            )
-        } // screen to show when ui state is in loading
-        is AlbumUiState.Ready -> {
-            AlbumDetailsScreen(
-                album = s.album,
-                songs = s.songs,
-                onQueueSong = viewModel::onQueueSong,
-                navigateToPlayer = navigateToPlayer,
-                navigateBack = navigateBack,
-                showBackButton = showBackButton,
-                modifier = modifier,
-            )
-        } // screen to show when ui state is ready to display
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    if (uiState.errorMessage != null) {
+        AlbumDetailsError(onRetry = viewModel::refresh)
+    }
+
+    if (uiState.isReady) {
+        AlbumDetailsScreen(
+            album = uiState.album,
+            songs = uiState.songs,
+            pSongs = uiState.pSongs,
+            navigateToPlayer = navigateToPlayer,
+            navigateToPlayerSong = navigateToPlayerSong,
+            navigateBack = navigateBack,
+            showBackButton = showBackButton,
+            modifier = modifier,
+        )
+    } else {
+        AlbumDetailsLoadingScreen(
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 
+/**
+ * Error Screen
+ */
+@Composable
+private fun AlbumDetailsError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(modifier = modifier) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Text(
+                text = stringResource(id = R.string.an_error_has_occurred),
+                modifier = Modifier.padding(16.dp)
+            )
+            Button(onClick = onRetry) {
+                Text(text = stringResource(id = R.string.retry_label))
+            }
+        }
+    }
+}
+
+/**
+ * Loading Screen
+ */
 @Composable
 private fun AlbumDetailsLoadingScreen(
     modifier: Modifier = Modifier
 ) { Loading(modifier = modifier) }
+//full screen circular progress - loading screen
 
+/**
+ * Stateless version of Album Details Screen
+ */
 @Composable
 fun AlbumDetailsScreen(
     album: AlbumInfo,
     songs: List<SongInfo>,
-    onQueueSong: (PlayerSong) -> Unit,
+    pSongs: List<PlayerSong>,
+    //onQueueSong: (PlayerSong) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
     modifier: Modifier = Modifier
 ) { //base level screen data / coroutine setter / screen component(s) caller
+
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.song_added_to_your_queue) //used to hold the little popup text that appears after an onClick event
@@ -126,108 +168,134 @@ fun AlbumDetailsScreen(
     ) {
         //base layer structure component
         Scaffold(
-            modifier = modifier.fillMaxSize(), //says to use max size of screen?
-            topBar = { // lambda function? that contains if check for topbar showing back button??
-                if (showBackButton) {
-                    AlbumDetailsTopAppBar(
-                        navigateBack = navigateBack,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+            topBar = {
+                AlbumDetailsTopAppBar(
+                    navigateBack = navigateBack,
+                    //modifier = Modifier.fillMaxWidth()
+                )
             },
             snackbarHost = { // setting the snackbar hoststate to the scaffold
                 SnackbarHost(hostState = snackbarHostState)
             },
-            //contentColor = MaterialTheme.colorScheme.background,
-            containerColor = Color.Transparent
+            modifier = modifier.fillMaxSize().systemBarsPadding(), //says to use max size of screen?
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ) { contentPadding -> //not sure why content padding into content function done in this way
             AlbumDetailsContent(
                 album = album,
                 songs = songs,
-                onQueueSong = {
-                    coroutineScope.launch { //use the onQueueSong btn onClick to trigger snackbar
-                        snackbarHostState.showSnackbar(snackBarText)
-                    }
-                    onQueueSong(it)
-                },
+                pSongs = pSongs,
                 navigateToPlayer = navigateToPlayer,
-                modifier = Modifier.padding(contentPadding)
+                navigateToPlayerSong = navigateToPlayerSong,
+                modifier = Modifier.padding(contentPadding)//.padding(horizontal = 8.dp)
             )
         }
     }
 }
 
+/**
+ * Composable for Album Details Screen's Background.
+ */
+@Composable
+private fun AlbumDetailsScreenBackground(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
+        )
+        content()
+    }
+}
+
+/**
+ * Composable for Album Details Screen's Top App Bar
+ */
+@Composable
+fun AlbumDetailsTopAppBar(
+    navigateBack: () -> Unit,
+    //should include album more options btn action here,
+    //pretty sure that button also needs a context driven options set
+    modifier: Modifier = Modifier
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+    ) {
+        //back button
+        IconButton(onClick = navigateBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(id = R.string.cd_back)
+            )
+        }
+
+        //right align objects after this space
+        Spacer(Modifier.weight(1f))
+
+        // search btn
+        IconButton(onClick = { /* TODO */ }) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = stringResource(R.string.cd_more)
+            )
+        }
+    }
+}
+
+/**
+ * Composable for Album Details Screen's Content.
+ */
 @Composable
 fun AlbumDetailsContent(
     album: AlbumInfo,
     songs: List<SongInfo>,
-    onQueueSong: (PlayerSong) -> Unit,
+    pSongs: List<PlayerSong>,
+    //onQueueSong: (PlayerSong) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit,
     modifier: Modifier = Modifier
 ) { //determines content of details screen
-/*
-    Column { ///this iteration has the first header overlapping with the TopAppBar for some reason
-        AlbumDetailsHeaderItem( //header item uses album data to show album info
-            album = album,
-            modifier = Modifier.fillMaxWidth()
-        )
-        AlbumDetailsHeader(
-            album = album,
-            songSize = songs.size,
-            modifier = Modifier.fillMaxWidth()
-        )
-        LazyColumn {
-            items(songs, key = { it.id }) { song -> // for each song in list:
-                SongListItem( //call the SongListItem function to display each one, include the data needed to display item in full,
-                    //and should likely share context from where this call being made incase specific data needs to be shown / not shown
-                    song = song,
-                    album = album,
-                    onClick = navigateToPlayer,
-                    onQueueSong = onQueueSong,
-                    modifier = Modifier.fillMaxWidth(),
-                    showAlbumImage = false,
-                    showSummary = false
-                )
-            }
-        }
-    }*/
-
     LazyVerticalGrid( //uses lazy vertical grid to store header and items list below it
         columns = GridCells.Adaptive(362.dp),
-        modifier.fillMaxSize()
+        modifier.fillMaxSize().padding(horizontal = 12.dp)
     ) {
         fullWidthItem {
             //section 1: header item
-            /* --- version 1 ---
-            //AlbumDetailsHeaderItem( //header item uses album data to show album info
-                //album = album,
-                //modifier = Modifier.fillMaxWidth()
-            //) */
+            // --- version 1 ---
+//            AlbumDetailsHeaderItem( //header item uses album data to show album info
+//                album = album,
+//                modifier = Modifier.fillMaxWidth()
+//            )
 
             // --- version 2 ---
             AlbumDetailsHeader(
                 album = album,
-                songSize = songs.size,
                 modifier = Modifier.fillMaxWidth()
             )
         }
 
         //section 2: songs list
-        items(songs, key = { it.id }) { song -> // for each song in list:
-            SongListItem( //call the SongListItem function to display each one, include the data needed to display item in full,
-                //and should likely share context from where this call being made incase specific data needs to be shown / not shown
-                song = song,
-                //artist = artist,
-                album = album,
-                onClick = navigateToPlayer,
-                onQueueSong = onQueueSong,
-                //modifier = Modifier.fillMaxWidth(),
-                isListEditable = false,
-                showAlbumImage = false,
-                showArtistName = true,
-                showAlbumTitle = false,
-                showDuration = true,
-            )
+        items(pSongs) { song -> // for each song in list:
+            Box(Modifier.padding(horizontal = 4.dp, vertical = 0.dp)) {
+                SongListItem(
+                    song = song,
+                    onClick = navigateToPlayerSong,
+                    //onQueueSong = {},
+                    modifier = Modifier.fillMaxWidth(), //TODO: uncomment when this is changed to be thru PlayerSong
+                    isListEditable = false,
+                    showAlbumImage = true,
+                    showArtistName = true,
+                    showAlbumTitle = false,
+                )
+            }
         }
     }
 }
@@ -275,15 +343,13 @@ fun AlbumDetailsHeaderItem(
     }
 }
 
-
 @Composable
 fun AlbumDetailsHeader(
     album: AlbumInfo,
-    songSize: Int,
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
-        modifier = modifier.padding(16.dp)
+        modifier = modifier.padding(horizontal = 8.dp, vertical = 16.dp)
     ) {
         val maxImageSize = this.maxWidth / 2
         val imageSize = min( maxImageSize, 148.dp )
@@ -316,7 +382,10 @@ fun AlbumDetailsHeader(
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = if (songSize == 1) "$songSize song" else "$songSize songs",
+                        text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.songs, album.songCount, album.songCount)) {
+                            it.value.uppercase()
+                        },
+                        //text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
                         //color = MaterialTheme.colorScheme.onPrimary,
                         maxLines = 1,
                         overflow = TextOverflow.Visible,
@@ -328,7 +397,46 @@ fun AlbumDetailsHeader(
     }
 }
 
+@Composable
+fun AlbumDetailsHeaderItemButtons(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(modifier.padding(top = 16.dp)) {
+        Button( // shuffle btn
+            onClick = onClick,
+            modifier = Modifier.semantics(mergeDescendants = true) { }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Shuffle,
+                contentDescription = null
+            )
+        }
 
+        Button( //play btn
+            onClick = onClick,
+            modifier = Modifier.semantics(mergeDescendants = true) { }
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = null
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        IconButton(
+            onClick = { /* TODO */ },
+            modifier = Modifier.padding(start = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                //tint = MaterialTheme.colorScheme.primary,
+                contentDescription = stringResource(R.string.cd_more)
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -392,98 +500,10 @@ fun AlbumDetailsHeaderLargeAlbumCover(
 
 }
 
-@Composable
-fun AlbumDetailsHeaderItemButtons(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(modifier.padding(top = 16.dp)) {
-        Button( //following/follow button
-            onClick = onClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = if (false)
-                    Icons.Default.Check
-                else
-                    Icons.Default.Add,
-                contentDescription = null
-            )
-        }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        IconButton(
-            onClick = { /* TODO */ },
-            modifier = Modifier.padding(start = 8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                //tint = MaterialTheme.colorScheme.primary,
-                contentDescription = stringResource(R.string.cd_more)
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AlbumDetailsTopAppBar(
-    navigateBack: () -> Unit,
-    //should include album more options btn action here,
-    //pretty sure that button also needs a context driven options set
-    modifier: Modifier = Modifier
-) {
-    Row(
-        //horizontalArrangement = Arrangement.End,
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color.Transparent)
-            //.padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        IconButton(onClick = navigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                //tint = MaterialTheme.colorScheme.onPrimary,
-                contentDescription = stringResource(id = R.string.cd_back)
-            )
-        }
-        //right align objects after this space
-        Spacer(Modifier.weight(1f))
-        // search btn
-        IconButton(onClick = {}) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                //tint = MaterialTheme.colorScheme.onPrimary,
-                contentDescription = stringResource(R.string.cd_more)
-            )
-        }
-    }
-}
-
-/**
- * Composable for Album Details Screen's Background.
- */
-@Composable
-private fun AlbumDetailsScreenBackground(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
-) {
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
-        )
-        content()
-    }
-}
 
 //@Preview (name = "light mode", uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Preview (name = "dark mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Preview (name = "dark mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun AlbumDetailsHeaderItemPreview() {
     MusicTheme {
@@ -505,7 +525,7 @@ fun AlbumDetailsHeaderItemPreview() {
 
 @Preview
 //@Preview (name = "light mode", uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Preview (name = "dark mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Preview (name = "dark mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun AlbumDetailsScreenPreview() {
     MusicTheme {
@@ -516,15 +536,16 @@ fun AlbumDetailsScreenPreview() {
             //Slow Rain
             album = PreviewAlbums[2],
             songs = getSongsInAlbum(281),
+            pSongs = getSongsInAlbum(281).map { it.toPlayerSong() },
 
             //Kingdom Hearts Piano Collection
 //            album = PreviewAlbums[6],
 //            songs = getSongsInAlbum(307),
 
-            onQueueSong = { },
             navigateToPlayer = { },
+            navigateToPlayerSong = { },
             navigateBack = { },
-            showBackButton = true,
+            showBackButton = true
         )
     }
 }
@@ -537,5 +558,5 @@ scaffold:
         content header contains the album name, album artist, # songs, artist image(?), more options btn
         content list contains the song list items
             need that to share the context of it being from album details
-            so it should show the song.albumTrackNumber, showArtistName = false, showDuration = true, showListEdit = false, showAlbum = false
+            so it should show the song.albumTrackNumber, showArtistName = false, showDuration, showListEdit = false, showAlbum = false
  */

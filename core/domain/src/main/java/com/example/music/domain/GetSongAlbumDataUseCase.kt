@@ -8,10 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.apache.log4j.BasicConfigurator
+import com.example.music.util.domainLogger
 import javax.inject.Inject
-
-private val logger = KotlinLogging.logger{}
 
 /**
  * Retrieves Flow<[AlbumInfo]> for given
@@ -20,16 +18,15 @@ private val logger = KotlinLogging.logger{}
  * it's possible for AlbumInfo to be null. So in this case,
  * it will return flow of empty AlbumInfo
  */
-class GetAlbumDataUseCase @Inject constructor(
+class GetSongAlbumDataUseCase @Inject constructor(
     private val albumRepo: AlbumRepo,
 ){
     operator fun invoke(song: SongInfo): Flow<AlbumInfo> {
-        BasicConfigurator.configure()
-        logger.info { "GetAlbumDataUseCase start" }
-        logger.info { "song.id: ${song.id}; song.albumId: ${song.albumId}"}
+        domainLogger.info { "GetSongAlbumDataUseCase start" }
+        domainLogger.info { "song.id: ${song.id}; song.albumId: ${song.albumId}"}
 
         return if (song.albumId != null) {
-            albumRepo.getAlbumById(song.albumId).map { it.asExternalModel() }
+            albumRepo.getAlbumWithExtraInfo(song.albumId).map { it.asExternalModel() }
         } else {
             flowOf(AlbumInfo())
         }

@@ -1,5 +1,5 @@
 package com.example.music.data.testing.repository
-
+/*
 import com.example.music.data.database.model.Playlist
 import com.example.music.data.database.model.PlaylistWithExtraInfo
 import com.example.music.data.database.model.Song
@@ -45,33 +45,33 @@ class TestPlaylistRepo : PlaylistRepo {
         playlists.first {it.name == name}
     }
 
-    override fun getPlaylistExtraInfo(playlistId: Long): Flow<PlaylistWithExtraInfo> = playlistsExtraFlow.map { playlists ->
+    override fun getPlaylistWithExtraInfo(playlistId: Long): Flow<PlaylistWithExtraInfo> = playlistsExtraFlow.map { playlists ->
         playlists.first {it.playlist.id == playlistId}
     }
 
     override fun sortPlaylistsByNameAsc(
         limit: Int
-    ): Flow<List<Playlist>> = playlistsFlow
+    ): Flow<List<PlaylistWithExtraInfo>> = playlistsExtraFlow
 
     override fun sortPlaylistsByNameDesc(
         limit: Int
-    ): Flow<List<Playlist>> = playlistsFlow
+    ): Flow<List<PlaylistWithExtraInfo>> = playlistsExtraFlow
 
     override fun sortPlaylistsByDateCreatedAsc(
         limit: Int
-    ): Flow<List<Playlist>> = playlistsFlow
+    ): Flow<List<PlaylistWithExtraInfo>> = playlistsExtraFlow
 
     override fun sortPlaylistsByDateCreatedDesc(
         limit: Int
-    ): Flow<List<Playlist>> = playlistsFlow
+    ): Flow<List<PlaylistWithExtraInfo>> = playlistsExtraFlow
 
     override fun sortPlaylistsByDateLastAccessedAsc(
         limit: Int
-    ): Flow<List<Playlist>> = playlistsFlow
+    ): Flow<List<PlaylistWithExtraInfo>> = playlistsExtraFlow
 
     override fun sortPlaylistsByDateLastAccessedDesc(
         limit: Int
-    ): Flow<List<Playlist>> = playlistsFlow
+    ): Flow<List<PlaylistWithExtraInfo>> = playlistsExtraFlow
 
     override fun sortPlaylistsByDateLastPlayedAsc(
         limit: Int
@@ -162,3 +162,4 @@ class TestPlaylistRepo : PlaylistRepo {
     override suspend fun isEmpty(): Boolean =
         playlistsFlow.first().isEmpty()
 }
+*/

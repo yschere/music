@@ -1,7 +1,9 @@
 package com.example.music.ui.artistdetails
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -15,6 +17,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -26,6 +30,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,11 +38,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,9 +68,12 @@ import com.example.music.model.AlbumInfo
 import com.example.music.model.ArtistInfo
 import com.example.music.model.SongInfo
 import com.example.music.player.model.PlayerSong
+import com.example.music.player.model.toPlayerSong
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.SongListItem
+import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
+import com.example.music.util.quantityStringResource
 import com.example.music.util.radialGradientScrim
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
@@ -73,42 +84,71 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun ArtistDetailsScreen(
-    viewModel: ArtistDetailsViewModel = hiltViewModel(),
     boxOrRow: Boolean,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: ArtistDetailsViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    when (val s = state) {
-        is ArtistUiState.Loading -> {
-            ArtistDetailsLoadingScreen(
-                modifier = Modifier.fillMaxSize()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    if (uiState.errorMessage != null) {
+        ArtistDetailsError(onRetry = viewModel::refresh)
+    }
+    if (uiState.isReady) {
+        ArtistDetailsScreen(
+            artist = uiState.artist,
+            albums = uiState.albums.toPersistentList(),
+            songs = uiState.songs,
+            pSongs = uiState.pSongs,
+            boxOrRow = boxOrRow, // TODO change how this works when doing real call and not preview
+            //onQueueSong = viewModel::onQueueSong,
+            navigateToAlbumDetails = navigateToAlbumDetails,
+            navigateToPlayer = navigateToPlayer,
+            navigateToPlayerSong = navigateToPlayerSong,
+            navigateBack = navigateBack,
+            showBackButton = showBackButton,
+            modifier = modifier,
+        )
+    } else {
+        ArtistDetailsLoadingScreen(
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+/**
+ * Error Screen
+ */
+@Composable
+private fun ArtistDetailsError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(modifier = modifier) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Text(
+                text = stringResource(id = R.string.an_error_has_occurred),
+                modifier = Modifier.padding(16.dp)
             )
-        }
-        is ArtistUiState.Ready -> {
-            ArtistDetailsScreen(
-                artist = s.artist,
-                albums = s.albums,
-                songs = s.songs,
-                boxOrRow = boxOrRow, // TODO change how this works when doing real call and not preview
-                onQueueSong = viewModel::onQueueSong,
-                navigateToAlbumDetails = navigateToAlbumDetails,
-                navigateToPlayer = navigateToPlayer,
-                navigateBack = navigateBack,
-                showBackButton = showBackButton,
-                modifier = modifier,
-            )
+            Button(onClick = onRetry) {
+                Text(text = stringResource(id = R.string.retry_label))
+            }
         }
     }
 }
 
+/**
+ * Loading Screen
+ */
 @Composable
 private fun ArtistDetailsLoadingScreen(
     modifier: Modifier = Modifier
 ) { Loading(modifier = modifier) }
+//full screen circular progress - loading screen
 
 /**
  * Stateless version of Artist Details Screen
@@ -117,16 +157,15 @@ private fun ArtistDetailsLoadingScreen(
 fun ArtistDetailsScreen(
     artist: ArtistInfo,
     albums: PersistentList<AlbumInfo>,
-    songs: PersistentList<SongInfo>,
+    songs: List<SongInfo>,
+    pSongs: List<PlayerSong>,
     boxOrRow: Boolean,
-    onQueueSong: (PlayerSong) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    //onQueueSong: (PlayerSong) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     navigateBack: () -> Unit,
-    showBackButton: Boolean, //FOUND THE NECESSITY FOR THIS --when the screen is part of a supporting pane scaffold and its used as the supporting pane, it gets passed the value of navigator.isMainPaneHidden()
-    //IS THIS HOW THE APP IS ABLE TO TRANSITION WHEN SOMEONE SCROLLS DOWN???
-    //SO THAT WHEN THE SCREEN GOES BEYOND THE INITIAL MAYBE MAIN PAIN, THEN THE SHOW BACK BUTTON GETS SET TO TRUE WHICH INVOKES THE REDRAW OF THE SUPPORTING PANE AS THE NEW TOPAPPBAR???
-    //BROOOOOOO I'M GETTING IT NOWWWWWW
+    showBackButton: Boolean,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -137,33 +176,89 @@ fun ArtistDetailsScreen(
         modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         Scaffold(
-            modifier = modifier.fillMaxSize(),
             topBar = {
                 ArtistDetailsTopAppBar(
                     navigateBack = navigateBack,
-                    modifier = Modifier.fillMaxWidth()
                 )
             },
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState)
             },
-            containerColor = Color.Transparent
+            modifier = modifier.fillMaxSize().systemBarsPadding(),
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ) { contentPadding ->
-
             ArtistDetailsContent(
                 artist = artist,
                 albums = albums,
                 songs = songs,
+                pSongs = pSongs,
                 boxOrRow = boxOrRow,
-                onQueueSong = {
+                /*onQueueSong = {
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(snackBarText)
                     }
                     onQueueSong(it)
-                },
+                },*/
                 navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
-                modifier = Modifier.padding(contentPadding)
+                navigateToPlayerSong = navigateToPlayerSong,
+                modifier = modifier.padding(contentPadding)
+            )
+        }
+    }
+}
+
+/**
+ * Composable for Artist Details Screen's Background.
+ */
+@Composable
+private fun ArtistDetailsScreenBackground(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
+        )
+        content()
+    }
+}
+
+/**
+ * Composable for Artist Details Screen's Top App Bar.
+ */
+@Composable
+fun ArtistDetailsTopAppBar(
+    navigateBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+    ) {
+        //back button
+        IconButton(onClick = navigateBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(id = R.string.cd_back)
+            )
+        }
+
+        //right align objects after this space
+        Spacer(Modifier.weight(1f))
+
+        // search btn
+        IconButton(onClick = { /* TODO */ }) {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = stringResource(R.string.cd_more)
             )
         }
     }
@@ -173,11 +268,13 @@ fun ArtistDetailsScreen(
 fun ArtistDetailsContent(
     artist: ArtistInfo,
     albums: PersistentList<AlbumInfo>,
-    songs: PersistentList<SongInfo>,
+    songs: List<SongInfo>,
+    pSongs: List<PlayerSong>,
     boxOrRow: Boolean,
-    onQueueSong: (PlayerSong) -> Unit,
+    //onQueueSong: (PlayerSong) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) {
     /*
@@ -244,61 +341,81 @@ fun ArtistDetailsContent(
      */
 
     // --- Version 2: Iteration 2 Start ---
-    val pagerState = rememberPagerState { albums.size }
+    val albs = albums.toPersistentList()
+    val pagerState = rememberPagerState { albs.size }
+    LaunchedEffect(pagerState, albs) {
+        snapshotFlow { pagerState.currentPage }
+            .collect {
+//                val album = albums.getOrNull(it)
+//                album?.let { it1 -> ArtistsDetailsAction.ArtistAlbumSelected(it1) }
+//                    ?.let { it2 -> onArtistsDetailsAction(it2) }
+            }//crashes the app on Home screen redraw
+    }
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
-        modifier = modifier.fillMaxSize()//.padding(8.dp),
+        modifier = modifier.fillMaxSize(),//.padding(horizontal = 4.dp)
     ) {
         fullWidthItem {
             //section 1: header item
             ArtistDetailsHeaderItem(
                 artist = artist,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        //section 2: albums list
-        fullWidthItem {
-            Text(
-                text = if (albums.size == 1) "${albums.size} album" else "${albums.size} albums",
-                textAlign = TextAlign.Left,
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(8.dp)
-            )
-        }
-        fullWidthItem {
-            FeaturedAlbumItem(
-                pagerState = pagerState,
-                items = albums,
-                navigateToAlbumDetails = navigateToAlbumDetails,
                 modifier = Modifier
                     .fillMaxWidth()
             )
         }
 
-        //section 3: songs list
-        fullWidthItem {
-            Text(
-                text = if (songs.size == 1) "${songs.size} song" else "${songs.size} songs",
-                textAlign = TextAlign.Left,
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(8.dp)
-            )
+        //section 2: albums list
+        if (!albums.isEmpty()) {
+            fullWidthItem {
+                Text(
+                    text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.albums, albums.size, albums.size)) {
+                        it.value.uppercase()
+                    },
+                    //text = quantityStringResource(R.plurals.albums, albums.size, albums.size),
+                    textAlign = TextAlign.Left,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+            fullWidthItem {
+                FeaturedAlbums(
+                    pagerState = pagerState,
+                    items = albums,
+                    navigateToAlbumDetails = navigateToAlbumDetails,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
-        items(songs, key = { it.id }) { song ->
-            SongListItem(
-                song = song,
-                album = getAlbumData(song.albumId!!), //gets PreviewData
-                onClick = {},
-                isListEditable = false,
-                showAlbumTitle = true,
-                showArtistName = true,
-                showAlbumImage = true,
-                showDuration = true,
-                onQueueSong = onQueueSong,
-                modifier = Modifier.fillMaxWidth(),
-            )
+        //section 3: songs list
+        if (songs.isNotEmpty()) {
+            fullWidthItem {
+                Text(
+                    text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.songs, songs.size, songs.size)) {
+                        it.value.uppercase()
+                    },
+                    //text = quantityStringResource(R.plurals.songs, songs.size, songs.size),
+                    textAlign = TextAlign.Left,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+
+            items(pSongs) { song ->
+                Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
+                    SongListItem(
+                        song = song,
+                        onClick = navigateToPlayerSong,
+                        //onQueueSong = { },
+                        modifier = Modifier.fillMaxWidth(),
+                        isListEditable = false,
+                        showAlbumTitle = true,
+                        showArtistName = true,
+                        showAlbumImage = true,
+                    )
+                }
+            }
         }
     }
     // --- Version 2: Iteration 2 End --
@@ -381,7 +498,6 @@ fun ArtistDetailsContent(
                     showAlbumTitle = true,
                     showAlbumImage = true,
                     showArtistName = true,
-                    showDuration = true,
                     onQueueSong = { },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -390,6 +506,43 @@ fun ArtistDetailsContent(
     } */
 }
 
+@Composable
+fun ArtistDetailsHeaderItem(
+    artist: ArtistInfo,
+    modifier: Modifier = Modifier
+) {
+    //TODO choose if want 1 image or multi image view for artist header
+    // and for the 1 image, should it be the 1st album, or an image for externally of the artist?
+    BoxWithConstraints(
+        modifier = modifier.padding(Keyline1)
+    ) {
+        //val widthConstraint = this.maxWidth
+        val maxImageSize = this.maxWidth / 2
+        //val imageSize = min(maxImageSize, 148.dp)
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+//            AlbumImage(
+//                modifier = Modifier
+//                    //.size(widthConstraint, 200.dp)
+//                    .fillMaxSize()
+//                    .clip(MaterialTheme.shapes.large),
+//                albumImage = R.drawable.bpicon,//album.artwork!!,//album.imageUrl or album.artwork when that is fixed
+//                contentDescription = "artist Image"
+//            )
+            Text(
+                text = artist.name,
+                maxLines = 2,
+                minLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                //color = MaterialTheme.colorScheme.primaryContainer,
+                style = MaterialTheme.typography.headlineMedium
+            )
+        }
+    }
+}
 
 private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
 
@@ -400,11 +553,23 @@ private fun FeaturedAlbums(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // TODO: Using BoxWithConstraints is not quite performant since it requires 2 passes to compute
-    // the content padding. This should be revisited once a carousel component is available.
-    // Alternatively, version 1.7.0-alpha05 of Compose Foundation supports `snapPosition`
-    // which solves this problem and avoids this calculation altogether. Once 1.7.0 is
-    // stable, this implementation can be updated.
+    Column(modifier = modifier) {
+        FeaturedAlbumsCarousel(
+            pagerState = pagerState,
+            items = items,
+            navigateToAlbumDetails = navigateToAlbumDetails,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun FeaturedAlbumsCarousel(
+    pagerState: PagerState,
+    items: PersistentList<AlbumInfo>,
+    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     BoxWithConstraints(
         modifier = modifier.background(Color.Transparent)
     ) {
@@ -419,7 +584,7 @@ private fun FeaturedAlbums(
             pageSize = PageSize.Fixed(FEATURED_ALBUM_IMAGE_SIZE_DP)
         ) { page ->
             val album = items[page]
-            FeaturedAlbumCarouselItem(
+            FeaturedAlbumsCarouselItem(
                 albumImage = 1,//album.artwork!!,
                 albumName = album.title,
                 //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
@@ -434,7 +599,7 @@ private fun FeaturedAlbums(
 }
 
 @Composable
-private fun FeaturedAlbumCarouselItem(
+private fun FeaturedAlbumsCarouselItem(
     albumName: String,
     //albumImage: String,
     albumImage: Int,
@@ -466,136 +631,6 @@ private fun FeaturedAlbumCarouselItem(
     }
 }
 
-@Composable
-private fun FeaturedAlbumItem(
-    pagerState: PagerState,
-    items: PersistentList<AlbumInfo>,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier) {
-        FeaturedAlbums(
-            pagerState = pagerState,
-            items = items,
-            navigateToAlbumDetails = navigateToAlbumDetails,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-@Composable
-fun ArtistDetailsHeaderItem(
-    artist: ArtistInfo,
-    modifier: Modifier = Modifier
-) {
-    //TODO choose if want 1 image or multi image view for artist header
-    // and for the 1 image, should it be the 1st album, or an image for externally of the artist?
-    BoxWithConstraints(
-        //modifier = modifier
-        modifier = modifier.padding(Keyline1)
-    ) {
-        //val widthConstraint = this.maxWidth
-        val maxImageSize = this.maxWidth / 2
-        //val imageSize = min(maxImageSize, 148.dp)
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AlbumImage(
-                modifier = Modifier
-                    //.size(widthConstraint, 200.dp)
-                    .fillMaxSize()
-                    .clip(MaterialTheme.shapes.large),
-                albumImage = R.drawable.bpicon,//album.artwork!!,//album.imageUrl or album.artwork when that is fixed
-                contentDescription = "artist Image"
-            )
-            Text(
-                text = artist.name,
-                maxLines = 2,
-                minLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                //color = MaterialTheme.colorScheme.primaryContainer,
-                style = MaterialTheme.typography.headlineMedium
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ArtistDetailsTopAppBar(
-    navigateBack: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        //horizontalArrangement = Arrangement.End,
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color.Transparent)
-            //.padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        IconButton(onClick = navigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                //tint = MaterialTheme.colorScheme.onPrimary,
-                contentDescription = stringResource(id = R.string.cd_back)
-            )
-        }
-        //right align objects after this space
-        Spacer(Modifier.weight(1f))
-        // search btn
-        IconButton(onClick = {}) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                //tint = MaterialTheme.colorScheme.onPrimary,
-                contentDescription = stringResource(R.string.cd_more)
-            )
-        }
-    }
-    /*TopAppBar(
-        title = { },
-        navigationIcon = {
-            IconButton(onClick = navigateBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(id = R.string.cd_back)
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = {}) {
-                Icon(
-                    imageVector = Icons.Filled.MoreVert,
-                    contentDescription = "more options"
-                )
-            }
-        },
-        modifier = modifier
-    )*/
-}
-
-/**
- * Composable for Artist Details Screen's Background.
- */
-@Composable
-private fun ArtistDetailsScreenBackground(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
-) {
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
-        )
-        content()
-    }
-}
-
 //@Preview
 @Composable
 fun ArtistDetailsHeaderItemPreview() {
@@ -605,28 +640,34 @@ fun ArtistDetailsHeaderItemPreview() {
 }
 
 @Preview
+//@Preview (name = "dark mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ArtistDetailsScreenPreview() {
-    ArtistDetailsScreen(
-//        artist = PreviewArtists[0],
-//        albums = PreviewAlbums.toPersistentList(),
-//        songs = PreviewSongs.toPersistentList(),
+    MusicTheme {
+        ArtistDetailsScreen(
+//            artist = PreviewArtists[0],
+//            albums = getAlbumsByArtist(0).toPersistentList(),
+//            songs = getSongsByArtist(0),
+//            pSongs = getSongsByArtist(0).map { it.toPlayerSong() },
 
-        //Paramore
-//        artist = PreviewArtists[1],
-//        albums = getAlbumsByArtist(22).toPersistentList(),
-//        songs = getSongsByArtist(22).toPersistentList(),
+            //Paramore
+//            artist = PreviewArtists[1],
+//            albums = getAlbumsByArtist(22).toPersistentList(),
+//            songs = getSongsByArtist(22),
+//            pSongs = getSongsByArtist(22).map { it.toPlayerSong() },
 
-        //ACIDMAN
-        artist = PreviewArtists[0],
-        albums = getAlbumsByArtist(113).toPersistentList(),
-        songs = getSongsByArtist(113).toPersistentList(),
+            //ACIDMAN
+            artist = PreviewArtists[0],
+            albums = getAlbumsByArtist(113).toPersistentList(),
+            songs = getSongsByArtist(113),
+            pSongs = getSongsByArtist(113).map { it.toPlayerSong() },
 
-        onQueueSong = {},
-        navigateToAlbumDetails = {},
-        navigateToPlayer = {},
-        navigateBack = {},
-        showBackButton = true,
-        boxOrRow = true //TODO: set row or box here
-    )
+            navigateToAlbumDetails = {},
+            navigateToPlayer = {},
+            navigateToPlayerSong = {},
+            navigateBack = {},
+            showBackButton = true,
+            boxOrRow = true //TODO: set row or box here
+        )
+    }
 }

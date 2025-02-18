@@ -1,45 +1,45 @@
 package com.example.music.domain
 
-import com.example.music.data.repository.ArtistRepo
-import com.example.music.model.ArtistDetailsFilterResult
+import com.example.music.data.repository.ComposerRepo
+import com.example.music.model.ComposerDetailsFilterResult
 import com.example.music.model.asExternalModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import com.example.music.util.domainLogger
 import javax.inject.Inject
 
 /**
- * Use case to retrieve Artist data, songs in Artist as List<SongInfo>, and songs in Artist as List<PlayerSong>.
- * @param artistId [Long] to return flow of PlayerSong(song, artist, album)
+ * Use case to retrieve Composer data, songs in Composer as List<ComposerInfo>, and songs in Composer as List<PlayerSong>.
+ * @param composerId [Long] to return flow of PlayerSong(song, artist, album)
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class GetComposersDetailsUseCase @Inject constructor(
+class GetComposerDetailsUseCase @Inject constructor(
     val getSongDataUseCase: GetSongDataUseCase,
-    private val artistRepo: ArtistRepo,
+    private val composerRepo: ComposerRepo,
 ) {
 
-    operator fun invoke(artistId: Long): Flow<ArtistDetailsFilterResult> {
-        val artistFlow = artistRepo.getArtistById(artistId)
+    operator fun invoke(composerId: Long): Flow<ComposerDetailsFilterResult> {
+        domainLogger.info { "Get Composer Details Use Case - start: ComposerID: $composerId" }
+        val composerFlow = composerRepo.getComposerWithExtraInfo(composerId)
 
-        val albumsFlow = artistRepo.getAlbumsByArtistId(artistId)
-
-        val songsFlow = artistRepo.getSongsByArtistId(artistId)
+        domainLogger.info { "Get Composer Details Use Case - Get Songs by Composer ID" }
+        val songsFlow = composerRepo.getSongsByComposerId(composerId)
 
         val pSongsFlow = songsFlow.flatMapLatest { item ->
+            domainLogger.info { "Get Composer Details Use Case - Get Player Songs: ${item.size}" }
             getSongDataUseCase(item)
         }
 
         return combine(
-            artistFlow,
-            albumsFlow,
+            composerFlow,
             songsFlow,
             pSongsFlow,
         ) {
-            artist, albums, songs, pSongs ->
-            ArtistDetailsFilterResult(
-                artist.asExternalModel(),
-                albums.map { it.asExternalModel() },
+            composer, songs, pSongs ->
+            ComposerDetailsFilterResult(
+                composer.asExternalModel(),
                 songs.map{ it.asExternalModel() },
                 pSongs,
             )

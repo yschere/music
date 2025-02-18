@@ -37,44 +37,47 @@ import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.model.PlaylistInfo
-import com.example.music.model.PlaylistSortModel
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
 fun LazyListScope.playlistItems(
-    playlistSortModel: PlaylistSortModel,
+    playlists: List<PlaylistInfo>,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
 ) {
-    val playlists = playlistSortModel.playlists
     item {
         Text(
-            text = quantityStringResource(R.plurals.playlists, playlists.size, playlists.size),
+            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.playlists, playlists.size, playlists.size)) {
+                it.value.uppercase()
+            },
+            //text = quantityStringResource(R.plurals.playlists, playlists.size, playlists.size),
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(8.dp)
         )
     }
-    items(
-        playlists
-    ) { item ->
+
+    items(playlists) { item ->
         PlaylistItemRow(
             playlist = item,
             navigateToPlaylistDetails = navigateToPlaylistDetails,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
 
 fun LazyGridScope.playlistItems(
-    playlistSortModel: PlaylistSortModel,
+    playlists: List<PlaylistInfo>,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val playlists = playlistSortModel.playlists
 
     fullWidthItem {
         Text(
-            text = quantityStringResource(R.plurals.playlists, playlists.size, playlists.size),
+            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.playlists, playlists.size, playlists.size)) {
+                it.value.uppercase()
+            },
+            //text = quantityStringResource(R.plurals.playlists, playlists.size, playlists.size),
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(8.dp)
@@ -142,6 +145,7 @@ private fun PlaylistItemRow(
                             text = quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount),
                             maxLines = 1,
                             style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.padding(vertical = 2.dp)
                         )
                     }
@@ -271,5 +275,23 @@ fun PlaylistItemPreviewRow() {
             playlist = PreviewPlaylists[0],
             navigateToPlaylistDetails = {},
         )
+    }
+}
+
+@Preview
+@Composable
+fun PlaylistItemPreviewBox() {
+    MusicTheme {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = Color.Transparent,
+            modifier = Modifier,
+            onClick = {}
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally){
+                PlaylistItemBoxHeader(PreviewPlaylists[1])
+                PlaylistItemBoxFooter(PreviewPlaylists[1])
+            }
+        }
     }
 }

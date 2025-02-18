@@ -1,38 +1,23 @@
-package com.example.music.ui.artistdetails
+package com.example.music.ui.composerdetails
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.data.repository.ArtistRepo
-import com.example.music.domain.GetArtistDetailsUseCase
-import com.example.music.model.AlbumInfo
-import com.example.music.model.ArtistInfo
+import com.example.music.domain.GetComposerDetailsUseCase
+import com.example.music.model.ComposerInfo
 import com.example.music.model.SongInfo
-import com.example.music.model.asExternalModel
 import com.example.music.player.SongPlayer
 import com.example.music.player.model.PlayerSong
 import com.example.music.ui.Screen
-import com.example.music.ui.playlistdetails.PlaylistUiState
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.collections.immutable.PersistentList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.example.music.util.logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.apache.log4j.BasicConfigurator
 import javax.inject.Inject
 
 /** ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
@@ -40,66 +25,59 @@ import javax.inject.Inject
  * PlaylistDetailsScreen, PlaylistDetailsViewModel
  */
 
-data class ArtistUiState (
+data class ComposerUiState (
     val isReady: Boolean = false,
     val errorMessage: String? = null,
-    val artist: ArtistInfo = ArtistInfo(),
-    val albums: /*Persistent*/List<AlbumInfo> = emptyList(),
-    val songs: /*Persistent*/List<SongInfo> = emptyList(),
-    val pSongs: /*Persistent*/List<PlayerSong> = emptyList(),
+    val composer: ComposerInfo = ComposerInfo(),
+    val songs: List<SongInfo> = emptyList(),
+    val pSongs: List<PlayerSong> = emptyList(),
 )
 
 @HiltViewModel
-class ArtistDetailsViewModel @Inject constructor(
-    getArtistDetailsUseCase: GetArtistDetailsUseCase,
+class ComposerDetailsViewModel @Inject constructor(
+    getComposerDetailsUseCase: GetComposerDetailsUseCase,
     private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val logger: KLogger = KotlinLogging.logger{}
-    fun logStarter() {
-        BasicConfigurator.configure()
-    }
 
-    private val _artistId: String = savedStateHandle.get<String>(Screen.ARG_ARTIST_ID)!!
-    private val artistId = _artistId.toLong()
+    private val _composerId: String = savedStateHandle.get<String>(Screen.ARG_COMPOSER_ID)!!
+    private val composerId = _composerId.toLong()
 
-    private val getArtistDetailsData = getArtistDetailsUseCase(artistId)
+    private val getComposerDetailsData = getComposerDetailsUseCase(composerId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    private val _state = MutableStateFlow(ArtistUiState())
+    private val _state = MutableStateFlow(ComposerUiState())
 
     private val refreshing = MutableStateFlow(false)
 
-    val state: StateFlow<ArtistUiState>
+    val state: StateFlow<ComposerUiState>
         get() = _state
 
     init {
-        logger.info { "Artist Details View Model - artistId: $artistId" }
+        logger.info { "Composer Details View Model - composerId: $composerId" }
         viewModelScope.launch {
-            logger.info { "Artist Details View Model - init viewModelScope launch start" }
+            logger.info { "Composer Details View Model - init viewModelScope launch start" }
             combine(
                 refreshing,
-                getArtistDetailsData,
+                getComposerDetailsData,
             ) {
                 refreshing,
-                artistDetailsFilterResult, ->
-                logger.info { "Artist Details View Model - ArtistUiState call" }
-                logger.info { "Artist Details View Model - artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}" }
-                logger.info { "Artist Details View Model - artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}" }
-                logger.info { "Artist Details View Model - artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}" }
-                logger.info { "Artist Details View Model - artistDetailsFilterResult pSongs: ${artistDetailsFilterResult.pSongs.size}" }
-                logger.info { "Playlist Details View Model - isReady?: ${!refreshing}" }
+                composerDetailsFilterResult, ->
+                logger.info { "Composer Details View Model - ComposerUiState call" }
+                logger.info { "Composer Details View Model - composerDetailsFilterResult ID: ${composerDetailsFilterResult.composer.id}" }
+                logger.info { "Composer Details View Model - composerDetailsFilterResult songs: ${composerDetailsFilterResult.songs.size}" }
+                logger.info { "Composer Details View Model - composerDetailsFilterResult pSongs: ${composerDetailsFilterResult.pSongs.size}" }
+                logger.info { "Composer Details View Model - isReady?: ${!refreshing}" }
 
-                ArtistUiState(
+                ComposerUiState(
                     isReady = !refreshing,
-                    artist = artistDetailsFilterResult.artist,
-                    albums = artistDetailsFilterResult.albums,
-                    songs = artistDetailsFilterResult.songs,
-                    pSongs = artistDetailsFilterResult.pSongs
+                    composer = composerDetailsFilterResult.composer,
+                    songs = composerDetailsFilterResult.songs,
+                    pSongs = composerDetailsFilterResult.pSongs
                 )
             }.catch { throwable ->
                 emit(
-                    ArtistUiState(
+                    ComposerUiState(
                         isReady = true,
                         errorMessage = throwable.message
                     )
@@ -123,64 +101,3 @@ class ArtistDetailsViewModel @Inject constructor(
         }
     }
 }
-
-/**
- * ---------ORIGINAL VERSION: ViewModel that handles the business logic and screen state of the Artist details screen.
- */
-/*
-sealed interface ArtistUiState {
-    data object Loading : ArtistUiState
-    data class Ready(
-        val artist: ArtistInfo,
-        val albums: PersistentList<AlbumInfo> = persistentListOf(),
-        val songs: PersistentList<SongInfo> = persistentListOf(),
-    ) : ArtistUiState
-}
-
-/**
- * ViewModel that handles the business logic and screen state of the Artist details screen.
- */
-@HiltViewModel(assistedFactory = ArtistDetailsViewModel.ArtistDetailsViewModelFactory::class)
-class ArtistDetailsViewModel @AssistedInject constructor(
-    private val songPlayer: SongPlayer,
-    private val artistRepo: ArtistRepo,
-    @Assisted private val artistId: Long,
-    //artistId is an argument needed for the selected artist details to view
-) : ViewModel() {
-
-    @AssistedFactory
-    interface ArtistDetailsViewModelFactory {
-        fun create(artistId: Long): ArtistDetailsViewModel
-    }
-
-    val state: StateFlow<ArtistUiState> =
-        combine(
-            //should i be combining albums to artist here? as well as the songs?
-            //if the details screen will contain both songs and albums, then yes i think
-            //if the details screen will contain only albums, then only need to combine that
-                //which, if it is just albums, how do i store the songs? and what do i do if someone selects to see songs list
-            artistRepo.getArtistById(artistId),
-            artistRepo.getAlbumsByArtistId(artistId),
-            artistRepo.getSongsByArtistId(artistId)
-        ) { artist, albums, songs ->
-            ArtistUiState.Ready(
-                artist = artist.asExternalModel(),
-                albums = albums.map{it.asExternalModel()}.toPersistentList(),
-                songs = songs.map{it.asExternalModel()}.toPersistentList(),
-            )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ArtistUiState.Loading
-        )
-
-    fun onAlbumSelect(album: AlbumInfo) {
-        viewModelScope.launch{
-            //TODO: load albumDetails page for album selected here?
-        }
-    }
-
-    fun onQueueSong(playerSong: PlayerSong) {
-        songPlayer.addToQueue(playerSong)
-    } //keeping this here for now, but would only be in use if songs list does appear on ArtistDetailsScreen
-}*/

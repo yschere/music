@@ -17,6 +17,17 @@ import java.time.OffsetDateTime
     ]
 )
 
+/**
+ * Playlists data class is the internal representation for the playlist database table.
+ * @property id [Long] primary key for record. Serves as the reference point for foreign keys on playlist_id.
+ * @property name [String] playlist name.
+ * @property description [String] an editable description for the playlist
+ * @property dateCreated [OffsetDateTime] the datetime when the playlist was created
+ * @property dateLastAccessed [OffsetDateTime] the latest datetime when the playlist was modified.
+ *  This can be when the playlist is created, edited, or a song is played within its context.
+ * TODO future properties to be supported: artwork, intending for it to contain the artwork(s)
+ *  of the first few songs within the playlist, ordered by SongPlaylistEntries.playlistTrackNumber
+ */
 data class Playlist(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
     @ColumnInfo(name = "name") var name: String = "",

@@ -8,8 +8,7 @@ import com.example.music.player.model.PlayerSong
  * What makes a topAlbum? I could make it song count for now.
  */
 data class AlbumDetailsFilterResult(
-    val artist: ArtistInfo = ArtistInfo(),
-    val albums: List<AlbumInfo> = emptyList(),
+    val album: AlbumInfo = AlbumInfo(),
     val songs: List<SongInfo> = emptyList(),
     val pSongs: List<PlayerSong> = emptyList(),
 )

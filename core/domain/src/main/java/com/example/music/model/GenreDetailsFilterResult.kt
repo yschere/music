@@ -7,8 +7,8 @@ import com.example.music.player.model.PlayerSong
  * matching songs when filtering based on a genre.
  * What makes a topAlbum? I could make it song count for now.
  */
-data class PlaylistDetailsFilterResult(
-    val playlist: PlaylistInfo = PlaylistInfo(),
+data class GenreDetailsFilterResult(
+    val genre: GenreInfo = GenreInfo(),
     val songs: List<SongInfo> = emptyList(),
     val pSongs: List<PlayerSong> = emptyList(),
 )

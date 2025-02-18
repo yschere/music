@@ -12,6 +12,7 @@ data class PlaylistInfo(
     val name: String = "",
     val description: String? = null,
     val dateCreated: OffsetDateTime = OffsetDateTime.now(),
+    val dateLastAccessed: OffsetDateTime = OffsetDateTime.now(),
     val dateLastPlayed: OffsetDateTime? = null,
     val songCount: Int = 0
 )
@@ -22,6 +23,7 @@ fun Playlist.asExternalModel(): PlaylistInfo =
         name = this.name,
         description = this.description,
         dateCreated = this.dateCreated,
+        dateLastAccessed = this.dateLastAccessed,
     )
 
 fun PlaylistWithExtraInfo.asExternalModel(): PlaylistInfo =

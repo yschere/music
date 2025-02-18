@@ -3,18 +3,11 @@
 
     <string name="connection_error_title">Connection error</string>
     <string name="connection_error_message">Unable to fetch podcasts feeds.\nCheck your internet connection and try again.</string>
+    <string name="an_error_has_occurred">An error has occurred.</string>
     <string name="retry_label">Retry</string>
-<!--    <string name="home_library">Your library</string>-->
-<!--    <string name="home_discover">Discover</string>-->
+
     <string name="recent_playlists">Recent Playlists</string>
     <string name="recent_songs">Recently Added Songs</string>
-
-    <string name="all_songs">All Songs</string>
-    <string name="all_playlists">All Playlists</string>
-    <string name="all_artists">All Artists</string>
-    <string name="all_albums">All Albums</string>
-    <string name="all_genres">All Genres</string>
-    <string name="all_composers">All Composers</string>
 
     <string name="library_playlists">Playlists</string>
     <string name="library_songs">Songs</string>
@@ -67,7 +60,6 @@
     <string name="cd_pause">Pause</string>
     <string name="cd_play">Play</string>
     <string name="cd_search">Search</string>
-    <string name="cd_selected_genre">Selected genre</string>
     <string name="cd_skip_next">Skip next</string>
     <string name="cd_skip_previous">Skip previous</string>
     <string name="cd_repeat_off">Repeat</string>
@@ -76,10 +68,13 @@
     <string name="cd_shuffle_off">Shuffle</string>
     <string name="cd_shuffle_random">Shuffle Randomizer</string>
     <string name="cd_shuffle_on">Shuffle on</string>
-    <string name="song_added_to_your_queue">Song added to your queue</string>
+
+    <string name="song_added_to_your_queue">Song added to queue</string>
+    <string name="song_removed_from_your_queue">Song removed from queue</string>
+    <string name="song_added_to_playlist">Song added to playlist %s</string>
+    <string name="song_removed_from_playlist">Song removed from playlist %s</string>
     <string name="cd_album_image">Album image</string>
     <string name="see_more">See more</string>
-    <string name="an_error_has_occurred">An error has occurred.</string>
 
     <string name="media_notification_channel">Music Player</string>
     <string name="media_notification_channel_description">Shows the currently playing music</string>

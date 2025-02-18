@@ -10,9 +10,8 @@ import androidx.room.PrimaryKey
  * Entity for table albums / data class Album.
  * Used to contain base album information.
  * Column 'artwork' not included yet.
- * Uses album_artist_id in place of artist_id,
- * anywhere else album's artist_id will be
- * aggregate from songs
+ * A record is added, updated, and/or deleted dependent on the
+ * existence of the value within the songs table.
  */
 
 @Entity(tableName = "albums",
@@ -31,14 +30,26 @@ import androidx.room.PrimaryKey
     ]
 )
 
+/**
+ * Album data class is the internal representation for the albums database table.
+ * @property id [Long] primary key for record. Serves as the reference point for foreign keys on album_id.
+ * @property title [String] album title.
+ * @property albumArtistId [Long] foreign key for artists table.
+ * @property year [Int] release year for album.
+ * @property trackTotal [Int] the trackList total of album.
+ * @property discNumber [Int] the disc number of album. Most albums are 1 disc, but in sets, this can be different.
+ * @property discTotal [Int] the disc total of album. Most albums are 1 disc, but in sets, this can be different.
+ * TODO future properties to be supported: artwork/album_artwork as a bitmap. Currently using
+ *  artwork as a String, but intend to have it as a bitmap/image eventually
+ */
 data class Album(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long = 0,
     @ColumnInfo(name = "title") var title: String = "",
     @ColumnInfo(name = "album_artist_id") var albumArtistId: Long? = null,
-    @ColumnInfo(name = "year") var year: Int? = 0,
-    @ColumnInfo(name = "track_total") var trackTotal: Int? = 0,
-    @ColumnInfo(name = "disc_number") var discNumber: Int? = 0,
-    @ColumnInfo(name = "disc_total") var discTotal: Int? = 0,
+    @ColumnInfo(name = "year") var year: Int? = null,
+    @ColumnInfo(name = "track_total") var trackTotal: Int? = null,
+    @ColumnInfo(name = "disc_number") var discNumber: Int? = null,
+    @ColumnInfo(name = "disc_total") var discTotal: Int? = null,
     @ColumnInfo(name = "artwork") var artwork: String? = null
     //TODO: change to bitmap when able to read in file data
 )

@@ -1,124 +1,195 @@
 package com.example.music.ui.library.artist
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.music.R
-import com.example.music.designsys.theme.Keyline1
-import com.example.music.domain.GetAlbumDataUseCase
-import com.example.music.model.AlbumInfo
-import com.example.music.model.LibraryInfo
-import com.example.music.model.SongInfo
-import com.example.music.model.SongSortModel
-import com.example.music.player.model.PlayerSong
-import com.example.music.player.model.toPlayerSong
-import com.example.music.ui.shared.SongListItem
+import com.example.music.model.ArtistInfo
 import com.example.music.util.fullWidthItem
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.single
+import com.example.music.util.quantityStringResource
 
 fun LazyListScope.artistItems(
-    songSortModel: SongSortModel,
-    playerSongs: List<PlayerSong>, //TODO: PlayerSong support
-    navigateToPlayer: (SongInfo) -> Unit,
-    onQueueSong: (PlayerSong) -> Unit
+    artists: List<ArtistInfo>,
+    navigateToArtistDetails: (ArtistInfo) -> Unit,
+    //playerSongs: List<PlayerSong>, //TODO: PlayerSong support
+//    navigateToPlayer: (SongInfo) -> Unit,
+//    onQueueSong: (PlayerSong) -> Unit
 ) {
-    //val songs = songSortModel.songs
-    val songs = playerSongs //TODO: PlayerSong support
     item {
-//        Text(
-//            text = stringResource(id = R.string.all_songs),
-//            modifier = Modifier.padding(
-//                start = Keyline1,
-//                top = 16.dp,
-//            ),
-//            style = MaterialTheme.typography.titleLarge,
-//        )
         Text(
-            text = if (songs.size == 1) "${songs.size} song" else "${songs.size} songs",
+            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.artists, artists.size, artists.size)) {
+                it.value.uppercase()
+            },
+            //text = quantityStringResource(R.plurals.artists, artists.size, artists.size),
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(8.dp)
         )
     }
 
-    items(
-        songs, //library
-        //key = { it.id } //key = { it.song.id } //there are lists like playlists that can have multiple of the same song, so don't reference them by id
-    ) { item ->
-        //val album = getAlbumDataUseCase(item)
-
-        SongListItem(
-            //song = item.song,
-            //album = item.album,
-            //onClick = navigateToPlayer,
-            song = item, //TODO: PlayerSong support
-            onClick = {},
-            onQueueSong = onQueueSong,
-            isListEditable = false,
-            showArtistName = true,
-            showAlbumImage = true,
-            showAlbumTitle = true,
-            showDuration = true,
+    items(artists) { item ->
+        ArtistListItem(
+            //what is needed for the artist list navigation use case
+            artist = item, //TODO: PlayerSong support
+            navigateToArtistDetails = navigateToArtistDetails,
             modifier = Modifier.fillParentMaxWidth(),
         )
     }
 }
 
 fun LazyGridScope.artistItems(
-
-    songSortModel: SongSortModel,
-    playerSongs: List<PlayerSong>, //TODO: PlayerSong support
-    navigateToPlayer: (SongInfo) -> Unit,
-    onQueueSong: (PlayerSong) -> Unit
+    artists: List<ArtistInfo>,
+    navigateToArtistDetails: (ArtistInfo) -> Unit,
+    //playerSongs: List<PlayerSong>, //TODO: PlayerSong support
+//    navigateToPlayer: (SongInfo) -> Unit,
+    //onQueueSong: (PlayerSong) -> Unit
 ) {
-    //val songs = songSortModel.songs
-    val songs = playerSongs //TODO: PlayerSong support
 
     fullWidthItem {
-//        Text(
-//            text = stringResource(id = R.string.all_songs),
-//            modifier = Modifier.padding(
-//                start = Keyline1,
-//                top = 16.dp,
-//            ),
-//            style = MaterialTheme.typography.headlineLarge,
-//        )
         Text(
-            text = if (songs.size == 1) "${songs.size} song" else "${songs.size} songs",
+            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.artists, artists.size, artists.size)) {
+                it.value.uppercase()
+            },
+            //text = quantityStringResource(R.plurals.artists, artists.size, artists.size),
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(8.dp)
         )
     }
 
-    items(
-        songs, //library
-        key = { it.id } //key = { it.song.id }
-    ) { item ->
-        SongListItem(
-            //song = item.song,
-            //album = item.album,
-            //onClick = navigateToPlayer,
-            song = item, //TODO: PlayerSong support
-            onClick = {},
-            onQueueSong = onQueueSong,
-            isListEditable = false,
-            showArtistName = true,
-            showAlbumImage = true,
-            showAlbumTitle = true,
-            showDuration = false,
+    items(artists) { item ->
+        ArtistListItem(
+            artist = item, //TODO: PlayerSong support
+            navigateToArtistDetails = navigateToArtistDetails,
             modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun ArtistListItem(
+    artist: ArtistInfo,
+    navigateToArtistDetails: (ArtistInfo) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(modifier = modifier.padding(4.dp)) { //outermost layer with padding of 4 for separation between other song list items
+        Surface( //second most layer, contains onclick action and background color
+            shape = MaterialTheme.shapes.large,
+            //color = MaterialTheme.colorScheme.background,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            onClick = { navigateToArtistDetails(artist) }, //this is how navigateToPlayer should be used for each song ListItem, as the passed in onClick event
+        ) {
+            ArtistListItemRow( //design content of song list item
+                artist = artist,
+                modifier = modifier//.padding(4.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ArtistListItemRow(
+    artist: ArtistInfo,
+    modifier: Modifier = Modifier,
+) {
+    Row( //third layer, contains layout logic and information for content
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+
+        ArtistListItemIcon(
+            artist = artist.name, //placeholder
+            modifier = Modifier
+                .size(56.dp)
+                .clip(MaterialTheme.shapes.small)
+        )
+
+        Column(modifier.weight(1f)) {
+            Text(
+                text = artist.name,
+                maxLines = 1,
+                minLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
+            )
+            Row(
+                modifier = modifier.padding(horizontal = 10.dp)
+            ) {
+                if (artist.albumCount != null) { //if showArtistName is true
+                    Text(
+                        text = quantityStringResource(R.plurals.albums, artist.albumCount!!, artist.albumCount!!),
+                        maxLines = 1,
+                        minLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 2.dp),
+                    )
+                }
+                if (artist.songCount != null) {
+                    Text(
+                        text = " • " + quantityStringResource(R.plurals.songs, artist.songCount!!, artist.songCount!!),
+                        maxLines = 1,
+                        minLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 2.dp),
+                    )
+                }
+            }
+        }
+
+        IconButton( //more options button
+            //modifier = Modifier.padding(0.dp),
+            onClick = { /* TODO */ }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
+        ) {
+            Icon( //more options icon
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.cd_more),
+                //tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ArtistListItemIcon(
+    artist: String,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
+        Text(
+            text = artist[0].toString(), //TODO: FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songinfo, albumInfo)
+            minLines = 1,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
         )
     }
 }

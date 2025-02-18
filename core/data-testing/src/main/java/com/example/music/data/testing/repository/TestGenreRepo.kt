@@ -1,8 +1,9 @@
 package com.example.music.data.testing.repository
-
+/*
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.Genre
+import com.example.music.data.database.model.GenreWithExtraInfo
 import com.example.music.data.database.model.Song
 import com.example.music.data.database.model.SongToAlbum
 import com.example.music.data.repository.GenreRepo
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.update
 class TestGenreRepo : GenreRepo {
 
     private val genresFlow = MutableStateFlow<List<Genre>>(emptyList())
+    private val genresExtraInfoFlow = MutableStateFlow<List<GenreWithExtraInfo>>(emptyList())
     private val songsFlow = MutableStateFlow<List<Song>>(emptyList())
     private val albumsInGenreFlow =
         MutableStateFlow<Map<Long, List<Album>>>(emptyMap())
@@ -36,23 +38,27 @@ class TestGenreRepo : GenreRepo {
         genres.first {it.id == id}
     }
 
-    override fun sortGenresByNameAsc(limit: Int): Flow<List<Genre>> =
-        genresFlow
+    override fun getGenreWithExtraInfo(id: Long): Flow<GenreWithExtraInfo> {
+        TODO("Not yet implemented")
+    }
 
-    override fun sortGenresByNameDesc(limit: Int): Flow<List<Genre>> =
-        genresFlow
+    override fun sortGenresByNameAsc(limit: Int): Flow<List<GenreWithExtraInfo>> =
+        genresExtraInfoFlow
 
-    override fun sortGenresByAlbumCountAsc(limit: Int): Flow<List<Genre>> =
-        genresFlow
+    override fun sortGenresByNameDesc(limit: Int): Flow<List<GenreWithExtraInfo>> =
+        genresExtraInfoFlow
 
-    override fun sortGenresByAlbumCountDesc(limit: Int): Flow<List<Genre>> =
-        genresFlow
+//    override fun sortGenresByAlbumCountAsc(limit: Int): Flow<List<Genre>> =
+//        genresFlow
 
-    override fun sortGenresBySongCountAsc(limit: Int): Flow<List<Genre>> =
-        genresFlow
+//    override fun sortGenresByAlbumCountDesc(limit: Int): Flow<List<Genre>> =
+//        genresFlow
 
-    override fun sortGenresBySongCountDesc(limit: Int): Flow<List<Genre>> =
-        genresFlow
+    override fun sortGenresBySongCountAsc(limit: Int): Flow<List<GenreWithExtraInfo>> =
+        genresExtraInfoFlow
+
+    override fun sortGenresBySongCountDesc(limit: Int): Flow<List<GenreWithExtraInfo>> =
+        genresExtraInfoFlow
 
     override fun sortAlbumsInGenreByTitleAsc(
         genreId: Long,
@@ -61,12 +67,12 @@ class TestGenreRepo : GenreRepo {
         it[genreId]?.take(limit) ?: emptyList()
     }
 
-    override fun sortAlbumsInGenreByTitleDesc(
-        genreId: Long,
-        limit: Int
-    ): Flow<List<Album>> = albumsInGenreFlow.map {
-        it[genreId]?.take(limit) ?: emptyList()
-    }
+//    override fun sortAlbumsInGenreByTitleDesc(
+//        genreId: Long,
+//        limit: Int
+//    ): Flow<List<Album>> = albumsInGenreFlow.map {
+//        it[genreId]?.take(limit) ?: emptyList()
+//    }
 
     override fun sortArtistsInGenreByNameAsc(
         genreId: Long,
@@ -75,12 +81,12 @@ class TestGenreRepo : GenreRepo {
         it[genreId]?.take(limit) ?: emptyList()
     }
 
-    override fun sortArtistsInGenreByNameDesc(
-        genreId: Long,
-        limit: Int
-    ): Flow<List<Artist>> = artistsInGenreFlow.map {
-        it[genreId]?.take(limit) ?: emptyList()
-    }
+//    override fun sortArtistsInGenreByNameDesc(
+//        genreId: Long,
+//        limit: Int
+//    ): Flow<List<Artist>> = artistsInGenreFlow.map {
+//        it[genreId]?.take(limit) ?: emptyList()
+//    }
 
     /* override fun sortArtistsInGenreBySongCountAsc(
         genreId: Long,
@@ -125,19 +131,19 @@ class TestGenreRepo : GenreRepo {
     }
 
     //equivalent of categories episodesFromPodcastsInCategory
-    override fun songsAndAlbumsInGenre(
-        genreId: Long,
-        limit: Int,
-    ): Flow<List<SongToAlbum>> =
-        songsFlow.map { songs ->
-            songs.filter {
-                it.genreId == genreId
-            }.map { s ->
-                SongToAlbum().apply {
-                    song = s
-                }
-            }
-        }
+//    override fun songsAndAlbumsInGenre(
+//        genreId: Long,
+//        limit: Int,
+//    ): Flow<List<SongToAlbum>> =
+//        songsFlow.map { songs ->
+//            songs.filter {
+//                it.genreId == genreId
+//            }.map { s ->
+//                SongToAlbum().apply {
+//                    song = s
+//                }
+//            }
+//        }
 
     override suspend fun addGenre(genre: Genre): Long = -1
 
@@ -176,3 +182,4 @@ class TestGenreRepo : GenreRepo {
     }
 
 }
+*/

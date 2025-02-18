@@ -1,12 +1,11 @@
 package com.example.music.player
 
-import android.media.MediaPlayer
-import com.example.music.data.database.model.Song
 import com.example.music.data.repository.RepeatType
+import com.example.music.data.repository.ShuffleType
+import com.example.music.domain.UpdateAppPreferences
 import com.example.music.player.model.PlayerSong
 import kotlinx.coroutines.flow.StateFlow
 import java.time.Duration
-import javax.inject.Inject
 
 val DefaultPlaybackSpeed = Duration.ofSeconds(1)
 //TODO: see if there is way to confirm what type DefaultPlaybackSpeed is supposed to be
@@ -18,9 +17,8 @@ data class SongPlayerState( //equivalent of music playe's MusicControllerUiState
     val isPlaying: Boolean = false, //tracks the current playing state, instead of having playing, paused, stopped like music playe's PlayerState
     val timeElapsed: Duration = Duration.ZERO,
     val isShuffled: Boolean = false,
-    val repeatingState: RepeatType = RepeatType.OFF
-    //could include isShuffleEnabled here, or the shuffle type enabled here
-    //could include isRepeatOneEnabled here, or the repeat type enabled here
+    val repeatState: RepeatType = RepeatType.OFF,
+//    val shuffleType: ShuffleType = ShuffleType.ONCE,
 )
 
 /**
@@ -43,6 +41,10 @@ interface SongPlayer { //equivalent of music playe's MusicController
      * The speed of which the player increments
      */
     var playerSpeed: Duration
+
+//    var isShuffled: Boolean
+
+//    var repeatingState: RepeatType
 
     /**
      * The object for providing mediaPlayer functionality to song player

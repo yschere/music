@@ -117,6 +117,7 @@ fun PlayerScreen(
     navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
+    //navigateToSettings: () -> Unit,
     onShowQueuePress: () -> Unit, //not added in jet caster
     viewModel: PlayerViewModel = hiltViewModel(),
     //modifier: Modifier,
@@ -161,11 +162,11 @@ private fun PlayerScreen(
     playerControlActions: PlayerControlActions,
     modifier: Modifier = Modifier
 ) {
-    DisposableEffect(Unit) {
-        onDispose {
-            onStop()
-        }
-    }
+//    DisposableEffect(Unit) {
+//        onDispose {
+//            onStop()
+//        }
+//    }
 
     val coroutineScope = rememberCoroutineScope()
     val snackBarText = stringResource(id = R.string.song_added_to_your_queue)
@@ -179,7 +180,8 @@ private fun PlayerScreen(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
-        modifier = modifier
+        modifier = modifier,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         //other screens add containerColor = Color.Transparent, not needed here since use different
         // background function
     ) { contentPadding ->
@@ -352,8 +354,8 @@ private fun PlayerContentRegular(
                 PlayerButtons(
                     hasNext = playerSong.queue.isNotEmpty(),
                     isPlaying = playerSong.isPlaying,
-                    isShuffled = true, //TODO: fix this
-                    repeatingState = "on", //TODO: fix this
+                    isShuffled = playerSong.isShuffled,//true, //TODO: fix this
+                    repeatState = playerSong.repeatState.name,//"on", //TODO: fix this
                     onPlayPress = playerControlActions.onPlayPress,
                     onPausePress = playerControlActions.onPausePress,
                     onNext = playerControlActions.onNext,
@@ -592,7 +594,7 @@ private fun PlayerButtons(
     hasNext: Boolean,
     isPlaying: Boolean,
     isShuffled: Boolean,
-    repeatingState: String,
+    repeatState: String,
     onPlayPress: () -> Unit,
     onPausePress: () -> Unit,
     onNext: () -> Unit,
@@ -664,13 +666,10 @@ private fun PlayerButtons(
             Image(
                 imageVector = Icons.Filled.Shuffle,
                 contentDescription = stringResource(R.string.cd_shuffle_off),
-                contentScale = ContentScale.Fit,
+                contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer), //TODO
                 modifier = sideButtonsModifier
-                    .padding(8.dp)
-                    .clickable {
-                        onPlayPress()
-                    }
+                    .clickable(enabled = true, onClick = onShuffle)
             )
         }
 
@@ -729,8 +728,8 @@ private fun PlayerButtons(
         )
 
         //repeat button
-        when (repeatingState){
-            "off" -> {
+        when (repeatState){
+            "OFF" -> {
                 Image( //shows unfilled icon (because it is set to off)
                     imageVector = Icons.Filled.Repeat,
                     contentDescription = stringResource(R.string.cd_repeat_off),
@@ -742,7 +741,7 @@ private fun PlayerButtons(
                     //onAdvanceBy(Duration.ofSeconds(10))
                 )
             }
-            "on" -> {
+            "ON" -> {
                 Image( //shows the icon as the filled version (because its set to on)
                     imageVector = Icons.Filled.RepeatOn,
                     contentDescription = stringResource(R.string.cd_repeat_off),
@@ -754,7 +753,7 @@ private fun PlayerButtons(
                     //onAdvanceBy(Duration.ofSeconds(10))
                 )
             }
-            "one" -> {
+            "ONE" -> {
                 Image( //shows the icon with 1 in center (because its set to repeat one song only)
                     imageVector = Icons.Filled.RepeatOne,
                     contentDescription = stringResource(R.string.cd_repeat_off),
@@ -805,7 +804,7 @@ fun PlayerButtonsPreview() {
             hasNext = false,
             isPlaying = true, //would show pause btn because song is in play
             isShuffled = false,
-            repeatingState = "one",
+            repeatState = "one",
             onPlayPress = {},
             onPausePress = {},
             onShuffle = {},
@@ -824,7 +823,7 @@ fun PlayerButtonsPreview_Paused_NotShuffled() {
             hasNext = true,
             isPlaying = false, //would show play btn because song is paused
             isShuffled = false,
-            repeatingState = "one",
+            repeatState = "one",
             onPlayPress = {},
             onPausePress = {},
             onShuffle = {},
@@ -843,7 +842,7 @@ fun PlayerButtonsPreview_Playing_Shuffled_RepeatOn() {
             hasNext = true,
             isPlaying = true, //would show play btn because song is paused
             isShuffled = true,
-            repeatingState = "on",
+            repeatState = "on",
             onPlayPress = {},
             onPausePress = {},
             onShuffle = {},

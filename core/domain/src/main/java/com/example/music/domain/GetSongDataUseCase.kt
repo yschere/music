@@ -1,24 +1,19 @@
 package com.example.music.domain
 
-import androidx.media3.common.Player
 import com.example.music.data.database.model.Album
+import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.Song
 import com.example.music.data.repository.AlbumRepo
 import com.example.music.data.repository.ArtistRepo
-import com.example.music.data.repository.SongRepo
-import com.example.music.model.SongInfo
 import com.example.music.model.asExternalModel
 import com.example.music.player.model.PlayerSong
+import com.example.music.util.domainLogger
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.transform
 import javax.inject.Inject
 
 /**
@@ -27,18 +22,22 @@ import javax.inject.Inject
  * @param songs List of type [Song] to return flow of List<PlayerSong(song, artist, album)>
  */
 class GetSongDataUseCase @Inject constructor(
-    private val songRepo: SongRepo,
     private val albumRepo: AlbumRepo,
     private val artistRepo: ArtistRepo,
 ) {
     //invoke with single Song to retrieve single PlayerSong
     operator fun invoke(song: Song): Flow<PlayerSong> {
-        //val songFlow = flowOf(song)
-        val albumFlow = song.albumId?.let { albumRepo.getAlbumById(it) }!!
-        val artistFlow = song.artistId?.let { artistRepo.getArtistById(it) }!!
+        domainLogger.info { "GetSongDataUseCase start" }
+        domainLogger.info { "song.id: ${song.id}; song.artistId: ${song.artistId}"}
+
+        val albumFlow = song.albumId?.let { albumRepo.getAlbumById(it) } ?: flowOf<Album>()
+        val artistFlow = song.artistId?.let { artistRepo.getArtistById(it) } ?: flowOf<Artist>()
 
         return combine(flowOf(song), albumFlow, artistFlow) {
             _song, album, artist ->
+            domainLogger.info { "Player Song Data for ${_song.id}:\n " +
+                    "Song Title: ${_song.title};\n Song Artist: ${artist.name};\n " +
+                    "Song Album: ${album.title};\n Song Duration: ${_song.duration};" }
             PlayerSong(
                 _song.id,
                 _song.title,
@@ -54,18 +53,22 @@ class GetSongDataUseCase @Inject constructor(
     operator fun invoke(songs: List<Song>): Flow<List<PlayerSong>> {
         //TODO: return list of PlayerSong
         // want for each item in songs to retrieve the album and artist data for it, and combine on each item to PlayerSong
+        domainLogger.info { "GetSongDataUseCase start" }
+        domainLogger.info { "songs size: ${songs.size}" }
 
-        val songListFlow = flowOf(songs) //songs
+
+        val songListFlow = flowOf(songs)
 
         val albumListFlow2 = songListFlow.map { _songs ->
             _songs.map{ item ->
-                albumRepo.getAlbumById(item.albumId!!).first()
+                item.albumId?.let { albumRepo.getAlbumById(it) }?.firstOrNull()
             }
         }
 
         val artistListFlow = songListFlow.map { _songs ->
             _songs.map { item ->
-                artistRepo.getArtistById(item.artistId!!).first()
+                item.artistId?.let { artistRepo.getArtistById(it) }?.firstOrNull()
+                //artistRepo.getArtistById(item.artistId!!).firstOrNull()//.first()
             }
         }
 
@@ -73,13 +76,17 @@ class GetSongDataUseCase @Inject constructor(
             songList,
             albumList,
             artistList ->
+            domainLogger.info { "GetSongDataUseCase - return combine start" }
+            domainLogger.info { "songs size: ${songList.size}" }
+            domainLogger.info { "albums size: ${albumList.size}" }
+            domainLogger.info { "artists size: ${artistList.size}" }
 
-            //use songList, for each item look up its corresponding album and artist by item.albumId and item.artistId
+            //using songList for each item, look up its corresponding album and artist by item.albumId and item.artistId
             songList.map { item ->
                 PlayerSong(
                     songInfo = item.asExternalModel(),
-                    artistInfo = artistList.single { artist -> artist.id == item.artistId }.asExternalModel(),
-                    albumInfo = albumList.single { album -> album.id == item.albumId }.asExternalModel()
+                    artistInfo = artistList.first{ artist -> artist?.id == item.artistId }!!.asExternalModel(),
+                    albumInfo = albumList.first{ album -> album?.id == item.albumId }!!.asExternalModel()
                 )
             }
         }

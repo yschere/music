@@ -6,8 +6,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-//import com.example.music.designsys.theme.blueLightSet
-//import com.example.music.designsys.theme.blueDarkSet
 import com.example.music.designsys.theme.lightDefaultSet
 import com.example.music.designsys.theme.darkDefaultSet
 
@@ -159,7 +157,7 @@ fun MusicTheme(
     }
 
     MaterialTheme(
-        colorScheme = colors,//coolColors,//jetCasterColors,//
+        colorScheme = coolColors,//colors,//jetCasterColors,//
         typography = Typography,
         content = content
     )

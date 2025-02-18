@@ -1,40 +1,22 @@
 package com.example.music.ui.playlistdetails
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.music.data.repository.PlaylistRepo
 import com.example.music.domain.GetPlaylistDetailsUseCase
-import com.example.music.domain.GetSongDataUseCase
 import com.example.music.model.PlaylistInfo
 import com.example.music.model.SongInfo
-import com.example.music.model.asExternalModel
 import com.example.music.player.SongPlayer
 import com.example.music.player.model.PlayerSong
 import com.example.music.ui.Screen
-import com.example.music.ui.player.PlayerUiState
 import com.example.music.util.combine
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,27 +32,21 @@ data class PlaylistUiState(
     val pSongs: List<PlayerSong> = emptyList(),
 )
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PlaylistDetailsViewModel @Inject constructor(
-    //private val getSongDataUseCase: GetSongDataUseCase,
-    //playlistRepo: PlaylistRepo,
-    private val getPlaylistDetailsUseCase: GetPlaylistDetailsUseCase,
+    getPlaylistDetailsUseCase: GetPlaylistDetailsUseCase,
     private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _playlistId: String = savedStateHandle.get<String>(Screen.ARG_PLAYLIST_ID)!!
     private val playlistId = _playlistId.toLong()
-    /* -----INITIAL ATTEMPT TO COPY PLAYERVIEWMODEL's UISTATE -------
-    var uiState by mutableStateOf(PlaylistUiState())
-        private set */
 
     private val getPlaylistDetailsData = getPlaylistDetailsUseCase(playlistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     /* ---- Initial version that uses playlistRepo directly to retrieve Flow data for Playlist Details
-    val playlist = playlistRepo.getPlaylistExtraInfo(playlistId)
+    val playlist = playlistRepo.getPlaylistWithExtraInfo(playlistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
     //TODO: PlayerSong support
     private var pSongsList = playlistRepo.sortSongsInPlaylistByTrackNumberAsc(playlistId)
@@ -86,17 +62,27 @@ class PlaylistDetailsViewModel @Inject constructor(
     private val refreshing = MutableStateFlow(false)
 
     val state: StateFlow<PlaylistUiState>
-            get() = _state
+        get() = _state
 
     init {
+        logger.info { "Playlist Details View Model - playlistID: $playlistId"}
         viewModelScope.launch {
+            logger.info { "Playlist Details View Model - init viewModelScope launch start" }
             combine(
                 refreshing,
                 getPlaylistDetailsData,
             ) {
                 refreshing,
                 playlistDetailsFilterResult, ->
-
+                logger.info { "Playlist Details View Model - PlaylistUiState call" }
+                logger.info { "Playlist Details View Model - playlistDetailsFilterResult ID: ${playlistDetailsFilterResult.playlist.id}" }
+                logger.info { "Playlist Details View Model - playlistDetailsFilterResult songs: ${playlistDetailsFilterResult.songs.size}" }
+                for (items in playlistDetailsFilterResult.songs) {
+                    logger.info { "song ID: ${items.id}" }
+                    logger.info { "song name: ${items.title}" }
+                }
+                logger.info { "Playlist Details View Model - playlistDetailsFilterResult playerSongs: ${playlistDetailsFilterResult.pSongs.size}" }
+                logger.info { "Playlist Details View Model - isReady?: ${!refreshing}" }
                 PlaylistUiState(
                     isReady = !refreshing,
                     playlist = playlistDetailsFilterResult.playlist,
@@ -133,7 +119,9 @@ class PlaylistDetailsViewModel @Inject constructor(
             }
         }
         refresh(force = false)
+
     }
+
     fun refresh(force: Boolean = true) {
         viewModelScope.launch {
             runCatching {
@@ -148,7 +136,6 @@ class PlaylistDetailsViewModel @Inject constructor(
     fun onQueueSong(playerSong: PlayerSong) {
         songPlayer.addToQueue(playerSong)
     }
-
 }
 
 
@@ -180,7 +167,7 @@ class PlaylistDetailsViewModel @AssistedInject constructor(
         fun create(playlistId: Long): PlaylistDetailsViewModel
     }
 
-    val playlist = playlistRepo.getPlaylistExtraInfo(playlistId)
+    val playlist = playlistRepo.getPlaylistWithExtraInfo(playlistId)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private var pSongsList = playlistRepo.sortSongsInPlaylistByTrackNumberAsc(playlistId).flatMapLatest { item ->
@@ -189,7 +176,7 @@ class PlaylistDetailsViewModel @AssistedInject constructor(
 
     val state: StateFlow<PlaylistUiState> =
         combine( //want to use this to store the information needed to correctly determine the album and songs to view
-            //playlistRepo.getPlaylistExtraInfo(playlistId), //original code: gets Flow<PlaylistWithExtraInfo>
+            //playlistRepo.getPlaylistWithExtraInfo(playlistId), //original code: gets Flow<PlaylistWithExtraInfo>
             //playlistRepo.sortSongsInPlaylistByTrackNumberAsc(playlistId) //original code: gets Flow<List<SongInfo>>
             playlist,
             playlistRepo.sortSongsInPlaylistByTrackNumberAsc(playlistId), //keeping this for now for comparison of using SongInfo against using PlayerSong to populate SongListItems

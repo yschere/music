@@ -8,10 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import org.apache.log4j.BasicConfigurator
+import com.example.music.util.domainLogger
 import javax.inject.Inject
-
-private val logger = KotlinLogging.logger{}
 
 /**
  * Retrieves Flow<[ArtistInfo]> for given
@@ -20,16 +18,23 @@ private val logger = KotlinLogging.logger{}
  * it's possible for ArtistInfo to be null. So in this case,
  * it will return flow of empty ArtistInfo
  */
-class GetArtistDataUseCase @Inject constructor(
+class GetSongArtistDataUseCase @Inject constructor(
     private val artistRepo: ArtistRepo,
 ){
     operator fun invoke(song: SongInfo): Flow<ArtistInfo> {
-        BasicConfigurator.configure()
-        logger.info { "GetArtistDataUseCase start" }
-        logger.info { "song.id: ${song.id}; song.artistId: ${song.artistId}"}
+        domainLogger.info { "GetSongArtistDataUseCase start" }
+        domainLogger.info { "song.id: ${song.id}; song.artistId: ${song.artistId}"}
 
         return if (song.artistId != null) {
-            artistRepo.getArtistById(song.artistId).map { it.asExternalModel() }
+            domainLogger.info { "supposedly song.artistId isn't null if it gets in here! so artistID is: ${song.artistId}" }
+            val art = artistRepo.getArtistWithExtraInfo(song.artistId)
+            domainLogger.info { "********\n" +
+                    "DOES THIS EVER COME BACK FROM THE WAR?\n" +
+                    "***********" }
+            art.map {
+                domainLogger.info { "ArtistWithExtraInfo: \n Artist: ${it.artist}; \n Artist songCount: ${it.songCount};\n Artist albumCount: ${it.albumCount};"}
+                it.asExternalModel()
+            }
         } else {
             flowOf(ArtistInfo())
         }

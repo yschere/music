@@ -9,6 +9,12 @@ import java.util.Objects
  * Class object PlaylistExtraInfo contains playlist object,
  * and date last played from Playlist's last played song,
  * and the count of songs within the playlist.
+ * @property playlist [Playlist] data class that represents a Playlist
+ * @property dateLastPlayed [OffsetDateTime] the datetime for the most recently played song within the playlist. Used for sorting in the frontend.
+ * @property songCount [Int] the amount of songs within the playlist. Used for sorting in the frontend.
+ * NOTE: It is possible for songCount to be 0 if a playlist was created without any songs,
+ * or has all its songs deleted. So when queries against this table results in null,
+ * it will get cast as 0 within the query. Which is why songCount is non-nullable.
  */
 class PlaylistWithExtraInfo {
     @Embedded

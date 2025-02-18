@@ -24,5 +24,5 @@ package com.example.music.model
 
 data class AlbumGenreFilterResult(
     val topAlbums: List<AlbumInfo> = emptyList(),
-    val songs: List<AlbumToSongInfo> = emptyList()
+    val songs: List<SongInfo> = emptyList()
 )

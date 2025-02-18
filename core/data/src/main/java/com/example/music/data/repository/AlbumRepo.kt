@@ -7,6 +7,9 @@ import com.example.music.data.database.model.AlbumWithExtraInfo
 import com.example.music.data.database.model.SongToAlbum
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Interface for [AlbumsDao] abstract functions
+ */
 interface AlbumRepo {
 
     fun getAllAlbums(): List<Album>
@@ -22,11 +25,11 @@ interface AlbumRepo {
 
     fun sortAlbumsByAlbumArtistAsc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Album>>
+    ): Flow<List<AlbumWithExtraInfo>>
 
     fun sortAlbumsByAlbumArtistDesc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Album>>
+    ): Flow<List<AlbumWithExtraInfo>>
 
     fun sortAlbumsByDateLastPlayedAsc(
         limit: Int = Integer.MAX_VALUE
@@ -46,21 +49,21 @@ interface AlbumRepo {
 
     fun sortAlbumsByTitleAsc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Album>>
+    ): Flow<List<AlbumWithExtraInfo>>
 
     fun sortAlbumsByTitleDesc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Album>>
+    ): Flow<List<AlbumWithExtraInfo>>
 
-    fun sortAlbumsInGenreByTitleAsc(
+    /*fun sortAlbumsInGenreByTitleAsc(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Album>>
+    ): Flow<List<Album>>*/
 
-    fun sortAlbumsInGenreByTitleDesc(
+    /*fun sortAlbumsInGenreByTitleDesc(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Album>>
+    ): Flow<List<Album>>*/
 
     /* //sortAlbumsInGenreByDateLastPlayedAsc not needed atm
     fun sortAlbumsInGenreByDateLastPlayedAsc(
@@ -108,22 +111,22 @@ class AlbumRepoImpl(
 
     //equivalent of podcastStore.podcastWithUri
     override fun getAlbumById(id: Long): Flow<Album> =
-        albumDao.getAlbumById(id)
-        //equivalent of podcastsDao.podcastWithUri
+        albumDao.getAlbumById(id) //equivalent of podcastsDao.podcastWithUri
 
     override fun getAlbumsByAlbumArtistId(
         albumArtistId: Long,
         limit: Int
-    ): Flow<List<Album>> = albumDao.getAlbumsByAlbumArtistId(albumArtistId, limit)
+    ): Flow<List<Album>> =
+        albumDao.getAlbumsByAlbumArtistId(albumArtistId, limit)
 
     //equivalent of podcastStore.podcastWithExtraInfo
     override fun getAlbumWithExtraInfo(albumId: Long): Flow<AlbumWithExtraInfo> =
         albumDao.getAlbumWithExtraInfo(albumId)
 
-    override fun sortAlbumsByAlbumArtistAsc(limit: Int): Flow<List<Album>> =
+    override fun sortAlbumsByAlbumArtistAsc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
         albumDao.sortAlbumsByAlbumArtistAsc(limit)
 
-    override fun sortAlbumsByAlbumArtistDesc(limit: Int): Flow<List<Album>> =
+    override fun sortAlbumsByAlbumArtistDesc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
         albumDao.sortAlbumsByAlbumArtistDesc(limit)
 
     override fun sortAlbumsByDateLastPlayedAsc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
@@ -131,8 +134,7 @@ class AlbumRepoImpl(
 
     //equivalent of podcastStore.podcastsSortedByLastEpisode
     override fun sortAlbumsByDateLastPlayedDesc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
-        albumDao.sortAlbumsByDateLastPlayedDesc(limit)
-        //equivalent of podcastsDao.podcastsSortedByLastEpisode //use as replacement for mostRecentAlbums
+        albumDao.sortAlbumsByDateLastPlayedDesc(limit) //equivalent of podcastsDao.podcastsSortedByLastEpisode //use as replacement for mostRecentAlbums
 
     override fun sortAlbumsBySongCountAsc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
         albumDao.sortAlbumsBySongCountAsc(limit)
@@ -140,17 +142,17 @@ class AlbumRepoImpl(
     override fun sortAlbumsBySongCountDesc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
         albumDao.sortAlbumsBySongCountDesc(limit)
 
-    override fun sortAlbumsByTitleAsc(limit: Int): Flow<List<Album>> =
+    override fun sortAlbumsByTitleAsc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
         albumDao.sortAlbumsByTitleAsc(limit)
 
-    override fun sortAlbumsByTitleDesc(limit: Int): Flow<List<Album>> =
+    override fun sortAlbumsByTitleDesc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
         albumDao.sortAlbumsByTitleDesc(limit)
 
-    override fun sortAlbumsInGenreByTitleAsc(genreId: Long, limit: Int): Flow<List<Album>> =
-        albumDao.sortAlbumsInGenreByTitleAsc(genreId, limit)
+    /*override fun sortAlbumsInGenreByTitleAsc(genreId: Long, limit: Int): Flow<List<Album>> =
+        albumDao.sortAlbumsInGenreByTitleAsc(genreId, limit)*/
 
-    override fun sortAlbumsInGenreByTitleDesc(genreId: Long, limit: Int): Flow<List<Album>> =
-        albumDao.sortAlbumsInGenreByTitleDesc(genreId, limit)
+    /*override fun sortAlbumsInGenreByTitleDesc(genreId: Long, limit: Int): Flow<List<Album>> =
+        albumDao.sortAlbumsInGenreByTitleDesc(genreId, limit)*/
 
     /* //sortAlbumsInGenreByDateLastPlayedAsc not needed atm
     override fun sortAlbumsInGenreByDateLastPlayedAsc(

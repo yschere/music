@@ -1,106 +1,52 @@
 package com.example.music.data.repository
 
-import com.example.music.data.database.dao.AlbumsDao
-import com.example.music.data.database.dao.ArtistsDao
+import com.example.music.data.database.dao.ComposersDao
 import com.example.music.data.database.dao.SongsDao
-import com.example.music.data.database.model.Album
-import com.example.music.data.database.model.Artist
+import com.example.music.data.database.model.Composer
+import com.example.music.data.database.model.ComposerWithExtraInfo
 import com.example.music.data.database.model.Song
 import kotlinx.coroutines.flow.Flow
 
-interface ArtistRepo {
+/**
+ * Interface for [ComposersDao] abstract functions
+ */
+interface ComposerRepo {
 
-    fun getAllArtists(): Flow<List<Artist>>
+    fun getAllComposers(): Flow<List<Composer>>
 
-    fun getArtistById(id: Long): Flow<Artist>
+    fun getComposerById(id: Long): Flow<Composer>
 
-    fun sortArtistsByNameAsc(
+    fun getComposerByName(name: String): Flow<Composer?>
+
+    fun getComposerWithExtraInfo(id: Long): Flow<ComposerWithExtraInfo>
+
+    fun sortComposersByNameAsc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
+    ): Flow<List<ComposerWithExtraInfo>>
 
-    fun sortArtistsByNameDesc(
+    fun sortComposersByNameDesc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
+    ): Flow<List<ComposerWithExtraInfo>>
 
-    fun sortArtistsByAlbumCountAsc(
+    fun sortComposersBySongCountAsc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
+    ): Flow<List<ComposerWithExtraInfo>>
 
-    fun sortArtistsByAlbumCountDesc(
+    fun sortComposersBySongCountDesc(
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
+    ): Flow<List<ComposerWithExtraInfo>>
 
-    /* //sortArtistsByDateLastPlayedAsc not needed atm
-    fun sortArtistsByDateLastPlayedAsc(
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>> */
-
-    /* //sortArtistsByDateLastPlayedDesc not needed atm
-    fun sortArtistsByDateLastPlayedDesc(
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>> */
-
-    fun sortArtistsBySongCountAsc(
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
-
-    fun sortArtistsBySongCountDesc(
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
-
-    //why this one not in PodcastStore?
-    /* //sortArtistsInGenreByDateLastPlayedAsc not needed atm
-    fun sortArtistsInGenreByDateLastPlayedAsc(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>> */
-
-    /* //sortArtistsInGenreByDateLastPlayedDesc not needed atm
-    fun sortArtistsInGenreByDateLastPlayedDesc(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>> */
-
-    fun sortArtistsInGenreByNameAsc(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
-
-    fun sortArtistsInGenreByNameDesc(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
-
-    /* //not sure if sortArtistsInGenreBySongCountAsc is needed
-    fun sortArtistsInGenreBySongCountAsc(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>> */
-
-    /* //not sure if sortArtistsInGenreBySongCountDesc is needed
-    fun sortArtistsInGenreBySongCountDesc(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>> */
-
-    //fun artistsAndGenres(id: Long): Flow<Artist>
-
-    fun searchArtistByName(
+    fun searchComposersByName(
         query: String,
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Artist>>
+    ): Flow<List<ComposerWithExtraInfo>>
 
-    fun getAlbumsByArtistId(
-        artistId: Long,
-        limit: Int = Integer.MAX_VALUE,
-    ): Flow<List<Album>>
-
-    fun getSongsByArtistId(
-        artistId: Long,
+    fun getSongsByComposerId(
+        composerId: Long,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<Song>>
 
-    suspend fun addArtist(artist: Artist)
+    suspend fun addComposer(composer: Composer)
 
     suspend fun count(): Int
 
@@ -108,99 +54,56 @@ interface ArtistRepo {
 }
 
 /**
-* A data repository for [Artist] instances.
+* A data repository for [Composer] instances.
 */
-class ArtistRepoImpl(
-private val artistDao: ArtistsDao,
-private val albumDao: AlbumsDao,
-private val songDao: SongsDao,
-) : ArtistRepo {
+class ComposerRepoImpl(
+    private val composerDao: ComposersDao,
+    private val songDao: SongsDao,
+) : ComposerRepo {
 
-    override fun getAllArtists(): Flow<List<Artist>> =
-        artistDao.getAllArtists()
+    override fun getAllComposers(): Flow<List<Composer>> =
+        composerDao.getAllComposers()
 
-    override fun getArtistById(id: Long): Flow<Artist> =
-        artistDao.getArtistById(id)
+    override fun getComposerById(id: Long): Flow<Composer> =
+        composerDao.getComposerById(id)
 
-    override fun sortArtistsByNameAsc(limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsByNameAsc(limit)
+    override fun getComposerByName(name: String): Flow<Composer?> =
+        composerDao.getComposerByName(name)
 
-    override fun sortArtistsByNameDesc(limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsByNameDesc(limit)
+    override fun getComposerWithExtraInfo(id: Long): Flow<ComposerWithExtraInfo> =
+        composerDao.getComposerWithExtraInfo(id)
 
-    override fun sortArtistsByAlbumCountAsc(limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsByAlbumCountAsc(limit)
+    override fun sortComposersByNameAsc(limit: Int): Flow<List<ComposerWithExtraInfo>> =
+        composerDao.sortComposersByNameAsc(limit)
 
-    override fun sortArtistsByAlbumCountDesc(limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsByAlbumCountDesc(limit)
+    override fun sortComposersByNameDesc(limit: Int): Flow<List<ComposerWithExtraInfo>> =
+        composerDao.sortComposersByNameDesc(limit)
 
-    /* //sortArtistsByDateLastPlayedAsc not needed atm
-    override fun sortArtistsByDateLastPlayedAsc(limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsByDateLastPlayedAsc(limit) //use as replacement for mostRecentArtists */
+    override fun sortComposersBySongCountAsc(limit: Int): Flow<List<ComposerWithExtraInfo>> =
+        composerDao.sortComposersBySongCountAsc(limit)
 
-    /* //sortArtistsByDateLastPlayedDesc not needed atm
-    override fun sortArtistsByDateLastPlayedDesc(limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsByDateLastPlayedDesc(limit) //use as replacement for mostRecentArtists */
+    override fun sortComposersBySongCountDesc(limit: Int): Flow<List<ComposerWithExtraInfo>> =
+        composerDao.sortComposersBySongCountDesc(limit)
 
-    override fun sortArtistsBySongCountAsc(limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsBySongCountAsc(limit)
-
-    override fun sortArtistsBySongCountDesc(limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsBySongCountDesc(limit)
-
-    /* //sortArtistsInGenreByDateLastPlayedAsc not needed atm
-    override fun sortArtistsInGenreByDateLastPlayedAsc(genreId: Long, limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsInGenreByDateLastPlayedAsc(genreId, limit) */
-
-    /* //sortArtistsInGenreByDateLastPlayedDesc not needed atm
-    override fun sortArtistsInGenreByDateLastPlayedDesc(genreId: Long, limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsInGenreByDateLastPlayedDesc(genreId, limit) */
-
-    override fun sortArtistsInGenreByNameAsc(genreId: Long, limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsInGenreByNameAsc(genreId, limit)
-
-    override fun sortArtistsInGenreByNameDesc(genreId: Long, limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsInGenreByNameDesc(genreId, limit)
-
-    /* //not sure if sortArtistsInGenreBySongCountAsc is needed
-    override fun sortArtistsInGenreBySongCountAsc(genreId: Long, limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsInGenreBySongCountAsc(genreId, limit) */
-
-    /* //not sure if sortArtistsInGenreBySongCountDesc is needed
-    override fun sortArtistsInGenreBySongCountDesc(genreId: Long, limit: Int): Flow<List<Artist>> =
-        artistDao.sortArtistsInGenreBySongCountDesc(genreId, limit) */
-
-    /* override fun artistsAndGenres(id: Long): Flow<ArtistWithGenre> =
-        return artistDao.artistsAndGenres(id) */
-
-    override fun searchArtistByName(
+    override fun searchComposersByName(
         query: String,
         limit: Int
-    ): Flow<List<Artist>> {
-        return artistDao.searchArtistByName(query, limit)
-    }
+    ): Flow<List<ComposerWithExtraInfo>> = composerDao.searchComposersByName(query, limit)
 
-    override fun getAlbumsByArtistId(
-        artistId: Long,
+    override fun getSongsByComposerId(
+        composerId: Long,
         limit: Int,
-    ): Flow<List<Album>> {
-        return albumDao.getAlbumsByAlbumArtistId(artistId, limit)
-    }
-
-    override fun getSongsByArtistId(
-        artistId: Long,
-        limit: Int,
-    ): Flow<List<Song>> = songDao.getSongsByArtistId(artistId, limit)
+    ): Flow<List<Song>> = songDao.getSongsByComposerId(composerId, limit)
 
     /**
-     * Add a new [Artist] to this store.
+     * Add a new [Composer] to this store.
      * This automatically switches to the main thread to maintain thread consistency.
      */
-    override suspend fun addArtist(artist: Artist) {
-        artistDao.insert(artist)
+    override suspend fun addComposer(composer: Composer) {
+        composerDao.insert(composer)
     }
 
-    override suspend fun count(): Int = artistDao.count()
+    override suspend fun count(): Int = composerDao.count()
 
-    override suspend fun isEmpty(): Boolean = artistDao.count() == 0
+    override suspend fun isEmpty(): Boolean = composerDao.count() == 0
 }

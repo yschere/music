@@ -35,7 +35,7 @@ private fun FeaturedAlbums(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // TODO: Using BoxWithConstraints is not quite performant since it requires 2 passes to compute
+    //TODO: Using BoxWithConstraints is not quite performant since it requires 2 passes to compute
     // the content padding. This should be revisited once a carousel component is available.
     // Alternatively, version 1.7.0-alpha05 of Compose Foundation supports `snapPosition`
     // which solves this problem and avoids this calculation altogether. Once 1.7.0 is

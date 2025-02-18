@@ -3,6 +3,7 @@ package com.example.music.domain
 import com.example.music.data.repository.PlaylistRepo
 import com.example.music.model.PlaylistDetailsFilterResult
 import com.example.music.model.asExternalModel
+import com.example.music.util.domainLogger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -20,14 +21,16 @@ class GetPlaylistDetailsUseCase @Inject constructor(
 ) {
 
     operator fun invoke(playlistId: Long): Flow<PlaylistDetailsFilterResult> {
-        val playlistFlow = playlistRepo.getPlaylistExtraInfo(playlistId)
+        domainLogger.info { "Get Playlist Details Use Case - start: PlaylistID: $playlistId" }
+        val playlistFlow = playlistRepo.getPlaylistWithExtraInfo(playlistId)
 
-        val pSongsListFlow = playlistRepo.sortSongsInPlaylistByTrackNumberAsc(playlistId)
-            .flatMapLatest { item ->
-                getSongDataUseCase(item)
-            }
-
+        domainLogger.info { "Get Playlist Details Use Case - Get Songs by Playlist ID" }
         val songsFlow = playlistRepo.sortSongsInPlaylistByTrackNumberAsc(playlistId)
+
+        val pSongsListFlow = songsFlow.flatMapLatest { item ->
+            domainLogger.info { "Get Playlist Details Use Case - Get Player Songs: ${item.size}" }
+            getSongDataUseCase(item)
+        }
 
         return combine(
             playlistFlow,

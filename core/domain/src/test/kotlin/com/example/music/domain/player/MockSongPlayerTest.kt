@@ -16,7 +16,7 @@
 
 package com.example.music.domain.player
 
-import com.example.music.player.MockSongPlayer
+import com.example.music.player.SongPlayerImpl
 import com.example.music.player.model.PlayerSong
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -29,10 +29,10 @@ import org.junit.Test
 import java.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class MockSongPlayerTest {
+class SongPlayerImplTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val mockSongPlayer = MockSongPlayer(testDispatcher)
+    private val mockSongPlayer = SongPlayerImpl(testDispatcher)
     private val testSongs = listOf(
         PlayerSong(
             id = 1023,

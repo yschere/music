@@ -1,5 +1,6 @@
 package com.example.music.domain
 
+import com.example.music.data.repository.ArtistRepo
 import com.example.music.data.repository.GenreRepo
 import com.example.music.data.repository.SongRepo
 import com.example.music.model.ArtistGenreFilterResult
@@ -18,6 +19,7 @@ import javax.inject.Inject
  */
 class ArtistGenreFilterUseCase @Inject constructor(
     private val genreRepo: GenreRepo,
+    private val artistRepo: ArtistRepo,
     private val songRepo: SongRepo,
 ) {
     operator fun invoke(genre: GenreInfo?): Flow<ArtistGenreFilterResult> {
@@ -25,8 +27,7 @@ class ArtistGenreFilterUseCase @Inject constructor(
             return flowOf(ArtistGenreFilterResult())
         }
 
-        val artistsInGenreFlow = genreRepo.sortArtistsInGenreByNameAsc(
-            genre.id,
+        val artistsInGenreFlow = artistRepo.sortArtistsBySongCountDesc(
             limit = 10
         )
 

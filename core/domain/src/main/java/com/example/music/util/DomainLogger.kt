@@ -1,4 +1,5 @@
 package com.example.music.util
 
-class DomainLogger {
-}
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+val domainLogger = KotlinLogging.logger("Domain Logger")

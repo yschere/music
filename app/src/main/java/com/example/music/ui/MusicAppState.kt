@@ -16,31 +16,35 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navOptions
+import com.example.music.R
+import com.example.music.util.logger
 
 /**
  * List of navigation accessible screens for [MusicApp]
  */
 sealed class Screen(val route: String) {
-    object Home : Screen("home")
+    object Home : Screen("home") {
+        fun createRoute() = "home"
+    }
 
-    object Library : Screen("library")
+    object Library : Screen("library") {
+        fun createRoute() = "library"
+    }
 
     object Player : Screen("player/{$ARG_SONG_ID}") {
         fun createRoute(songId: Long) = "player/$songId"
     }
 
-    object QueueList : Screen("queue")
+    object QueueList : Screen("queue") {
+        fun createRoute() = "queue"
+    }
 
-    /*
-    object Artists : Screen("artists")
-    object Albums : Screen("albums")
-    object Genres : Screen("genres")
+    object Settings : Screen("settings") {
+        fun createRoute() = "settings"
+    }
 
-    object LibArtists : Screen("library/artists")
-    object LibAlbums : Screen("library/albums")
-    object LibGenres : Screen("library/genres")
-
-    //not sure if this is gonna be song details or edit tags, maybe make both as separate screen objects
+    /* //not sure if this is gonna be song details or edit tags, maybe make both as separate screen objects
     object SongDetails : Screen("song/{$arg_song_id}") {
         val SONG_ID = "songId"
         fun createRoute(songId: Long) = "song/$songId"
@@ -48,18 +52,23 @@ sealed class Screen(val route: String) {
     */
 
     object AlbumDetails : Screen("album/{$ARG_ALBUM_ID}") {
-        //val ALBUM_ID = "albumId"
         fun createRoute(albumId: Long) = "album/$albumId"
     }
 
     object ArtistDetails : Screen("artist/{$ARG_ARTIST_ID}") {
-        //val ARTIST_ID = "artistId"
         fun createRoute(artistId: Long) = "artist/$artistId"
     }
 
     object PlaylistDetails : Screen("playlist/{$ARG_PLAYLIST_ID}") {
-        //val PLAYLIST_ID = "playlistId"
         fun createRoute(playlistId: Long) = "playlist/$playlistId"
+    }
+
+    object GenreDetails : Screen("genre/{$ARG_GENRE_ID}") {
+        fun createRoute(genreId: Long) = "genre/$genreId"
+    }
+
+    object ComposerDetails : Screen("composer/{$ARG_COMPOSER_ID}") {
+        fun createRoute(composerId: Long) = "composer/$composerId"
     }
 
     companion object {
@@ -67,19 +76,19 @@ sealed class Screen(val route: String) {
         const val ARG_ALBUM_ID = "albumId"
         const val ARG_ARTIST_ID = "artistId"
         const val ARG_PLAYLIST_ID = "playlistId"
-        //const val ARG_GENRE_ID = "genreId"
-        //const val ARG_COMPOSER_ID = "composerId"
+        const val ARG_GENRE_ID = "genreId"
+        const val ARG_COMPOSER_ID = "composerId"
     }
 
     /*  multiple screens needed for this
         home screen -> should have context-less navigation
         player screen -> should have context-less navigation
-        all playlists screen -> should have context-less navigation
-        all artists screen -> should have context-less navigation
-        all albums screen -> should have context-less navigation
-        all songs screen -> should have context-less navigation
-        all genres screen -> should have context-less navigation
-        all composers screen -> should have context-less navigation
+        all playlists screen -> should have context-less navigation (accessed thru library)
+        all artists screen -> should have context-less navigation (accessed thru library)
+        all albums screen -> should have context-less navigation (accessed thru library)
+        all songs screen -> should have context-less navigation (accessed thru library)
+        all genres screen -> should have context-less navigation (accessed thru library)
+        all composers screen -> should have context-less navigation (accessed thru library)
 
         selected playlist screen -> needs context of selected item
         selected artist screen -> needs context of selected item
@@ -87,7 +96,7 @@ sealed class Screen(val route: String) {
         selected genre screen -> needs context of selected item
         selected composer screen -> needs context of selected item
 
-        edit song tags screen -> needs context of prev screen
+        edit song tags screen -> needs context of selected item
         settings screen -> should have context-less navigation
         item options screen -> needs context of selected item
 
@@ -120,67 +129,81 @@ class MusicAppState(
         isOnline = checkIfOnline()
     }
 
-    /* //TODO: maybe this won't be needed if this is a list view that is not a separate navigation screen?
-    // same for ArtistsList and GenresList and Playlists
-    fun navigateToAlbumsList(from: NavBackStackEntry) {
-        if (from.lifecycleIsResumed()) {
-            navController.navigate(Screen.Albums.createRoute())
-        }
-    } */
-
     fun navigateToHome(from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            navController.navigate(Screen.Home)
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO HOME VIEW *****************\n\n" }
+            navController.navigate(Screen.Home.createRoute())
         }
     }
 
     fun navigateToLibrary(from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            navController.navigate(Screen.Library)
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO LIBRARY VIEW *****************\n\n" }
+            navController.navigate(Screen.Library.createRoute())
         }
     }
 
     fun navigateToPlayer(songId: Long, from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            navController.navigate(Screen.Player.createRoute(songId))
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO PLAYER VIEW *****************\n\n" }
+            navController.navigate(Screen.Player.createRoute(songId),
+                navOptions {
+                    anim {
+                        enter = R.anim.fade_in
+                        exit = R.anim.fade_out
+                    }
+                })
         }
     }
 
-    fun navigateToArtistDetails(artistId: Long, from: NavBackStackEntry) {
+    fun navigateToSettings(from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            navController.navigate(Screen.ArtistDetails.createRoute(artistId))
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO SETTINGS VIEW *****************\n\n" }
+            navController.navigate(Screen.Settings.createRoute())
         }
     }
 
     fun navigateToAlbumDetails(albumId: Long, from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO ALBUM DETAILS VIEW *****************" }
             navController.navigate(Screen.AlbumDetails.createRoute(albumId))
+        }
+    }
+
+    fun navigateToArtistDetails(artistId: Long, from: NavBackStackEntry) {
+        // In order to discard duplicated navigation events, we check the Lifecycle
+        if (from.lifecycleIsResumed()) {
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO ARTIST DETAILS VIEW *****************" }
+            navController.navigate(Screen.ArtistDetails.createRoute(artistId))
+        }
+    }
+
+    fun navigateToComposerDetails(composerId: Long, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO COMPOSER DETAILS VIEW *****************" }
+            navController.navigate(Screen.ComposerDetails.createRoute(composerId))
+        }
+    }
+
+    fun navigateToGenreDetails(genreId: Long, from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO GENRE DETAILS VIEW *****************" }
+            navController.navigate(Screen.GenreDetails.createRoute(genreId))
         }
     }
 
     fun navigateToPlaylistDetails(playlistId: Long, from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO PLAYLIST DETAILS VIEW *****************" }
             navController.navigate(Screen.PlaylistDetails.createRoute(playlistId))
         }
     }
-
-    /* fun navigateToGenreDetails(genreId: Long, from: NavBackStackEntry) {
-        if (from.lifecycleIsResumed()) {
-            navController.navigate(Screen.GenreDetails.createRoute(genreId))
-        }
-    } */
-
-    /* fun navigateToComposerDetails(composerId: Long, from: NavBackStackEntry) {
-        if (from.lifecycleIsResumed()) {
-            navController.navigate(Screen.ComposerDetails.createRoute(composerId))
-        }
-    } */
 
     /* //TODO: determine if this is the song data page or the song edit tags page
     // I have a feeling in either case it will still have the same questions
@@ -195,11 +218,13 @@ class MusicAppState(
     // vein to AlbumsList and ArtistsList
     fun showQueueList(from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
-            navController.navigate(Screen.QueueList)
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO QUEUE LIST VIEW *****************" }
+            navController.navigate(Screen.QueueList.createRoute())
         }
     } // not same naming convention, but is the same principle as the navigateTo__ functions
 
     fun navigateBack() {
+        logger.info { "\n\n\n***************** POPPING NAV STACK - BACK BTN PRESSED *****************\n\n\n" }
         navController.popBackStack()
     }
 

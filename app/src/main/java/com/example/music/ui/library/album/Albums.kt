@@ -1,4 +1,4 @@
-package com.example.music.ui.library.playlist
+package com.example.music.ui.library.album
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,81 +35,81 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.domain.testing.PreviewPlaylists
-import com.example.music.model.PlaylistInfo
-import com.example.music.model.PlaylistSortModel
+import com.example.music.domain.testing.PreviewAlbums
+import com.example.music.model.AlbumInfo
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
-fun LazyListScope.playlistItems(
-    playlistSortModel: PlaylistSortModel,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+fun LazyListScope.albumItems(
+    albums: List<AlbumInfo>,
+    navigateToAlbumDetails: (AlbumInfo) -> Unit,
 ) {
-    val playlists = playlistSortModel.playlists
     item {
         Text(
-            text = quantityStringResource(R.plurals.playlists, playlists.size, playlists.size),
+            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.albums, albums.size, albums.size)) {
+                it.value.uppercase()
+            },
+            //text = quantityStringResource(R.plurals.albums, albums.size, albums.size),
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(8.dp)
         )
     }
-    items(
-        playlists
-    ) { item ->
-        PlaylistItemRow(
-            playlist = item,
-            navigateToPlaylistDetails = navigateToPlaylistDetails,
+    items(albums) { item ->
+        AlbumItemRow(
+            album = item,
+            navigateToAlbumDetails = navigateToAlbumDetails,
         )
     }
 }
 
-fun LazyGridScope.playlistItems(
-    playlistSortModel: PlaylistSortModel,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    modifier: Modifier = Modifier,
+fun LazyGridScope.albumItems(
+    albums: List<AlbumInfo>,
+    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    //modifier: Modifier = Modifier,
 ) {
-    val playlists = playlistSortModel.playlists
-
     fullWidthItem {
         Text(
-            text = quantityStringResource(R.plurals.playlists, playlists.size, playlists.size),
+            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.albums, albums.size, albums.size)) {
+                it.value.uppercase()
+            },
+            //text = quantityStringResource(R.plurals.albums, albums.size, albums.size),
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(8.dp)
         )
     }
 
-    items(playlists){ playlist ->
+    items(albums){ item ->
         Surface(
             shape = MaterialTheme.shapes.large,
             color = Color.Transparent,
             modifier = Modifier,
-            onClick = { navigateToPlaylistDetails(playlist) }
+            onClick = { navigateToAlbumDetails(item) }
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally){
-                PlaylistItemBoxHeader(playlist)
-                PlaylistItemBoxFooter(playlist)
+                AlbumItemBoxHeader(item)
+                AlbumItemBoxFooter(item)
             }
         }
     }
 }
 
 /**
- * Create a composable view of a Playlist in a row form
+ * Create a composable view of a Album in a row form
  */
 @Composable
-private fun PlaylistItemRow(
-    playlist: PlaylistInfo,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+private fun AlbumItemRow(
+    album: AlbumInfo,
+    navigateToAlbumDetails: (AlbumInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = Modifier.padding(4.dp)){
         Surface(
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainer,
-            onClick = { navigateToPlaylistDetails(playlist) }
+            onClick = { navigateToAlbumDetails(album) }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -121,12 +121,12 @@ private fun PlaylistItemRow(
                         //.fillMaxSize()
                         .clip(MaterialTheme.shapes.medium),
                     albumImage = 2,//albumImageId,
-                    contentDescription = playlist.name
+                    contentDescription = album.title
                 )
 
                 Column(modifier.weight(1f)){
                     Text(
-                        text = playlist.name,
+                        text = album.title,
                         maxLines = 1,
                         minLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -139,7 +139,7 @@ private fun PlaylistItemRow(
                         modifier = Modifier.padding(horizontal = 10.dp)
                     ) {
                         Text(
-                            text = quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount),
+                            text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
                             maxLines = 1,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(vertical = 2.dp)
@@ -163,19 +163,19 @@ private fun PlaylistItemRow(
     }
 }
 
-private val FEATURED_PLAYLIST_IMAGE_SIZE_DP = 160.dp
+private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
 
 @Composable
-private fun PlaylistItemBoxFooter(
-    playlist: PlaylistInfo,
+private fun AlbumItemBoxFooter(
+    album: AlbumInfo,
     modifier: Modifier = Modifier
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.requiredWidth(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
+        modifier = modifier.requiredWidth(FEATURED_ALBUM_IMAGE_SIZE_DP)
     ) {
         Text(
-            text = playlist.name,
+            text = album.title,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.titleMedium,
@@ -197,8 +197,8 @@ private fun PlaylistItemBoxFooter(
 }
 
 @Composable
-private fun PlaylistItemBoxHeader(
-    playlist: PlaylistInfo,
+private fun AlbumItemBoxHeader(
+    album: AlbumInfo,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -207,14 +207,14 @@ private fun PlaylistItemBoxHeader(
         AlbumImage(
             modifier = modifier
                 //.size(DpSize(200.dp,200.dp))
-                .size(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
+                .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
                 .clip(MaterialTheme.shapes.medium),
             albumImage = 2,//albumImageId,
-            contentDescription = playlist.name
+            contentDescription = album.title
         )
 
         Text(
-            text = quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount),
+            text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
             maxLines = 1,
             minLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -226,9 +226,9 @@ private fun PlaylistItemBoxHeader(
 }
 
 @Composable
-private fun TopPlaylistRowItem(
-    playlistName: String,
-    //playlistImageId: String,
+private fun TopAlbumRowItem(
+    albumName: String,
+    //albumImageId: String,
     //isFollowed: Boolean,
     modifier: Modifier = Modifier,
     //onToggleFollowClicked: () -> Unit,
@@ -247,12 +247,12 @@ private fun TopPlaylistRowItem(
                     .fillMaxSize()
                     .clip(MaterialTheme.shapes.medium),
                 albumImage = 2,//albumImageId,
-                contentDescription = playlistName
+                contentDescription = albumName
             )
         }
 
         Text(
-            text = playlistName,
+            text = albumName,
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -265,11 +265,11 @@ private fun TopPlaylistRowItem(
 
 @Preview
 @Composable
-fun PlaylistItemPreviewRow() {
+fun AlbumItemPreviewRow() {
     MusicTheme {
-        PlaylistItemRow(
-            playlist = PreviewPlaylists[0],
-            navigateToPlaylistDetails = {},
+        AlbumItemRow(
+            album = PreviewAlbums[0],
+            navigateToAlbumDetails = {},
         )
     }
 }

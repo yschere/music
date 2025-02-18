@@ -89,11 +89,11 @@ fun AlbumListItem(
     modifier: Modifier = Modifier,
     boxOrRow: Boolean, //using to set if viewing as box version(true) or row version(false)
     /*//not passing in artistInfo from ArtistDetailsScreen because want to use album's album artist id info instead
-    // onQueueSong: (PlayerSong) -> Unit, //don't think onQueueSong will be needed for list item, but maybe a navigate to album details screen btn instead
-    // showAlbumImage: Boolean, //this should be true all the time, so is unnecessary for album list item
-    // showAlbumTitle: Boolean, //this should be true all the time, so is unnecessary for album list item
-    // maybe a song count property? if that can be shown or is wanted? wait no that's part of albumWithExtraInfo,
-    // so would need to pass that instead of Album
+        // onQueueSong: (PlayerSong) -> Unit, //don't think onQueueSong will be needed for list item, but maybe a navigate to album details screen btn instead
+        // showAlbumImage: Boolean, //this should be true all the time, so is unnecessary for album list item
+        // showAlbumTitle: Boolean, //this should be true all the time, so is unnecessary for album list item
+        // maybe a song count property? if that can be shown or is wanted? wait no that's part of albumWithExtraInfo,
+        // so would need to pass that instead of Album
     */
 ) {
     // TWO TYPES OF VIEWABLE OPTIONS
@@ -108,19 +108,17 @@ fun AlbumListItem(
         Surface(
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.background,
-            onClick = {},
+            onClick = { onClick(album) },
             //modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             if (boxOrRow){
                 AlbumListItemBox(
                     album = album,
-                    onClick = onClick,
                     modifier = modifier,
                 )
             } else {
                 AlbumListItemRow(
                     album = album,
-                    onClick = onClick,
                     modifier = modifier,
                 )
             }
@@ -132,7 +130,6 @@ fun AlbumListItem(
 @Composable
 private fun AlbumListItemBox(
     album: AlbumInfo,
-    onClick: (AlbumInfo) -> Unit,
     modifier: Modifier,
 ) {
     /*
@@ -184,7 +181,7 @@ private fun AlbumListItemBox(
             // Top Part
             AlbumListItemHeader(
                 album = album, //might want this to be album with extra info, so that song count can be passed in here
-                onClick = {},
+                //onClick = {},
                 //modifier = Modifier.padding(bottom = 8.dp)
                 //this one should have the floating action button in it
             )
@@ -192,7 +189,7 @@ private fun AlbumListItemBox(
             // Bottom Part
             AlbumListItemFooter(
                 album = album, //might want a way to have album artist name passed in here
-                onClick = {},
+                //onClick = {},
                 //onQueueSong = onQueueSong,
                 //modifier = Modifier.padding(bottom = 8.dp)
                 //this one should have the more options button in it
@@ -203,7 +200,7 @@ private fun AlbumListItemBox(
 @Composable
 private fun AlbumListItemRow(
     album: AlbumInfo,
-    onClick: (AlbumInfo) -> Unit,
+    //onClick: (AlbumInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     //uses same structural concept as song list item row
@@ -266,8 +263,7 @@ private fun AlbumListItemRow(
 @Composable
 private fun AlbumListItemFooter(
     album: AlbumInfo,
-    //onQueueSong: (PlayerSong) -> Unit,
-    onClick: (AlbumInfo) -> Unit,
+    //onClick: (AlbumInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
     //want a main row that contains two parts, first part is a column of album + album artist, second part is more options btn
@@ -313,7 +309,7 @@ private fun AlbumListItemFooter(
 @Composable
 private fun AlbumListItemHeader(
     album: AlbumInfo,
-    onClick: (AlbumInfo) -> Unit,
+    //onClick: (AlbumInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
     //need a way to set the album image as the "background" of the header, and have the
@@ -342,7 +338,7 @@ private fun AlbumListItemHeader(
             maxLines = 1,
             minLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.onPrimary,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(10.dp)
         )

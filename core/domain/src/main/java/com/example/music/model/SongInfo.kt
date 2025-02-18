@@ -14,8 +14,9 @@ data class SongInfo(
     val artistId: Long? = 0,
     val albumId: Long? = 0,
     val genreId: Long? = 0,
-    val albumTrackNumber: Int? = 0,
-    val duration: Duration? = null,
+    val composerId: Long? = 0,
+    val trackNumber: Int? = 0,
+    val duration: Duration = Duration.ZERO,
     val dateLastPlayed: OffsetDateTime? = null,
     //artwork, dateAdded, fileSize
 )
@@ -27,7 +28,8 @@ fun Song.asExternalModel(): SongInfo =
         artistId = artistId,
         albumId = albumId,
         genreId = genreId,
-        albumTrackNumber = albumTrackNumber,
+        composerId = composerId,
+        trackNumber = albumTrackNumber,
         duration = duration,
         dateLastPlayed = dateLastPlayed,
     )
