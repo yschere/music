@@ -1,5 +1,7 @@
 package com.example.music.ui.library.playlist
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,10 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
@@ -35,19 +35,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.model.PlaylistInfo
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
-fun LazyListScope.playlistItems(
+/**
+ * Playlist Items Lazy List Scope Generator.
+ * Provides header item with a count of the playlist given, and
+ * generates a column of playlists, with each playlist item shown as a row.
+ */
+/*fun LazyListScope.playlistItems(
     playlists: List<PlaylistInfo>,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
 ) {
     item {
         Text(
-            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.playlists, playlists.size, playlists.size)) {
+            text = """\s[a-z]""".toRegex().replace(
+                quantityStringResource(R.plurals.playlists, playlists.size, playlists.size)
+            ) {
                 it.value.uppercase()
             },
             //text = quantityStringResource(R.plurals.playlists, playlists.size, playlists.size),
@@ -64,8 +72,13 @@ fun LazyListScope.playlistItems(
             modifier = Modifier.fillMaxWidth()
         )
     }
-}
+}*/
 
+/**
+ * Playlist Items Lazy Grid Scope Generator.
+ * Provides header item with a count of the playlist given, and
+ * generates a grid of playlists, with each playlist item shown as a card.
+ */
 fun LazyGridScope.playlistItems(
     playlists: List<PlaylistInfo>,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
@@ -74,7 +87,9 @@ fun LazyGridScope.playlistItems(
 
     fullWidthItem {
         Text(
-            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.playlists, playlists.size, playlists.size)) {
+            text = """\s[a-z]""".toRegex().replace(
+                quantityStringResource(R.plurals.playlists, playlists.size, playlists.size)
+            ) {
                 it.value.uppercase()
             },
             //text = quantityStringResource(R.plurals.playlists, playlists.size, playlists.size),
@@ -84,16 +99,16 @@ fun LazyGridScope.playlistItems(
         )
     }
 
-    items(playlists){ playlist ->
+    items(playlists){ item ->
         Surface(
             shape = MaterialTheme.shapes.large,
             color = Color.Transparent,
             modifier = Modifier,
-            onClick = { navigateToPlaylistDetails(playlist) }
+            onClick = { navigateToPlaylistDetails(item) }
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally){
-                PlaylistItemBoxHeader(playlist)
-                PlaylistItemBoxFooter(playlist)
+                PlaylistItemBoxHeader(item)
+                PlaylistItemBoxFooter(item)
             }
         }
     }
@@ -111,7 +126,7 @@ private fun PlaylistItemRow(
     Box(modifier = Modifier.padding(4.dp)){
         Surface(
             shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainer,
+            color = MaterialTheme.colorScheme.background,//surfaceContainer,
             onClick = { navigateToPlaylistDetails(playlist) }
         ) {
             Row(
@@ -145,7 +160,6 @@ private fun PlaylistItemRow(
                             text = quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount),
                             maxLines = 1,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.padding(vertical = 2.dp)
                         )
                     }
@@ -183,10 +197,10 @@ private fun PlaylistItemBoxFooter(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(4.dp).align(Alignment.CenterVertically).weight(1f,false)//.fillMaxWidth()
+//            style = MaterialTheme.typography.titleMedium,
+//            modifier = Modifier.padding(4.dp).weight(1f,false)
         )
-
-        Spacer(Modifier.weight(1f))
 
         IconButton(
             onClick = { /* TODO */ },
@@ -210,7 +224,6 @@ private fun PlaylistItemBoxHeader(
     ){
         AlbumImage(
             modifier = modifier
-                //.size(DpSize(200.dp,200.dp))
                 .size(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
                 .clip(MaterialTheme.shapes.medium),
             albumImage = 2,//albumImageId,
@@ -222,9 +235,16 @@ private fun PlaylistItemBoxHeader(
             maxLines = 1,
             minLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.surface,
+            //color = MaterialTheme.colorScheme.surface,
+            color = Color.White,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(10.dp)
+                .border(1.dp,color = Color.Transparent, shape = MusicShapes.small)
+                .background(
+                    Color.DarkGray,
+                    shape = MusicShapes.small
+                )
+                .padding(2.dp)
         )
     }
 }
@@ -278,7 +298,7 @@ fun PlaylistItemPreviewRow() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun PlaylistItemPreviewBox() {
     MusicTheme {
@@ -289,8 +309,8 @@ fun PlaylistItemPreviewBox() {
             onClick = {}
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally){
-                PlaylistItemBoxHeader(PreviewPlaylists[1])
-                PlaylistItemBoxFooter(PreviewPlaylists[1])
+                PlaylistItemBoxHeader(PreviewPlaylists[2])
+                PlaylistItemBoxFooter(PreviewPlaylists[2])
             }
         }
     }

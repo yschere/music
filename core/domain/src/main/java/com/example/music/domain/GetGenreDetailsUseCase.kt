@@ -1,7 +1,6 @@
 package com.example.music.domain
 
 import com.example.music.data.repository.GenreRepo
-import com.example.music.data.repository.SongRepo
 import com.example.music.model.GenreDetailsFilterResult
 import com.example.music.model.asExternalModel
 import com.example.music.util.domainLogger
@@ -12,22 +11,25 @@ import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
 
 /**
- * Use case to retrieve Genre data, songs in Genre as List<GenreInfo>, and songs in Genre as List<PlayerSong>.
- * @param genreId [Long] to return flow of PlayerSong(song, artist, album)
+ * Use case to retrieve data for [GenreDetailsFilterResult] domain model for GenreDetailsScreen UI.
+ * @property getSongDataUseCase [GetSongDataUseCase] Use case for generating PlayerSong
+ * @property genreRepo [GenreRepo] The repository for accessing Genre data
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetGenreDetailsUseCase @Inject constructor(
     val getSongDataUseCase: GetSongDataUseCase,
     private val genreRepo: GenreRepo,
-    private val songRepo: SongRepo,
 ) {
-
+    /**
+     * Invoke with genreId to retrieve GenreDetailsFilterResult data
+     * @param genreId [Long] to return flow of GenreDetailsFilterResult
+     */
     operator fun invoke(genreId: Long): Flow<GenreDetailsFilterResult> {
         domainLogger.info { "Get Genre Details Use Case - start: GenreID: $genreId" }
         val genreFlow = genreRepo.getGenreWithExtraInfo(genreId)
 
         domainLogger.info { "Get Genre Details Use Case - Get Songs by Genre ID" }
-        val songsFlow = songRepo.getSongsByGenreId(genreId)
+        val songsFlow = genreRepo.getSongsByGenreId(genreId)
 
         val pSongsFlow = songsFlow.flatMapLatest { item ->
             domainLogger.info { "Get Genre Details Use Case - Get Player Songs: ${item.size}" }
@@ -39,7 +41,9 @@ class GetGenreDetailsUseCase @Inject constructor(
             songsFlow,
             pSongsFlow,
         ) {
-            genre, songs, pSongs ->
+            genre,
+            songs,
+            pSongs, ->
             GenreDetailsFilterResult(
                 genre.asExternalModel(),
                 songs.map{ it.asExternalModel() },

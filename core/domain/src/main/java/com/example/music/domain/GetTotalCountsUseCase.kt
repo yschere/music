@@ -8,7 +8,8 @@ import javax.inject.Inject
 import com.example.music.util.domainLogger
 
 /**
- * Goal: to create use case which returns the most recently played playlists and the most recently added songs to populate the Home screen
+ * Use case which returns the count of songs, artists, albums and playlists
+ * in the library to display in the navigation drawer.
  */
 class GetTotalCountsUseCase @Inject constructor(
         private val songRepo:SongRepo,
@@ -17,7 +18,6 @@ class GetTotalCountsUseCase @Inject constructor(
         private val playlistRepo:PlaylistRepo
 ) {
 
-    //TODO: trying to rework this so that it checks stores for these items, should only be reliant on passed in stores, not individual items
     suspend operator fun invoke(): List<Int> {
         domainLogger.info { "GetTotalCountsUseCase start" }
         val songsTotal = songRepo.count()

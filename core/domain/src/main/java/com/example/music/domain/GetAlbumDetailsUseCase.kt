@@ -1,7 +1,6 @@
 package com.example.music.domain
 
 import com.example.music.data.repository.AlbumRepo
-import com.example.music.data.repository.SongRepo
 import com.example.music.model.AlbumDetailsFilterResult
 import com.example.music.model.asExternalModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -12,22 +11,25 @@ import com.example.music.util.domainLogger
 import javax.inject.Inject
 
 /**
- * Use case to retrieve Album data, songs in Album as List<SongInfo>, and songs in Album as List<PlayerSong>.
- * @param albumId [Long] to return flow of PlayerSong(song, artist, album)
+ * Use case to retrieve data for [AlbumDetailsFilterResult] domain model for AlbumDetailsScreen UI.
+ * @property getSongDataUseCase [GetSongDataUseCase] Use case for generating PlayerSong
+ * @property albumRepo [AlbumRepo] The repository for accessing Album data
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetAlbumDetailsUseCase @Inject constructor(
     val getSongDataUseCase: GetSongDataUseCase,
     private val albumRepo: AlbumRepo,
-    private val songRepo: SongRepo
 ) {
-
+    /**
+     * Invoke with albumId to retrieve AlbumDetailsFilterResult data
+     * @param albumId [Long] to return flow of AlbumDetailsFilterResult
+     */
     operator fun invoke(albumId: Long): Flow<AlbumDetailsFilterResult> {
         domainLogger.info { "Get Album Details Use Case - start: AlbumID: $albumId" }
         val albumFlow = albumRepo.getAlbumWithExtraInfo(albumId)
 
         domainLogger.info { "Get Album Details Use Case - Get Songs by Album ID" }
-        val songsFlow = songRepo.getSongsByAlbumId(albumId)
+        val songsFlow = albumRepo.getSongsByAlbumId(albumId)
 
         val pSongsFlow = songsFlow.flatMapLatest { item ->
             domainLogger.info { "Get Album Details Use Case - Get Player Songs: ${item.size}" }
@@ -39,7 +41,9 @@ class GetAlbumDetailsUseCase @Inject constructor(
             songsFlow,
             pSongsFlow,
         ) {
-            album, songs, pSongs ->
+            album,
+            songs,
+            pSongs, ->
             AlbumDetailsFilterResult(
                 album.asExternalModel(),
                 songs.map{ it.asExternalModel() },

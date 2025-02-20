@@ -15,3 +15,4 @@
 local.properties
 app/src/main/res/raw/scar.mp3
 app/src/main/res/raw/sleep_walking_orchestra.mp3
+core/data/src/main/assets/musicSqlTesting.sql

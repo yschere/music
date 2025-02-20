@@ -1,20 +1,15 @@
 package com.example.music.ui.library.composer
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
@@ -26,27 +21,32 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
-import com.example.music.designsys.component.AlbumImage
 import com.example.music.domain.testing.PreviewComposers
 import com.example.music.model.ComposerInfo
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
-fun LazyListScope.composerItems(
+/**
+ * Composer Items Lazy List Scope Generator.
+ * Provides header item with a count of the composers given, and
+ * generates a column of composers, with each composer item shown as a row.
+ */
+/*fun LazyListScope.composerItems(
     composers: List<ComposerInfo>,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
 ) {
     item {
         Text(
-            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.composers, composers.size, composers.size)) {
+            text = """\s[a-z]""".toRegex().replace(
+                quantityStringResource(R.plurals.composers, composers.size, composers.size)
+            ) {
                 it.value[1].uppercase()
             },//text = quantityStringResource(R.plurals.composers, composers.size, composers.size),
             textAlign = TextAlign.Left,
@@ -61,20 +61,14 @@ fun LazyListScope.composerItems(
             navigateToComposerDetails = navigateToComposerDetails,
             modifier = Modifier.fillParentMaxWidth()
         )
-        /*Surface(
-            shape = MaterialTheme.shapes.large,
-            color = Color.Transparent,
-            modifier = Modifier,
-            onClick = { navigateToComposerDetails(item) }
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                ComposerItemBoxHeader(item)
-                ComposerItemBoxFooter(item)
-            }
-        }*/
     }
-}
+}*/
 
+/**
+ * Composer Items Lazy Grid Scope Generator.
+ * Provides header item with a count of the composers given, and
+ * generates a column of composers, with each composer item shown as a row.
+ */
 fun LazyGridScope.composerItems(
     composers: List<ComposerInfo>,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
@@ -82,7 +76,9 @@ fun LazyGridScope.composerItems(
     //Goal: to have list of composer names in view similar to songs - row items
     fullWidthItem {
         Text(
-            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.composers, composers.size, composers.size)) {
+            text = """\s[a-z]""".toRegex().replace(
+                quantityStringResource(R.plurals.composers, composers.size, composers.size)
+            ) {
                 it.value.uppercase()
             },
 //            text = quantityStringResource(R.plurals.composers, composers.size, composers.size),
@@ -188,68 +184,6 @@ private fun ComposerListItemIcon(
         )
     }
 }
-
-//private val FEATURED_COMPOSER_IMAGE_SIZE_DP = 160.dp
-
-/*@Composable
-private fun ComposerItemBoxFooter(
-    composer: ComposerInfo,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.requiredWidth(FEATURED_COMPOSER_IMAGE_SIZE_DP)
-    ) {
-        Text(
-            text = composer.name,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(4.dp)
-        )
-
-        Spacer(Modifier.weight(1f))
-
-        IconButton(
-            onClick = { /* TODO */ },
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.cd_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-    }
-}*/
-
-/*@Composable
-private fun ComposerItemBoxHeader(
-    composer: ComposerInfo,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        contentAlignment = Alignment.BottomStart
-    ){
-        AlbumImage(
-            modifier = modifier
-                //.size(DpSize(200.dp,200.dp))
-                .size(FEATURED_COMPOSER_IMAGE_SIZE_DP)
-                .clip(MaterialTheme.shapes.medium),
-            albumImage = 2,//albumImageId,
-            contentDescription = composer.name
-        )
-
-        Text(
-            text = quantityStringResource(R.plurals.songs, composer.songCount, composer.songCount),
-            maxLines = 1,
-            minLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.surface,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(10.dp)
-        )
-    }
-}*/
 
 @Preview
 @Composable

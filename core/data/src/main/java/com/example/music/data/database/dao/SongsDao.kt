@@ -520,6 +520,46 @@ abstract class SongsDao : BaseDao<Song> {
     ): Flow<List<Song>>
 
     /**
+     * Returns a flow of the list of filtered song records matching the specified composer_id,
+     * sorted by their date_last_played attribute in ascending order
+     * If songs.date_last_played is null, it will be set as the current local datetime and sorted to the end of results list
+     * @param composerId [Long] the composer_id to match on
+     * @param limit [Int] an optional limit on the records returned
+     */
+    @Query(
+        """
+        SELECT * FROM songs
+        WHERE composer_id = :composerId
+        ORDER BY COALESCE(date_last_played, datetime(current_timestamp, 'localtime')) ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortSongsInComposerByDateLastPlayedAsc(
+        composerId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+
+    /**
+     * Returns a flow of the list of filtered song records matching the specified composer_id,
+     * sorted by their date_last_played attribute in descending order
+     * If songs.date_last_played is null, it will be sorted to the end of results list
+     * @param composerId [Long] the composer_id to match on
+     * @param limit [Int] an optional limit on the records returned
+     */
+    @Query(
+        """
+        SELECT * FROM songs
+        WHERE composer_id = :composerId
+        ORDER BY COALESCE(date_last_played, '1900-01-01 00:00:00.000') DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortSongsInComposerByDateLastPlayedDesc(
+        composerId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+
+    /**
      * Returns a flow of the list of filtered song records matching the specified genre_id
      * @param genreId [Long] the genre_id to match on
      * @param limit [Int] an optional limit on the records returned

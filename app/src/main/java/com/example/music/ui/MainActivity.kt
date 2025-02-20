@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import android.media.MediaPlayer
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.remember
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.R
 import com.example.music.data.database.MusicDatabase

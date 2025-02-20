@@ -1,19 +1,3 @@
-/*
- * Copyright 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.util
 
 import androidx.annotation.FloatRange
@@ -41,7 +25,7 @@ import kotlin.math.pow
  * Applies a radial gradient scrim in the foreground emanating from the top
  * center quarter of the element.
  */
-fun Modifier.radialGradientScrim(color: Color): Modifier {
+fun Modifier.radialGradientScrimCentered(color: Color): Modifier {
     val radialGradient = object : ShaderBrush() {
         override fun createShader(size: Size): Shader {
             val largerDimension = max(size.height, size.width)
@@ -50,6 +34,24 @@ fun Modifier.radialGradientScrim(color: Color): Modifier {
                 colors = listOf(color, Color.Transparent),
                 radius = largerDimension / 2,
                 colorStops = listOf(0f, 0.9f)
+            )
+        }
+    }
+    return this.background(radialGradient)
+}
+
+/**
+ * Applies a radial gradient scrim in the foreground emanating from the bottom right of the element.
+ */
+fun Modifier.radialGradientScrimBottomRight(colors: List<Color>,): Modifier {
+    val radialGradient = object : ShaderBrush() {
+        override fun createShader(size: Size): Shader {
+            val largerDimension = max(size.height, size.width)
+            return RadialGradientShader(
+                center = size.center.copy(x = size.width, y = size.height),
+                colors = colors + Color.Transparent,//listOf(color, Color.Transparent),
+                radius = largerDimension * 1.5f,
+                colorStops = listOf(0.25f, 0.5f, 0.75f)//listOf(0.3f, 0.7f)
             )
         }
     }

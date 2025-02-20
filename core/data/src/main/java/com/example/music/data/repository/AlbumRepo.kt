@@ -4,6 +4,7 @@ import com.example.music.data.database.dao.AlbumsDao
 import com.example.music.data.database.dao.SongsDao
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.AlbumWithExtraInfo
+import com.example.music.data.database.model.Song
 import com.example.music.data.database.model.SongToAlbum
 import kotlinx.coroutines.flow.Flow
 
@@ -55,39 +56,20 @@ interface AlbumRepo {
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<AlbumWithExtraInfo>>
 
-    /*fun sortAlbumsInGenreByTitleAsc(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Album>>*/
-
-    /*fun sortAlbumsInGenreByTitleDesc(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Album>>*/
-
-    /* //sortAlbumsInGenreByDateLastPlayedAsc not needed atm
-    fun sortAlbumsInGenreByDateLastPlayedAsc(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<AlbumWithExtraInfo>> */
-
-    /* //sortAlbumsInGenreByDateLastPlayedDesc not needed atm
-    fun sortAlbumsInGenreByDateLastPlayedDesc(
-        genreId: Long,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<AlbumWithExtraInfo>> */
-
     fun searchAlbumByTitle(
         query: String,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<AlbumWithExtraInfo>>
 
-    /* //not sure if searchAlbumByTitleAndGenre is needed
-    fun searchAlbumByTitleAndGenre(
-        query: String,
-        genreIdList: List<Long>,
+    fun getSongsByAlbumId(
+        albumId: Long,
         limit: Int = Integer.MAX_VALUE
-    ): Flow<List<AlbumWithExtraInfo>> */
+    ): Flow<List<Song>>
+
+    fun sortSongsInAlbumBySongTitleAsc(albumId: Long): Flow<List<Song>>
+    fun sortSongsInAlbumBySongTitleDesc(albumId: Long): Flow<List<Song>>
+    fun sortSongsInAlbumByTrackNumberAsc(albumId: Long): Flow<List<Song>>
+    fun sortSongsInAlbumByTrackNumberDesc(albumId: Long): Flow<List<Song>>
 
     fun songsInAlbum(albumId: Long): Flow<List<SongToAlbum>>
 
@@ -96,6 +78,18 @@ interface AlbumRepo {
     suspend fun count(): Int
 
     suspend fun isEmpty(): Boolean
+
+    /* //Queries not in use
+    fun sortAlbumsInGenreByTitleAsc(genreId: Long,limit: Int = Integer.MAX_VALUE): Flow<List<Album>>
+    fun sortAlbumsInGenreByTitleDesc(genreId: Long,limit: Int = Integer.MAX_VALUE): Flow<List<Album>>
+
+    //sortAlbumsInGenreByDateLastPlayed not needed atm
+    fun sortAlbumsInGenreByDateLastPlayedAsc(genreId: Long,limit: Int = Integer.MAX_VALUE): Flow<List<AlbumWithExtraInfo>>
+    fun sortAlbumsInGenreByDateLastPlayedDesc(genreId: Long,limit: Int = Integer.MAX_VALUE): Flow<List<AlbumWithExtraInfo>>
+
+    //not sure if searchAlbumByTitleAndGenre is needed
+    fun searchAlbumByTitleAndGenre(query: String,genreIdList: List<Long>,limit: Int = Integer.MAX_VALUE): Flow<List<AlbumWithExtraInfo>>
+    */
 }
 
 /**
@@ -148,26 +142,6 @@ class AlbumRepoImpl(
     override fun sortAlbumsByTitleDesc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
         albumDao.sortAlbumsByTitleDesc(limit)
 
-    /*override fun sortAlbumsInGenreByTitleAsc(genreId: Long, limit: Int): Flow<List<Album>> =
-        albumDao.sortAlbumsInGenreByTitleAsc(genreId, limit)*/
-
-    /*override fun sortAlbumsInGenreByTitleDesc(genreId: Long, limit: Int): Flow<List<Album>> =
-        albumDao.sortAlbumsInGenreByTitleDesc(genreId, limit)*/
-
-    /* //sortAlbumsInGenreByDateLastPlayedAsc not needed atm
-    override fun sortAlbumsInGenreByDateLastPlayedAsc(
-        genreId: Long,
-        limit: Int,
-    ): Flow<List<AlbumWithExtraInfo>> =
-        albumDao.sortAlbumsInGenreByDateLastPlayedAsc(genreId, limit) */
-
-    /*//sortAlbumsInGenreByDateLastPlayedDesc not needed atm
-    override fun sortAlbumsInGenreByDateLastPlayedDesc(
-        genreId: Long,
-        limit: Int,
-    ): Flow<List<AlbumWithExtraInfo>> =
-        albumDao.sortAlbumsInGenreByDateLastPlayedDesc(genreId, limit) */
-
     //equivalent of podcastStore.searchPodcastByTitle
     override fun searchAlbumByTitle(
         query: String,
@@ -175,16 +149,22 @@ class AlbumRepoImpl(
     ): Flow<List<AlbumWithExtraInfo>> =
         albumDao.searchAlbumByTitle(query, limit) //equivalent of podcastsDao.searchPodcastByTitle
 
-    //equivalent of podcastStore.searchPodcastByTitleAndAlbum
-    /* //not sure if searchAlbumByTitleAndGenre is needed
-    override fun searchAlbumByTitleAndGenre(
-        query: String,
-        genreIdList: List<Long>,
+    override fun getSongsByAlbumId(
+        albumId: Long,
         limit: Int
-    ): Flow<List<AlbumWithExtraInfo>> {
-        return albumDao.searchAlbumByTitleAndGenre(query, genreIdList, limit)
-        //equivalent of podcastStore.searchPodcastByTitleAndCategory
-    } */
+    ): Flow<List<Song>> = songDao.getSongsByAlbumId(albumId, limit)
+
+    override fun sortSongsInAlbumBySongTitleAsc(albumId: Long): Flow<List<Song>> =
+        songDao.sortSongsInAlbumBySongTitleAsc(albumId)
+
+    override fun sortSongsInAlbumBySongTitleDesc(albumId: Long): Flow<List<Song>> =
+        songDao.sortSongsInAlbumBySongTitleDesc(albumId)
+
+    override fun sortSongsInAlbumByTrackNumberAsc(albumId: Long): Flow<List<Song>> =
+        songDao.sortSongsInAlbumByTrackNumberAsc(albumId)
+
+    override fun sortSongsInAlbumByTrackNumberDesc(albumId: Long): Flow<List<Song>> =
+        songDao.sortSongsInAlbumByTrackNumberDesc(albumId)
 
     override fun songsInAlbum(albumId: Long): Flow<List<SongToAlbum>> =
         songDao.getSongsAndAlbumByAlbumId(albumId)
@@ -200,4 +180,27 @@ class AlbumRepoImpl(
     override suspend fun count(): Int = albumDao.count()
 
     override suspend fun isEmpty(): Boolean = albumDao.count() == 0
+
+    /* //Queries not in use
+    //sortAlbumsInGenre could be in need but only if able to connect album to genre
+    override fun sortAlbumsInGenreByTitleAsc(genreId: Long, limit: Int): Flow<List<Album>> =
+        albumDao.sortAlbumsInGenreByTitleAsc(genreId, limit)
+    override fun sortAlbumsInGenreByTitleDesc(genreId: Long, limit: Int): Flow<List<Album>> =
+        albumDao.sortAlbumsInGenreByTitleDesc(genreId, limit)
+    override fun sortAlbumsInGenreByDateLastPlayedAsc(genreId: Long,limit: Int): Flow<List<AlbumWithExtraInfo>> =
+        albumDao.sortAlbumsInGenreByDateLastPlayedAsc(genreId, limit)
+    override fun sortAlbumsInGenreByDateLastPlayedDesc(genreId: Long,limit: Int,): Flow<List<AlbumWithExtraInfo>> =
+        albumDao.sortAlbumsInGenreByDateLastPlayedDesc(genreId, limit)
+
+    //equivalent of podcastStore.searchPodcastByTitleAndAlbum
+    //not sure if searchAlbumByTitleAndGenre is needed
+    override fun searchAlbumByTitleAndGenre(
+        query: String,
+        genreIdList: List<Long>,
+        limit: Int
+    ): Flow<List<AlbumWithExtraInfo>> {
+        return albumDao.searchAlbumByTitleAndGenre(query, genreIdList, limit)
+        //equivalent of podcastStore.searchPodcastByTitleAndCategory
+    }
+     */
 }

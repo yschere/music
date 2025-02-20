@@ -84,10 +84,10 @@ import kotlin.math.min
 fun AlbumListItem(
     album: AlbumInfo,
     onClick: (AlbumInfo) -> Unit,
+    boxOrRow: Boolean = true,
     //TODO: will want to add navigateToAlbumDetails onClick action at some point as well as declaration and implementation
     //TODO: will want to add onQueueAlbum onClick action if I keep the FAB over each album in box version
     modifier: Modifier = Modifier,
-    boxOrRow: Boolean, //using to set if viewing as box version(true) or row version(false)
     /*//not passing in artistInfo from ArtistDetailsScreen because want to use album's album artist id info instead
         // onQueueSong: (PlayerSong) -> Unit, //don't think onQueueSong will be needed for list item, but maybe a navigate to album details screen btn instead
         // showAlbumImage: Boolean, //this should be true all the time, so is unnecessary for album list item
@@ -96,14 +96,6 @@ fun AlbumListItem(
         // so would need to pass that instead of Album
     */
 ) {
-    // TWO TYPES OF VIEWABLE OPTIONS
-    // BOX for album overhead details
-        //this would need header and footer, header for the album image section, footer for the album title section
-    // ROW for album overhead details
-        //this would look similar to song list item, album image first in row, album name with album artist name below it in second section, more options btn on the far right side
-    //For now keeping both as separate options thru boolean check: box(true) or row(false)
-    //information i want to show: album name, album image, album artist name
-    //information i could show: song count
     Box(modifier = modifier.padding(2.dp)) {
         Surface(
             shape = MaterialTheme.shapes.large,

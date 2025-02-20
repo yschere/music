@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
@@ -32,7 +30,12 @@ import com.example.music.model.ArtistInfo
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
-fun LazyListScope.artistItems(
+/**
+ * Artist Items Lazy List Scope Generator.
+ * Provides header item with a count of the artist given, and
+ * generates a column of artists, with each artist item shown as a row.
+ */
+/*fun LazyListScope.artistItems(
     artists: List<ArtistInfo>,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     //playerSongs: List<PlayerSong>, //TODO: PlayerSong support
@@ -41,7 +44,9 @@ fun LazyListScope.artistItems(
 ) {
     item {
         Text(
-            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.artists, artists.size, artists.size)) {
+            text = """\s[a-z]""".toRegex().replace(
+                quantityStringResource(R.plurals.artists, artists.size, artists.size)
+            ) {
                 it.value.uppercase()
             },
             //text = quantityStringResource(R.plurals.artists, artists.size, artists.size),
@@ -59,8 +64,13 @@ fun LazyListScope.artistItems(
             modifier = Modifier.fillParentMaxWidth(),
         )
     }
-}
+}*/
 
+/**
+ * Playlist Items Lazy Grid Scope Generator.
+ * Provides header item with a count of the playlist given, and
+ * generates a column of playlists, with each playlist item shown as a row.
+ */
 fun LazyGridScope.artistItems(
     artists: List<ArtistInfo>,
     navigateToArtistDetails: (ArtistInfo) -> Unit,

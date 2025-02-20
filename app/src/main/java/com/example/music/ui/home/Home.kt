@@ -2,14 +2,13 @@ package com.example.music.ui.home
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+//import androidx.compose.foundation.background
+//import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.BoxWithConstraints
+//import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+//import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,36 +22,26 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
+//import androidx.compose.foundation.pager.HorizontalPager
+//import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.MenuOpen
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
+//import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
+//import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -71,6 +60,7 @@ import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
 import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
 import androidx.compose.material3.adaptive.occludingVerticalHingeBounds
 import androidx.compose.material3.adaptive.separatingVerticalHingeBounds
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -87,6 +77,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -97,6 +88,7 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewPlayerSongs
@@ -106,14 +98,15 @@ import com.example.music.model.FeaturedLibraryItemsFilterResult
 import com.example.music.model.PlaylistInfo
 import com.example.music.model.SongInfo
 import com.example.music.player.model.PlayerSong
+import com.example.music.ui.shared.FeaturedPlaylistsCarousel
+import com.example.music.ui.shared.MoreOptionsBottomModal
 import com.example.music.ui.shared.NavDrawer
+import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.formatStr
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.isCompact
 import com.example.music.util.quantityStringResource
-import com.example.music.util.radialGradientScrim
-import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -341,9 +334,6 @@ private fun HomeScreen(
     windowSizeClass: WindowSizeClass,
     isLoading: Boolean,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
-    //featuredPlaylists: PersistentList<PlaylistInfo>,
-    //featuredSongs: PersistentList<SongInfo>,
-    //library: LibraryInfo,
     librarySongs: List<PlayerSong>, //TODO: PlayerSong support
     totals: List<Int>,
     onHomeAction: (HomeAction) -> Unit,
@@ -361,7 +351,7 @@ private fun HomeScreen(
     //TODO: repurpose this for RecentPlaylists, so that if there's no recent playlists as featured playlists, have a defaulted view
     LaunchedEffect(key1 = featuredLibraryItemsFilterResult.recentPlaylists) {
         if (featuredLibraryItemsFilterResult.recentPlaylists.isEmpty()) {
-            //onHomeAction(HomeAction.EmptyLibraryView(PlaylistInfo()))
+            onHomeAction(HomeAction.EmptyLibraryView(PlaylistInfo()))
         }
     }
 
@@ -371,62 +361,9 @@ private fun HomeScreen(
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    HomeScreenBackground(
+    ScreenBackground(
         modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
-        /*ModalNavigationDrawer(
-            drawerState = drawerState,
-            drawerContent = {
-                ModalDrawerSheet(
-                    drawerContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    drawerContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.fillMaxHeight().width(250.dp)
-                ) {
-                    Text(
-                        text = "Musicality",
-                        style = MaterialTheme.typography.displaySmall,
-                        modifier = Modifier.padding(12.dp)
-                    )
-                    HorizontalDivider()
-
-                    NavigationDrawerItem(
-                        label = { Text(text="Home Page") },
-                        selected = true,
-                        onClick = navigateToHome
-                    ) // Home Screen navigation item
-                    NavigationDrawerItem(
-                        label = { Text( text = "Library" ) },
-                        selected = false,
-                        onClick = navigateToLibrary
-                    )
-    //                    NavigationDrawerItem(
-    //                        label = { Text( text = "Player Screen-song" ) },
-    //                        selected = false,
-    //                        onClick = { navigateToPlayer() }
-    //                    )
-    //                    NavigationDrawerItem(
-    //                        label = { Text( text = "Player Screen-pSong" ) },
-    //                        selected = false,
-    //                        onClick = { navigateToPlayerSong() }
-    //                    )
-                    HorizontalDivider()
-
-    //                    Text(/* #Songs */Modifier.padding(2.dp))
-    //                    Text(/* #Artists */)
-    //                    Text(/* #Albums */)
-    //                    Text(/* #Playlists */)
-    //                    HorizontalDivider()
-
-                    NavigationDrawerItem(
-                        label = { Text( text = "Settings" ) },
-                        selected = false,
-                        onClick = navigateToSettings
-                    )
-                }
-            },
-            gesturesEnabled = false,
-            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha=0.1f)
-        )*/
         NavDrawer(
             "Home Page",
             totals,
@@ -434,10 +371,11 @@ private fun HomeScreen(
             navigateToLibrary,
             navigateToSettings,
             drawerState,
+            coroutineScope,
         ) {
             Scaffold(
                 topBar = {
-                    HomeAppBar(
+                    HomeTopAppBar(
                         isExpanded = windowSizeClass.isCompact,
                         isSearchOn = false,
                         onNavigationIconClick = {
@@ -486,32 +424,10 @@ private fun HomeScreen(
 }
 
 /**
- * Composable for Home Screen's Background.
- */
-@Composable
-private fun HomeScreenBackground(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
-) {
-    //logger.info { "Home Background function start" }
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .radialGradientScrim(MaterialTheme.colorScheme.primary)
-        )
-        content()
-    }
-}
-
-/**
  * Composable for Home Screen's Top App Bar.
  */
 @Composable
-private fun HomeAppBar(
+private fun HomeTopAppBar(
     isSearchOn: Boolean,
     isExpanded: Boolean,
     onNavigationIconClick: () -> Unit, //use this to capture navDrawer open/close action
@@ -522,6 +438,7 @@ private fun HomeAppBar(
         mutableStateOf("")
     }
     Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
@@ -536,6 +453,12 @@ private fun HomeAppBar(
                 contentDescription = stringResource(R.string.cd_more)
             )
         }
+
+        /*Text(
+            "Home Page",
+            textAlign = TextAlign.Left,
+            style = MaterialTheme.typography.titleLarge
+        )*/
 
         //right align objects after this space
         Spacer(Modifier.weight(1f))
@@ -622,10 +545,10 @@ private fun HomeContent(
     //logger.info { "Home Content - HomeContentGrid function call" }
 
     val sheetState = rememberModalBottomSheetState(true,)
+//    var (showBottomSheet, sheetItem) by remember { mutableStateOf(false), mutableStateOf() }
     var showBottomSheet by remember { mutableStateOf(false) }
-
     HomeContentGrid(
-        sheetState = sheetState,
+//        sheetState = sheetState,
         pagerState = pagerState,
         featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
         librarySongs = librarySongs, //TODO: PlayerSong support
@@ -637,8 +560,8 @@ private fun HomeContent(
         navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
     )
 
-//    MoreOptionsBottomModal(coroutineScope, showBottomSheet, sheetState)
     if(showBottomSheet) {
+//        MoreOptionsBottomModal({ showBottomSheet = false })
         ModalBottomSheet(
             onDismissRequest = {
                 showBottomSheet = false
@@ -647,7 +570,12 @@ private fun HomeContent(
             contentColor = MaterialTheme.colorScheme.secondary,
             containerColor = MaterialTheme.colorScheme.onSecondary,
             scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f),
+//            properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
         ){
+            /* //Idea for modal: to show action items like a dropdown menu when an item's more options btn is clicked/pressed
+                first, need to be able to call it from any screen that has a more options btn
+                second, need it to show context dependent on the item context (what type of object the more options btn press was from)
+             */
             Text("HELP")
             Icon(
                 painter = painterResource(R.drawable.bpicon),
@@ -662,33 +590,6 @@ private fun HomeContent(
                 tint = MaterialTheme.colorScheme.scrim.copy(alpha = 0.1f),
                 modifier = Modifier.size(56.dp),
             )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MoreOptionsBottomModal(
-    coroutineScope: CoroutineScope,
-//    showBottomSheet: Boolean,
-    sheetState: SheetState,
-
-) {
-    ModalBottomSheet(
-        onDismissRequest = {
-            var showBottomSheet = false
-        },
-        sheetState = sheetState
-    ) {
-        // Sheet content
-        Button(onClick = {
-            coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
-                if (!sheetState.isVisible) {
-                    var showBottomSheet = false
-                }
-            }
-        }) {
-            Text("Hide bottom sheet")
         }
     }
 }
@@ -696,13 +597,13 @@ fun MoreOptionsBottomModal(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeContentGrid(
-    sheetState: SheetState,
+//    sheetState: SheetState,
     pagerState: PagerState,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
     librarySongs: List<PlayerSong>, //TODO: PlayerSong support
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
-    onMoreOptionsClick: () -> Unit,
+    onMoreOptionsClick: (Any) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
@@ -716,16 +617,37 @@ private fun HomeContentGrid(
         //logger.info { "featuredLibraryItemsFilterResult - recentPlaylists size: ${featuredLibraryItemsFilterResult.recentPlaylists.size}" }
         if (featuredLibraryItemsFilterResult.recentPlaylists.isNotEmpty()) {
             fullWidthItem {
-                Text(
-                    text = stringResource(R.string.recent_playlists),
-                    minLines = 1,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.recent_playlists),
+                        minLines = 1,
+                        maxLines = 1,
+                        style = MaterialTheme.typography.titleLarge,//headlineSmall,
+                        modifier = Modifier.padding(16.dp)//.fillMaxWidth()
+                    )
+
+                    Spacer(Modifier.weight(1f))
+
+                    Button(
+                        onClick = {/*onMoreOptionsClick*/},//navigateToLibrary -> Playlists -> sortBy DateLastAccessed Desc
+                        shape = MusicShapes.extraLarge,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp),
+                        contentPadding = ButtonDefaults.TextButtonContentPadding,
+
+                    ) {
+                        Text(
+                            text = "More",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
             }
             fullWidthItem {
-                FeaturedPlaylists(
+                FeaturedPlaylistsCarousel(
                     pagerState = pagerState,
                     items = featuredLibraryItemsFilterResult.recentPlaylists.toPersistentList(),
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
@@ -737,13 +659,34 @@ private fun HomeContentGrid(
         //logger.info { "featuredLibraryItemsFilterResult - recentlyAddedSongs size: ${featuredLibraryItemsFilterResult.recentlyAddedSongs.size}" }
         if (featuredLibraryItemsFilterResult.recentlyAddedSongs.isNotEmpty()) {
             fullWidthItem {
-                Text(
-                    text = stringResource(R.string.recent_songs),
-                    minLines = 1,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.recent_songs),
+                        minLines = 1,
+                        maxLines = 1,
+                        style = MaterialTheme.typography.titleLarge,//headlineSmall,
+                        modifier = Modifier.padding(16.dp)//.fillMaxWidth()
+                    )
+
+                    Spacer(Modifier.weight(1f))
+
+                    Button(
+                        onClick = {/*onMoreOptionsClick*/},//navigateToLibrary -> Songs -> sortBy DateCreated Desc
+                        shape = MusicShapes.extraLarge,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp),
+                        contentPadding = ButtonDefaults.TextButtonContentPadding,
+
+                        ) {
+                        Text(
+                            text = "More",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
             }
             /**
              * ORIGINAL VERSION: using featuredLibraryItemsFilterResult.recentlyAddedSongs which is List<SongInfo>
@@ -773,13 +716,8 @@ private fun HomeContentGrid(
                     HomeSongListItem(
                         song = song,
                         onClick = navigateToPlayerSong,
-                        onMoreOptionsClick = onMoreOptionsClick,
-                        //onQueueSong = { },
-                        modifier = Modifier.fillMaxWidth(),//.padding(horizontal = 16.dp),
-                        isListEditable = false,
-                        showArtistName = true,
-                        showAlbumImage = true,
-                        showAlbumTitle = true,
+                        onMoreOptionsClick = { onMoreOptionsClick(song) }, //connects the song to the more options call
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
@@ -794,28 +732,20 @@ fun HomeSongListItem(
     song: PlayerSong,
     onClick: (PlayerSong) -> Unit,
     onMoreOptionsClick: () -> Unit,
-    //onQueueSong: (PlayerSong) -> Unit,
-    isListEditable: Boolean,
-    showArtistName: Boolean,
-    showAlbumImage: Boolean,
-    showAlbumTitle: Boolean,
+//    onMoreOptionsClick: (Any) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(4.dp)) { //outermost layer with padding of 4 for separation between other song list items
-        Surface( //second most layer, contains onclick action and background color
+    Box(modifier = modifier.padding(4.dp)) {
+        Surface(
             shape = MaterialTheme.shapes.large,
-            //color = MaterialTheme.colorScheme.background,
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            onClick = { onClick(song) }, //this is how navigateToPlayer should be used for each song ListItem, as the passed in onClick event
+//            color = Color.Transparent,
+//            color = MaterialTheme.colorScheme.surfaceContainer,
+            onClick = { onClick(song) },
         ) {
-            HomeSongListItemRow( //design content of song list item
+            HomeSongListItemRow(
                 song = song,
                 onMoreOptionsClick = onMoreOptionsClick,
-                isListEditable = isListEditable,
-                showArtistName = showArtistName,
-                showAlbumImage = showAlbumImage,
-                showAlbumTitle = showAlbumTitle,
-                modifier = modifier//.padding(4.dp),
+                modifier = modifier
             )
         }
     }
@@ -825,13 +755,9 @@ fun HomeSongListItem(
 private fun HomeSongListItemRow(
     song: PlayerSong,
     onMoreOptionsClick: () -> Unit,
-    isListEditable: Boolean,
-    showArtistName: Boolean,
-    showAlbumImage: Boolean,
-    showAlbumTitle: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    Row( //third layer, contains layout logic and information for content
+    Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
@@ -849,7 +775,7 @@ private fun HomeSongListItemRow(
                 maxLines = 1,
                 minLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
             )
             Row(
@@ -883,7 +809,7 @@ private fun HomeSongListItemRow(
 
         IconButton( //more options button
             //modifier = Modifier.padding(0.dp),
-            onClick = { onMoreOptionsClick() }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
+            onClick = onMoreOptionsClick, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
         ) {
             Icon( //more options icon
                 imageVector = Icons.Default.MoreVert,
@@ -892,102 +818,6 @@ private fun HomeSongListItemRow(
                 tint = MaterialTheme.colorScheme.primary,
             )
         }
-    }
-}
-
-private val FEATURED_PLAYLIST_IMAGE_SIZE_DP = 160.dp
-
-@Composable
-private fun FeaturedPlaylists(
-    pagerState: PagerState,
-    items: PersistentList<PlaylistInfo>,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    //logger.info { "Featured Playlist Item function start" }
-    Column(modifier = modifier) {
-        FeaturedPlaylistsCarousel(
-            pagerState = pagerState,
-            items = items,
-            navigateToPlaylistDetails = navigateToPlaylistDetails,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-
-@Composable
-private fun FeaturedPlaylistsCarousel(
-    pagerState: PagerState,
-    items: PersistentList<PlaylistInfo>,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    //logger.info { "Featured Playlists function start" }
-    // TODO: Using BoxWithConstraints is not quite performant since it requires 2 passes to compute
-    // the content padding. This should be revisited once a carousel component is available.
-    // Alternatively, version 1.7.0-alpha05 of Compose Foundation supports `snapPosition`
-    // which solves this problem and avoids this calculation altogether. Once 1.7.0 is
-    // stable, this implementation can be updated.
-    BoxWithConstraints(
-        modifier = modifier.background(Color.Transparent)
-    ) {
-        val horizontalPadding = (this.maxWidth - FEATURED_PLAYLIST_IMAGE_SIZE_DP) / 2
-        HorizontalPager(
-            state = pagerState,
-            contentPadding = PaddingValues(
-                horizontal = horizontalPadding,
-                vertical = 16.dp,
-            ),
-            pageSpacing = 24.dp,
-            pageSize = PageSize.Fixed(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
-        ) { page ->
-            val playlist = items[page]
-            //logger.info { "Home Content Grid - playlists layout for playlist ${playlist.id}" }
-            FeaturedPlaylistsCarouselItem(
-                playlistImage = 1,//album.artwork!!,
-                playlistTitle = playlist.name,
-                //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable {
-                        navigateToPlaylistDetails(playlist)
-                    }
-            )
-        }
-    }
-}
-
-@Composable
-private fun FeaturedPlaylistsCarouselItem(
-    playlistTitle: String,
-    //albumImage: String,
-    playlistImage: Int,
-    modifier: Modifier = Modifier,
-) {
-    //logger.info { "Featured Playlist Carousel Item function start" }
-    Column(modifier) {
-        Box(
-            Modifier
-                .size(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
-                .align(Alignment.CenterHorizontally)
-        ) {
-            AlbumImage(
-                albumImage = playlistImage,
-                contentDescription = playlistTitle,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(MaterialTheme.shapes.medium),
-            )
-        }
-        Text(
-            text = playlistTitle,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .align(Alignment.CenterHorizontally)
-        )
     }
 }
 
@@ -1011,6 +841,7 @@ private fun lastUpdated(updated: OffsetDateTime): String {
 private val CompactWindowSizeClass = WindowSizeClass.compute(360f, 780f)
 
 //@DevicePreviews
+@Preview
 @Preview (name = "dark mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewHome() {
@@ -1042,14 +873,4 @@ private fun PreviewHome() {
     }
 }
 
-//@Preview
-@Composable
-private fun PreviewPodcastCard() {
-    MusicTheme {
-        FeaturedPlaylistsCarouselItem(
-            modifier = Modifier.size(128.dp),
-            playlistTitle = "List of",
-            playlistImage = 0,
-        )
-    }
-}
+

@@ -3,9 +3,8 @@ package com.example.music.model
 import com.example.music.player.model.PlayerSong
 
 /**
- * A model holding top songs (maybe replace with albums or artists??) and
- * matching songs when filtering based on a genre.
- * What makes a topAlbum? I could make it song count for now.
+ * A domain model for holding an artist object, its list of albums, and its list of songs.
+ * Used in the UI for displaying ArtistDetailsScreen.
  */
 data class ArtistDetailsFilterResult(
     val artist: ArtistInfo = ArtistInfo(),

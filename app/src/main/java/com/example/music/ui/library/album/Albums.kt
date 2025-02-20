@@ -1,5 +1,7 @@
 package com.example.music.ui.library.album
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,10 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
@@ -35,19 +35,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.model.AlbumInfo
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
-fun LazyListScope.albumItems(
+/**
+ * Album Items Lazy List Scope Generator.
+ * Provides header item with a count of the albums given, and
+ * generates a column of albums, with each album shown as a row.
+ */
+/*fun LazyListScope.albumItems(
     albums: List<AlbumInfo>,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
 ) {
     item {
         Text(
-            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.albums, albums.size, albums.size)) {
+            text = """\s[a-z]""".toRegex().replace(
+                quantityStringResource(R.plurals.albums, albums.size, albums.size)
+            ) {
                 it.value.uppercase()
             },
             //text = quantityStringResource(R.plurals.albums, albums.size, albums.size),
@@ -62,8 +70,13 @@ fun LazyListScope.albumItems(
             navigateToAlbumDetails = navigateToAlbumDetails,
         )
     }
-}
+}*/
 
+/**
+ * Album Items Lazy Grid Scope Generator.
+ * Provides header item with a count of the albums given, and
+ * generates a grid of albums, with each album item shown as a card.
+ */
 fun LazyGridScope.albumItems(
     albums: List<AlbumInfo>,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
@@ -71,7 +84,9 @@ fun LazyGridScope.albumItems(
 ) {
     fullWidthItem {
         Text(
-            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.albums, albums.size, albums.size)) {
+            text = """\s[a-z]""".toRegex().replace(
+                quantityStringResource(R.plurals.albums, albums.size, albums.size)
+            ) {
                 it.value.uppercase()
             },
             //text = quantityStringResource(R.plurals.albums, albums.size, albums.size),
@@ -178,11 +193,9 @@ private fun AlbumItemBoxFooter(
             text = album.title,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(4.dp)
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(4.dp).align(Alignment.CenterVertically).weight(1f,false)
         )
-
-        Spacer(Modifier.weight(1f))
 
         IconButton(
             onClick = { /* TODO */ },
@@ -206,7 +219,6 @@ private fun AlbumItemBoxHeader(
     ){
         AlbumImage(
             modifier = modifier
-                //.size(DpSize(200.dp,200.dp))
                 .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
                 .clip(MaterialTheme.shapes.medium),
             albumImage = 2,//albumImageId,
@@ -218,9 +230,16 @@ private fun AlbumItemBoxHeader(
             maxLines = 1,
             minLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.surface,
+            //color = MaterialTheme.colorScheme.surface,
+            color = Color.White,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(10.dp)
+                .border(1.dp,color = Color.Transparent, shape = MusicShapes.small)
+                .background(
+                    Color.DarkGray,
+                    shape = MusicShapes.small
+                )
+                .padding(2.dp)
         )
     }
 }
@@ -271,5 +290,23 @@ fun AlbumItemPreviewRow() {
             album = PreviewAlbums[0],
             navigateToAlbumDetails = {},
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AlbumItemPreviewBox() {
+    MusicTheme {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = Color.Transparent,
+            modifier = Modifier,
+            onClick = {}
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally){
+                AlbumItemBoxHeader(PreviewAlbums[0])
+                AlbumItemBoxFooter(PreviewAlbums[0])
+            }
+        }
     }
 }

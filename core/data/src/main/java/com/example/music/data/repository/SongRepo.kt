@@ -37,29 +37,13 @@ interface SongRepo {
     fun sortSongsByAlbumAsc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
     fun sortSongsByAlbumDesc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
 
-    /**
-    Return limited list flow of least recently added songs
-     */
     fun sortSongsByDateAddedAsc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
 
-    /**
-    Return limited list flow of most recently added songs
-     */
     fun sortSongsByDateAddedDesc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
 
-    /**
-    Return limited list flow of least recently played songs
-     */
     fun sortSongsByDateLastPlayedAsc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
 
-    /**
-    Return limited list flow of most recently played songs
-     */
     fun sortSongsByDateLastPlayedDesc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-
-    /**
-    Return list of songs given artist id in ascending order based on sortColumn
-     */
 
     fun getSongsByArtistId(artistId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
     fun getSongsByArtistIds(artistIds: List<Long>, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
@@ -80,9 +64,20 @@ interface SongRepo {
     fun sortSongsInComposerByTitleAsc(composerId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
     fun sortSongsInComposerByTitleDesc(composerId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
 
-    fun getSongsByGenreId(genreId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-    fun sortSongsInGenreByTitleAsc(genreId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-    fun sortSongsInGenreByTitleDesc(genreId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
+    fun getSongsByGenreId(
+        genreId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+
+    fun sortSongsInGenreByTitleAsc(
+        genreId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+
+    fun sortSongsInGenreByTitleDesc(
+        genreId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
 
     fun sortSongsInGenreByDateLastPlayedAsc(
         genreId: Long,
@@ -93,16 +88,6 @@ interface SongRepo {
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<Song>>
-
-    /* fun sortSongsInGenresByDateLastPlayedAsc(
-        genreIds: List<Long>,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Song>> */
-
-    /* fun sortSongsInGenresByDateLastPlayedDesc(
-        genreIds: List<Long>,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<Song>> */
 
     /* fun getSongsAndAlbumsInGenreSortedByLastPlayed(
         genreId: Long,
@@ -239,12 +224,6 @@ class SongRepoImpl @Inject constructor(
 
     override fun sortSongsInGenreByDateLastPlayedDesc(genreId: Long, limit: Int): Flow<List<Song>> =
         songDao.sortSongsInGenreByDateLastPlayedDesc(genreId, limit)
-
-    /* override fun sortSongsInGenresByDateLastPlayedAsc(genreIds: List<Long>, limit: Int): Flow<List<Song>> =
-        songDao.sortSongsInGenresByDateLastPlayedAsc(genreIds, limit) */
-
-    /* override fun sortSongsInGenresByDateLastPlayedDesc(genreIds: List<Long>, limit: Int): Flow<List<Song>> =
-        songDao.sortSongsInGenresByDateLastPlayedDesc(genreIds, limit) */
 
     //equivalent of categoriesDao.episodesFromPodcastsInCategory
     /* override fun sortSongsAndAlbumsInGenreByDateLastPlayed(

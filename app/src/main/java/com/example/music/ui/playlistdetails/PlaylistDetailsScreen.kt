@@ -70,11 +70,11 @@ import com.example.music.model.PlaylistInfo
 import com.example.music.model.SongInfo
 import com.example.music.player.model.PlayerSong
 import com.example.music.ui.shared.Loading
+import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
-import com.example.music.util.radialGradientScrim
 
 /**
  * Stateful version of Playlist Details Screen
@@ -182,7 +182,7 @@ fun PlaylistDetailsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.song_added_to_your_queue) //used to hold the little popup text that appears after an onClick event
 
-    PlaylistDetailsScreenBackground(
+    ScreenBackground(
         modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         //base layer structure component
@@ -220,27 +220,6 @@ fun PlaylistDetailsScreen(
 }
 
 /**
- * Composable for Playlist Details Screen's Background.
- */
-@Composable
-private fun PlaylistDetailsScreenBackground(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
-) {
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
-        )
-        content()
-    }
-}
-
-/**
  * Composable for Playlist Details Screen's Top App Bar.
  */
 @Composable
@@ -251,7 +230,8 @@ fun PlaylistDetailsTopAppBar(
     //modifier: Modifier = Modifier
 ) {
     Row(
-        Modifier.fillMaxWidth()
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
             .padding(horizontal = 8.dp)
     ) {
         //back button

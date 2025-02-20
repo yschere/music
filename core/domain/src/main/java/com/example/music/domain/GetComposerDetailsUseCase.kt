@@ -11,15 +11,19 @@ import com.example.music.util.domainLogger
 import javax.inject.Inject
 
 /**
- * Use case to retrieve Composer data, songs in Composer as List<ComposerInfo>, and songs in Composer as List<PlayerSong>.
- * @param composerId [Long] to return flow of PlayerSong(song, artist, album)
+ * Use case to retrieve data for [ComposerDetailsFilterResult] domain model for ComposerDetailsScreen UI.
+ * @property getSongDataUseCase [GetSongDataUseCase] Use case for generating PlayerSong
+ * @property composerRepo [ComposerRepo] The repository for accessing Composer data
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetComposerDetailsUseCase @Inject constructor(
     val getSongDataUseCase: GetSongDataUseCase,
     private val composerRepo: ComposerRepo,
 ) {
-
+    /**
+     * Invoke with composerId to retrieve ComposerDetailsFilterResult data
+     * @param composerId [Long] to return flow of ComposerDetailsFilterResult
+     */
     operator fun invoke(composerId: Long): Flow<ComposerDetailsFilterResult> {
         domainLogger.info { "Get Composer Details Use Case - start: ComposerID: $composerId" }
         val composerFlow = composerRepo.getComposerWithExtraInfo(composerId)
@@ -37,7 +41,9 @@ class GetComposerDetailsUseCase @Inject constructor(
             songsFlow,
             pSongsFlow,
         ) {
-            composer, songs, pSongs ->
+            composer,
+            songs,
+            pSongs, ->
             ComposerDetailsFilterResult(
                 composer.asExternalModel(),
                 songs.map{ it.asExternalModel() },

@@ -12,22 +12,33 @@ import com.example.music.util.domainLogger
 import javax.inject.Inject
 
 /**
- * Retrieves Flow<[AlbumInfo]> for given
- * @param song [SongInfo]
- * because the albumId from song can be null,
- * it's possible for AlbumInfo to be null. So in this case,
- * it will return flow of empty AlbumInfo
+ * Use case to retrieve Flow[AlbumInfo] for given song [SongInfo]
+ * @property albumRepo [AlbumRepo] The repository for accessing Album data
+ * NOTE: Because the albumId for song can be null,
+ * it's possible for AlbumInfo to return as null.
+ * So in this case, it will return flow of empty AlbumInfo
  */
 class GetSongAlbumDataUseCase @Inject constructor(
     private val albumRepo: AlbumRepo,
 ){
+    /**
+     * Invoke with single Song to retrieve single [AlbumInfo]
+     * @param song [SongInfo] to return flow of [AlbumInfo]
+     */
     operator fun invoke(song: SongInfo): Flow<AlbumInfo> {
-        domainLogger.info { "GetSongAlbumDataUseCase start" }
-        domainLogger.info { "song.id: ${song.id}; song.albumId: ${song.albumId}"}
+        domainLogger.info { "GetSongAlbumDataUseCase start:\n" +
+                " song.id: ${song.id};\n" +
+                " song.albumId: ${song.albumId ?: "null"};"}
 
         return if (song.albumId != null) {
-            albumRepo.getAlbumWithExtraInfo(song.albumId).map { it.asExternalModel() }
+            albumRepo.getAlbumWithExtraInfo(song.albumId).map {
+                domainLogger.info { "AlbumWithExtraInfo: \n" +
+                        " Album: ${it.album};\n" +
+                        " Album songCount: ${it.songCount};"}
+                it.asExternalModel()
+            }
         } else {
+            domainLogger.info { "AlbumInfo is empty" }
             flowOf(AlbumInfo())
         }
     }

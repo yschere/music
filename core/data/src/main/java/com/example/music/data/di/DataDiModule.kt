@@ -49,11 +49,21 @@ import okhttp3.logging.LoggingEventListener
 import java.io.File
 import javax.inject.Singleton
 
-private const val APP_PREFERENCES = "app_preferences"
+private const val APP_PREFERENCES = "app_preferences.pb"
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DataDiModule {
+
+    @Provides
+    @Dispatcher(MusicDispatchers.IO)
+    @Singleton
+    fun provideIODispatcher(): CoroutineDispatcher = Dispatchers.IO
+
+    @Provides
+    @Dispatcher(MusicDispatchers.Main)
+    @Singleton
+    fun provideMainDispatcher(): CoroutineDispatcher = Dispatchers.Main
 
 //    @Provides
 //    @Singleton
@@ -126,6 +136,7 @@ object DataDiModule {
 //                override suspend fun shouldMigrate(currentData: Preferences): Boolean { TODO("should migrate Not yet implemented") }
 //            },
 //        ),
+        corruptionHandler = null,
         scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
         produceFile = { appContext.preferencesDataStoreFile(APP_PREFERENCES) }
     )
@@ -185,16 +196,6 @@ object DataDiModule {
 //    @Singleton
 //    fun provideSyndFeedInput() = SyndFeedInput()
 
-    @Provides
-    @Dispatcher(MusicDispatchers.IO)
-    @Singleton
-    fun provideIODispatcher(): CoroutineDispatcher = Dispatchers.IO
-
-    @Provides
-    @Dispatcher(MusicDispatchers.Main)
-    @Singleton
-    fun provideMainDispatcher(): CoroutineDispatcher = Dispatchers.Main
-
     //composerRepo??
     //would use song-playlist-dao as localStore param
 
@@ -234,13 +235,13 @@ object DataDiModule {
     @Singleton
     fun provideGenreRepo(
         genreDao: GenresDao,
-        albumDao: AlbumsDao,
-        artistDao: ArtistsDao,
+//        albumDao: AlbumsDao,
+//        artistDao: ArtistsDao,
         songDao: SongsDao,
     ): GenreRepo = GenreRepoImpl(
         genreDao = genreDao,
-        albumDao = albumDao,
-        artistDao = artistDao,
+//        albumDao = albumDao,
+//        artistDao = artistDao,
         songDao = songDao
     )
 

@@ -1,9 +1,7 @@
 package com.example.music.ui.settings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,23 +14,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,9 +56,9 @@ import com.example.music.domain.testing.PreviewSongs
 import com.example.music.model.SongInfo
 import com.example.music.player.model.PlayerSong
 import com.example.music.ui.shared.NavDrawer
+import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.isCompact
-import com.example.music.util.radialGradientScrim
 import kotlinx.coroutines.launch
 
 /**
@@ -143,7 +141,7 @@ private fun SettingsScreen(
     val snackBarText = stringResource(id = R.string.song_added_to_your_queue)
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    SettingsScreenBackground(
+    ScreenBackground(
         modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         NavDrawer(
@@ -153,6 +151,7 @@ private fun SettingsScreen(
             navigateToLibrary,
             navigateToSettings,
             drawerState,
+            coroutineScope,
         ) {
             Scaffold(
                 snackbarHost = {
@@ -163,7 +162,7 @@ private fun SettingsScreen(
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) { contentPadding ->
                 Column {
-                    SettingsAppBar(
+                    SettingsTopAppBar(
                         isExpanded = windowSizeClass.isCompact,
                         isSearchOn = false,
                         isLoading = isLoading,
@@ -190,31 +189,10 @@ private fun SettingsScreen(
 }
 
 /**
- * Composable for Settings Screen's Background.
- */
-@Composable
-private fun SettingsScreenBackground(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
-) {
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .radialGradientScrim(MaterialTheme.colorScheme.primary)
-        )
-        content()
-    }
-}
-
-/**
  * Composable for Settings Screen's Top App Bar.
  */
 @Composable
-private fun SettingsAppBar(
+private fun SettingsTopAppBar(
     isSearchOn: Boolean,
     isExpanded: Boolean,
     isLoading: Boolean,
@@ -228,6 +206,7 @@ private fun SettingsAppBar(
     }
     Row(
         //horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
@@ -354,7 +333,10 @@ fun SetShuffleTypeSetting(
         onClick = { /* transition screen to show list of options */ },
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
                     text = title,

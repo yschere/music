@@ -157,7 +157,7 @@ fun MusicTheme(
     }
 
     MaterialTheme(
-        colorScheme = coolColors,//colors,//jetCasterColors,//
+        colorScheme = colors,//coolColors,//jetCasterColors,//
         typography = Typography,
         content = content
     )

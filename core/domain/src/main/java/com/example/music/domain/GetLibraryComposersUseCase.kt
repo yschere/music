@@ -11,18 +11,19 @@ import javax.inject.Inject
 
 /**
  * Use case for retrieving library composers to populate Composers List in Library Screen.
+ * @property composerRepo [ComposerRepo] The repository for accessing Composer data
  */
 class GetLibraryComposersUseCase @Inject constructor(
     private val composerRepo: ComposerRepo
 ) {
     /**
-     * Create a list of [ComposerInfo] from the list of composers in [composerRepo].
-     * @param sortOption: the column to sort by. If not met, default to sorting by composer name.
-     * @param isAscending: the order to sort by. If true, sort Ascending. Else false, sort Descending.
+     * Invoke to create a list of [ComposerInfo] from all of the composers in [composerRepo].
+     * @param sortOption [String] The data property/attribute to sort by. If not met, default to sorting by composer name.
+     * @param isAscending [Boolean] The order to sort by. If true, sort Ascending. Else false, sort Descending.
      */
     operator fun invoke(sortOption: String, isAscending: Boolean): Flow<List<ComposerInfo>> {
         val composersList: Flow<List<ComposerWithExtraInfo>>// = flowOf()
-        domainLogger.info { "Building Composer List: \nSort Option: $sortOption, isAscending: $isAscending" }
+        domainLogger.info { "Building Composer List:\n Sort Option: $sortOption, isAscending: $isAscending" }
 
         //sortOption values changed to support enum values AppPreferences dataStore
         when (sortOption) {
@@ -46,7 +47,6 @@ class GetLibraryComposersUseCase @Inject constructor(
             }
         }
 
-        //using this as the final catch all, but using the when cases to return if the option is met
         return composersList.map { items ->
             domainLogger.info { "********** Library Composers count: ${items.size} **********" }
             items.map { item ->

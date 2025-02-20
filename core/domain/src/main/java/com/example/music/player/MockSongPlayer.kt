@@ -25,7 +25,7 @@ import kotlin.reflect.KProperty
 //implementation for SongPlayer, like AlbumRepo to AlbumRepoImpl
 //intended to be the 'viewmodel' for the player screen's playing object
 class SongPlayerImpl(
-    private val mainDispatcher: CoroutineDispatcher
+    mainDispatcher: CoroutineDispatcher
 ) : SongPlayer {
 //    private val getPlayerPreferencesUseCase = GetSortPreferencesUseCase(CurrentPreferencesRepository()),
 

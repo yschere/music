@@ -11,18 +11,19 @@ import javax.inject.Inject
 
 /**
  * Use case for retrieving library albums to populate Albums List in Library Screen.
+ * @property albumRepo [AlbumRepo] The repository for accessing Album data
  */
 class GetLibraryAlbumsUseCase @Inject constructor(
     private val albumRepo: AlbumRepo
 ) {
     /**
-     * Create a list of [AlbumInfo] from the list of albums in [albumRepo].
-     * @param sortOption: the column to sort by. If not met, default to sorting by album title.
-     * @param isAscending: the order to sort by. If true, sort Ascending. Else false, sort Descending.
+     * Invoke to create a list of [AlbumInfo] from all of the albums in [albumRepo].
+     * @param sortOption [String] The data property/attribute to sort by. If not met, default to sorting by album title.
+     * @param isAscending [Boolean] The order to sort by. If true, sort Ascending. Else false, sort Descending.
      */
     operator fun invoke(sortOption: String, isAscending: Boolean): Flow<List<AlbumInfo>> {
         val albumsList: Flow<List<AlbumWithExtraInfo>>// = flowOf()
-        domainLogger.info { "Building Album List: \nSort Option: $sortOption, isAscending: $isAscending" }
+        domainLogger.info { "Building Album List:\n Sort Option: $sortOption, isAscending: $isAscending" }
 
         //sortOption values changed to support enum values AppPreferences dataStore
         when (sortOption) {
@@ -44,7 +45,6 @@ class GetLibraryAlbumsUseCase @Inject constructor(
             }
         }
 
-        //using this as the final catch all, but using the when cases to return if the option is met
         return albumsList.map { items ->
             domainLogger.info { "********** Library Albums count: ${items.size} **********" }
             items.map { item ->

@@ -71,11 +71,11 @@ import com.example.music.model.SongInfo
 import com.example.music.player.model.PlayerSong
 import com.example.music.player.model.toPlayerSong
 import com.example.music.ui.shared.Loading
+import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
-import com.example.music.util.radialGradientScrim
 
 /**
  * Stateful version of Album Details Screen
@@ -163,7 +163,7 @@ fun AlbumDetailsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.song_added_to_your_queue) //used to hold the little popup text that appears after an onClick event
 
-    AlbumDetailsScreenBackground(
+    ScreenBackground(
         modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         //base layer structure component
@@ -190,27 +190,6 @@ fun AlbumDetailsScreen(
                 modifier = Modifier.padding(contentPadding)//.padding(horizontal = 8.dp)
             )
         }
-    }
-}
-
-/**
- * Composable for Album Details Screen's Background.
- */
-@Composable
-private fun AlbumDetailsScreenBackground(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit
-) {
-    Box(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .radialGradientScrim(MaterialTheme.colorScheme.primary)//.copy(alpha = 0.9f))
-        )
-        content()
     }
 }
 

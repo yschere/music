@@ -11,18 +11,19 @@ import javax.inject.Inject
 
 /**
  * Use case for retrieving library genres to populate Genres List in Library Screen.
+ * @property genreRepo [GenreRepo] The repository for accessing Genre data
  */
 class GetLibraryGenresUseCase @Inject constructor(
     private val genreRepo: GenreRepo
 ) {
     /**
-     * Create a list of [GenreInfo] from the list of genres in [genreRepo].
-     * @param sortOption: the column to sort by. If not met, default to sorting by genre name.
-     * @param isAscending: the order to sort by. If true, sort Ascending. Else false, sort Descending.
+     * Invoke to create a list of [GenreInfo] from all of the genres in [genreRepo].
+     * @param sortOption [String] The data property/attribute to sort by. If not met, default to sorting by genre name.
+     * @param isAscending [Boolean] The order to sort by. If true, sort Ascending. Else false, sort Descending.
      */
     operator fun invoke(sortOption: String, isAscending: Boolean): Flow<List<GenreInfo>> {
         val genresList: Flow<List<GenreWithExtraInfo>>// = flowOf()
-        domainLogger.info { "Building Genre List: \nSort Option: $sortOption, isAscending: $isAscending" }
+        domainLogger.info { "Building Genres List:\n Sort Option: $sortOption, isAscending: $isAscending" }
 
         //sortOption values changed to support enum values AppPreferences dataStore
         when (sortOption) {
@@ -46,7 +47,6 @@ class GetLibraryGenresUseCase @Inject constructor(
             }
         }
 
-        //using this as the final catch all, but using the when cases to return if the option is met
         return genresList.map { items ->
             domainLogger.info { "********** Library Genres count: ${items.size} **********" }
             items.map { item ->

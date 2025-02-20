@@ -16,6 +16,7 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -24,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.quantityStringResource
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /**
  * Composable for Navigation Drawer, used on Home Screen,
@@ -37,7 +40,8 @@ fun NavDrawer(
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
     drawerState: DrawerState,
-    content: @Composable () -> Unit
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    content: @Composable () -> Unit,
 ) {
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -65,7 +69,13 @@ fun NavDrawer(
                         unselectedContainerColor = Color.Transparent,
                         unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
-                    onClick = navigateToHome
+                    onClick = {
+                        coroutineScope.launch {
+                            drawerState.close()
+                        }
+                        navigateToHome()
+                    },
+                    //onClick = navigateToHome,
                 )
 
                 // Library Screen navigation item
@@ -78,7 +88,13 @@ fun NavDrawer(
                         unselectedContainerColor = Color.Transparent,
                         unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
-                    onClick = navigateToLibrary
+                    onClick = {
+                        coroutineScope.launch {
+                            drawerState.close()
+                        }
+                        navigateToLibrary()
+                    }
+                    //onClick = navigateToLibrary
                 )
 
                 // Settings Screen navigation item
@@ -91,7 +107,13 @@ fun NavDrawer(
                         unselectedContainerColor = Color.Transparent,
                         unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
-                    onClick = navigateToSettings
+                    onClick = {
+                        coroutineScope.launch {
+                            drawerState.close()
+                        }
+                        navigateToSettings()
+                    },
+//                    onClick = navigateToSettings
                 )
 
                 HorizontalDivider(

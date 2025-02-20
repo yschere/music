@@ -174,6 +174,13 @@ class HomeViewModel @Inject constructor(
 //    private fun onLibraryGenreSelected(genre: GenreInfo) {
 //        selectedLibraryGenre.value = genre
 //    }
+    private fun onMoreOptionsBtnClicked(item: Any) {
+
+    }
+
+    private fun onMoreBtnClicked(item: Any) {
+        //showBottomSheet = true
+    }
 
     private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
         selectedLibraryPlaylist.value = playlist

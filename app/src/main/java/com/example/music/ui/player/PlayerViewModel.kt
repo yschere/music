@@ -20,6 +20,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.session.MediaSession
 import coil3.Uri
+import com.example.music.data.Dispatcher
 import com.example.music.data.MusicDispatchers
 import com.example.music.data.repository.SongRepo
 import com.example.music.data.repository.AppPreferencesRepo
@@ -33,6 +34,7 @@ import com.example.music.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.music.util.logger
 import dagger.Provides
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -62,7 +64,9 @@ class PlayerViewModel @Inject constructor(
     private val getSongDataUseCase: GetSongDataUseCase,
     private val songPlayer: SongPlayer, //equivalent of musicController
     //val mediaPlayer: MediaPlayer,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+
+//    ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
 //    class CurrentPreferencesRepository @Inject constructor(

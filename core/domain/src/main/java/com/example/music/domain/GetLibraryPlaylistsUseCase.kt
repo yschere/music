@@ -12,19 +12,21 @@ import javax.inject.Inject
 
 /**
  * Use case for retrieving library playlists to populate Playlists List in Library Screen.
+ * @property playlistRepo [PlaylistRepo] The repository for accessing Playlist and SongPlaylistEntry data
  */
 class GetLibraryPlaylistsUseCase @Inject constructor(
     private val playlistRepo: PlaylistRepo
 ) {
     /**
-     * Create a list of [PlaylistInfo] from the list of playlists in [playlistRepo].
-     * @param sortOption: the column to sort by. If not met, default to sorting by playlist title.
-     * @param isAscending: the order to sort by. If true, sort Ascending. Else false, sort Descending.
+     * Invoke to create a list of [PlaylistInfo] from all of the playlists in [playlistRepo].
+     * @param sortOption [String] The data property/attribute to sort by. If not met, default to sorting by playlist name.
+     * @param isAscending [Int] The order to sort by. If true, sort Ascending. Else false, sort Descending.
      */
     operator fun invoke(sortOption: String, isAscending: Boolean): Flow<List<PlaylistInfo>> {
         val playlistsList: Flow<List<PlaylistWithExtraInfo>> //= flowOf()
-        domainLogger.info { "Building Playlists List: \nSort Option: $sortOption, isAscending: $isAscending" }
+        domainLogger.info { "Building Playlists List:\n Sort Option: $sortOption, isAscending: $isAscending" }
 
+        //sortOption values changed to support enum values AppPreferences dataStore
         when (sortOption) {
 
             "DATE_CREATED" -> { //"dateCreated" -> {
@@ -58,7 +60,6 @@ class GetLibraryPlaylistsUseCase @Inject constructor(
             }
         }
 
-        //using this as the final catch all, but using the when cases to return if the option is met
         return playlistsList.map { items ->
             domainLogger.info { "********** Library Playlists count: ${items.size} **********" }
             items.map { item ->

@@ -11,15 +11,19 @@ import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
 
 /**
- * Use case to retrieve Playlist data, songs in Playlist as List<SongInfo>, and songs in Playlist as List<PlayerSong>.
- * @param playlistId [Long] to return flow of PlayerSong(song, artist, album)
+ * Use case to retrieve data for [PlaylistDetailsFilterResult] domain model for PlaylistDetailsScreen UI.
+ * @property getSongDataUseCase [GetSongDataUseCase] Use case for generating PlayerSong
+ * @property playlistRepo [PlaylistRepo] The repository for accessing Playlist and SongPlaylistEntry data
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetPlaylistDetailsUseCase @Inject constructor(
     val getSongDataUseCase: GetSongDataUseCase,
     private val playlistRepo: PlaylistRepo,
 ) {
-
+    /**
+     * Invoke with playlistId to retrieve PlaylistDetailsFilterResult data
+     * @param playlistId [Long] to return flow of PlaylistDetailsFilterResult
+     */
     operator fun invoke(playlistId: Long): Flow<PlaylistDetailsFilterResult> {
         domainLogger.info { "Get Playlist Details Use Case - start: PlaylistID: $playlistId" }
         val playlistFlow = playlistRepo.getPlaylistWithExtraInfo(playlistId)
@@ -37,7 +41,9 @@ class GetPlaylistDetailsUseCase @Inject constructor(
             songsFlow,
             pSongsListFlow,
         ) {
-            playlist, songs, pSongs ->
+            playlist,
+            songs,
+            pSongs, ->
             PlaylistDetailsFilterResult(
                 playlist.asExternalModel(),
                 songs.map{ it.asExternalModel() },

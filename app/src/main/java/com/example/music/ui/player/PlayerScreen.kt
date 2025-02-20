@@ -218,9 +218,10 @@ private fun PlayerBackground(
     //ImageBackgroundColorScrim(
     ImageBackgroundRadialGradientScrim(
         //url = song?.podcastImageUrl,
-        imageId = "fake link", //need to make this come from PlayerSong
-        colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
-        //colors = listOf(MaterialTheme.colorScheme.onPrimaryContainer,MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.onTertiary),//blueDarkColorSet.primary, //TODO
+        imageId = song?.artwork, //need to make this come from PlayerSong
+//        color = MaterialTheme.colorScheme.primaryContainer,
+        colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),),
+//        colors = listOf(MaterialTheme.colorScheme.onPrimaryContainer,MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.onTertiary),//blueDarkColorSet.primary, //TODO
         modifier = modifier,
     )
 }
@@ -376,7 +377,10 @@ private fun PlayerTopAppBar(
     navigateBack: () -> Unit,
     onShowQueuePress: () -> Unit
 ){
-    Row(Modifier.fillMaxWidth()) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
 
         //back button
         IconButton(onClick = navigateBack) {

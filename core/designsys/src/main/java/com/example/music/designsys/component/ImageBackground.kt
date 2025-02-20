@@ -55,8 +55,8 @@ fun ImageBackgroundRadialGradientScrim(
         overlay = {
             val brush = Brush.radialGradient(
                 colors = colors,
-                center = Offset(0f, size.height),
-                radius = size.width * 1.5f
+                center = Offset((0f), (size.height)),
+                radius = size.width * 2.5f
             )
             drawRect(brush, blendMode = BlendMode.Multiply)
         }

@@ -160,7 +160,6 @@ fun MusicApp(
                     // want ability to return to previous screen
                     navigateBack = appState::navigateBack,
 
-                    boxOrRow = false,
                     // want ability to navigate to selected album details
                     navigateToAlbumDetails = { album ->
                         appState.navigateToAlbumDetails(album.id, backStackEntry)

@@ -36,15 +36,35 @@ interface ComposerRepo {
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ComposerWithExtraInfo>>
 
-    fun searchComposersByName(
-        query: String,
-        limit: Int = Integer.MAX_VALUE
-    ): Flow<List<ComposerWithExtraInfo>>
-
     fun getSongsByComposerId(
         composerId: Long,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<Song>>
+
+    fun sortSongsInComposerByTitleAsc(
+        composerId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+
+    fun sortSongsInComposerByTitleDesc(
+        composerId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+
+    fun sortSongsInComposerByDateLastPlayedAsc(
+        composerId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+
+    fun sortSongsInComposerByDateLastPlayedDesc(
+        composerId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+
+    fun searchComposersByName(
+        query: String,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<ComposerWithExtraInfo>>
 
     suspend fun addComposer(composer: Composer)
 
@@ -85,15 +105,25 @@ class ComposerRepoImpl(
     override fun sortComposersBySongCountDesc(limit: Int): Flow<List<ComposerWithExtraInfo>> =
         composerDao.sortComposersBySongCountDesc(limit)
 
+    override fun getSongsByComposerId(composerId: Long, limit: Int): Flow<List<Song>> =
+        songDao.getSongsByComposerId(composerId, limit)
+
+    override fun sortSongsInComposerByTitleAsc(composerId: Long, limit: Int): Flow<List<Song>> =
+        songDao.sortSongsInComposerByTitleAsc(composerId, limit)
+
+    override fun sortSongsInComposerByTitleDesc(composerId: Long, limit: Int): Flow<List<Song>> =
+        songDao.sortSongsInComposerByTitleDesc(composerId, limit)
+
+    override fun sortSongsInComposerByDateLastPlayedAsc(composerId: Long, limit: Int): Flow<List<Song>> =
+        songDao.sortSongsInComposerByDateLastPlayedAsc(composerId, limit)
+
+    override fun sortSongsInComposerByDateLastPlayedDesc(composerId: Long, limit: Int): Flow<List<Song>> =
+        songDao.sortSongsInComposerByDateLastPlayedDesc(composerId, limit)
+
     override fun searchComposersByName(
         query: String,
         limit: Int
     ): Flow<List<ComposerWithExtraInfo>> = composerDao.searchComposersByName(query, limit)
-
-    override fun getSongsByComposerId(
-        composerId: Long,
-        limit: Int,
-    ): Flow<List<Song>> = songDao.getSongsByComposerId(composerId, limit)
 
     /**
      * Add a new [Composer] to this store.
