@@ -1,10 +1,9 @@
 package com.example.music.ui.playlistdetails
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -16,22 +15,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,8 +39,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -55,24 +53,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
-import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.Keyline1
+import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.getPlaylistPlayerSongs
 import com.example.music.domain.testing.getPlaylistSongs
-import com.example.music.model.PlaylistInfo
-import com.example.music.model.SongInfo
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.model.PlaylistInfo
+import com.example.music.domain.model.SongInfo
+import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.SystemDarkPreview
+import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
@@ -84,54 +83,59 @@ fun PlaylistDetailsScreen(
     navigateToPlayer: (SongInfo) -> Unit,
     navigateToPlayerSong: (PlayerSong) -> Unit,
     navigateBack: () -> Unit,
-    modifier: Modifier = Modifier,
+    //modifier: Modifier = Modifier,
     viewModel: PlaylistDetailsViewModel = hiltViewModel(),
 ) {
     //logger.info { "Playlist Details Screen - hilt view model function start" }
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
+        Text(text = uiState.errorMessage!!)
         PlaylistDetailsError(onRetry = viewModel::refresh)
     }
-    if (uiState.isReady) {
-        PlaylistDetailsScreen(
-            playlist = uiState.playlist,
-            songs = uiState.songs,
-            pSongs = uiState.pSongs, //TODO: PlayerSong support
-            onQueueSong = viewModel::onQueueSong,
-            navigateToPlayer = navigateToPlayer,
-            navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
-            navigateBack = navigateBack,
-            modifier = modifier,
-        )
-    } else {
-        PlaylistDetailsLoadingScreen(
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-
-    /* -------ORIGINAL VERSION ---------
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    when (val s = state) {
-        is PlaylistUiState.Loading -> {
-            PlaylistDetailsLoadingScreen(
-                modifier = Modifier.fillMaxSize()
-            )
-        } // screen to show when ui state is in loading
-        is PlaylistUiState.Ready -> {
+    Surface {
+        if (uiState.isReady) {
             PlaylistDetailsScreen(
-                playlist = s.playlist,
-                songs = s.songs,
-                pSongs = s.pSongs, //TODO: PlayerSong support
+                playlist = uiState.playlist,
+                songs = uiState.songs,
+                pSongs = uiState.pSongs, //TODO: PlayerSong support
                 onQueueSong = viewModel::onQueueSong,
                 navigateToPlayer = navigateToPlayer,
                 navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
                 navigateBack = navigateBack,
-                showBackButton = showBackButton,
-                modifier = modifier,
+                modifier = Modifier.fillMaxSize(),
             )
-        } // screen to show when ui state is ready to display
-    }*/
+        } else {
+            PlaylistDetailsLoadingScreen(
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+
+    /* -------ORIGINAL VERSION ---------
+        //this version was based on the viewModel using sealed instance and @AssistedInject
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        when (val s = state) {
+            is PlaylistUiState.Loading -> {
+                PlaylistDetailsLoadingScreen(
+                    modifier = Modifier.fillMaxSize()
+                )
+            } // screen to show when ui state is in loading
+            is PlaylistUiState.Ready -> {
+                PlaylistDetailsScreen(
+                    playlist = s.playlist,
+                    songs = s.songs,
+                    pSongs = s.pSongs, //TODO: PlayerSong support
+                    onQueueSong = viewModel::onQueueSong,
+                    navigateToPlayer = navigateToPlayer,
+                    navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
+                    navigateBack = navigateBack,
+                    showBackButton = showBackButton,
+                    modifier = modifier,
+                )
+            } // screen to show when ui state is ready to display
+        }
+    */
 }
 
 /**
@@ -156,6 +160,9 @@ private fun PlaylistDetailsError(onRetry: () -> Unit, modifier: Modifier = Modif
     }
 }
 
+/**
+ * Loading Screen
+ */
 @Composable
 private fun PlaylistDetailsLoadingScreen(
     modifier: Modifier = Modifier
@@ -163,10 +170,11 @@ private fun PlaylistDetailsLoadingScreen(
 //full screen circular progress - loading screen
 
 /**
- * Stateless version of Playlist Details Screen
+ * Stateless Composable for Playlist Details Screen
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PlaylistDetailsScreen(
+private fun PlaylistDetailsScreen(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
     pSongs: List<PlayerSong>, //TODO: PlayerSong support
@@ -180,24 +188,35 @@ fun PlaylistDetailsScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackBarText = stringResource(id = R.string.song_added_to_your_queue) //used to hold the little popup text that appears after an onClick event
+    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //used to hold the little popup text that appears after an onClick event
 
     ScreenBackground(
         modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         //base layer structure component
         Scaffold(
+            contentWindowInsets = WindowInsets.systemBarsIgnoringVisibility,
+                //can't quite remember what this one was for ...
+                // was this meant to keep all the contents within the window insets?
             topBar = {
                 PlaylistDetailsTopAppBar(
                     navigateBack = navigateBack, //since using topAppBar here, separating navigateBack from the other navigate functions here
                 )
             },
+            bottomBar = {
+                /* //should show BottomBarPlayer here if a queue session is running or service is running
+                BottomBarPlayer(
+                    song = PreviewPlayerSongs[5],
+                    navigateToPlayerSong = { navigateToPlayerSong(PreviewPlayerSongs[5]) },
+                )*/
+            },
             snackbarHost = { // setting the snackbar hoststate to the scaffold
                 SnackbarHost(hostState = snackbarHostState)
             },
-            modifier = modifier.fillMaxSize().systemBarsPadding(),
+            //modifier = modifier.fillMaxSize().systemBarsPadding(),
             containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
+            //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
         ) { contentPadding -> //not sure why content padding into content function done in this way
             //logger.info { "Playlist Details Screen - Content function call" }
             PlaylistDetailsContent(
@@ -223,7 +242,7 @@ fun PlaylistDetailsScreen(
  * Composable for Playlist Details Screen's Top App Bar.
  */
 @Composable
-fun PlaylistDetailsTopAppBar(
+private fun PlaylistDetailsTopAppBar(
     navigateBack: () -> Unit,
     //should include album more options btn action here,
     //pretty sure that button also needs a context driven options set
@@ -231,14 +250,17 @@ fun PlaylistDetailsTopAppBar(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
             .padding(horizontal = 8.dp)
     ) {
         //back button
         IconButton(onClick = navigateBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(id = R.string.cd_back)
+                contentDescription = stringResource(id = R.string.icon_back_nav),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
 
@@ -249,7 +271,16 @@ fun PlaylistDetailsTopAppBar(
         IconButton(onClick = { /* TODO */ }) {
             Icon(
                 imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.cd_more)
+                contentDescription = stringResource(R.string.icon_search),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+        //more options btn //TODO: temporary placement till figure out if this should be part of header
+        IconButton(onClick = {}) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.icon_more),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }
@@ -259,7 +290,7 @@ fun PlaylistDetailsTopAppBar(
  * Composable for Playlist Details Screen's Content.
  */
 @Composable
-fun PlaylistDetailsContent(
+private fun PlaylistDetailsContent(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
     pSongs: List<PlayerSong>, //TODO: PlayerSong support
@@ -271,18 +302,31 @@ fun PlaylistDetailsContent(
     //logger.info { "Playlist Details Content function start" }
     LazyVerticalGrid( //uses lazy vertical grid to store header and items list below it
         columns = GridCells.Adaptive(362.dp),
-        modifier.fillMaxSize().padding(horizontal = 12.dp)
+        modifier
+            .fillMaxSize()
+            .padding(horizontal = 12.dp)
     ) {
         //logger.info { "Playlist Details Content - lazy vertical grid start" }
+        // section 1: header item
         fullWidthItem {
-            //section 1: header item
             PlaylistDetailsHeader(
                 playlist = playlist,
                 modifier = Modifier.fillMaxWidth()
             )
         }
 
-        //section 2: songs list
+        // section 2: songs list
+        fullWidthItem {
+            if (pSongs.isEmpty()) {
+                PlaylistDetailsEmptyList(onClick = {})
+            } else {
+                Column {
+                    SongCountAndAddSortSelectButtons( songs = songs, onAddClick = {}, onSelectClick = {}, onSortClick = {} )
+                    ShufflePlayButtons( onShuffleClick = {}, onPlayClick = {} )
+                }
+            }
+        }
+
         /**
          * ORIGINAL VERSION: using songs: List<SongInfo>
          */
@@ -324,6 +368,7 @@ fun PlaylistDetailsContent(
                     showArtistName = true,
                     showAlbumImage = true,
                     showAlbumTitle = true,
+                    showTrackNumber = true,
                 )
             }
         }
@@ -332,8 +377,11 @@ fun PlaylistDetailsContent(
     //logger.info { "Playlist Details Content function end" }
 }
 
-@Composable
-fun PlaylistDetailsHeaderItem(
+/**
+ * Default header based on jetcaster
+ */
+/*@Composable
+private fun PlaylistDetailsHeaderItem(
     playlist: PlaylistInfo,
     modifier: Modifier = Modifier
 ) {
@@ -366,7 +414,8 @@ fun PlaylistDetailsHeaderItem(
                         style = MaterialTheme.typography.headlineMedium
                     )
                     PlaylistDetailsHeaderItemButtons(
-                        onClick = {},
+                        onShuffleClick = {},
+                        onPlayClick = {},
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -376,18 +425,65 @@ fun PlaylistDetailsHeaderItem(
 }
 
 @Composable
-fun PlaylistDetailsHeader(
+private fun PlaylistDetailsHeaderItemButtons(
+    onShuffleClick: () -> Unit,
+    onPlayClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(modifier.padding(top = 16.dp)) {
+        Button( // shuffle btn
+            onClick = onShuffleClick,
+            modifier = Modifier.semantics(mergeDescendants = true) { }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Shuffle,
+                contentDescription = stringResource(R.string.icon_shuffle)
+            )
+        }
+
+        Button( //play btn
+            onClick = onPlayClick,
+            modifier = Modifier.semantics(mergeDescendants = true) { }
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = stringResource(R.string.icon_play)
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // more options btn
+        IconButton(
+            onClick = { /* TODO */ },
+            modifier = Modifier.padding(start = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.icon_more),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+    }
+}*/
+
+/**
+ * Header with image on left, playlist name on right
+ */
+@Composable
+private fun PlaylistDetailsHeader(
     playlist: PlaylistInfo,
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
-        modifier = modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+        modifier = modifier.padding(Keyline1)
     ) {
         val maxImageSize = this.maxWidth / 2
         val imageSize = min( maxImageSize, 148.dp )
         Column {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,// or Bottom
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Image(
                     painter = painterResource(R.drawable.bpicon),
@@ -401,159 +497,195 @@ fun PlaylistDetailsHeader(
                 ) {
                     Text(
                         text = playlist.name,
-                        //color = MaterialTheme.colorScheme.primary,
                         maxLines = 2,
                         overflow = TextOverflow.Visible,
-                        style = MaterialTheme.typography.headlineMedium
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.basicMarquee()
                     )
-                    Text(
-                        text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount)) {
-                            it.value.uppercase()
-                        },
-                        //text = quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount),
-                        //color = MaterialTheme.colorScheme.primary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Visible,
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    //could put add songs btn and more options btn here
                 }
             }
         }
     }
 }
 
+/**
+ * Content section 1.3: song count and list sort icons
+ */
 @Composable
-fun PlaylistDetailsHeaderItemButtons(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+private fun SongCountAndAddSortSelectButtons(
+    songs: List<SongInfo>,
+    onAddClick: () -> Unit,
+    onSortClick: () -> Unit,
+    onSelectClick: () -> Unit,
 ) {
-    Row(modifier.padding(top = 16.dp)) {
-        Button( // shuffle btn
-            onClick = onClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.Default.Shuffle,
-                contentDescription = null
-            )
-        }
-
-        Button( //play btn
-            onClick = onClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = null
-            )
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        IconButton(
-            onClick = { /* TODO */ },
-            modifier = Modifier.padding(start = 8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                //tint = MaterialTheme.colorScheme.primary,
-                contentDescription = stringResource(R.string.cd_more)
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-@Composable
-fun PlaylistDetailsHeaderLargeAlbumCover(
-    playlist: PlaylistInfo,
-    modifier: Modifier = Modifier,
-) { //used to show album image as screen header
-    Box(modifier = modifier.padding(Keyline1)) {
-        Row(modifier.fillMaxWidth()) {
-            AlbumImage(
-                modifier = Modifier
-                    //.size(this.maxWidth / 2)
-                    .clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.onPrimary),
-                //albumImage = album.artwork!!,//album.imageUrl or album.artwork when that is fixed
-                albumImage = 1,
-                contentDescription = playlist.name
-            )
-        }
-    }
-    Scaffold(
-        contentWindowInsets = WindowInsets.systemBarsIgnoringVisibility,
-        topBar = {
-            TopAppBar(
-                colors = topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.1f), // container's background color
-                    titleContentColor = MaterialTheme.colorScheme.primary // title words color
-                ),
-                navigationIcon = {
-                    IconButton(
-                        onClick = {},
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "backNavIcon")
-                    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = """\s[a-z]""".toRegex()
+                .replace(quantityStringResource(R.plurals.songs, songs.size, songs.size)) {
+                    it.value.uppercase()
                 },
-                title = {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        text = playlist.name
-                    )
-                }
-            )
-        },
-        bottomBar = {},
-//        contentColor = MaterialTheme.colorScheme.primary,
-//        containerColor = MaterialTheme.colorScheme.background,
+            textAlign = TextAlign.Left,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier
+                .padding(8.dp)
+                .weight(1f, true)
+        )
+        //Spacer(Modifier.weight(1f,true))
 
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Image(
-                painter = painterResource(R.drawable.bpicon),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
+        // add icon
+        IconButton(onClick = onAddClick) { // navigate to multiselect across all songs
+            Icon(
+                imageVector = Icons.Filled.Add,//want this to be sort icon // Icons.Default.Add,
+                contentDescription = stringResource(R.string.icon_add_to_playlist),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+
+        // sort icon
+        IconButton(onClick = onSortClick) { // showBottomSheet = true
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
+                contentDescription = stringResource(R.string.icon_sort),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+
+        // multi-select icon
+        IconButton(onClick = onSelectClick) { // navigate to multiselect across playlist songs
+            Icon(
+                imageVector = Icons.Filled.Checklist,//want this to be multi select icon
+                contentDescription = stringResource(R.string.icon_multi_select),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }
 }
 
-//@Preview (name = "light mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-//@Preview (name = "dark mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+/**
+ * Content section 1.5: shuffle and play buttons
+ */
+@Composable
+private fun ShufflePlayButtons(
+    onShuffleClick: () -> Unit,
+    onPlayClick: () -> Unit,
+) {
+    Row(Modifier.padding(bottom = 8.dp)) {
+        // shuffle btn
+        Button(
+            onClick = onShuffleClick,
+            //step 1: regardless of shuffle being on or off, set shuffle to on
+            //step 2?: confirm the shuffle type
+            //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
+            //step 4: set the player to play the first item in queue
+            //step 5: navigateToPlayer(first item)
+            //step 6: start playing
+            //needs to take the songs in the playlist, shuffle the
+            /*coroutineScope.launch {
+                sheetState.hide()
+                showThemeSheet = false
+            }*/
+            //did have colors set, colors = buttonColors( container -> primary, content -> background )
+            shape = MusicShapes.small,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .weight(0.5f)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Shuffle,
+                contentDescription = stringResource(R.string.icon_shuffle)
+            )
+            Text("SHUFFLE")
+        }
+
+        // play btn
+        Button(
+            onClick = onPlayClick,
+            //step 1: regardless of shuffle being on or off, set shuffle to off
+            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
+            //step 3: set the player to play the first item in queue
+            //step 4: navigateToPlayer(first item)
+            //step 5: start playing
+            /*coroutineScope.launch {
+                sheetState.hide()
+                showThemeSheet = false
+            }*/
+            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
+            shape = MusicShapes.small,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .weight(0.5f)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.PlayArrow,
+                contentDescription = stringResource(R.string.icon_play)
+            )
+            Text("PLAY")
+        }
+    }
+}
+
+/**
+ * Content section that appears when the playlist has 0 songs.
+ * Shows prompt that gives user option to add songs to playlist.
+ * Tapping the btn should send user to multi-select songs screen.
+ */
+@Composable
+private fun PlaylistDetailsEmptyList(
+    onClick: () -> Unit,
+) {
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Text(
+            text = "Add Songs to Playlist"
+        )
+        Button( //add btn
+            onClick = onClick, // multi-select screen to pick songs to add to playlist
+            modifier = Modifier.semantics(mergeDescendants = true) { }
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = stringResource(R.string.icon_add_to_playlist)
+            )
+        }
+    }
+}
+
+//@CompLightPreview
+//@CompDarkPreview
 @Composable
 fun PlaylistDetailsHeaderItemPreview() {
     MusicTheme {
-        PlaylistDetailsHeaderItem(
+        PlaylistDetailsHeader(
             playlist = PreviewPlaylists[1],
         )
     }
 }
 
-@Preview
-//@Preview (name = "light mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-//@Preview (name = "dark mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@SystemLightPreview
+@SystemDarkPreview
 @Composable
 fun PlaylistDetailsScreenPreview() {
     MusicTheme {
         PlaylistDetailsScreen(
             //hello
-//            playlist = PreviewPlaylists[0],
-//            songs = getPlaylistSongs(0),
-//            pSongs= PreviewPlayerSongs, //TODO: PlayerSong support
+            //playlist = PreviewPlaylists[0],
+            //songs = getPlaylistSongs(0),
+            //pSongs= PreviewPlayerSongs, //TODO: PlayerSong support
 
             //ack
-//            playlist = PreviewPlaylists[1],
-//            songs = getPlaylistSongs(1),
+            //playlist = PreviewPlaylists[1],
+            //songs = getPlaylistSongs(1),
 
             //give the goods
-//            playlist = PreviewPlaylists[2],
-//            songs = getPlaylistSongs(2),
+            //playlist = PreviewPlaylists[2],
+            //songs = getPlaylistSongs(2),
 
             //TODO: PlayerSong support
             playlist = PreviewPlaylists[2],

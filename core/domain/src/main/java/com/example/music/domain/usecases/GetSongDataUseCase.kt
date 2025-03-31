@@ -1,13 +1,15 @@
-package com.example.music.domain
+package com.example.music.domain.usecases
 
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.Song
 import com.example.music.data.repository.AlbumRepo
 import com.example.music.data.repository.ArtistRepo
-import com.example.music.model.asExternalModel
-import com.example.music.player.model.PlayerSong
-import com.example.music.util.domainLogger
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.ArtistInfo
+import com.example.music.domain.model.asExternalModel
+import com.example.music.domain.player.model.PlayerSong
+import com.example.music.domain.util.domainLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
@@ -51,7 +53,9 @@ class GetSongDataUseCase @Inject constructor(
             PlayerSong(
                 _song.id,
                 _song.title,
+                _song.artistId ?: 0,
                 artist.name,
+                _song.albumId ?: 0,
                 album.title,
                 _song.duration,
                 album.artwork
@@ -101,8 +105,12 @@ class GetSongDataUseCase @Inject constructor(
             songList.map { item ->
                 PlayerSong(
                     songInfo = item.asExternalModel(),
-                    artistInfo = artistList.first{ artist -> artist?.id == item.artistId }!!.asExternalModel(),
-                    albumInfo = albumList.first{ album -> album?.id == item.albumId }!!.asExternalModel()
+                    artistInfo = artistList.first{ artist ->
+                        artist?.id == item.artistId
+                    }?.asExternalModel() ?: ArtistInfo(),
+                    albumInfo = albumList.first{ album ->
+                        album?.id == item.albumId
+                    }?.asExternalModel() ?: AlbumInfo()
                 )
             }
         }

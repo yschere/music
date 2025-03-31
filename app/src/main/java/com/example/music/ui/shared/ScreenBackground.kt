@@ -24,7 +24,12 @@ fun ScreenBackground(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .radialGradientScrimBottomRight(listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimary))//.copy(alpha = 0.9f))
+                .radialGradientScrimBottomRight(
+                    listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.onPrimary
+                    )
+                )//.copy(alpha = 0.9f))
         )
         content()
     }

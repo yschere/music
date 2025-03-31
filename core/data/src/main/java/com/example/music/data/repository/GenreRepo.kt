@@ -37,7 +37,6 @@ interface GenreRepo {
     fun sortGenresBySongCountAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<GenreWithExtraInfo>>
-
     fun sortGenresBySongCountDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<GenreWithExtraInfo>>
@@ -51,7 +50,6 @@ interface GenreRepo {
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<Song>>
-
     fun sortSongsInGenreByTitleDesc(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
@@ -61,7 +59,6 @@ interface GenreRepo {
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<Song>>
-
     fun sortSongsInGenreByDateLastPlayedDesc(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE

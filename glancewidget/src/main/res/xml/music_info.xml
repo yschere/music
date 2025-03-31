@@ -3,6 +3,8 @@
     android:description="@string/app_widget_description"
     android:minWidth="110dp"
     android:minHeight="40dp"
+    android:minResizeWidth="100dp"
+    android:previewImage="@drawable/bpicon2"
     android:resizeMode="horizontal"
     android:initialLayout="@layout/glance_default_loading_layout"
     android:targetCellWidth="2"

@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<animated-vector xmlns:android="http://schemas.android.com/apk/res/android">
-
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/vectordrawable" >
+    <target
+        android:name="rotationGroup"
+        android:animation="@drawable/rotation" />
+    <target
+        android:name="v"
+        android:animation="@drawable/path_morph" />
 </animated-vector>

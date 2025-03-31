@@ -1,13 +1,13 @@
-package com.example.music.domain
+package com.example.music.domain.usecases
 
 import com.example.music.data.repository.ComposerRepo
-import com.example.music.model.ComposerDetailsFilterResult
-import com.example.music.model.asExternalModel
+import com.example.music.domain.model.ComposerDetailsFilterResult
+import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import com.example.music.util.domainLogger
+import com.example.music.domain.util.domainLogger
 import javax.inject.Inject
 
 /**

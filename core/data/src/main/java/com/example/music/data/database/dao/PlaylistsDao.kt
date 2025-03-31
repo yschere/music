@@ -55,7 +55,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
         WHERE name = :name
         """
     )
-    abstract fun observePlaylist(name: String): Flow<Playlist>
+    abstract fun getPlaylistByName(name: String): Flow<Playlist>
 
     /**
      * Returns a flow of the playlist record and its aggregated songs data,
@@ -315,7 +315,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     @Transaction
     @Query(
         """
-        SELECT songs.id, songs.title, songs.artist_id, songs.album_id, songs.genre_id, songs.year, song_playlist_entries.playlist_track_number AS album_track_number, songs.lyrics, songs.composer_id, songs.date_added, songs.date_modified, songs.date_last_played, songs.duration FROM playlists 
+        SELECT songs.id, songs.title, songs.artist_id, songs.album_id, songs.genre_id, songs.year, song_playlist_entries.playlist_track_number+1 AS album_track_number, songs.lyrics, songs.composer_id, songs.date_added, songs.date_modified, songs.date_last_played, songs.duration FROM playlists 
         LEFT JOIN song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         LEFT JOIN songs ON songs.id = song_playlist_entries.song_id
         WHERE playlist_id = :playlistId
@@ -334,7 +334,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     @Transaction
     @Query(
         """
-        SELECT songs.id, songs.title, songs.artist_id, songs.album_id, songs.genre_id, songs.year, song_playlist_entries.playlist_track_number AS album_track_number, songs.lyrics, songs.composer_id, songs.date_added, songs.date_modified, songs.date_last_played, songs.duration FROM playlists 
+        SELECT songs.id, songs.title, songs.artist_id, songs.album_id, songs.genre_id, songs.year, song_playlist_entries.playlist_track_number+1 AS album_track_number, songs.lyrics, songs.composer_id, songs.date_added, songs.date_modified, songs.date_last_played, songs.duration FROM playlists 
         LEFT JOIN song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         LEFT JOIN songs ON songs.id = song_playlist_entries.song_id
         WHERE playlist_id = :playlistId
@@ -353,7 +353,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     @Transaction
     @Query(
         """
-        SELECT songs.id, songs.title, songs.artist_id, songs.album_id, songs.genre_id, songs.year, song_playlist_entries.playlist_track_number AS album_track_number, songs.lyrics, songs.composer_id, songs.date_added, songs.date_modified, songs.date_last_played, songs.duration FROM playlists 
+        SELECT songs.id, songs.title, songs.artist_id, songs.album_id, songs.genre_id, songs.year, song_playlist_entries.playlist_track_number+1 AS album_track_number, songs.lyrics, songs.composer_id, songs.date_added, songs.date_modified, songs.date_last_played, songs.duration FROM playlists 
         LEFT JOIN song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         LEFT JOIN songs ON songs.id = song_playlist_entries.song_id
         WHERE playlist_id = :playlistId
@@ -372,7 +372,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     @Transaction
     @Query(
         """
-        SELECT songs.id, songs.title, songs.artist_id, songs.album_id, songs.genre_id, songs.year, song_playlist_entries.playlist_track_number AS album_track_number, songs.lyrics, songs.composer_id, songs.date_added, songs.date_modified, songs.date_last_played, songs.duration FROM playlists 
+        SELECT songs.id, songs.title, songs.artist_id, songs.album_id, songs.genre_id, songs.year, song_playlist_entries.playlist_track_number+1 AS album_track_number, songs.lyrics, songs.composer_id, songs.date_added, songs.date_modified, songs.date_last_played, songs.duration FROM playlists 
         LEFT JOIN song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         LEFT JOIN songs ON songs.id = song_playlist_entries.song_id
         WHERE playlist_id = :playlistId
@@ -391,7 +391,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     @Transaction
     @Query(
         """
-        SELECT playlists.*, songs.id, songs.title, songs.artist_id, songs.album_id, songs.genre_id, songs.year, song_playlist_entries.playlist_track_number AS album_track_number, songs.lyrics, songs.composer_id, songs.date_added, songs.date_modified, songs.date_last_played, songs.duration FROM playlists
+        SELECT playlists.*, songs.id, songs.title, songs.artist_id, songs.album_id, songs.genre_id, songs.year, song_playlist_entries.playlist_track_number+1 AS album_track_number, songs.lyrics, songs.composer_id, songs.date_added, songs.date_modified, songs.date_last_played, songs.duration FROM playlists
         INNER JOIN song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         INNER JOIN songs ON songs.id = song_playlist_entries.song_id
         WHERE playlist_id = :playlistId
@@ -399,6 +399,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
         """
     )
     abstract fun sortSongsAndPlaylistByTrackNumberAsc(playlistId: Long): Map<Playlist, List<Song>>
+    //NOTE: playlist_track_number+1 is to cover the fact that the numbers are autogenerated with 0 as the starting number
 
     //need update function, for updating song_playlist_entries, for removing songs from playlist
     //maybe need delete function / remove hide function

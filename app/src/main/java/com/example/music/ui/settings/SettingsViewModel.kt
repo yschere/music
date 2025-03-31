@@ -3,7 +3,7 @@ package com.example.music.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music.data.repository.ShuffleType
-import com.example.music.domain.GetTotalCountsUseCase
+import com.example.music.domain.usecases.GetTotalCountsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +22,8 @@ class SettingsViewModel @Inject constructor(
 
     private val selectedShuffleType = MutableStateFlow(ShuffleType.ONCE)
 
+    private val selectedThemeMode = MutableStateFlow("System default")
+
     private val _state = MutableStateFlow(SettingsUiState())
 
     private val refreshing = MutableStateFlow(false)
@@ -35,16 +37,20 @@ class SettingsViewModel @Inject constructor(
             val counts = getTotalCountsUseCase()
             combine(
                 refreshing,
-                selectedShuffleType
+                selectedShuffleType,
+                selectedThemeMode,
             ) {
                 refreshing,
-                shuffle ->
+                shuffle,
+                theme, ->
 
                 logger.info { "Shuffle type set to: ${shuffle.name}" }
+                logger.info { "Theme mode set to: ${theme}" }
                 SettingsUiState(
                     isLoading = refreshing,
                     selectedShuffleType = shuffle,
-                    totals = counts
+                    selectedThemeMode = theme,
+                    totals = counts,
                 )
             }.catch { throwable ->
                 emit(
@@ -77,21 +83,30 @@ class SettingsViewModel @Inject constructor(
     fun onSettingsAction(action: SettingsAction) {
         when(action){
             is SettingsAction.ShuffleTypeSelected -> onShuffleTypeSelected(action.shuffleType)
+            is SettingsAction.ThemeModeSelected -> onThemeModeSelected(action.themeMode)
             is SettingsAction.ImportPlaylist -> onImportPlaylist()
             is SettingsAction.RefreshLibrary -> onRefresh()
         }
     }
 
     private fun onShuffleTypeSelected(shuffleType: ShuffleType){
+        logger.info{ "Shuffle Type selected" }
         selectedShuffleType.value = shuffleType
     }
 
+    private fun onThemeModeSelected(themeMode: String){
+        logger.info{ "Theme Mode selected" }
+        selectedThemeMode.value = themeMode
+    }
+
     private fun onImportPlaylist(){
+        logger.info{ "Import Playlist clicked" }
         //TODO: this will check a local device and search for files that describe playlists, and generate a playlist based on those files
         // could also show the list of found playlists to user, and allow them to select which ones to import
     }
 
     private fun onRefresh(){
+        logger.info{ "Refresh Library clicked" }
         //TODO: this will check the database and compare if there are different values in the app versus in the database
         // how to check which is the source of truth?
     }
@@ -100,6 +115,7 @@ class SettingsViewModel @Inject constructor(
 
 sealed interface SettingsAction {
     data class ShuffleTypeSelected(val shuffleType: ShuffleType) : SettingsAction
+    data class ThemeModeSelected(val themeMode: String) : SettingsAction
     data object ImportPlaylist : SettingsAction
     data object RefreshLibrary : SettingsAction
 }
@@ -108,5 +124,6 @@ data class SettingsUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val selectedShuffleType: ShuffleType = ShuffleType.ONCE,
+    val selectedThemeMode: String = "System default",
     val totals: List<Int> = emptyList()
 )

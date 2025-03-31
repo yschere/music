@@ -1,48 +1,52 @@
 package com.example.music.ui.library
 
-import android.content.Context
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.data.repository.AppPreferences
-import com.example.music.domain.GetLibraryAlbumsUseCase
-import com.example.music.domain.GetLibraryArtistsUseCase
-import com.example.music.domain.GetLibraryComposersUseCase
-import com.example.music.domain.GetLibraryGenresUseCase
-import com.example.music.domain.GetLibraryPlaylistsUseCase
-import com.example.music.domain.GetLibrarySongsUseCase
-import com.example.music.domain.GetAppPreferencesUseCase
-import com.example.music.domain.GetTotalCountsUseCase
-import com.example.music.model.AlbumInfo
-import com.example.music.model.ArtistInfo
-import com.example.music.model.ComposerInfo
-import com.example.music.model.GenreInfo
-import com.example.music.model.PlaylistInfo
-import com.example.music.model.SongInfo
-import com.example.music.player.SongPlayer
-import com.example.music.player.model.PlayerSong
-import com.example.music.util.combine
+import com.example.music.domain.usecases.GetLibraryAlbumsUseCase
+import com.example.music.domain.usecases.GetLibraryArtistsUseCase
+import com.example.music.domain.usecases.GetLibraryComposersUseCase
+import com.example.music.domain.usecases.GetLibraryGenresUseCase
+import com.example.music.domain.usecases.GetLibraryPlaylistsUseCase
+import com.example.music.domain.usecases.GetLibrarySongsUseCase
+import com.example.music.domain.usecases.GetAppPreferencesUseCase
+import com.example.music.domain.usecases.GetTotalCountsUseCase
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.ArtistInfo
+import com.example.music.domain.model.ComposerInfo
+import com.example.music.domain.model.GenreInfo
+import com.example.music.domain.model.PlaylistInfo
+import com.example.music.domain.model.SongInfo
+import com.example.music.domain.player.SongPlayer
+import com.example.music.domain.player.model.PlayerSong
+import com.example.music.data.util.combine
+import com.example.music.domain.usecases.GetLibraryAlbumsV2
+import com.example.music.domain.usecases.GetLibraryArtistsV2
+import com.example.music.domain.usecases.GetLibraryGenresV2
+import com.example.music.domain.usecases.GetLibrarySongsV2
+import com.example.music.domain.usecases.GetTotalCountsV2
 import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.coroutines.coroutineContext
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     getLibrarySongsUseCase: GetLibrarySongsUseCase,
+    getLibrarySongsV2: GetLibrarySongsV2,
     getLibraryPlaylistsUseCase: GetLibraryPlaylistsUseCase,
     getLibraryGenresUseCase: GetLibraryGenresUseCase,
+    getLibraryGenresV2: GetLibraryGenresV2,
     getLibraryComposersUseCase: GetLibraryComposersUseCase,
     getLibraryArtistsUseCase: GetLibraryArtistsUseCase,
+    getLibraryArtistsV2: GetLibraryArtistsV2,
     getLibraryAlbumsUseCase: GetLibraryAlbumsUseCase,
+    getLibraryAlbumsV2: GetLibraryAlbumsV2,
     getTotalCountsUseCase: GetTotalCountsUseCase,
+    getTotalCountsV2: GetTotalCountsV2,
     getAppPreferences: GetAppPreferencesUseCase, //checks AppPreferencesDataStore
     private val songPlayer: SongPlayer,
 ) : ViewModel() {
@@ -94,8 +98,11 @@ class LibraryViewModel @Inject constructor(
     private val playlistSortModel = playlists1.value
     */
 
+    //private val appPreferencesFlow = getAppPreferences()
+
     // Holds the sorting preferences saved in the data store
     //private val sortPrefs = getAppPreferences()
+    private val showBottomSheet = MutableStateFlow(false)
 
     // Holds our view state which the UI collects via [state]
     private val _state = MutableStateFlow(LibraryScreenUiState())
@@ -109,7 +116,12 @@ class LibraryViewModel @Inject constructor(
     init {
         logger.info { "Library View Model - viewModelScope launch start" }
         viewModelScope.launch {
-            val counts = getTotalCountsUseCase()
+            //val counts = getTotalCountsUseCase()
+            val counts = getTotalCountsV2()
+            //var albSort: sortObject = sortObject()
+            //appPreferencesFlow.collect{
+                //albSort = sortObject(it.albumSortOrder.name,it.isAlbumAsc)
+            //}
 
             // Combines the latest value from each of the flows, allowing us to generate a
             // view state instance which only contains the latest values.
@@ -117,12 +129,25 @@ class LibraryViewModel @Inject constructor(
                 libraryCategories,
                 selectedLibraryCategory,
                 refreshing,
-                getLibraryAlbumsUseCase("title", true),//sortedAlbums,
-                getLibraryArtistsUseCase("name", true),//sortedArtists,
+                showBottomSheet,
+                //appPreferencesFlow,
+
+                //getLibraryAlbumsUseCase("title", true),//sortedAlbums,
+                //getLibraryAlbumsV2("title", true),
+                //getLibraryAlbumsV2(albSort.sort, albSort.asc),
+
+                //getLibraryArtistsUseCase("name", true),//sortedArtists,
+                //getLibraryArtistsV2("name", true),
+
                 getLibraryComposersUseCase("name", true),//sortedComposers,
-                getLibraryGenresUseCase("name", true),//sortedGenres,
+
+                //getLibraryGenresUseCase("name", true),//sortedGenres,
+                //getLibraryGenresV2("name", true),
+
                 getLibraryPlaylistsUseCase("name", true),//sortedPlaylists,
-                getLibrarySongsUseCase("title", true),//sortedSongs,
+
+                //getLibrarySongsUseCase("title", true),//sortedSongs,
+                //getLibrarySongsV2("title", true),
             ) {
 
             /*combine(
@@ -151,26 +176,71 @@ class LibraryViewModel @Inject constructor(
                 libraryCategories,
                 libraryCategory,
                 refreshing,
-                libraryAlbums,
-                libraryArtists,
+                showBottomSheet,
+                //appPreferences,
+                //libraryAlbums,
+                //libraryArtists,
                 libraryComposers,
-                libraryGenres,
+                //libraryGenres,
                 libraryPlaylists,
-                librarySongs,
+                //librarySongs,
                 ->
 
                 logger.info { "Library View Model - LibraryScreenUiState:"}
                 logger.info { "Library View Model - isLoading: $refreshing"}
                 logger.info { "Library View Model - libraryCategories: $libraryCategories"}
                 logger.info { "Library View Model - selectedLibraryCategory: $libraryCategory"}
+                var libraryAlbums: List<AlbumInfo> = emptyList()
+                var libraryArtists: List<ArtistInfo> = emptyList()
+                //var libraryComposers: List<ComposerInfo> = emptyList()
+                var libraryGenres: List<GenreInfo> = emptyList()
+                //var libraryPlaylists: List<PlaylistInfo> = emptyList()
+                var librarySongs: List<SongInfo> = emptyList()
+                when (libraryCategory) {
+                    LibraryCategory.Playlists -> {
+                        //libraryPlaylists = getLibraryPlaylistsUseCase("name", true)//sortedPlaylists,
+                    }
+                    LibraryCategory.Songs -> {
+                        librarySongs = getLibrarySongsV2("TITLE", true)
+                    }
+                    LibraryCategory.Artists -> {
+                        libraryArtists = getLibraryArtistsV2("ARTIST", true)
+                    }
+                    LibraryCategory.Albums -> {
+                        libraryAlbums = getLibraryAlbumsV2("ALBUM", true)
+                    }
+                    LibraryCategory.Genres -> {
+                        libraryGenres = getLibraryGenresV2("NAME", false)
+                    }
+                    LibraryCategory.Composers -> {
+                        //like playlists
+                    }
+                }
 
-                val libraryPlayerSongs = librarySongs.map { item->
+                //val libraryAlbums = getLibraryAlbumsV2(appPreferences.albumSortOrder.name, appPreferences.isAlbumAsc)
+                logger.info { "did we see albums tho" }
+                /*val libraryPlayerSongs = librarySongs.map { item->
                     PlayerSong(
                         item,
                         libraryArtists.find { it.id == item.artistId }?: ArtistInfo(),
                         libraryAlbums.find { it.id == item.albumId }?: AlbumInfo(),
                     )
+                }*/
+                val libraryPlayerSongs = librarySongs.map { item ->
+                    PlayerSong(
+                        id = item.id,
+                        title = item.title,
+                        artistId = item.artistId?:0,
+                        artistName = item.artistName?:"",
+                        albumId = item.albumId?:0,
+                        albumTitle = item.albumTitle?:"",
+                        duration = item.duration,
+                        artwork = item.title,
+                        trackNumber = item.trackNumber,
+                        discNumber = item.discNumber,
+                    )
                 }
+                logger.info { "did we thooooooo" }
                 LibraryScreenUiState(
                     isLoading = refreshing,
                     libraryCategories = libraryCategories,
@@ -182,7 +252,8 @@ class LibraryViewModel @Inject constructor(
                     libraryPlaylists = libraryPlaylists,
                     librarySongs = librarySongs,
                     libraryPlayerSongs = libraryPlayerSongs,
-                    totals = counts
+                    totals = counts,
+                    showBottomModal = showBottomSheet,
                 )
             }.catch { throwable ->
                 logger.info { "Library View Model - Error Caught: ${throwable.message}"}
@@ -222,15 +293,24 @@ class LibraryViewModel @Inject constructor(
             is LibraryAction.LibraryCategorySelected -> onLibraryCategorySelected(action.libraryCategory)
             //maybe filtering / sorting selections added here?
             is LibraryAction.QueueSong -> onQueueSong(action.song)
+            is LibraryAction.ShowModal -> onShowModal(action.libraryCategory, action.isModalOpen)
         }
     }
 
     private fun onLibraryCategorySelected(libraryCategory: LibraryCategory) {
         selectedLibraryCategory.value = libraryCategory
+        refresh()
     }
 
     private fun onQueueSong(song: PlayerSong) {
         songPlayer.addToQueue(song)
+    }
+
+    private fun onShowModal(libraryCategory: LibraryCategory, isModalOpen: Boolean) {
+        //what is the purpose of this function?
+        // want to know which screen on library is being shown
+        // want to have a way for contexted modal? how would this accomplish it tho
+        showBottomSheet.value = isModalOpen
     }
 
 }
@@ -243,6 +323,7 @@ enum class LibraryCategory {
 sealed interface LibraryAction {
     data class LibraryCategorySelected(val libraryCategory: LibraryCategory) : LibraryAction
     data class QueueSong(val song: PlayerSong) : LibraryAction
+    data class ShowModal(val libraryCategory: LibraryCategory, val isModalOpen: Boolean) : LibraryAction
 }
 
 data class LibraryScreenUiState(
@@ -257,7 +338,9 @@ data class LibraryScreenUiState(
     val libraryPlaylists: List<PlaylistInfo> = emptyList(),
     val libraryPlayerSongs: List<PlayerSong> = emptyList(),//TODO: PlayerSong support
     val librarySongs: List<SongInfo> = emptyList(),
-    val totals: List<Int> = emptyList()
+    val totals: List<Int> = emptyList(),
+    //val totals: List<Pair<String,Int>> = emptyList(),
+    val showBottomModal: Boolean = false,
 )
 /* sealed interface LibraryScreenUiState {
     data object Loading : LibraryScreenUiState

@@ -4,6 +4,8 @@ import com.example.music.data.database.dao.AlbumsDao
 import com.example.music.data.database.dao.SongsDao
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.AlbumWithExtraInfo
+import com.example.music.data.database.model.Artist
+import com.example.music.data.database.model.ArtistWithExtraInfo
 import com.example.music.data.database.model.Song
 import com.example.music.data.database.model.SongToAlbum
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +18,8 @@ interface AlbumRepo {
     fun getAllAlbums(): List<Album>
 
     fun getAlbumById(id: Long): Flow<Album>
+
+    fun getAlbumByTitle(title: String): Flow<Album>
 
     fun getAlbumsByAlbumArtistId(
         albumArtistId: Long,
@@ -56,7 +60,7 @@ interface AlbumRepo {
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<AlbumWithExtraInfo>>
 
-    fun searchAlbumByTitle(
+    fun searchAlbumsByTitle(
         query: String,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<AlbumWithExtraInfo>>
@@ -72,6 +76,8 @@ interface AlbumRepo {
     fun sortSongsInAlbumByTrackNumberDesc(albumId: Long): Flow<List<Song>>
 
     fun songsInAlbum(albumId: Long): Flow<List<SongToAlbum>>
+
+    fun getAlbumArtistByAlbumId(albumId: Long): Flow<Artist>
 
     suspend fun addAlbum(album: Album)
 
@@ -106,6 +112,9 @@ class AlbumRepoImpl(
     //equivalent of podcastStore.podcastWithUri
     override fun getAlbumById(id: Long): Flow<Album> =
         albumDao.getAlbumById(id) //equivalent of podcastsDao.podcastWithUri
+
+    override fun getAlbumByTitle(title: String): Flow<Album> =
+        albumDao.getAlbumByTitle(title)
 
     override fun getAlbumsByAlbumArtistId(
         albumArtistId: Long,
@@ -143,11 +152,11 @@ class AlbumRepoImpl(
         albumDao.sortAlbumsByTitleDesc(limit)
 
     //equivalent of podcastStore.searchPodcastByTitle
-    override fun searchAlbumByTitle(
+    override fun searchAlbumsByTitle(
         query: String,
         limit: Int
     ): Flow<List<AlbumWithExtraInfo>> =
-        albumDao.searchAlbumByTitle(query, limit) //equivalent of podcastsDao.searchPodcastByTitle
+        albumDao.searchAlbumsByTitle(query, limit) //equivalent of podcastsDao.searchPodcastByTitle
 
     override fun getSongsByAlbumId(
         albumId: Long,
@@ -168,6 +177,9 @@ class AlbumRepoImpl(
 
     override fun songsInAlbum(albumId: Long): Flow<List<SongToAlbum>> =
         songDao.getSongsAndAlbumByAlbumId(albumId)
+
+    override fun getAlbumArtistByAlbumId(albumId: Long): Flow<Artist> =
+        albumDao.getAlbumArtistByAlbumId(albumId)
 
     /**
      * Add a new [Album] to this store.

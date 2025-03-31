@@ -3,11 +3,11 @@ package com.example.music.ui.composerdetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.GetComposerDetailsUseCase
-import com.example.music.model.ComposerInfo
-import com.example.music.model.SongInfo
-import com.example.music.player.SongPlayer
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.usecases.GetComposerDetailsUseCase
+import com.example.music.domain.model.ComposerInfo
+import com.example.music.domain.model.SongInfo
+import com.example.music.domain.player.SongPlayer
+import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.music.util.logger

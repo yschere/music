@@ -6,7 +6,6 @@ import androidx.compose.ui.unit.sp
 
 val MusicTypography = androidx.compose.material3.Typography(
 
-
     displayLarge = TextStyle(
         fontFamily = Roboto,
         fontSize = 57.sp,
@@ -51,12 +50,12 @@ val MusicTypography = androidx.compose.material3.Typography(
     titleLarge = TextStyle(
         fontFamily = Roboto,
         fontSize = 22.sp,
-        fontWeight = FontWeight.W400,
+        fontWeight = FontWeight.W500,
         lineHeight = 28.sp
     ),
     titleMedium = TextStyle(
         fontFamily = Roboto,
-        fontSize = 16.sp,
+        fontSize = 18.sp,
         fontWeight = FontWeight.W500,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp
@@ -67,29 +66,6 @@ val MusicTypography = androidx.compose.material3.Typography(
         fontWeight = FontWeight.W500,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
-    ),
-
-
-    labelLarge = TextStyle(
-        fontFamily = Roboto,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.W500,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp
-    ),
-    labelMedium = TextStyle(
-        fontFamily = Roboto,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.W500,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
-    ),
-    labelSmall = TextStyle(
-        fontFamily = Roboto,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.W500,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
     ),
 
 
@@ -113,5 +89,28 @@ val MusicTypography = androidx.compose.material3.Typography(
         fontWeight = FontWeight.W500,
         lineHeight = 16.sp,
         letterSpacing = 0.4.sp
+    ),
+
+
+    labelLarge = TextStyle(
+        fontFamily = Roboto,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.W500,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    ),
+    labelMedium = TextStyle(
+        fontFamily = Roboto,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.W500,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = Roboto,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.W500,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
     ),
 )

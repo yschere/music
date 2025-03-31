@@ -1,12 +1,17 @@
 package com.example.music.glancewidget
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -16,12 +21,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -29,9 +36,11 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.components.Scaffold
 import androidx.glance.appwidget.components.SquareIconButton
 import androidx.glance.appwidget.cornerRadius
@@ -82,6 +91,15 @@ private object Sizes {
     val imageCondensed = 60.dp
 }
 
+/**
+ * Represents the different sizes for a widget.
+ *
+ * This enum is used to categorize the size of a widget based on its width and height.
+ * It provides three distinct categories:
+ *   - INVALID: A small widget whose width is less than midWidth (140.dp).
+ *   - NARROW: A widget whose width is greater or equal to minWidth (140.dp), and less than or equal to smallBucketCutoffWidth (250.dp).
+ *   - NORMAL: A larger widget whose width is greater than smallBucketCutoffWidth (250.dp).
+ */
 private enum class SizeBucket { Invalid, Narrow, Normal }
 
 @Composable
@@ -111,28 +129,40 @@ class MusicAppWidget : GlanceAppWidget() {
         )
 
         provideContent {
+            //val state by remember { PlaybackController.observe(context) }.collectAsState(NowPlaying.EMPTY)
             val sizeBucket = calculateSizeBucket()
             val playPauseIcon = if (testState.isPlaying) PlayPauseIcon.Pause else PlayPauseIcon.Play
             val artUri = Uri.parse(testState.albumArtUri)
+            val modifier = GlanceModifier
+                .background(
+                    ImageProvider(R.drawable.bpicon_w),
+                    colorFilter = ColorFilter.tint(GlanceTheme.colors.surface)
+                )
+                .padding(8.dp)
+                .appWidgetBackground()
+                .launchApp()
+                .fillMaxSize()
 
             GlanceTheme(
                 colors = ColorProviders(
-                    light = blueLightSet, //updated to use light scheme from designsys
-                    dark = blueDarkSet //updated to use dark scheme from designsys
+                    light = lightMusicColors, //updated to use light scheme from designsys
+                    dark = darkMusicColors //updated to use dark scheme from designsys
                 )
             ) {
                 when (sizeBucket) {
                     SizeBucket.Invalid -> WidgetUiInvalidSize()
                     SizeBucket.Narrow -> WidgetUiNarrow(
                         imageUri = artUri,
-                        playPauseIcon = playPauseIcon
+                        playPauseIcon = playPauseIcon,
+                        modifier = modifier,
                     )
 
                     SizeBucket.Normal -> WidgetUiNormal(
                         song = testState.songTitle,
                         artist = testState.artistName,
                         imageUri = artUri,
-                        playPauseIcon = playPauseIcon
+                        playPauseIcon = playPauseIcon,
+                        modifier = modifier,
                     )
                 }
             }
@@ -146,10 +176,12 @@ private fun WidgetUiNormal(
     artist: String,
     imageUri: Uri,
     playPauseIcon: PlayPauseIcon,
+    modifier: GlanceModifier,
 ) {
-    Scaffold(titleBar = {} /* title bar will be optional starting in glance 1.1.0-beta3*/) {
+    Scaffold(titleBar = {}) { //title bar will be optional starting in glance 1.1.0-beta3
         Row(
-            GlanceModifier.fillMaxSize(), verticalAlignment = Alignment.Vertical.CenterVertically
+            modifier = modifier.fillMaxSize(),
+            verticalAlignment = Alignment.Vertical.CenterVertically
         ) {
             AlbumArt(imageUri, GlanceModifier.size(Sizes.imageNormal))
             SongText(song, artist, modifier = GlanceModifier.padding(16.dp).defaultWeight())
@@ -162,10 +194,11 @@ private fun WidgetUiNormal(
 private fun WidgetUiNarrow(
     imageUri: Uri,
     playPauseIcon: PlayPauseIcon,
+    modifier: GlanceModifier,
 ) {
-    Scaffold(titleBar = {} /* title bar will be optional in scaffold in glance 1.1.0-beta3*/) {
+    Scaffold(titleBar = {}) { //title bar will be optional starting in glance 1.1.0-beta3
         Row(
-            modifier = GlanceModifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             verticalAlignment = Alignment.Vertical.CenterVertically
         ) {
             AlbumArt(imageUri, GlanceModifier.size(Sizes.imageCondensed))
@@ -177,7 +210,7 @@ private fun WidgetUiNarrow(
 
 @Composable
 private fun WidgetUiInvalidSize() {
-    Box(modifier = GlanceModifier.fillMaxSize().background(ColorProvider(Color.Magenta))) {
+    Box(modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.background)) {
         Text("invalid size")
     }
 }
@@ -187,17 +220,17 @@ private fun AlbumArt(
     imageUri: Uri,
     modifier: GlanceModifier = GlanceModifier
 ) {
-    // commented out until able to understand glance with compose
+    /*// commented out until able to understand glance with compose
     // support for this would be within designsys
-//    AlbumImage_Widget(
-//        0,
-//        null,
-//        modifier.cornerRadius(12.dp),
-//        ContentScale.FillBounds,
-//    )
+    AlbumImage_Widget(
+        0,
+        null,
+        modifier.cornerRadius(12.dp),
+        ContentScale.FillBounds,
+    )*/
     Image(
-        provider = ImageProvider(com.example.music.designsys.R.drawable.bpicon2),
-        //painter = painterResource(com.example.music.designsys.R.drawable.bpicon2),
+        provider = ImageProvider(R.drawable.bpicon_w),
+        //painter = painterResource(R.drawable.bpicon_w),
         //painter = painterResource(albumImage), //trying to use drawable from res folder
         //painter = imageLoader, //uses coil imageLoader
         contentDescription = null,
@@ -227,8 +260,8 @@ fun SongText(song: String, artist: String, modifier: GlanceModifier = GlanceModi
 @Composable
 private fun PlayPauseButton(state: PlayPauseIcon, onClick: () -> Unit) {
     val (iconRes: Int, description: Int) = when (state) {
-        PlayPauseIcon.Play -> R.drawable.outline_play_arrow_24 to R.string.content_description_play
-        PlayPauseIcon.Pause -> R.drawable.outline_pause_24 to R.string.content_description_pause
+        PlayPauseIcon.Play -> R.drawable.ic_round_play_filled to R.string.content_description_play
+        PlayPauseIcon.Pause -> R.drawable.ic_pause_rounded_filled to R.string.content_description_pause
     }
 
     val provider = ImageProvider(iconRes)
@@ -256,31 +289,51 @@ private fun WidgetAsyncImage(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-//    LaunchedEffect(key1 = uri) {
-//        val request = ImageRequest.Builder(context)
-//            .data(uri)
-//            .size(200, 200)
-//            .target { data: Drawable ->
-//                bitmap = (data as BitmapDrawable).bitmap
-//            }
-//            .build()
-//
-//        scope.launch(Dispatchers.IO) {
-//            val result = ImageLoader(context).execute(request)
-//            if (result is ErrorResult) {
-//                val t = result.throwable
-//                Log.e(TAG, "Image request error:", t)
-//            }
-//        }
-//    }
+    /*LaunchedEffect(key1 = uri) {
+        val request = ImageRequest.Builder(context)
+            .data(uri)
+            .size(200, 200)
+            .target { data: Drawable ->
+                bitmap = (data as BitmapDrawable).bitmap
+            }
+            .build()
 
-//    bitmap?.let { bitmap ->
-//        Image(
-//            provider = ImageProvider(bitmap),
-//            contentDescription = contentDescription,
-//            contentScale = ContentScale.FillBounds,
-//            modifier = modifier.cornerRadius(12.dp)
+        scope.launch(Dispatchers.IO) {
+            val result = ImageLoader(context).execute(request)
+            if (result is ErrorResult) {
+                val t = result.throwable
+                Log.e(TAG, "Image request error:", t)
+            }
+        }
+    }*/
+
+    /*bitmap?.let { bitmap ->
+        Image(
+            provider = ImageProvider(bitmap),
+            contentDescription = contentDescription,
+            contentScale = ContentScale.FillBounds,
+            modifier = modifier.cornerRadius(12.dp)
             // TODO: confirm radius with design
-//        )
-//    }
+        )
+    }*/
+}
+
+/**
+ * Creates a new `ColorProvider` with a modified alpha value.
+ *
+ * @param context The context needed to resolve the color.
+ * @param alpha The new alpha value (0f-1f); -1f means use the original alpha.
+ * @return A new `ColorProvider` or the original if alpha is -1f.
+ */
+@SuppressLint("RestrictedApi")
+fun ColorProvider.copy(context: Context, alpha: Float = -1f) = if (alpha == -1f) this else
+    ColorProvider(getColor(context).copy(alpha))
+
+@Composable
+internal fun GlanceModifier.launchApp(): GlanceModifier {
+    val context = LocalContext.current
+    return clickable {
+        Log.d("Util", "Universal: ${context.packageName}")
+        context.startActivity(context.packageManager.getLaunchIntentForPackage(context.packageName))
+    }
 }

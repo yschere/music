@@ -2,7 +2,8 @@ package com.example.music.domain.model
 
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.ArtistWithExtraInfo
-import com.example.music.util.domainLogger
+import com.example.music.domain.util.Artist as ArtistV2
+import com.example.music.domain.util.domainLogger
 
 /**
  * External data layer representation of an artist.
@@ -16,14 +17,9 @@ import com.example.music.util.domainLogger
 data class ArtistInfo(
     val id: Long = 0,
     val name: String = "",
-    val albumCount: Int? = 0,
-    val songCount: Int? = 0,
+    val albumCount: Int = 0,
+    val songCount: Int = 0,
 )
-//data class ArtistInfo() {
-//    var id = 0
-//    var name = ""
-//    constructor(id: Long = 0, name: String = "") : this() {}
-//}
 
 /**
  * Transform Artist table entry to ArtistInfo domain model
@@ -42,7 +38,17 @@ fun Artist.asExternalModel(): ArtistInfo {
 fun ArtistWithExtraInfo.asExternalModel(): ArtistInfo {
     domainLogger.info { "ArtistWithExtraInfo to ArtistInfo external model constructor: \n ${this.artist} + ${this.songCount} + ${this.albumCount}" }
     return this.artist.asExternalModel().copy(
-        albumCount = albumCount ?: 0,
-        songCount = songCount ?: 0,
+        albumCount = albumCount,
+        songCount = songCount,
+    )
+}
+
+fun ArtistV2.asExternalModel(): ArtistInfo {
+    domainLogger.info { "ArtistV2 to ArtistInfo external model constructor: \n ${this.id} + ${this.name}" }
+    return ArtistInfo(
+        id = this.id,
+        name = this.name,
+        albumCount = 0,//this.numAlbums,
+        songCount = 0,//this.numTracks,
     )
 }

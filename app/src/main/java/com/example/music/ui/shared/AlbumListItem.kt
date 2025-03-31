@@ -1,84 +1,38 @@
 package com.example.music.ui.shared
 
 import android.annotation.SuppressLint
-import androidx.compose.material3.FloatingActionButton
 import android.content.res.Configuration
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
-import androidx.compose.material.icons.filled.DensityLarge
-import androidx.compose.material.icons.filled.DensityMedium
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PlayCircleFilled
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.PlayCircle
-import androidx.compose.material.icons.outlined.Reorder
-import androidx.compose.material.icons.rounded.PlayCircleFilled
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.compose.ui.unit.min
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.component.HtmlTextContainer
-import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
-import com.example.music.domain.testing.PreviewArtists
-import com.example.music.domain.testing.PreviewSongs
-import com.example.music.domain.testing.getSongData
-import com.example.music.domain.testing.getAlbumData
 import com.example.music.domain.testing.getArtistData
-import com.example.music.model.AlbumInfo
-import com.example.music.model.ArtistInfo
-import com.example.music.model.SongInfo
-import com.example.music.player.model.PlayerSong
-import com.example.music.ui.player.formatString
+import com.example.music.domain.model.AlbumInfo
 import com.example.music.ui.theme.MusicTheme
-import java.time.Duration
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-import kotlin.math.min
 
 @Composable
 fun AlbumListItem(
@@ -124,68 +78,66 @@ private fun AlbumListItemBox(
     album: AlbumInfo,
     modifier: Modifier,
 ) {
-    /*
-    maybe want the box with constraints thing up here?
+    /* //maybe want the box with constraints thing up here?
      and then within it have base column structure?
      maybe have header and footer with their own separate constraints? that adhere to parent constraint
     */
 /*      //////// VERSION 1 /////////
-//    Column(
-//        modifier = Modifier.padding(10.dp).size(210.dp, 280.dp)
-//    ) {
-//        // Top Part
-//        AlbumListItemHeader(
-//            album = album, //might want this to be album with extra info, so that song count can be passed in here
-//            onClick = {},
-//            modifier = Modifier.padding(bottom = 8.dp)
-//            //this one should have the floating action button in it
-//        )
-//
-//        // Bottom Part
-//        AlbumListItemFooter(
-//            album = album, //might want a way to have album artist name passed in here
-//            onClick = {},
-//            //onQueueSong = onQueueSong,
-//            modifier = Modifier.padding(bottom = 8.dp)
-//            //this one should have the more options button in it
-//        )
-//    }
+   Column(
+       modifier = Modifier.padding(10.dp).size(210.dp, 280.dp)
+   ) {
+       // Top Part
+       AlbumListItemHeader(
+           album = album, //might want this to be album with extra info, so that song count can be passed in here
+           onClick = {},
+           modifier = Modifier.padding(bottom = 8.dp)
+           //this one should have the floating action button in it
+       )
+
+       // Bottom Part
+       AlbumListItemFooter(
+           album = album, //might want a way to have album artist name passed in here
+           onClick = {},
+           //onQueueSong = onQueueSong,
+           modifier = Modifier.padding(bottom = 8.dp)
+           //this one should have the more options button in it
+       )
+   }
 */
 
     //////// VERSION 2 //////// trying with box with constraints and actually setting constraints
 
-    /*
-        want to make it so that
+    /* //want to make it so that
         min width and min height are passed-in, default values
         max width and max height are dependent on size of phone screen or grid rules
         use of grid rules would need to be made from the calling object
     */
 
-        Column(
-            modifier = Modifier
-                .padding(8.dp)
-                .background(MaterialTheme.colorScheme.background),
-                //.size(maxHeaderWidth, maxHeaderHeight)
-                //.size(200.dp, 280.dp) //for future context: width 200.dp by height 280.dp had the width of the box go passed half way on the pixel 7, the height was a 3rd of the screen. no padding to the outside of the box so its flat against the window sides
-                //more future context: in landscape mode, width 200 by height 280 meant the height covered most of the screen when taking status bar and bottom screen bar into acct
-                //.size(boxWithConstraintsScope.maxWidth/3, boxWithConstraintsScope.maxHeight/4)
-        ) {
-            // Top Part
-            AlbumListItemHeader(
-                album = album, //might want this to be album with extra info, so that song count can be passed in here
-                //onClick = {},
-                //modifier = Modifier.padding(bottom = 8.dp)
-                //this one should have the floating action button in it
-            )
+    Column(
+        modifier = Modifier
+            .padding(8.dp)
+            .background(MaterialTheme.colorScheme.background),
+            //.size(maxHeaderWidth, maxHeaderHeight)
+            //.size(200.dp, 280.dp) //for future context: width 200.dp by height 280.dp had the width of the box go passed half way on the pixel 7, the height was a 3rd of the screen. no padding to the outside of the box so its flat against the window sides
+            //more future context: in landscape mode, width 200 by height 280 meant the height covered most of the screen when taking status bar and bottom screen bar into acct
+            //.size(boxWithConstraintsScope.maxWidth/3, boxWithConstraintsScope.maxHeight/4)
+    ) {
+        // Top Part
+        AlbumListItemHeader(
+            album = album, //might want this to be album with extra info, so that song count can be passed in here
+            //onClick = {},
+            //modifier = Modifier.padding(bottom = 8.dp)
+            //this one should have the floating action button in it
+        )
 
-            // Bottom Part
-            AlbumListItemFooter(
-                album = album, //might want a way to have album artist name passed in here
-                //onClick = {},
-                //onQueueSong = onQueueSong,
-                //modifier = Modifier.padding(bottom = 8.dp)
-                //this one should have the more options button in it
-            )
+        // Bottom Part
+        AlbumListItemFooter(
+            album = album, //might want a way to have album artist name passed in here
+            //onClick = {},
+            //onQueueSong = onQueueSong,
+            //modifier = Modifier.padding(bottom = 8.dp)
+            //this one should have the more options button in it
+        )
     }
 }
 
@@ -244,9 +196,8 @@ private fun AlbumListItemRow(
         ) {
             Icon( //more options icon
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.cd_more),
-                //tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                tint = MaterialTheme.colorScheme.primary,
+                contentDescription = stringResource(R.string.icon_more),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }
@@ -287,10 +238,8 @@ private fun AlbumListItemFooter(
         ) {
             Icon( //more options icon
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.cd_more),
-                //tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                tint = MaterialTheme.colorScheme.primary,
-                //modifier = Modifier.padding(4.dp)
+                contentDescription = stringResource(R.string.icon_more),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }

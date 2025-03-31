@@ -1,9 +1,9 @@
-package com.example.music.domain
+package com.example.music.domain.usecases
 
 import com.example.music.data.repository.ArtistRepo
-import com.example.music.model.ArtistDetailsFilterResult
-import com.example.music.model.asExternalModel
-import com.example.music.util.domainLogger
+import com.example.music.domain.model.ArtistDetailsFilterResult
+import com.example.music.domain.model.asExternalModel
+import com.example.music.domain.util.domainLogger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine

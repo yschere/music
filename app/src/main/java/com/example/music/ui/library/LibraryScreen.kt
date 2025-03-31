@@ -1,7 +1,15 @@
 package com.example.music.ui.library
 
 import android.content.res.Configuration
-import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,9 +26,10 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
@@ -38,22 +47,10 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabPosition
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.Posture
-import androidx.compose.material3.adaptive.WindowAdaptiveInfo
-import androidx.compose.material3.adaptive.allVerticalHingeBounds
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.layout.HingePolicy
-import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
-import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
-import androidx.compose.material3.adaptive.layout.SupportingPaneScaffold
-import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
-import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
-import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
-import androidx.compose.material3.adaptive.occludingVerticalHingeBounds
-import androidx.compose.material3.adaptive.separatingVerticalHingeBounds
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,17 +58,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
-import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
+import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewComposers
@@ -79,13 +77,13 @@ import com.example.music.domain.testing.PreviewGenres
 import com.example.music.domain.testing.PreviewPlayerSongs
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
-import com.example.music.model.AlbumInfo
-import com.example.music.model.ArtistInfo
-import com.example.music.model.ComposerInfo
-import com.example.music.model.GenreInfo
-import com.example.music.model.PlaylistInfo
-import com.example.music.model.SongInfo
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.ArtistInfo
+import com.example.music.domain.model.ComposerInfo
+import com.example.music.domain.model.GenreInfo
+import com.example.music.domain.model.PlaylistInfo
+import com.example.music.domain.model.SongInfo
+import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.library.album.albumItems
 import com.example.music.ui.library.artist.artistItems
 import com.example.music.ui.library.composer.composerItems
@@ -97,89 +95,12 @@ import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.isCompact
-import com.example.music.util.quantityStringResource
+import com.example.music.util.logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.time.Duration
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun <T> ThreePaneScaffoldNavigator<T>.isMainPaneHidden(): Boolean {
-    return scaffoldValue[SupportingPaneScaffoldRole.Main] == PaneAdaptedValue.Hidden
-}
 
 /**
- * Copied from `calculatePaneScaffoldDirective()` in [PaneScaffoldDirective], with modifications to
- * only show 1 pane horizontally if either width or height size class is compact.
- */
-//@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-fun calculateScaffoldDirective(
-    windowAdaptiveInfo: WindowAdaptiveInfo,
-    verticalHingePolicy: HingePolicy = HingePolicy.AvoidSeparating
-): PaneScaffoldDirective {
-    val maxHorizontalPartitions: Int
-    val verticalSpacerSize: Dp
-    if (windowAdaptiveInfo.windowSizeClass.isCompact) {
-        // Window width or height is compact. Limit to 1 pane horizontally.
-        maxHorizontalPartitions = 1
-        verticalSpacerSize = 0.dp
-    } else {
-        when (windowAdaptiveInfo.windowSizeClass.windowWidthSizeClass) {
-            WindowWidthSizeClass.COMPACT -> {
-                maxHorizontalPartitions = 1
-                verticalSpacerSize = 0.dp
-            }
-
-            WindowWidthSizeClass.MEDIUM -> {
-                maxHorizontalPartitions = 1
-                verticalSpacerSize = 0.dp
-            }
-
-            else -> {
-                maxHorizontalPartitions = 2
-                verticalSpacerSize = 24.dp
-            }
-        }
-    }
-    val maxVerticalPartitions: Int
-    val horizontalSpacerSize: Dp
-
-    if (windowAdaptiveInfo.windowPosture.isTabletop) {
-        maxVerticalPartitions = 2
-        horizontalSpacerSize = 24.dp
-    } else {
-        maxVerticalPartitions = 1
-        horizontalSpacerSize = 0.dp
-    }
-
-    val defaultPanePreferredWidth = 360.dp
-
-    return PaneScaffoldDirective(
-        maxHorizontalPartitions,
-        verticalSpacerSize,
-        maxVerticalPartitions,
-        horizontalSpacerSize,
-        defaultPanePreferredWidth,
-        getExcludedVerticalBounds(windowAdaptiveInfo.windowPosture, verticalHingePolicy)
-    )
-}
-
-/**
- * Copied from `getExcludedVerticalBounds()` in [PaneScaffoldDirective] since it is private.
- */
-//@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun getExcludedVerticalBounds(posture: Posture, hingePolicy: HingePolicy): List<Rect> {
-    return when (hingePolicy) {
-        HingePolicy.AvoidSeparating -> posture.separatingVerticalHingeBounds
-        HingePolicy.AvoidOccluding -> posture.occludingVerticalHingeBounds
-        HingePolicy.AlwaysAvoid -> posture.allVerticalHingeBounds
-        else -> emptyList()
-    }
-}
-
-/**
- * Composable for the Library Screen of the app. Contains windowSizeClass,
+ * Stateful Composable for the Library Screen of the app. Contains windowSizeClass,
  * navigateToPlayer, and viewModel as parameters.
  */
 @Composable
@@ -200,10 +121,35 @@ fun LibraryScreen(
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    Box {
-        LibraryScreenReady(
-            uiState = uiState,
+    if (uiState.errorMessage != null) {
+        Text(text = uiState.errorMessage!!)
+        LibraryScreenError(onRetry = viewModel::refresh)
+    }
+    Surface {
+        LibraryScreen(
+            //for now so I can see anything load in emulator, gonna put some preview values
             windowSizeClass = windowSizeClass,
+            isLoading = uiState.isLoading,
+            libraryCategories = uiState.libraryCategories,
+            selectedLibraryCategory = uiState.selectedLibraryCategory,
+            //would probably load in the preferences data store around here to collect what sorting used to view screens
+            libraryAlbums = uiState.libraryAlbums,
+            libraryArtists = uiState.libraryArtists,
+            libraryComposers = uiState.libraryComposers,
+            libraryGenres = uiState.libraryGenres,
+            libraryPlaylists = uiState.libraryPlaylists,
+            libraryPlayerSongs = uiState.libraryPlayerSongs,
+            librarySongs = uiState.librarySongs,
+            totals = uiState.totals,
+            onLibraryAction = viewModel::onLibraryAction,
+            /*navigateToAlbumDetails = { //was navigateToPodcastDetails,
+               //  then navigateToPlaylistDetails but uiState
+               //  doesn't share playlistInfo, but it can
+               //  share genre, album, song infos
+               //  could make this navigateToAlbumDetails. would need an albumInfo that
+               //  can encapsulate the type of properties needed that Podcast has
+                navigator.navigateTo(SupportingPaneScaffoldRole.Supporting, it.id.toString())
+            },*/
             navigateBack = navigateBack,
             navigateToHome = navigateToHome,
             navigateToLibrary = navigateToLibrary,
@@ -215,13 +161,8 @@ fun LibraryScreen(
             navigateToPlaylistDetails = navigateToPlaylistDetails,
             navigateToPlayer = navigateToPlayer,
             navigateToPlayerSong = navigateToPlayerSong,
-            viewModel = viewModel,
+            modifier = Modifier.fillMaxSize()
         )
-
-        if (uiState.errorMessage != null) {
-            Text(text = uiState.errorMessage!!)
-            LibraryScreenError(onRetry = viewModel::refresh)
-        }
     }
 }
 
@@ -247,82 +188,8 @@ private fun LibraryScreenError(onRetry: () -> Unit, modifier: Modifier = Modifie
     }
 }
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-@Composable
-private fun LibraryScreenReady(
-    uiState: LibraryScreenUiState,
-    windowSizeClass: WindowSizeClass,
-    navigateBack: () -> Unit,
-    navigateToHome: () -> Unit,
-    navigateToLibrary: () -> Unit,
-    navigateToSettings: () -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    navigateToArtistDetails: (ArtistInfo) -> Unit,
-    navigateToComposerDetails: (ComposerInfo) -> Unit,
-    navigateToGenreDetails: (GenreInfo) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
-    viewModel: LibraryViewModel = hiltViewModel()
-) {
-    val navigator = rememberSupportingPaneScaffoldNavigator<String>(
-        scaffoldDirective = calculateScaffoldDirective(currentWindowAdaptiveInfo())
-    )
-    BackHandler(enabled = navigator.canNavigateBack()) {
-        navigator.navigateBack()
-    }
-
-    Surface {
-        SupportingPaneScaffold(
-            value = navigator.scaffoldValue,
-            directive = navigator.scaffoldDirective,
-            mainPane = {
-                LibraryScreen(
-                    //for now so I can see anything load in emulator, gonna put some preview values
-                    windowSizeClass = windowSizeClass,
-                    isLoading = uiState.isLoading,
-                    libraryCategories = uiState.libraryCategories,
-                    selectedLibraryCategory = uiState.selectedLibraryCategory,
-                    //would probably load in the preferences data store around here to collect what sorting used to view screens
-                    libraryAlbums = uiState.libraryAlbums,
-                    libraryArtists = uiState.libraryArtists,
-                    libraryComposers = uiState.libraryComposers,
-                    libraryGenres = uiState.libraryGenres,
-                    libraryPlaylists = uiState.libraryPlaylists,
-                    libraryPlayerSongs = uiState.libraryPlayerSongs,
-                    librarySongs = uiState.librarySongs,
-                    totals = uiState.totals,
-                    onLibraryAction = viewModel::onLibraryAction,
-                    /*navigateToAlbumDetails = { //was navigateToPodcastDetails,
-                       //  then navigateToPlaylistDetails but uiState
-                       //  doesn't share playlistInfo, but it can
-                       //  share genre, album, song infos
-                       //  could make this navigateToAlbumDetails. would need an albumInfo that
-                       //  can encapsulate the type of properties needed that Podcast has
-                        navigator.navigateTo(SupportingPaneScaffoldRole.Supporting, it.id.toString())
-                    },*/
-                    navigateBack = navigateBack,
-                    navigateToHome = navigateToHome,
-                    navigateToLibrary = navigateToLibrary,
-                    navigateToSettings = navigateToSettings,
-                    navigateToAlbumDetails = navigateToAlbumDetails,
-                    navigateToArtistDetails = navigateToArtistDetails,
-                    navigateToComposerDetails = navigateToComposerDetails,
-                    navigateToGenreDetails = navigateToGenreDetails,
-                    navigateToPlaylistDetails = navigateToPlaylistDetails,
-                    navigateToPlayer = navigateToPlayer,
-                    navigateToPlayerSong = navigateToPlayerSong,
-                    modifier = Modifier.fillMaxSize()
-                )
-            },
-            supportingPane = {},
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-}
-
 /**
- * Composable for Library Screen and its properties needed to render the
+ * Stateless Composable for Library Screen and its properties needed to render the
  * components of the page.
  */
 @Composable
@@ -339,6 +206,7 @@ private fun LibraryScreen(
     librarySongs: List<SongInfo>,
     libraryPlayerSongs: List<PlayerSong>, //TODO: PlayerSong support
     totals: List<Int>,
+    //totals: List<Pair<String,Int>>,
     onLibraryAction: (LibraryAction) -> Unit,
     navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
@@ -353,28 +221,29 @@ private fun LibraryScreen(
     navigateToPlayerSong: (PlayerSong) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackBarText = stringResource(id = R.string.song_added_to_your_queue) //TODO: update if need to
+    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //TODO: update if need to
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    val listState = rememberLazyListState()
+    //moved to using listState and visible within LibraryContent()
+    //val listState = rememberLazyListState()
     // The FAB is initially shown. Upon scrolling past the first item we hide the FAB by using a
     // remembered derived state to minimize unnecessary compositions.
-//    val fabVisible by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+    //val fabVisible by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
 
-    ScreenBackground(
-        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
+    //library screen seeing if navDrawer acts differently if placed before ScreenBackground
+    NavDrawer(
+        "Library",
+        totals,
+        navigateToHome,
+        navigateToLibrary,
+        navigateToSettings,
+        drawerState,
+        coroutineScope,
     ) {
-        NavDrawer(
-            "Library",
-            totals,
-            navigateToHome,
-            navigateToLibrary,
-            navigateToSettings,
-            drawerState,
-            coroutineScope,
+        ScreenBackground(
+            modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
         ) {
             Scaffold(
                 topBar = {
@@ -395,6 +264,13 @@ private fun LibraryScreen(
                                 .padding(horizontal = 16.dp)
                         )
                     }
+                },
+                bottomBar = {
+                    /* //should show BottomBarPlayer here if a queue session is running or service is running
+                    BottomBarPlayer(
+                        song = PreviewPlayerSongs[5],
+                        navigateToPlayerSong = { navigateToPlayerSong(PreviewPlayerSongs[5]) },
+                    )*/
                 },
                 /* //jump to top of screen FAB
                 floatingActionButton = {
@@ -421,10 +297,12 @@ private fun LibraryScreen(
                     SnackbarHost(hostState = snackbarHostState)
                 },
                 containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
+                //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
             ) { contentPadding ->
                 // Main Content
                 LibraryContent(
+                    coroutineScope = coroutineScope,
                     selectedLibraryCategory = selectedLibraryCategory,
                     libraryCategories = libraryCategories,
                     libraryAlbums = libraryAlbums,
@@ -469,17 +347,18 @@ private fun LibraryTopAppBar(
         mutableStateOf("")
     }
     Row(
-//        horizontalArrangement = Arrangement.End,
-//        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(horizontal = 8.dp)
     ) {
+        // nav drawer btn
         IconButton(onClick = onNavigationIconClick) {
             Icon(
                 imageVector = Icons.Outlined.Menu,
-                contentDescription = stringResource(R.string.cd_more)
+                contentDescription = stringResource(R.string.icon_nav_drawer),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
 
@@ -490,7 +369,8 @@ private fun LibraryTopAppBar(
         IconButton(onClick = { /* TODO */ }) {
             Icon(
                 imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.cd_more)
+                contentDescription = stringResource(R.string.icon_search),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
 
@@ -512,12 +392,12 @@ private fun LibraryTopAppBar(
                             contentDescription = null
                         )
                     },
-//                    trailingIcon = {
-//                        Icon(
-//                            imageVector = Icons.Default.AccountCircle,
-//                            contentDescription = stringResource(R.string.cd_account)
-//                        )
-//                    },
+                    // trailingIcon = {
+                        // Icon(
+                            // imageVector = Icons.Default.AccountCircle,
+                            // contentDescription = null, //was stringResource(R.string.cd_account)
+                        // )
+                    // },
                     interactionSource = null,
                     modifier = if (isExpanded) Modifier.fillMaxWidth() else Modifier
                 )
@@ -531,10 +411,14 @@ private fun LibraryTopAppBar(
 private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
 
 /**
-    Attempt to adjust the library categories so that they selected category determines the grid view
+ * Composable for Library Screen Content
+ * Adjusted the library categories so that the selected category determines the grid view
+ * new version: want to make a singular vertical grid that has dynamic layout based on tab chosen
  */
 @Composable
 private fun LibraryContent(
+    coroutineScope: CoroutineScope,
+
     selectedLibraryCategory: LibraryCategory,
     libraryCategories: List<LibraryCategory>,
     libraryAlbums: List<AlbumInfo>,
@@ -544,8 +428,10 @@ private fun LibraryContent(
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
     libraryPlayerSongs: List<PlayerSong>,
+
     modifier: Modifier = Modifier,
     onLibraryAction: (LibraryAction) -> Unit,
+
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
@@ -554,186 +440,190 @@ private fun LibraryContent(
     navigateToPlayer: (SongInfo) -> Unit,
     navigateToPlayerSong: (PlayerSong) -> Unit,
 ) {
-    if (selectedLibraryCategory in listOf(
-            LibraryCategory.Artists,
-            LibraryCategory.Composers,
-            LibraryCategory.Genres,
-            LibraryCategory.Songs,
-        )
-    ) {
-        LazySingleColumnView(
-            libraryCategories = libraryCategories,
-            selectedLibraryCategory = selectedLibraryCategory,
-            onLibraryAction = onLibraryAction,
-            modifier = modifier,
+    val listState = rememberLazyGridState()
+    val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
+    //derived state is useful when the evaluated expression's value changes are less often than the item's own value changing
+    //     so that recomposition only occurs when the evaluated result changes.
+    //     the emitted state/value doesn't have to be updated with every change in the given item
+    //     ALSO good for form validation -> updating a button/field error or disable state when an input is valid/invalid
+    //     if there's something that could be used in viewModel/nonComposable, it can still be with derivedStateOf, just won't need remember
 
-            libraryArtists = libraryArtists,
-            libraryComposers = libraryComposers,
-            libraryGenres = libraryGenres,
-            libraryPlayerSongs = libraryPlayerSongs,
-            librarySongs = librarySongs,
-            navigateToArtistDetails = navigateToArtistDetails,
-            navigateToComposerDetails = navigateToComposerDetails,
-            navigateToGenreDetails = navigateToGenreDetails,
-            navigateToPlayer = navigateToPlayer,
-            navigateToPlayerSong = navigateToPlayerSong,
-        )
+    //so to make use of derived state for changing the sticky headers,
+    //     would need way to select those out of the groupedBy maps and have those items be the deciders
+
+    //if i want to make sticky headers, seems like that would need to be
+    //     defined before the items set creation since it will
+    //     be dependent on the sort order before using groupBy
+    //     might be fine to use as init version, but if there's a defined
+    //     sort order later, need to reference that instead
+
+    val groupedAlbumItems = libraryAlbums.groupBy { it.title.first() }
+    val groupedArtistItems = libraryArtists.groupBy { it.name.first() }
+    val groupedComposerItems = libraryComposers.groupBy { it.name.first() }
+    val groupedGenreItems = libraryGenres.groupBy { it.name.first() }
+    val groupedPlaylistItems = libraryPlaylists.groupBy { it.name.first() }
+    val groupedSongItems = libraryPlayerSongs.groupBy { it.title.first() }
+
+    groupedArtistItems.forEach { (letter, artist) ->
+        logger.info { "Output for groupedArtists Letter: $letter, artist: $artist" }
     }
-    else { //selectedLibraryCategory in listOf(LibraryCategory.Playlists, LibraryCategory.Albums, LibraryCategory.Composers))
-        LazyAdaptiveColumnView(
-            libraryCategories = libraryCategories,
-            selectedLibraryCategory = selectedLibraryCategory,
-            onLibraryAction = onLibraryAction,
-            modifier = modifier,
+    //if artists, composers, genres, songs -> column fixed to 1 -> LazyVerticalGrid(columns = GridCells.Fixed(1), modifier = Modifier.padding(horizontal = 12.dp))
+    //if playlists, albums -> column fixed, but to whatever the max amount of columns can be shown
 
-            libraryAlbums = libraryAlbums,
-            libraryPlaylists = libraryPlaylists,
-            navigateToAlbumDetails = navigateToAlbumDetails,
-            navigateToPlaylistDetails = navigateToPlaylistDetails,
-//            navigateToPlayer = navigateToPlayer,
-//            navigateToPlayerSong = navigateToPlayerSong
-        )
-    }
-}
+    // can this section be done on a span basis? so that if i set the column to be some number X,
+    // i can then make the adaptive ones be span1 and the other be spanX?
+    val config = LocalConfiguration.current
+    val screenWidth = config.screenWidthDp
+    val horizontalPadding = 12
+    val itemSpacing = 8
+    val availableWidth = screenWidth - (horizontalPadding * 2) //times 2 to account for padding on left and right sides
+    val minCellWidth = 160 // same as FEATURED_ALBUM_IMAGE_SIZE_DP
+    val columns = 1.coerceAtLeast((availableWidth / (minCellWidth + itemSpacing)))
 
-/**
- * Lazy Vertical Grid that has fixed column count of 1, renders grid like a lazy list of single row items
- */
-@Composable
-fun LazySingleColumnView(
-    libraryCategories: List<LibraryCategory>,
-    selectedLibraryCategory: LibraryCategory,
-    onLibraryAction: (LibraryAction) -> Unit,
-    modifier: Modifier = Modifier,
-    libraryArtists: List<ArtistInfo>,
-    libraryComposers: List<ComposerInfo>,
-    libraryGenres: List<GenreInfo>,
-    libraryPlayerSongs: List<PlayerSong>,
-    librarySongs: List<SongInfo>,
-    navigateToArtistDetails: (ArtistInfo) -> Unit,
-    navigateToComposerDetails: (ComposerInfo) -> Unit,
-    navigateToGenreDetails: (GenreInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(1),
-        modifier = modifier.padding(horizontal = 12.dp),
-    ) {
-        fullWidthItem {
-            LibraryCategoryTabs(
-                libraryCategories = libraryCategories,
-                selectedLibraryCategory = selectedLibraryCategory,
-//                showHorizontalLine = false,
-                onLibraryCategorySelected = {
-                    onLibraryAction(
-                        LibraryAction.LibraryCategorySelected(
-                            it
+    //using box so that scroll to top btn can appear above library content
+    // effectively creating scroll up FAB
+    Box(Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(columns),
+            state = listState,
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = horizontalPadding.dp)
+        ) {
+            fullWidthItem {
+                LibraryCategoryTabs(
+                    libraryCategories = libraryCategories,
+                    selectedLibraryCategory = selectedLibraryCategory,
+                    onLibraryCategorySelected = { //selectedLibraryCategory.value = it
+                        onLibraryAction(
+                            LibraryAction.LibraryCategorySelected(
+                                it
+                            )
                         )
+                    },
+                )
+            }
+
+            when (selectedLibraryCategory) {
+                /** single column section **/
+                LibraryCategory.Artists -> {
+                    /** practicing with sticky header **/
+                    artistItems(
+                        mappedArtists = groupedArtistItems,
+                        artistCount = libraryArtists.size,
+                        coroutineScope = coroutineScope,
+                        state = listState,
+                        navigateToArtistDetails = navigateToArtistDetails,
                     )
-                },
-            )
-        }
 
-        when (selectedLibraryCategory) { //composers, songs, artists
-            LibraryCategory.Artists -> {
-                artistItems(
-                    //what would the artists screen need?
-                    artists = libraryArtists,
-                    navigateToArtistDetails = navigateToArtistDetails,
-                )
-            }
+                    /** original version **/
+                    /*artistItems(
+                        //what would the artists screen need?
+                        artists = libraryArtists,
+                        coroutineScope = coroutineScope,
+                        navigateToArtistDetails = navigateToArtistDetails,
+                    )*/
+                }
 
-            LibraryCategory.Composers -> {
-                composerItems(
-                    //what would the composers screen need?
-                    composers = libraryComposers,
-                    navigateToComposerDetails = navigateToComposerDetails,
-                )
-            }
-
-            LibraryCategory.Genres -> {
-                genreItems(
-                    //what would the genres screen need?
-                    genres = libraryGenres,
-                    navigateToGenreDetails = navigateToGenreDetails,
-                )
-            }
-
-            LibraryCategory.Songs -> {
-                songItems(
-                    //what would the songs screen need?
-                    songs = librarySongs,
-                    playerSongs = libraryPlayerSongs,
-                    navigateToPlayer = navigateToPlayer,
-                    navigateToPlayerSong = navigateToPlayerSong,
-                    //onQueueSong = { onLibraryAction(LibraryAction.QueueSong(it)) },
-                )
-            }
-
-            else -> {
-                //TODO not sure what to do here. shouldn't really get here since there's if else to catch selectedLibraryCategory value
-                // maybe set a defaulted value? call error handler?
-            }
-        }
-    }
-}
-
-/**
- * Lazy Vertical Grid that has adaptive view sizing based on static dp size
- */
-@Composable
-fun LazyAdaptiveColumnView(
-    libraryCategories: List<LibraryCategory>,
-    selectedLibraryCategory: LibraryCategory,
-    onLibraryAction: (LibraryAction) -> Unit,
-    modifier: Modifier = Modifier,
-    libraryAlbums: List<AlbumInfo>,
-    libraryPlaylists: List<PlaylistInfo>,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-//    navigateToPlayer: (SongInfo) -> Unit,
-//    navigateToPlayerSong: (PlayerSong) -> Unit,
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(FEATURED_ALBUM_IMAGE_SIZE_DP),
-        modifier = modifier.padding(horizontal = 12.dp),
-    ) {
-        fullWidthItem {
-            LibraryCategoryTabs(
-                libraryCategories = libraryCategories,
-                selectedLibraryCategory = selectedLibraryCategory,
-                onLibraryCategorySelected = {
-                    onLibraryAction(
-                        LibraryAction.LibraryCategorySelected(
-                            it
-                        )
+                LibraryCategory.Composers -> {
+                    composerItems(
+                        //what would the composers screen need?
+                        composers = libraryComposers,
+                        coroutineScope = coroutineScope,
+                        navigateToComposerDetails = navigateToComposerDetails,
                     )
-                },
-            )
+                }
+
+                LibraryCategory.Genres -> {
+                    genreItems(
+                        //what would the genres screen need?
+                        genres = libraryGenres,
+                        coroutineScope = coroutineScope,
+                        navigateToGenreDetails = navigateToGenreDetails,
+                    )
+                }
+
+                LibraryCategory.Songs -> {
+                    /** player song version **/
+                    songItems(
+                        //what would the songs screen need?
+                        playerSongs = libraryPlayerSongs,
+                        coroutineScope = coroutineScope,
+                        navigateToPlayer = navigateToPlayer,
+                        navigateToPlayerSong = navigateToPlayerSong,
+                        //onQueueSong = { onLibraryAction(LibraryAction.QueueSong(it)) },
+                    )
+
+                    /** song info version **/
+                    /*songItems(
+                        //what would the songs screen need?
+                        songs = librarySongs,
+                        playerSongs = libraryPlayerSongs,
+                        coroutineScope = coroutineScope,
+                        navigateToPlayer = navigateToPlayer,
+                        navigateToPlayerSong = navigateToPlayerSong,
+                        //onQueueSong = { onLibraryAction(LibraryAction.QueueSong(it)) },
+                    )*/
+                }
+
+                /** adaptive columns section **/
+                LibraryCategory.Albums -> {
+                    albumItems(
+                        //what would the albums screen need?
+                        albums = libraryAlbums,
+                        coroutineScope = coroutineScope,
+                        navigateToAlbumDetails = navigateToAlbumDetails,
+                    )
+                }
+
+                LibraryCategory.Playlists -> {
+                    playlistItems(
+                        //what would the playlist screen need?
+                        playlists = libraryPlaylists,
+                        navigateToPlaylistDetails = navigateToPlaylistDetails,
+                        coroutineScope = coroutineScope,
+                        modifier = modifier//.align(Alignment.CenterHorizontally),
+                    )
+                }
+            }
         }
 
-        when(selectedLibraryCategory) {
-            LibraryCategory.Albums -> {
-                albumItems(
-                    //what would the albums screen need?
-                    albums = libraryAlbums,
-                    navigateToAlbumDetails = navigateToAlbumDetails,
+        /**
+         * Scroll to top btn for Library Content that appears
+         * after scrolling down beyond first few items
+         */
+        AnimatedVisibility(
+            visible = displayButton.value,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 40.dp),
+            enter = slideInVertically(
+                // Start the slide from 40 (pixels) above where the content is supposed to go, to
+                // produce a parallax effect
+                initialOffsetY = { -40 }
+            ) + expandVertically(
+                expandFrom = Alignment. Top
+            ) + scaleIn(
+                // Animate scale from 0f to 1f using the top center as the pivot point.
+                transformOrigin = TransformOrigin(0.5f, 0f)
+            ) + fadeIn(initialAlpha = 0.3f),
+            exit = slideOutVertically() + shrinkVertically() + fadeOut() + scaleOut(targetScale = 1.2f),
+        ) {
+            IconButton(
+                onClick = {
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(0)
+                    }
+                },
+                modifier = Modifier
+                    .clip(MusicShapes.small)
+                    .background(MaterialTheme.colorScheme.primary)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardDoubleArrowUp,
+                    contentDescription = stringResource(R.string.icon_scroll_to_top),
+                    tint = MaterialTheme.colorScheme.background,
                 )
-
-            }
-
-            LibraryCategory.Playlists -> {
-                playlistItems(
-                    //what would the playlist screen need?
-                    playlists = libraryPlaylists,
-                    navigateToPlaylistDetails = navigateToPlaylistDetails,
-                    modifier = modifier//.align(Alignment.CenterHorizontally),
-                )
-            }
-
-            else -> {
-                //TODO not sure what to do here. shouldn't really get here since there's if else to catch selectedLibraryCategory value
             }
         }
     }
@@ -744,7 +634,7 @@ private fun LibraryCategoryTabs(
     libraryCategories: List<LibraryCategory>,
     selectedLibraryCategory: LibraryCategory,
     onLibraryCategorySelected: (LibraryCategory) -> Unit,
-//    modifier: Modifier = Modifier,
+    //modifier: Modifier = Modifier,
 ) {
     if (libraryCategories.isEmpty()) {
         return
@@ -777,6 +667,10 @@ private fun LibraryCategoryTabs(
                 content = {
                     Text(
                         text = libraryCategory.name,
+                        style =
+                            if (index == selectedIndex)
+                                MaterialTheme.typography.titleLarge
+                            else MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(8.dp)
                     )
                 },
@@ -837,7 +731,7 @@ private fun PreviewLibrary() {
             windowSizeClass = CompactWindowSizeClass,
             isLoading = false,
             libraryCategories = LibraryCategory.entries,
-            selectedLibraryCategory = LibraryCategory.Playlists,
+            selectedLibraryCategory = LibraryCategory.Songs,
             libraryAlbums = PreviewAlbums,
             libraryArtists = PreviewArtists,
             libraryComposers = PreviewComposers,

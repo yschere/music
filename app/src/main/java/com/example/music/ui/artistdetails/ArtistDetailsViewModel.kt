@@ -3,12 +3,13 @@ package com.example.music.ui.artistdetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.GetArtistDetailsUseCase
-import com.example.music.model.AlbumInfo
-import com.example.music.model.ArtistInfo
-import com.example.music.model.SongInfo
-import com.example.music.player.SongPlayer
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.usecases.GetArtistDetailsUseCase
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.ArtistInfo
+import com.example.music.domain.model.SongInfo
+import com.example.music.domain.player.SongPlayer
+import com.example.music.domain.player.model.PlayerSong
+import com.example.music.domain.usecases.GetArtistDetailsV2
 import com.example.music.ui.Screen
 import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "Artist Details View Model"
 
 /** ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
  * As of 2/10/2025, this version is in remote branch and working on
@@ -38,6 +41,7 @@ data class ArtistUiState (
 @HiltViewModel
 class ArtistDetailsViewModel @Inject constructor(
     getArtistDetailsUseCase: GetArtistDetailsUseCase,
+    getArtistDetailsV2: GetArtistDetailsV2,
     private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -45,7 +49,8 @@ class ArtistDetailsViewModel @Inject constructor(
     private val _artistId: String = savedStateHandle.get<String>(Screen.ARG_ARTIST_ID)!!
     private val artistId = _artistId.toLong()
 
-    private val getArtistDetailsData = getArtistDetailsUseCase(artistId)
+    //private val getArtistDetailsData = getArtistDetailsUseCase(artistId)
+    private val getArtistDetailsData = getArtistDetailsV2(artistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     private val _state = MutableStateFlow(ArtistUiState())
@@ -56,21 +61,21 @@ class ArtistDetailsViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "Artist Details View Model - artistId: $artistId" }
+        logger.info { "$TAG - artistId: $artistId" }
         viewModelScope.launch {
-            logger.info { "Artist Details View Model - init viewModelScope launch start" }
+            logger.info { "$TAG - init viewModelScope launch start" }
             combine(
                 refreshing,
                 getArtistDetailsData,
             ) {
                 refreshing,
                 artistDetailsFilterResult, ->
-                logger.info { "Artist Details View Model - ArtistUiState call" }
-                logger.info { "Artist Details View Model - artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}" }
-                logger.info { "Artist Details View Model - artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}" }
-                logger.info { "Artist Details View Model - artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}" }
-                logger.info { "Artist Details View Model - artistDetailsFilterResult pSongs: ${artistDetailsFilterResult.pSongs.size}" }
-                logger.info { "Artist Details View Model - isReady?: ${!refreshing}" }
+                logger.info { "$TAG - ArtistUiState call" }
+                logger.info { "$TAG - artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}" }
+                logger.info { "$TAG - artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}" }
+                logger.info { "$TAG - artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}" }
+                logger.info { "$TAG - artistDetailsFilterResult pSongs: ${artistDetailsFilterResult.pSongs.size}" }
+                logger.info { "$TAG - isReady?: ${!refreshing}" }
 
                 ArtistUiState(
                     isReady = !refreshing,

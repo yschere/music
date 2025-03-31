@@ -1,4 +1,4 @@
-package com.example.music.util
+package com.example.music.data.util
 
 import kotlinx.coroutines.flow.Flow
 

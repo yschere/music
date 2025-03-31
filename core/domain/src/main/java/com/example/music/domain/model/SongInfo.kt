@@ -1,9 +1,8 @@
 package com.example.music.domain.model
 
 import com.example.music.data.database.model.Song
-import com.example.music.player.model.PlayerSong
-//import com.example.music.store.Audio
-import com.example.music.util.Audio
+import com.example.music.domain.player.model.PlayerSong
+import com.example.music.domain.util.Audio
 import java.time.Duration
 import java.time.OffsetDateTime
 
@@ -25,12 +24,23 @@ data class SongInfo(
     val id: Long = 0,
     val title: String = "",
     val artistId: Long? = 0,
+    val artistName: String? = null,
     val albumId: Long? = 0,
+    val albumTitle: String? = null,
     val genreId: Long? = 0,
-    val composerId: Long? = 0,
-    val trackNumber: Int? = 0,
+    val genreName: String? = null,
+    val composerId: Long? = null,
+    val composerName: String? = null,
+    val trackNumber: Int? = null,
+    val discNumber: Int = 0,
     val duration: Duration = Duration.ZERO,
+    val dateAdded: OffsetDateTime? = null,
+    val dateModified: OffsetDateTime? = null,
     val dateLastPlayed: OffsetDateTime? = null,
+    val size: Long = 0,
+    val year: Int? = null,
+    val cdTrackNum: Int = 0,
+    val srcTrackNum: Int = 0,
     //artwork, dateAdded, fileSize
 )
 
@@ -48,6 +58,7 @@ fun Song.asExternalModel(): SongInfo =
         trackNumber = albumTrackNumber,
         duration = duration,
         dateLastPlayed = dateLastPlayed,
+        year = year,
     )
 
 /**
@@ -67,8 +78,12 @@ fun Audio.asExternalModel(): SongInfo =
         id = this.id,
         title = this.title,
         artistId = this.artistId,
+        artistName = this.artist,
         albumId = this.albumId,
+        albumTitle = this.album,
         genreId = this.genreId,
         duration = Duration.ofMillis(this.duration.toLong()),
         trackNumber = this.trackNumber,
+        dateLastPlayed = OffsetDateTime.now(),
+        //dateLastPlayed = this.dateModified,
     )

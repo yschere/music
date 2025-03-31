@@ -1,6 +1,6 @@
 package com.example.music.domain.model
 
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.player.model.PlayerSong
 
 /**
  * A domain model for holding a composer object and its list of songs.

@@ -1,12 +1,12 @@
 package com.example.music.domain.testing
 
-import com.example.music.model.AlbumInfo
-import com.example.music.model.ArtistInfo
-import com.example.music.model.ComposerInfo
-import com.example.music.model.GenreInfo
-import com.example.music.model.PlaylistInfo
-import com.example.music.model.SongInfo
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.ArtistInfo
+import com.example.music.domain.model.ComposerInfo
+import com.example.music.domain.model.GenreInfo
+import com.example.music.domain.model.PlaylistInfo
+import com.example.music.domain.model.SongInfo
+import com.example.music.domain.player.model.PlayerSong
 import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -472,6 +472,7 @@ val PreviewSongPlaylistCombo = listOf(
 
 fun getAlbumData(albumId: Long): AlbumInfo = PreviewAlbums.single { s -> s.id == albumId }
 fun getSongData(songId: Long): SongInfo = PreviewSongs.single { s -> s.id == songId }
+fun getPlayerSongData(songId: Long): PlayerSong = PreviewPlayerSongs.single { s -> s.id == songId }
 fun getGenreData(genreId: Long): GenreInfo = PreviewGenres.single { s -> s.id == genreId }
 fun getArtistData(artistId: Long): ArtistInfo = PreviewArtists.single { s -> s.id == artistId }
 fun getPlaylistData(playlistId: Long): PlaylistInfo = PreviewPlaylists.single { s -> s.id == playlistId }
@@ -488,7 +489,9 @@ fun getPlaylistPlayerSongs(playlistId: Long): List<PlayerSong> = PreviewSongPlay
         PlayerSong(
             song.id,
             getSongData(song.songId).title,
+            getSongData(song.songId).artistId!!,
             getArtistData(getSongData(song.songId).artistId!!).name,
+            getSongData(song.songId).albumId!!,
             getAlbumData(getSongData(song.songId).albumId!!).title,
             getSongData(song.songId).duration,
             getAlbumData(getSongData(song.songId).albumId!!).artwork,

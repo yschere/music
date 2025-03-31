@@ -98,10 +98,9 @@ fun AlbumImage(
             }
             else -> {
                 Box(
-                        modifier = Modifier
+                    modifier = Modifier
                         .background(placeholderBrush)
                         .fillMaxSize()
-
                 )
             }
         }

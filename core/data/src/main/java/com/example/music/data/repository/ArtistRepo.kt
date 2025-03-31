@@ -3,7 +3,6 @@ package com.example.music.data.repository
 import com.example.music.data.database.dao.AlbumsDao
 import com.example.music.data.database.dao.ArtistsDao
 import com.example.music.data.database.dao.SongsDao
-import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.AlbumWithExtraInfo
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.ArtistWithExtraInfo
@@ -19,12 +18,13 @@ interface ArtistRepo {
 
     fun getArtistById(id: Long): Flow<Artist>
 
+    fun getArtistByName(name: String): Flow<Artist>
+
     fun getArtistWithExtraInfo(id: Long): Flow<ArtistWithExtraInfo>
 
     fun sortArtistsByNameAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ArtistWithExtraInfo>>
-
     fun sortArtistsByNameDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ArtistWithExtraInfo>>
@@ -32,7 +32,6 @@ interface ArtistRepo {
     fun sortArtistsByAlbumCountAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ArtistWithExtraInfo>>
-
     fun sortArtistsByAlbumCountDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ArtistWithExtraInfo>>
@@ -40,12 +39,11 @@ interface ArtistRepo {
     fun sortArtistsBySongCountAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ArtistWithExtraInfo>>
-
     fun sortArtistsBySongCountDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ArtistWithExtraInfo>>
 
-    fun searchArtistByName(
+    fun searchArtistsByName(
         query: String,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ArtistWithExtraInfo>>
@@ -136,6 +134,9 @@ private val songDao: SongsDao,
     override fun getArtistById(id: Long): Flow<Artist> =
         artistDao.getArtistById(id)
 
+    override fun getArtistByName(name: String): Flow<Artist> =
+        artistDao.getArtistByName(name)
+
     override fun getArtistWithExtraInfo(id: Long): Flow<ArtistWithExtraInfo> =
         artistDao.getArtistWithExtraInfo(id)
 
@@ -157,10 +158,10 @@ private val songDao: SongsDao,
     override fun sortArtistsBySongCountDesc(limit: Int): Flow<List<ArtistWithExtraInfo>> =
         artistDao.sortArtistsBySongCountDesc(limit)
 
-    override fun searchArtistByName(
+    override fun searchArtistsByName(
         query: String,
         limit: Int
-    ): Flow<List<ArtistWithExtraInfo>> = artistDao.searchArtistByName(query, limit)
+    ): Flow<List<ArtistWithExtraInfo>> = artistDao.searchArtistsByName(query, limit)
 
     override fun getAlbumsByArtistId(
         artistId: Long,
@@ -172,11 +173,10 @@ private val songDao: SongsDao,
     //sortAlbumsInArtistBySongTitleDesc
     //sortAlbumsInArtistByAlbumTitleAsc
     //sortAlbumsInArtistByAlbumTitleDesc
-//    override fun sortAlbumsInArtistByDateLastPlayedAsc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
-//        albumDao.sortAlbumsByDateLastPlayedAsc(limit)
-
-//    override fun sortAlbumsInArtistByDateLastPlayedDesc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
-//        albumDao.sortAlbumsByDateLastPlayedDesc(limit) //equivalent of podcastsDao.podcastsSortedByLastEpisode //use as replacement for mostRecentAlbums
+    //override fun sortAlbumsInArtistByDateLastPlayedAsc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
+        //albumDao.sortAlbumsByDateLastPlayedAsc(limit)
+    //override fun sortAlbumsInArtistByDateLastPlayedDesc(limit: Int): Flow<List<AlbumWithExtraInfo>> =
+        //albumDao.sortAlbumsByDateLastPlayedDesc(limit) //equivalent of podcastsDao.podcastsSortedByLastEpisode //use as replacement for mostRecentAlbums
 
 
     override fun getSongsByArtistId(

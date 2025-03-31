@@ -1,11 +1,11 @@
-package com.example.music.domain
+package com.example.music.domain.usecases
 
 import com.example.music.data.repository.AlbumRepo
 import com.example.music.data.repository.ArtistRepo
 import com.example.music.data.repository.PlaylistRepo
 import com.example.music.data.repository.SongRepo
 import javax.inject.Inject
-import com.example.music.util.domainLogger
+import com.example.music.domain.util.domainLogger
 
 /**
  * Use case which returns the count of songs, artists, albums and playlists

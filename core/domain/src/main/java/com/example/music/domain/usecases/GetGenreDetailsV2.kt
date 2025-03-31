@@ -1,0 +1,49 @@
+package com.example.music.domain.usecases
+
+import android.provider.MediaStore
+import com.example.music.domain.model.GenreDetailsFilterResult
+import com.example.music.domain.model.asExternalModel
+import com.example.music.domain.player.model.audioToPlayerSong
+import com.example.music.domain.util.Genre
+import com.example.music.domain.util.MediaRepo
+import com.example.music.domain.util.domainLogger
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+private const val TAG = "Get Genre Details V2"
+
+class GetGenreDetailsV2 @Inject constructor(
+    private val resolver: MediaRepo
+) {
+    operator fun invoke(genreId: Long): Flow<GenreDetailsFilterResult> {
+        domainLogger.info { "$TAG - start - genreId: $genreId" }
+        val genreItem: Flow<Genre> = resolver.getGenreById(genreId)
+
+        //val songsFlow = resolver.getSongsForGenre(genre.name)
+
+        return combine(
+            genreItem,
+            genreItem.map {
+                domainLogger.info { "$TAG - make songs" }
+                resolver.getGenreAudios(it.id, order = MediaStore.Audio.AudioColumns.TITLE)
+            }
+        ) { genre, songs ->
+            domainLogger.info { "GENRE: $genre --- \n" +
+                "Genre Name: ${genre.name}" }
+            GenreDetailsFilterResult(
+                genre = genre.asExternalModel(),
+                songs = songs.map {
+                    domainLogger.info { "SONGINFO - PLEASE IS THERE SOMETHING IN HERE: ${it.title}"}
+                    it.asExternalModel()
+                },
+                pSongs = songs.map {
+                    domainLogger.info { "PLAYERSONG - PLEASE IS THERE SOMETHING IN HERE: ${it.id} "}
+                    //item.asExternalModel()
+                    it.audioToPlayerSong()
+                }
+            )
+        }
+    }
+}

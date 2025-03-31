@@ -1,4 +1,4 @@
-package com.example.music.util
+package com.example.music.domain.util
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 

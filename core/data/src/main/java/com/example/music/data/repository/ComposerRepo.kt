@@ -16,14 +16,13 @@ interface ComposerRepo {
 
     fun getComposerById(id: Long): Flow<Composer>
 
-    fun getComposerByName(name: String): Flow<Composer?>
+    fun getComposerByName(name: String): Flow<Composer>
 
     fun getComposerWithExtraInfo(id: Long): Flow<ComposerWithExtraInfo>
 
     fun sortComposersByNameAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ComposerWithExtraInfo>>
-
     fun sortComposersByNameDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ComposerWithExtraInfo>>
@@ -31,7 +30,6 @@ interface ComposerRepo {
     fun sortComposersBySongCountAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ComposerWithExtraInfo>>
-
     fun sortComposersBySongCountDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<ComposerWithExtraInfo>>
@@ -45,7 +43,6 @@ interface ComposerRepo {
         composerId: Long,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<Song>>
-
     fun sortSongsInComposerByTitleDesc(
         composerId: Long,
         limit: Int = Integer.MAX_VALUE
@@ -55,7 +52,6 @@ interface ComposerRepo {
         composerId: Long,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<Song>>
-
     fun sortSongsInComposerByDateLastPlayedDesc(
         composerId: Long,
         limit: Int = Integer.MAX_VALUE
@@ -87,7 +83,7 @@ class ComposerRepoImpl(
     override fun getComposerById(id: Long): Flow<Composer> =
         composerDao.getComposerById(id)
 
-    override fun getComposerByName(name: String): Flow<Composer?> =
+    override fun getComposerByName(name: String): Flow<Composer> =
         composerDao.getComposerByName(name)
 
     override fun getComposerWithExtraInfo(id: Long): Flow<ComposerWithExtraInfo> =

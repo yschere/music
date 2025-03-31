@@ -26,43 +26,107 @@ interface SongRepo {
     /**
      * Returns a flow containing the song and corresponding album given a [songId].
      */
-    fun getSongAndAlbumBySongId(songId: Long): Flow<SongToAlbum> //equivalent of episodeAndPodcastWithUri
+    fun getSongAndAlbumBySongId(
+        songId: Long
+    ): Flow<SongToAlbum> //equivalent of episodeAndPodcastWithUri
 
-    fun sortSongsByTitleAsc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-    fun sortSongsByTitleDesc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
+    fun sortSongsByTitleAsc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+    fun sortSongsByTitleDesc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
 
-    fun sortSongsByArtistAsc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-    fun sortSongsByArtistDesc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
+    fun sortSongsByArtistAsc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+    fun sortSongsByArtistDesc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
 
-    fun sortSongsByAlbumAsc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-    fun sortSongsByAlbumDesc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
+    fun sortSongsByAlbumAsc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+    fun sortSongsByAlbumDesc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
 
-    fun sortSongsByDateAddedAsc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
+    fun sortSongsByDateAddedAsc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+    fun sortSongsByDateAddedDesc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
 
-    fun sortSongsByDateAddedDesc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
+    fun sortSongsByDateLastPlayedAsc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+    fun sortSongsByDateLastPlayedDesc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
 
-    fun sortSongsByDateLastPlayedAsc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
+    fun getSongsByArtistId(
+        artistId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+    fun getSongsByArtistIds(
+        artistIds: List<Long>,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
 
-    fun sortSongsByDateLastPlayedDesc(limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
+    fun sortSongsInArtistBySongTitleAsc(
+        artistId: Long
+    ): Flow<List<Song>>
+    fun sortSongsInArtistBySongTitleDesc(
+        artistId: Long
+    ): Flow<List<Song>>
 
-    fun getSongsByArtistId(artistId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-    fun getSongsByArtistIds(artistIds: List<Long>, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-    fun sortSongsInArtistBySongTitleAsc(artistId: Long): Flow<List<Song>>
-    fun sortSongsInArtistBySongTitleDesc(artistId: Long): Flow<List<Song>>
-    fun sortSongsInArtistByAlbumTitleAsc(artistId: Long): Flow<List<Song>>
-    fun sortSongsInArtistByAlbumTitleDesc(artistId: Long): Flow<List<Song>>
+    fun sortSongsInArtistByAlbumTitleAsc(
+        artistId: Long
+    ): Flow<List<Song>>
+    fun sortSongsInArtistByAlbumTitleDesc(
+        artistId: Long
+    ): Flow<List<Song>>
 
-    fun getSongsByAlbumId(albumId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-    fun getSongsAndAlbumByAlbumId(albumId: Long): Flow<List<SongToAlbum>>  //equivalent of episodeStore.episodesInPodcast
-    fun getSongsAndAlbumsByAlbumIds(albumIds: List<Long>, limit: Int = Integer.MAX_VALUE): Flow<List<SongToAlbum>> //equivalent of episodeStore.episodesInPodcasts
-    fun sortSongsInAlbumBySongTitleAsc(albumId: Long): Flow<List<Song>>
-    fun sortSongsInAlbumBySongTitleDesc(albumId: Long): Flow<List<Song>>
-    fun sortSongsInAlbumByTrackNumberAsc(albumId: Long): Flow<List<Song>>
-    fun sortSongsInAlbumByTrackNumberDesc(albumId: Long): Flow<List<Song>>
+    fun getSongsByAlbumId(
+        albumId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+    fun getSongsAndAlbumByAlbumId(
+        albumId: Long
+    ): Flow<List<SongToAlbum>>  //equivalent of episodeStore.episodesInPodcast
+    fun getSongsAndAlbumsByAlbumIds(
+        albumIds: List<Long>,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<SongToAlbum>> //equivalent of episodeStore.episodesInPodcasts
 
-    fun getSongsByComposerId(composerId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-    fun sortSongsInComposerByTitleAsc(composerId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
-    fun sortSongsInComposerByTitleDesc(composerId: Long, limit: Int = Integer.MAX_VALUE): Flow<List<Song>>
+    fun sortSongsInAlbumBySongTitleAsc(
+        albumId: Long
+    ): Flow<List<Song>>
+    fun sortSongsInAlbumBySongTitleDesc(
+        albumId: Long
+    ): Flow<List<Song>>
+
+    fun sortSongsInAlbumByTrackNumberAsc(
+        albumId: Long
+    ): Flow<List<Song>>
+    fun sortSongsInAlbumByTrackNumberDesc(
+        albumId: Long
+    ): Flow<List<Song>>
+
+    fun getSongsByComposerId(
+        composerId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+
+    fun sortSongsInComposerByTitleAsc(
+        composerId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
+    fun sortSongsInComposerByTitleDesc(
+        composerId: Long,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
 
     fun getSongsByGenreId(
         genreId: Long,
@@ -73,7 +137,6 @@ interface SongRepo {
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<Song>>
-
     fun sortSongsInGenreByTitleDesc(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
@@ -83,7 +146,6 @@ interface SongRepo {
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<Song>>
-
     fun sortSongsInGenreByDateLastPlayedDesc(
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
@@ -93,6 +155,11 @@ interface SongRepo {
         genreId: Long,
         limit: Int = Integer.MAX_VALUE,
     ): Flow<List<SongToAlbum>> */
+
+    fun searchSongsByTitle(
+        query: String,
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<Song>>
 
     /**
      * Add a new [Song] to this store.
@@ -230,6 +297,9 @@ class SongRepoImpl @Inject constructor(
         genreId: Long,
         limit: Int,
     ): Flow<List<SongToAlbum>> = songDao.sortSongsAndAlbumsInGenreByDateLastPlayed(genreId, limit) */
+
+    override fun searchSongsByTitle(query: String, limit: Int): Flow<List<Song>> =
+        songDao.searchSongsByTitle(query, limit)
 
     /**
      * Add a new [Song] to this store.

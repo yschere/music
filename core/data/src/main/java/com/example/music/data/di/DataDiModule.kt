@@ -1,15 +1,11 @@
 package com.example.music.data.di
 
 import android.content.Context
-import androidx.datastore.core.DataMigration
 import androidx.datastore.core.DataStore
-import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
-import coil3.ImageLoader
 import com.example.music.data.Dispatcher
 import com.example.music.data.MusicDispatchers
 import com.example.music.data.database.MusicDatabase
@@ -24,7 +20,6 @@ import com.example.music.data.repository.AlbumRepo
 import com.example.music.data.repository.ArtistRepo
 import com.example.music.data.repository.GenreRepo
 import com.example.music.data.repository.AlbumRepoImpl
-import com.example.music.data.repository.AppPreferences
 import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.data.repository.ArtistRepoImpl
 import com.example.music.data.repository.ComposerRepo
@@ -43,10 +38,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import okhttp3.Cache
-import okhttp3.OkHttpClient
-import okhttp3.logging.LoggingEventListener
-import java.io.File
 import javax.inject.Singleton
 
 private const val APP_PREFERENCES = "app_preferences.pb"
@@ -126,16 +117,16 @@ object DataDiModule {
     fun providePreferencesDataStore(
         @ApplicationContext appContext: Context
     ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
-//        corruptionHandler = ReplaceFileCorruptionHandler(
-//            produceNewData = { emptyPreferences() }
-//        ),
-//        migrations = listOf(
-//            object : DataMigration<Preferences> {
-//                override suspend fun cleanUp() { TODO("clean up Not yet implemented") }
-//                override suspend fun migrate(currentData: Preferences): Preferences { TODO("migrate Not yet implemented") }
-//                override suspend fun shouldMigrate(currentData: Preferences): Boolean { TODO("should migrate Not yet implemented") }
-//            },
-//        ),
+        /*corruptionHandler = ReplaceFileCorruptionHandler(
+            produceNewData = { emptyPreferences() }
+        ),
+        migrations = listOf(
+            object : DataMigration<Preferences> {
+                override suspend fun cleanUp() { TODO("clean up Not yet implemented") }
+                override suspend fun migrate(currentData: Preferences): Preferences { TODO("migrate Not yet implemented") }
+                override suspend fun shouldMigrate(currentData: Preferences): Boolean { TODO("should migrate Not yet implemented") }
+            },
+        ),*/
         corruptionHandler = null,
         scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
         produceFile = { appContext.preferencesDataStoreFile(APP_PREFERENCES) }
@@ -144,10 +135,9 @@ object DataDiModule {
     @Provides
     @Singleton
     fun provideAppPreferencesRepo(
-        dataStore: DataStore<Preferences>,
-        @ApplicationContext appContext: Context
+        dataStore: DataStore<Preferences>
     ) = AppPreferencesRepo(
-        dataStore, appContext
+        dataStore = dataStore
     )
 
     @Provides
@@ -196,9 +186,6 @@ object DataDiModule {
 //    @Singleton
 //    fun provideSyndFeedInput() = SyndFeedInput()
 
-    //composerRepo??
-    //would use song-playlist-dao as localStore param
-
     @Provides
     @Singleton
     fun provideAlbumRepo(
@@ -235,13 +222,9 @@ object DataDiModule {
     @Singleton
     fun provideGenreRepo(
         genreDao: GenresDao,
-//        albumDao: AlbumsDao,
-//        artistDao: ArtistsDao,
         songDao: SongsDao,
     ): GenreRepo = GenreRepoImpl(
         genreDao = genreDao,
-//        albumDao = albumDao,
-//        artistDao = artistDao,
         songDao = songDao
     )
 
@@ -260,7 +243,4 @@ object DataDiModule {
     ): SongRepo = SongRepoImpl(
         songDao = songDao
     )
-
-
-
 }

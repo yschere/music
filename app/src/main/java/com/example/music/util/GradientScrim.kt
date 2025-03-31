@@ -22,6 +22,54 @@ import kotlin.math.min
 import kotlin.math.pow
 
 /**
+ * Applies a radial gradient scrim in the foreground.
+ */
+fun Modifier.radialGradientScrimAnyOffset(color: Color, xOffset: Int, yOffset: Int): Modifier {
+    val radialGradient = object : ShaderBrush() {
+        override fun createShader(size: Size): Shader {
+            val largerDimension = max(size.height, size.width)
+            val smallerDimension = min(size.height, size.width)
+            return RadialGradientShader(
+                center = size.center.copy(x = size.width / xOffset, y = size.height / yOffset),
+                colors = listOf(color, Color.Transparent), //colors + Color.Transparent, //for param colors, would need to change color stops to match amount of colors
+                radius = smallerDimension * 1.5f,
+                colorStops = listOf(0f, 0.9f) //colorStops = listOf(0.25f, 0.5f, 0.75f)//listOf(0.3f, 0.7f)
+            )
+        }
+    }
+    return this.background(radialGradient)
+}
+
+fun Modifier.radialGradientScrimAnyColorsOffset(colors: List<Color>, xOffset: Int, yOffset: Int): Modifier {
+    val colorStops = when(colors.size) {
+        1 -> {
+            listOf(0.3f, 0.7f)
+        }
+        2 -> {
+            listOf(0.25f, 0.5f, 0.75f)
+        }
+        3 -> {
+            listOf(0.2f, 0.4f, 0.6f, 0.8f)
+        }
+        else -> {
+            listOf(0f, 0.9f)
+        }
+    }
+    val radialGradient = object : ShaderBrush() {
+        override fun createShader(size: Size): Shader {
+            val largerDimension = max(size.height, size.width)
+            return RadialGradientShader(
+                center = size.center.copy(x = size.width / xOffset, y = size.height / yOffset),
+                colors = colors + Color.Transparent, //for param colors, would need to change color stops to match amount of colors
+                radius = (largerDimension / (colors.size + 1)) * colors.size, //largerDimension / 2
+                colorStops = colorStops //colorStops = listOf(0.25f, 0.5f, 0.75f)//listOf(0.3f, 0.7f)
+            )
+        }
+    }
+    return this.background(radialGradient)
+}
+
+/**
  * Applies a radial gradient scrim in the foreground emanating from the top
  * center quarter of the element.
  */

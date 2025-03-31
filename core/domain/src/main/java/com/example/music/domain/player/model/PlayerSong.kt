@@ -1,4 +1,4 @@
-package com.example.music.player.model
+package com.example.music.domain.player.model
 
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
@@ -6,10 +6,12 @@ import com.example.music.data.database.model.SongToAlbum
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.data.store.Audio
+import com.example.music.domain.util.Audio
+import com.example.music.domain.util.domainLogger
 import java.time.Duration
 import java.time.Duration.ofMillis
 
+private const val TAG = "PlayerSong"
 /**
  * Song data with necessary information to be used within a player.
  * TODO: rework SongToAlbum or create new model that contains artistInfo
@@ -19,11 +21,16 @@ import java.time.Duration.ofMillis
 data class PlayerSong(
     var id: Long = 0,
     var title: String = "",
+    val artistId: Long = 0,
     var artistName: String = "",
+    val albumId: Long = 0,
     var albumTitle: String = "",
     var duration: Duration = Duration.ZERO,
     val artwork: String? = "",
     val trackNumber: Int? = 0,
+    //val trackNum: Int = 0,
+    val discNumber: Int? = 0,
+
     /*
     val dateAdded - song.dateAdded
     val dateModified - song.dateModified
@@ -34,7 +41,9 @@ data class PlayerSong(
     constructor(songInfo: SongInfo, artistInfo: ArtistInfo, albumInfo: AlbumInfo) : this(
         id = songInfo.id,
         title = songInfo.title,
+        artistId = songInfo.artistId ?: 0,
         artistName = artistInfo.name,
+        albumId = songInfo.albumId ?: 0,
         albumTitle = albumInfo.title,
         duration = songInfo.duration,
         artwork = albumInfo.artwork,
@@ -53,16 +62,11 @@ fun SongToAlbum.toPlayerSong(): PlayerSong =
     )
 
 fun SongInfo.toPlayerSong(): PlayerSong {
-    //PlayerSong(
-    //    item,
-    //    getArtistDataUseCase(item).firstOrNull() ?: ArtistInfo(),
-    //    getAlbumDataUseCase(item).firstOrNull() ?: AlbumInfo(),
-    //)
     return PlayerSong(
         id = id,
         title = title,
-        artistName = "PLACEHOLDER",
-        albumTitle = "PLACEHOLDER",
+        artistName = artistName ?: "",
+        albumTitle = albumTitle ?: "",
         duration = duration,
         trackNumber = trackNumber
     )
@@ -80,12 +84,20 @@ fun MediaItem.asExternalModel() = PlayerSong(
     //artwork = ContentResolver.(mediaMetadata.artworkUri)
 )
 
-fun Audio.asExternalModel(): PlayerSong =
-    PlayerSong(
-        id = this.id,
-        title = this.title,
-        artistName = this.artist,
-        albumTitle = this.album,
-        duration = Duration.ofMillis(this.duration.toLong()),
-        trackNumber = this.trackNumber,
+fun Audio.audioToPlayerSong(): PlayerSong {
+    domainLogger.info { "$TAG - Audio to PlayerSong - id: $id + title: $title + \n" +
+            "trackNumber: $trackNumber + discNumber: $discNumber + \n" +
+            "cdTrackNum: $cdTrackNumber + srcTrackNum: $srcTrackNumber + \n" +
+            "genre: $genre + composer: $composer" }
+    return PlayerSong(
+        id = id,
+        title = title,
+        artistId = artistId,
+        artistName = artist,
+        albumId = albumId,
+        albumTitle = album,
+        duration = ofMillis(duration.toLong()),
+        trackNumber = cdTrackNumber,
+        discNumber = discNumber,
     )
+}

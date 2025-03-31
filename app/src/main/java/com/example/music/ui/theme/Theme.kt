@@ -6,9 +6,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.graphics.Color
 import com.example.music.designsys.theme.lightDefaultSet
 import com.example.music.designsys.theme.darkDefaultSet
 
+//public final val inversePrimary: Color
+//
+//Color to be used as a "primary" color in places where the inverse color scheme is needed, such as the button on a SnackBar
 @SuppressLint("ResourceAsColor")
 val blueLightColorSet = lightColorScheme(
     primary = primaryBlueLight,
@@ -36,6 +41,12 @@ val blueLightColorSet = lightColorScheme(
     onErrorContainer = onErrorContainerBlueLight,
     outline = outlineBlueLight,
     outlineVariant = outlineVariantBlueLight,
+    scrim = scrimBlueLight,
+    inverseSurface = inverseSurfaceBlueLight,
+    inverseOnSurface = inverseOnSurfaceBlueLight,
+    inversePrimary = inversePrimaryBlueLight,
+    surfaceDim = surfaceDimBlueLight,
+    surfaceBright = surfaceBrightBlueLight,
 )
 
 @SuppressLint("ResourceAsColor")
@@ -65,6 +76,12 @@ val blueDarkColorSet = darkColorScheme(
     onErrorContainer = onErrorContainerBlueDark,
     outline = outlineBlueDark,
     outlineVariant = outlineVariantBlueDark,
+    scrim = scrimBlueDark,
+    inverseSurface = inverseSurfaceBlueDark,
+    inverseOnSurface = inverseOnSurfaceBlueDark,
+    inversePrimary = inversePrimaryBlueDark,
+    surfaceDim = surfaceDimBlueDark,
+    surfaceBright = surfaceBrightBlueDark,
 )
 
 private val coolToneLightColorSet = lightColorScheme(
@@ -157,7 +174,7 @@ fun MusicTheme(
     }
 
     MaterialTheme(
-        colorScheme = colors,//coolColors,//jetCasterColors,//
+        colorScheme = coolColors,//colors,//jetCasterColors,//
         typography = Typography,
         content = content
     )

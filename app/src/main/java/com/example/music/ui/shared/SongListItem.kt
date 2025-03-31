@@ -1,67 +1,38 @@
 package com.example.music.ui.shared
 
-import android.content.res.Configuration
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
-import androidx.compose.material.icons.filled.DensityLarge
-import androidx.compose.material.icons.filled.DensityMedium
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Reorder
-import androidx.compose.material.icons.rounded.PlayCircleFilled
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.component.HtmlTextContainer
-import com.example.music.designsys.theme.MusicShapes
-import com.example.music.domain.testing.PreviewAlbums
-import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewPlayerSongs
-import com.example.music.domain.testing.PreviewSongs
-import com.example.music.domain.testing.getSongData
-import com.example.music.domain.testing.getAlbumData
 import com.example.music.domain.testing.getArtistData
-import com.example.music.model.AlbumInfo
-import com.example.music.model.ArtistInfo
-import com.example.music.model.SongInfo
-import com.example.music.player.model.PlayerSong
-import com.example.music.ui.Screen
-import com.example.music.ui.player.formatString
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.SongInfo
+import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.CompDarkPreview
+import com.example.music.ui.tooling.CompLightPreview
 import java.time.Duration
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 /**
  * Original Song List Item
@@ -103,7 +74,7 @@ fun SongListItem(
                     modifier = modifier,
                 )
 
-            //this iteration had the padding within song list item row as part of the row surrounding the call itself
+            /* //this iteration had the padding within song list item row as part of the row surrounding the call itself
             Row(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
@@ -111,37 +82,14 @@ fun SongListItem(
                     song = song,
                     //artist = artist,
                     album = album,
-//                    onClick = onClick,
+                    //onClick = onClick,
                     isListEditable = false,
                     showArtistName = true,
                     showAlbumImage = true,
                     showAlbumTitle = true,
                     modifier = modifier,
                 )
-            }
-
-            //this is the original iteration of song list item that is the episode item modified
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                // Top Part
-                SongListItemHeader(
-                    song = song,
-                    artist = getArtistData(song.artistId!!),
-                    album = album,
-                    showAlbumImage = showAlbumImage,
-                    showSummary = false,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                // Bottom Part
-                SongListItemFooter(
-                    song = song,
-                    artist = getArtistData(song.artistId!!),
-                    album = album,
-                    onQueueSong = {},
-                )
-            }
+            }*/
         }
     }
 }
@@ -152,12 +100,17 @@ fun SongListItem(
 @Composable
 fun SongListItem(
     song: PlayerSong,
-    onClick: (PlayerSong) -> Unit,
+    onClick: (PlayerSong) -> Unit, //use for navigateToPlayer
+    //onMoreOptionsClick: (PlayerSong) -> Unit, //want to use for moreOptionsModal,
+        // would I also need the context for where this is being clicked?
+        // it would be used for determining which modal options to show
+        // (what are the different contexts that need to be covered?)
     //onQueueSong: (PlayerSong) -> Unit,
-    isListEditable: Boolean,
-    showArtistName: Boolean,
-    showAlbumImage: Boolean,
-    showAlbumTitle: Boolean,
+    isListEditable: Boolean = false,
+    showArtistName: Boolean = false,
+    showAlbumImage: Boolean = false,
+    showAlbumTitle: Boolean = false,
+    showTrackNumber: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     /* //want one row to show all items
@@ -178,6 +131,7 @@ fun SongListItem(
                 showArtistName = showArtistName,
                 showAlbumImage = showAlbumImage,
                 showAlbumTitle = showAlbumTitle,
+                showTrackNumber = showTrackNumber,
                 modifier = modifier//.padding(4.dp),
             )
         }
@@ -225,14 +179,13 @@ private fun SongListItemRow(
                 Box(modifier = modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)))
                 IconButton(
                     onClick = {},
-                    enabled = isListEditable,
+                    //enabled = isListEditable,
                     modifier = Modifier,
                 ) {
-                    Icon( //more options icon
+                    Icon( //item sort icon, when item will be draggable TBD
                         imageVector = Icons.Outlined.Reorder,
-                        contentDescription = stringResource(R.string.cd_more),
-                        //tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = stringResource(R.string.icon_reorder),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
             } else {
@@ -301,9 +254,8 @@ private fun SongListItemRow(
         ) {
             Icon( //more options icon
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.cd_more),
-                //tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                tint = MaterialTheme.colorScheme.primary,
+                contentDescription = stringResource(R.string.icon_more),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }
@@ -319,60 +271,71 @@ private fun SongListItemRow(
     showArtistName: Boolean,
     showAlbumImage: Boolean,
     showAlbumTitle: Boolean,
+    showTrackNumber: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Row( //third layer, contains layout logic and information for content
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
-        //want the logic to be:
-        //want to show Album Image on NOT album list screens, NOT edit list screen. so expect showAlbumImage to be false coming from AlbumDetailsScreen or any EditListScreen
-        //so should be true for GenreScreen, ArtistScreen, SongsList, PlaylistScreen, (?)ComposerScreen
-        //AND if showAlbumImage is true, then isListEditable should be false
-        //then if showAlbumImage is false, use else to check if isListEditable is true. if true, place edit icon btn where image would be
-        //if isListEditable is false, show trackNumber?? not sure what to do here
+        /* // ********* UI Logic Expectations: *********
+            // for properties that can be null, replace them with empty string
+            // --expected possible null properties: duration ... when the fuck was this null, trackNumber
 
-        //TODO: fix this so the logic goes:
-        // the screens to show album image for song item:
-        //      playlistDetails, library.songs, artistDetails, albumDetails, genreDetails, composerDetails
-        // the screens to show reorder icon instead of album image:
-        //      editing playlist order screen
-        // the screens to show select checkbox instead of album image:
-        //      multi select songs screen
-        // the screens to show album image AND track number:
-        //      albumDetails? playlistDetails?
-        if (showAlbumImage) { // Check if album image needs to be shown
+            // want to show Album Image on all screens except edit maybe, but choosing song artwork if it exists, if not check for album artwork and show that
+            // --expect edit (playlist order?) screen to have showAlbumImage as false or not have this param passed
+            // --expect home.songs, library.songs, albumDetails, genreDetails, artistDetails, playlistDetails, composerDetails to have showAlbumImage as true
+
+            // want to show track number on album screen for sure, maybe/maybe not for playlist screen
+            // --expect albumDetails to have showTrackNumber as true
+            // --undecided on playlistDetails
+            // --expect all other screens to have showTrackNumber as false, or not have param passed
+
+            // do not want to show album title on albumDetails screen
+
+            // not sure how/when this will be implemented but multi-select could appear in a couple ways
+            //  and want to account for it somehow. current question is if it will be using this songListItem
+            //  screen or if it will be its own composable. and with that, how the checkboxes needed will
+            //  be implemented. at least, i don't want reorder, track number visible with checkbox. not sure
+            //  yet about album artwork
+            // --nothing to expect yet, need to determine implementation for multi-select
+        */
+
+        // list edit-ability would most likely be for queue list and playlist, when editing list is selected
+        if (isListEditable) { // Check if this means songs is meant to be in an editable/movable list
+            //Box(modifier = modifier.size(56.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)))
+            IconButton(
+                onClick = {},
+                enabled = true,
+                modifier = Modifier.padding(start = 0.dp)//size(56.dp),
+            ) {
+                Icon( // reorder song icon
+                    imageVector = Icons.Outlined.Reorder,
+                    contentDescription = stringResource(R.string.icon_reorder) + " for song " + song.title,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+
+        //show the track number of the song
+        if (showTrackNumber) {
+            Text(
+                text = (song.trackNumber?: "").toString(), //TODO: FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songInfo, albumInfo)
+                minLines = 1,
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp),
+            )
+        }
+
+        // Check if album image needs to be shown
+        if (showAlbumImage) {
             SongListItemImage(
                 album = song.albumTitle,
                 modifier = Modifier
                     .size(56.dp)
                     .clip(MaterialTheme.shapes.small)
             )
-        } else { // showAlbumImage was false
-            if (isListEditable) { // Check if this means songs is meant to be in an editable/movable list
-                Box(modifier = modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)))
-                IconButton(
-                    onClick = {},
-                    enabled = isListEditable,
-                    modifier = Modifier,
-                ) {
-                    Icon( //more options icon
-                        imageVector = Icons.Outlined.Reorder,
-                        contentDescription = stringResource(R.string.cd_more),
-                        //tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            } else { //if not showing album image AND not editing a list, this will show the track number of the song
-                Box(modifier = modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)))
-                Text(
-                    text = song.trackNumber.toString(), //TODO: FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songinfo, albumInfo)
-                    minLines = 1,
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 15.dp),
-                )
-            }
         }
 
         Column(modifier.weight(1f)) {
@@ -387,7 +350,8 @@ private fun SongListItemRow(
             Row(
                 modifier = modifier.padding(horizontal = 10.dp)
             ) {
-                if (showArtistName) { //if showArtistName is true
+                //if showArtistName is true
+                if (showArtistName) {
                     Text(
                         text = song.artistName,//original code: getArtistData(song.artistId!!).name, //based on song: SongInfo, get PreviewData's PreviewArtist
                         maxLines = 1,
@@ -396,13 +360,17 @@ private fun SongListItemRow(
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(vertical = 2.dp),
                     )
-                } else { //if showArtist is false, show nothing?? //TODO
-
                 }
-                if (showAlbumTitle) {//(showArtistName) { //if showArtistName is true
+
+                //if showAlbumTitle is true
+                if (showAlbumTitle) {
                     Text(
                         //text = if (showArtistName) " • " + album.title else album.title, //original code, based on album: AlbumInfo
-                        text = (if (showArtistName) " • " + song.albumTitle else song.albumTitle),
+                        text =
+                            if (showArtistName && song.artistName != "")
+                                " • " + song.albumTitle
+                            else
+                                song.albumTitle,
                         maxLines = 1,
                         minLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -411,35 +379,42 @@ private fun SongListItemRow(
                     )
                 }
 
+                //duration
                 Text(
-                    text = if (showArtistName || showAlbumTitle) " • " + song.duration!!.formatStr() else song.duration!!.formatStr(),
+                    text =
+                        if ((showArtistName && song.artistName != "") || (showAlbumTitle && song.albumTitle != ""))
+                            " • " + song.duration.formatStr()
+                        else
+                            song.duration.formatStr(),
                     maxLines = 1,
                     minLines = 1,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(vertical = 2.dp)//, horizontal = 8.dp),
                 )
 
-//                    val duration = song.duration
-//                    Text(
-//                        text = when {
-//                            duration != null -> {
-//                                // If we have the duration, we combine the date/duration via a
-//                                // formatted string
-//                                stringResource(
-//                                    R.string.song_date_duration,
-//                                    duration.toMinutes().toInt()
-//                                )
-//                            }
-//                            // Otherwise we just use the date
-//                            else -> MediumDateFormatter.format(song.dateLastPlayed)
-//                        },
-//                        maxLines = 1,
-//                        overflow = TextOverflow.Ellipsis,
-//                        style = MaterialTheme.typography.bodySmall,
-//                        modifier = Modifier
-//                            .padding(horizontal = 8.dp)
-//                            .weight(1f)
-//                    )
+                /* //old duration
+                    val duration = song.duration
+                    Text(
+                        text = when {
+                            duration != null -> {
+                                // If we have the duration, we combine the date/duration via a
+                                // formatted string
+                                stringResource(
+                                    R.string.song_date_duration,
+                                    duration.toMinutes().toInt()
+                                )
+                            }
+                            // Otherwise we just use the date
+                            else -> MediumDateFormatter.format(song.dateLastPlayed)
+                        },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .weight(1f)
+                    )
+                */
             }
         }
 
@@ -449,139 +424,8 @@ private fun SongListItemRow(
         ) {
             Icon( //more options icon
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.cd_more),
-                //tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SongListItemFooter(
-    song: SongInfo,
-    artist: ArtistInfo,
-    album: AlbumInfo,
-    onQueueSong: (PlayerSong) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-    ) {
-        Image(
-            imageVector = Icons.Rounded.PlayCircleFilled,
-            contentDescription = stringResource(R.string.cd_play),
-            contentScale = ContentScale.Fit,
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-            modifier = Modifier
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(bounded = false, radius = 24.dp)
-                ) { /* TODO */ }
-                .size(48.dp)
-                .padding(6.dp)
-                .semantics { role = Role.Button }
-        )
-
-        val duration = song.duration
-        Text(
-            text = stringResource(
-                R.string.song_date_duration,
-                MediumDateFormatter.format(song.dateLastPlayed),
-                duration.toMinutes().toInt()
-            ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(1f)
-        )
-
-        IconButton(
-            onClick = {
-                onQueueSong(
-                    PlayerSong(
-                        albumInfo = album,
-                        artistInfo = artist,
-                        songInfo = song,
-                    )
-                )
-            },
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
-                contentDescription = stringResource(R.string.cd_add),
-                //tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                tint = MaterialTheme.colorScheme.error,
-            )
-        }
-
-        IconButton(
-            onClick = { /* TODO */ },
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.cd_more),
-                //tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                tint = MaterialTheme.colorScheme.primaryContainer,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SongListItemHeader(
-    song: SongInfo,
-    artist: ArtistInfo,
-    album: AlbumInfo,
-    showAlbumImage: Boolean,
-    showSummary: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Row(modifier = modifier) {
-        Column(
-            modifier =
-            Modifier
-                .weight(1f)
-                .padding(end = 16.dp)
-        ) {
-            Text(
-                text = song.title,
-                maxLines = 2,
-                minLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 2.dp)
-            )
-
-            if (showSummary) { //was episode.summary
-                HtmlTextContainer(text = song.trackNumber.toString()) {
-                    Text(
-                        text = it,
-                        maxLines = 2,
-                        minLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                }
-            } else {
-                Text(
-                    text = album.title,
-                    maxLines = 2,
-                    minLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleSmall,
-                )
-            }
-        }
-        if (showAlbumImage) {
-            SongListItemImage(
-                album = album,
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(MaterialTheme.shapes.medium)
+                contentDescription = stringResource(R.string.icon_more) + "for song " + song.title,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }
@@ -613,8 +457,7 @@ private fun SongListItemImage(
     )
 }
 
-@Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
-@Preview( name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES )
+@CompLightPreview
 @Composable
 private fun SongListItem_GeneralPreview() {
     MusicTheme {
@@ -624,7 +467,6 @@ private fun SongListItem_GeneralPreview() {
             //album = PreviewAlbums[0],
             onClick = {},
             //onQueueSong = {},
-            isListEditable = false,
             showAlbumImage = true,
             showArtistName = true,
             showAlbumTitle = true,
@@ -633,26 +475,45 @@ private fun SongListItem_GeneralPreview() {
     }
 }
 
-///@Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
+@CompDarkPreview
 @Composable
-private fun SongListItem_AlbumDetailsPreview() {
+private fun SongListItem_ShowAllPreview() {
     MusicTheme {
         SongListItem(
-            song = PreviewPlayerSongs[5],
-            //artist = PreviewArtists[1],
-            //album = PreviewAlbums[4],
+            song = PreviewPlayerSongs[0],
+            //artist = PreviewArtists[0],
+            //album = PreviewAlbums[0],
             onClick = {},
             //onQueueSong = {},
-            isListEditable = false,
-            showAlbumImage = false,
-            showArtistName = false,
+            isListEditable = true,
+            showAlbumImage = true,
+            showArtistName = true,
             showAlbumTitle = true,
+            showTrackNumber = true,
             //modifier = Modifier,
         )
     }
 }
 
-//@Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
+@CompLightPreview
+@Composable
+private fun SongListItem_AlbumDetailsPreview() {
+    MusicTheme {
+        SongListItem(
+            song = PreviewPlayerSongs[5],
+            onClick = {},
+            //onQueueSong = {},
+            isListEditable = false,
+            showAlbumImage = true,
+            showArtistName = true,
+            showAlbumTitle = false,
+            showTrackNumber = true,
+            //modifier = Modifier,
+        )
+    }
+}
+
+//@CompLightPreview
 @Composable
 private fun SongListItem_AllSongsPreview() {
     MusicTheme {
@@ -662,7 +523,6 @@ private fun SongListItem_AllSongsPreview() {
             //album = PreviewAlbums[6],
             onClick = {},
             //onQueueSong = {},
-            isListEditable = false,
             showAlbumImage = true,
             showArtistName = true,
             showAlbumTitle = true,
@@ -671,7 +531,7 @@ private fun SongListItem_AllSongsPreview() {
     }
 }
 
-//@Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
+//@CompLightPreview
 @Composable
 private fun SongListItem_PlaylistDetailsPreview() {
     MusicTheme {
@@ -690,7 +550,8 @@ private fun SongListItem_PlaylistDetailsPreview() {
     }
 }
 
-//@Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
+//@CompLightPreview
+@CompDarkPreview
 @Composable
 private fun SongListItem_EditListPreview() {
     MusicTheme {
@@ -701,17 +562,18 @@ private fun SongListItem_EditListPreview() {
             onClick = {},
             //onQueueSong = {},
             isListEditable = true,
-            showAlbumImage = false,
+            showAlbumImage = true,
             showArtistName = true,
             showAlbumTitle = false,
+            showTrackNumber = false,
             //modifier = Modifier,
         )
     }
 }
 
-private val MediumDateFormatter by lazy {
+/*private val MediumDateFormatter by lazy {
     DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-}
+}*/
 
 fun Duration.formatStr(): String {
     val minutes = this.toMinutes().toString().padStart(1, '0')

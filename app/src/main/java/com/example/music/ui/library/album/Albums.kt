@@ -6,23 +6,31 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,10 +45,13 @@ import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
-import com.example.music.model.AlbumInfo
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.ui.library.LibraryCategory
+import com.example.music.ui.shared.LibrarySortSelectionBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Album Items Lazy List Scope Generator.
@@ -77,26 +88,65 @@ import com.example.music.util.quantityStringResource
  * Provides header item with a count of the albums given, and
  * generates a grid of albums, with each album item shown as a card.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 fun LazyGridScope.albumItems(
     albums: List<AlbumInfo>,
+    coroutineScope: CoroutineScope,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     //modifier: Modifier = Modifier,
 ) {
+
+    // section1: header
     fullWidthItem {
-        Text(
-            text = """\s[a-z]""".toRegex().replace(
-                quantityStringResource(R.plurals.albums, albums.size, albums.size)
-            ) {
-                it.value.uppercase()
-            },
-            //text = quantityStringResource(R.plurals.albums, albums.size, albums.size),
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp)
-        )
+        // ******** var  for modal remember here
+        var showBottomSheet by remember { mutableStateOf(false) }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = """\s[a-z]""".toRegex().replace(
+                    quantityStringResource(R.plurals.albums, albums.size, albums.size)
+                ) {
+                    it.value.uppercase()
+                },
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(8.dp).weight(1f,true)
+            )
+            //Spacer(Modifier.weight(1f,true))
+
+            // sort icon
+            IconButton(onClick={showBottomSheet = true}) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
+                    contentDescription = stringResource(R.string.icon_sort),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+
+            // multi-select icon
+            IconButton(onClick={/* filter */}) {
+                Icon(
+                    imageVector = Icons.Filled.Checklist,//want this to be multi select icon
+                    contentDescription = stringResource(R.string.icon_multi_select),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+        if(showBottomSheet) {
+            LibrarySortSelectionBottomModal(
+                onDismissRequest = { showBottomSheet = false },
+                coroutineScope = coroutineScope,
+                libraryCategory = LibraryCategory.Albums,
+            )
+        }
     }
 
-    items(albums){ item ->
+    items(
+        albums,
+        span = { GridItemSpan(1) }
+    ){ item ->
         Surface(
             shape = MaterialTheme.shapes.large,
             color = Color.Transparent,
@@ -114,10 +164,12 @@ fun LazyGridScope.albumItems(
 /**
  * Create a composable view of a Album in a row form
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AlbumItemRow(
     album: AlbumInfo,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    coroutineScope: CoroutineScope,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = Modifier.padding(4.dp)){
@@ -162,15 +214,23 @@ private fun AlbumItemRow(
                     }
                 }
 
-                IconButton( //more options button
+                IconButton( // more options button
                     //modifier = Modifier.padding(0.dp),
-                    onClick = { /* TODO */ }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
+                    onClick = { /* TODO
+                        coroutineScope.launch {
+                            AlbumMoreOptionsBottomModal(
+                                onDismissRequest = {},
+                                coroutineScope = coroutineScope,
+                                album = album,
+                                navigateToAlbumDetails = navigateToAlbumDetails,
+                            )
+                        }*/
+                    }, // pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
                 ) {
-                    Icon( //more options icon
+                    Icon( // more options icon
                         imageVector = Icons.Default.MoreVert,
-                        contentDescription = stringResource(R.string.cd_more),
-                        //tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = stringResource(R.string.icon_more),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
             }
@@ -194,15 +254,17 @@ private fun AlbumItemBoxFooter(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(4.dp).align(Alignment.CenterVertically).weight(1f,false)
+            modifier = Modifier.padding(4.dp).weight(1f,true)
         )
+
+        //Spacer(Modifier.weight(1f))
 
         IconButton(
             onClick = { /* TODO */ },
         ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.cd_more),
+                contentDescription = stringResource(R.string.icon_more),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
@@ -230,16 +292,15 @@ private fun AlbumItemBoxHeader(
             maxLines = 1,
             minLines = 1,
             overflow = TextOverflow.Ellipsis,
-            //color = MaterialTheme.colorScheme.surface,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimary,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(10.dp)
                 .border(1.dp,color = Color.Transparent, shape = MusicShapes.small)
                 .background(
-                    Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     shape = MusicShapes.small
                 )
-                .padding(2.dp)
+                .padding(4.dp)
         )
     }
 }
@@ -282,13 +343,14 @@ private fun TopAlbumRowItem(
     }
 }
 
-@Preview
+//@Preview
 @Composable
 fun AlbumItemPreviewRow() {
     MusicTheme {
         AlbumItemRow(
             album = PreviewAlbums[0],
             navigateToAlbumDetails = {},
+            coroutineScope = rememberCoroutineScope(),
         )
     }
 }
@@ -297,15 +359,29 @@ fun AlbumItemPreviewRow() {
 @Composable
 fun AlbumItemPreviewBox() {
     MusicTheme {
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = Color.Transparent,
-            modifier = Modifier,
-            onClick = {}
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally){
-                AlbumItemBoxHeader(PreviewAlbums[0])
-                AlbumItemBoxFooter(PreviewAlbums[0])
+        Column {
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = Color.Transparent,
+                modifier = Modifier,
+                onClick = {}
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    AlbumItemBoxHeader(PreviewAlbums[0])
+                    AlbumItemBoxFooter(PreviewAlbums[0])
+                }
+            }
+
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = Color.Transparent,
+                modifier = Modifier,
+                onClick = {}
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    AlbumItemBoxHeader(PreviewAlbums[3])
+                    AlbumItemBoxFooter(PreviewAlbums[3])
+                }
             }
         }
     }

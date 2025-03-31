@@ -1,9 +1,9 @@
-package com.example.music.player
+package com.example.music.domain.player
 
 import com.example.music.data.repository.RepeatType
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.player.model.PlayerSong
 import com.example.music.data.util.combine
-import com.example.music.util.domainLogger
+import com.example.music.domain.util.domainLogger
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

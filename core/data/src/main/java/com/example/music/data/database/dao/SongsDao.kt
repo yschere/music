@@ -685,7 +685,7 @@ abstract class SongsDao : BaseDao<Song> {
         LIMIT :limit
         """
     )
-    abstract fun searchSongsByName(query: String, limit: Int): Flow<List<Song>>
+    abstract fun searchSongsByTitle(query: String, limit: Int): Flow<List<Song>>
 
     /**
      * Returns the integer value of the total amount of records in songs table

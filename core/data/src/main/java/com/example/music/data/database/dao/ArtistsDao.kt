@@ -5,6 +5,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.ArtistWithExtraInfo
+import com.example.music.data.database.model.Song
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -33,6 +34,18 @@ abstract class ArtistsDao : BaseDao<Artist> {
         """
     )
     abstract fun getArtistById(id: Long): Flow<Artist>
+
+    /**
+     * Returns a flow of the artist record matching the specified name
+     * @param name [String] the record's name to match on
+     */
+    @Query(
+        """
+        SELECT * FROM artists
+        WHERE name = :name
+        """
+    )
+    abstract fun getArtistByName(name: String): Flow<Artist>
 
     /**
      * Returns a flow of the artist record and its aggregated songs data,
@@ -422,7 +435,7 @@ abstract class ArtistsDao : BaseDao<Artist> {
 
         """
     )
-    abstract fun searchArtistByName(query: String, limit: Int): Flow<List<ArtistWithExtraInfo>>
+    abstract fun searchArtistsByName(query: String, limit: Int): Flow<List<ArtistWithExtraInfo>>
 
     /**
      * Returns the integer value of the total amount of records in artists table

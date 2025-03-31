@@ -26,22 +26,27 @@ class AlbumWithExtraInfo {
     @ColumnInfo(name = "song_count")
     var songCount: Int = 0
 
+    @ColumnInfo(name = "album_artist_name")
+    var albumArtistName: String? = null
+
     /**
      * Allow consumers to destruct this class
      */
     operator fun component1() = album
     operator fun component2() = dateLastPlayed
     operator fun component3() = songCount
+    operator fun component4() = albumArtistName
 
     override fun equals(other: Any?): Boolean = when {
         other === this -> true
         other is AlbumWithExtraInfo -> {
             album == other.album &&
                     dateLastPlayed == other.dateLastPlayed &&
-                    songCount == other.songCount
+                    songCount == other.songCount &&
+                    albumArtistName == other.albumArtistName
         }
         else -> false
     }
-    override fun hashCode(): Int = Objects.hash(album, dateLastPlayed, songCount)
+    override fun hashCode(): Int = Objects.hash(album, dateLastPlayed, songCount, albumArtistName)
 
 }

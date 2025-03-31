@@ -21,8 +21,22 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 
 /**
- * Returns true if the width or height size classes are compact.
+ * Returns true if the width or height size classes are compact. For smaller phones, portrait mode
  */
 val WindowSizeClass.isCompact: Boolean
     get() = windowWidthSizeClass == WindowWidthSizeClass.COMPACT ||
         windowHeightSizeClass == WindowHeightSizeClass.COMPACT
+
+/**
+ * Returns true if the width or height size classes are expanded. For larger devices
+ */
+val WindowSizeClass.isExpanded: Boolean
+    get() = windowWidthSizeClass == WindowWidthSizeClass.EXPANDED ||
+            windowHeightSizeClass == WindowHeightSizeClass.EXPANDED
+
+/**
+ * Returns true if the width or height size classes are medium. For landscape phone or tablet
+ */
+val WindowSizeClass.isMedium: Boolean
+    get() = windowWidthSizeClass == WindowWidthSizeClass.MEDIUM ||
+            windowHeightSizeClass == WindowHeightSizeClass.MEDIUM

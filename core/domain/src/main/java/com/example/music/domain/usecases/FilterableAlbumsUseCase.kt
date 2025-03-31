@@ -1,10 +1,6 @@
-package com.example.music.domain
+package com.example.music.domain.usecases
 
 import com.example.music.data.repository.AlbumRepo
-import com.example.music.model.AlbumInfo
-import com.example.music.model.asExternalModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 /**

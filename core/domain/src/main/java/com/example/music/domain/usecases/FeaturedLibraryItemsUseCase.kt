@@ -1,13 +1,13 @@
-package com.example.music.domain
+package com.example.music.domain.usecases
 
 import com.example.music.data.repository.PlaylistRepo
 import com.example.music.data.repository.SongRepo
-import com.example.music.model.FeaturedLibraryItemsFilterResult
-import com.example.music.model.asExternalModel
+import com.example.music.domain.model.FeaturedLibraryItemsFilterResult
+import com.example.music.domain.model.asExternalModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import com.example.music.util.domainLogger
+import com.example.music.domain.util.domainLogger
 
 /**
  * Goal: to create use case which returns the most recently played playlists and the most recently added songs to populate the Home screen

@@ -3,11 +3,12 @@ package com.example.music.ui.genredetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.GetGenreDetailsUseCase
-import com.example.music.model.GenreInfo
-import com.example.music.model.SongInfo
-import com.example.music.player.SongPlayer
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.usecases.GetGenreDetailsUseCase
+import com.example.music.domain.model.GenreInfo
+import com.example.music.domain.model.SongInfo
+import com.example.music.domain.player.SongPlayer
+import com.example.music.domain.player.model.PlayerSong
+import com.example.music.domain.usecases.GetGenreDetailsV2
 import com.example.music.ui.Screen
 import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val TAG = "Genre Details View Model"
+
 /** ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
  * As of 2/10/2025, this version is in remote branch and working on
  * PlaylistDetailsScreen, PlaylistDetailsViewModel
@@ -29,7 +32,7 @@ data class GenreUiState (
     val isReady: Boolean = false,
     val errorMessage: String? = null,
     val genre: GenreInfo = GenreInfo(),
-//    val albums: /*Persistent*/List<AlbumInfo> = emptyList(),
+    //val albums: /*Persistent*/List<AlbumInfo> = emptyList(),
     val songs: /*Persistent*/List<SongInfo> = emptyList(),
     val pSongs: /*Persistent*/List<PlayerSong> = emptyList(),
 )
@@ -37,6 +40,7 @@ data class GenreUiState (
 @HiltViewModel
 class GenreDetailsViewModel @Inject constructor(
     getGenreDetailsUseCase: GetGenreDetailsUseCase,
+    getGenreDetailsV2: GetGenreDetailsV2,
     private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -44,7 +48,8 @@ class GenreDetailsViewModel @Inject constructor(
     private val _genreId: String = savedStateHandle.get<String>(Screen.ARG_GENRE_ID)!!
     private val genreId = _genreId.toLong()
 
-    private val getGenreDetailsData = getGenreDetailsUseCase(genreId)
+    //private val getGenreDetailsData = getGenreDetailsUseCase(genreId)
+    private val getGenreDetailsData = getGenreDetailsV2(genreId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     private val _state = MutableStateFlow(GenreUiState())
@@ -55,9 +60,9 @@ class GenreDetailsViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "Genre Details View Model - genreId: $genreId" }
+        logger.info { "$TAG - genreId: $genreId" }
         viewModelScope.launch {
-            logger.info { "Genre Details View Model - init viewModelScope launch start" }
+            logger.info { "$TAG - init viewModelScope launch start" }
             combine(
                 refreshing,
                 getGenreDetailsData,
@@ -66,7 +71,7 @@ class GenreDetailsViewModel @Inject constructor(
                 genreDetailsFilterResult, ->
                 logger.info { "Genre Details View Model - GenreUiState call" }
                 logger.info { "Genre Details View Model - genreDetailsFilterResult ID: ${genreDetailsFilterResult.genre.id}" }
-//                logger.info { "Genre Details View Model - genreDetailsFilterResult albums: ${genreDetailsFilterResult.albums.size}" }
+                //logger.info { "Genre Details View Model - genreDetailsFilterResult albums: ${genreDetailsFilterResult.albums.size}" }
                 logger.info { "Genre Details View Model - genreDetailsFilterResult songs: ${genreDetailsFilterResult.songs.size}" }
                 logger.info { "Genre Details View Model - genreDetailsFilterResult pSongs: ${genreDetailsFilterResult.pSongs.size}" }
                 logger.info { "Genre Details View Model - isReady?: ${!refreshing}" }

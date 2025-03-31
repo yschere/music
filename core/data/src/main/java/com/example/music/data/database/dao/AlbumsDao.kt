@@ -5,6 +5,9 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.AlbumWithExtraInfo
+import com.example.music.data.database.model.Artist
+import com.example.music.data.database.model.ArtistWithExtraInfo
+import com.example.music.data.database.model.Song
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -35,6 +38,18 @@ abstract class AlbumsDao : BaseDao<Album> {
     abstract fun getAlbumById(id: Long): Flow<Album> //equivalent of PodcastsDao.podcastWithUri
 
     /**
+     * Returns a flow of the album record matching the specified title
+     * @param title [String] the record's title to match on
+     */
+    @Query(
+        """
+        SELECT * FROM albums
+        WHERE title = :title
+        """
+    )
+    abstract fun getAlbumByTitle(title: String): Flow<Album>
+
+    /**
      * Returns a flow of the list of filtered albums records matching the specified album_artist_id
      * @param albumArtistId [Long] the album_artist_id to match on
      * @param limit [Int] an optional limit on the records returned
@@ -56,15 +71,16 @@ abstract class AlbumsDao : BaseDao<Album> {
      * If song_count is null, it will be replaced as 0.
      * @param albumId [Long] the album_id to match on
      */
-    @Transaction
+    @Transaction //TODO check how to use coalesce to set null to empty string, for if album_artist_name is null
     @Query(
         """
-        SELECT albums.*, COALESCE(song_count, 0) AS song_count, date_last_played FROM albums 
+        SELECT albums.*, COALESCE(song_count, 0) AS song_count, date_last_played, artists.name AS album_artist_name FROM albums 
         INNER JOIN (
             SELECT album_id, COUNT(*) AS song_count, MAX(songs.date_last_played) AS date_last_played
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        INNER JOIN artists ON artists.id = albums.album_artist_id
         WHERE albums.id = :albumId
         """
     )
@@ -380,7 +396,7 @@ abstract class AlbumsDao : BaseDao<Album> {
         LIMIT :limit
         """
     )
-    abstract fun searchAlbumByTitle(query: String, limit: Int): Flow<List<AlbumWithExtraInfo>> //equivalent of PodcastsDao.searchPodcastByTitle
+    abstract fun searchAlbumsByTitle(query: String, limit: Int): Flow<List<AlbumWithExtraInfo>> //equivalent of PodcastsDao.searchPodcastByTitle
 
     /* //TODO: not sure if searchAlbumByTitleAndGenre is needed
     @Transaction
@@ -404,6 +420,18 @@ abstract class AlbumsDao : BaseDao<Album> {
         genreIdList: List<Long>,
         limit: Int
     ): Flow<List<AlbumWithExtraInfo>> */
+
+
+    @Transaction
+    @Query(
+        """
+        SELECT COALESCE(artists.id,-1) AS id, COALESCE(artists.name,"") as name
+        FROM albums 
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
+        WHERE albums.id = :albumId
+        """
+    )
+    abstract fun getAlbumArtistByAlbumId(albumId: Long): Flow<Artist>
 
     /**
      * Returns the integer value of the total amount of records in albums table.

@@ -44,6 +44,8 @@ dependencies {
     // Dependency injection
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.dagger.hilt.android)
+    implementation(libs.androidx.activity)
+//    implementation(libs.play.services.cast.framework)
     ksp(libs.dagger.hilt.compiler)
 
     // Logging
@@ -55,6 +57,7 @@ dependencies {
     implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.session)
+    implementation(libs.nextlib)
 
     // Backwards Compatibility for older APIs to new App versions
     coreLibraryDesugaring(libs.core.jdk.desugaring)

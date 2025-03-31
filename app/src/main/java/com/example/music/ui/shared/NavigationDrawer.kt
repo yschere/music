@@ -1,10 +1,13 @@
 package com.example.music.ui.shared
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -24,6 +27,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.CompLightPreview
+import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -36,6 +41,7 @@ import kotlinx.coroutines.launch
 fun NavDrawer(
     selectedLabel: String,
     totals: List<Int>,
+    //totals: List<Pair<String,Int>>,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
@@ -49,7 +55,7 @@ fun NavDrawer(
             ModalDrawerSheet(
                 drawerContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 drawerContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.fillMaxHeight().width(200.dp)
+                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars).fillMaxHeight().width(200.dp)
             ) {
                 Text(
                     text = "Musicality",
@@ -67,7 +73,7 @@ fun NavDrawer(
                         selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                         selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         unselectedContainerColor = Color.Transparent,
-                        unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        unselectedTextColor = MaterialTheme.colorScheme.inverseSurface,
                     ),
                     onClick = {
                         coroutineScope.launch {
@@ -86,7 +92,7 @@ fun NavDrawer(
                         selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                         selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         unselectedContainerColor = Color.Transparent,
-                        unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        unselectedTextColor = MaterialTheme.colorScheme.inverseSurface,
                     ),
                     onClick = {
                         coroutineScope.launch {
@@ -94,7 +100,6 @@ fun NavDrawer(
                         }
                         navigateToLibrary()
                     }
-                    //onClick = navigateToLibrary
                 )
 
                 // Settings Screen navigation item
@@ -105,7 +110,7 @@ fun NavDrawer(
                         selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                         selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         unselectedContainerColor = Color.Transparent,
-                        unselectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        unselectedTextColor = MaterialTheme.colorScheme.inverseSurface,
                     ),
                     onClick = {
                         coroutineScope.launch {
@@ -113,7 +118,7 @@ fun NavDrawer(
                         }
                         navigateToSettings()
                     },
-//                    onClick = navigateToSettings
+                    //onClick = navigateToSettings
                 )
 
                 HorizontalDivider(
@@ -129,22 +134,27 @@ fun NavDrawer(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                     )
                     Text(
+                        //text = quantityStringResource(id= R.plurals.songs, totals[0].second, totals[0]),
                         text = quantityStringResource(id= R.plurals.songs, totals[0], totals[0]),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)
                     )
                     Text(
+                        //text = quantityStringResource(id= R.plurals.artists, totals[1].second, totals[1]),
                         text = quantityStringResource(id= R.plurals.artists, totals[1], totals[1]),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)
                     )
                     Text(
+                        //text = quantityStringResource(id= R.plurals.albums, totals[2].second, totals[2]),
                         text = quantityStringResource(id= R.plurals.albums, totals[2], totals[2]),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)
                     )
                     Text(
-                        text = quantityStringResource(id= R.plurals.playlists, totals[3], totals[3]),
+                        //text = quantityStringResource(id= R.plurals.genres, totals[3].second, totals[3]),
+                        //text = quantityStringResource(id= R.plurals.playlists, totals[3], totals[3]),
+                        text = quantityStringResource(id= R.plurals.genres, totals[3], totals[3]),
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)
                     )
@@ -158,8 +168,8 @@ fun NavDrawer(
     }
 }
 
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@CompLightPreview
+@SystemDarkPreview
 @Composable
 fun PreviewNavDrawer() {
     MusicTheme {

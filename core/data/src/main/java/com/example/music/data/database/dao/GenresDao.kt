@@ -27,7 +27,12 @@ abstract class GenresDao : BaseDao<Genre> {
      * Returns a flow of the genre record matching the specified id
      * @param id [Long]
      */
-    @Query("SELECT * FROM genres WHERE id = :id")
+    @Query(
+        """
+        SELECT * FROM genres
+        WHERE id = :id
+        """
+    )
     abstract fun getGenreById(id: Long): Flow<Genre>
 
     /**

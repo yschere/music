@@ -1,14 +1,17 @@
 <resources>
     <string name="app_name">music</string>
 
+    <!-- Connectivity section -->
     <string name="connection_error_title">Connection error</string>
     <string name="connection_error_message">Unable to fetch podcasts feeds.\nCheck your internet connection and try again.</string>
     <string name="an_error_has_occurred">An error has occurred.</string>
     <string name="retry_label">Retry</string>
 
+    <!-- Home screen specific texts section -->
     <string name="recent_playlists">Recent Playlists</string>
     <string name="recent_songs">Recently Added Songs</string>
 
+    <!-- Library screen specific texts section -->
     <string name="library_playlists">Playlists</string>
     <string name="library_songs">Songs</string>
     <string name="library_artists">Artists</string>
@@ -16,6 +19,7 @@
     <string name="library_genres">Genres</string>
     <string name="library_composers">Composers</string>
 
+    <!-- Datetime relation section -->
     <string name="updated_longer">Updated a while ago</string>
     <plurals name="updated_weeks_ago">
         <item quantity="one">Updated %d week ago</item>
@@ -27,6 +31,7 @@
     </plurals>
     <string name="updated_today">Updated today</string>
 
+    <!-- Item count text manipulation section -->
     <plurals name="playlists">
         <item quantity="one">%d playlist</item>
         <item quantity="other">%d playlists</item>
@@ -54,28 +59,67 @@
 
     <string name="song_date_duration">%1$s &#8226; %2$d mins</string>
 
+    <!-- Player specific buttons content description section -->
     <string name="cd_add">Add</string>
+    <string name="cd_album_image">Show Album image</string>
     <string name="cd_back">Back</string>
-    <string name="cd_more">More</string>
+    <string name="cd_lyrics">Lyrics</string>
     <string name="cd_pause">Pause</string>
     <string name="cd_play">Play</string>
-    <string name="cd_search">Search</string>
-    <string name="cd_skip_next">Skip next</string>
-    <string name="cd_skip_previous">Skip previous</string>
-    <string name="cd_repeat_off">Repeat</string>
-    <string name="cd_repeat_one">Repeat one</string>
-    <string name="cd_repeat_all">Repeat all</string>
-    <string name="cd_shuffle_off">Shuffle</string>
-    <string name="cd_shuffle_random">Shuffle Randomizer</string>
-    <string name="cd_shuffle_on">Shuffle on</string>
+    <string name="cd_skip_next">Skip to next</string>
+    <string name="cd_skip_previous">Skip to previous</string>
+    <string name="cd_repeat_off">Repeat is off</string>
+    <string name="cd_repeat_one_on">Repeat one is on</string>
+    <string name="cd_repeat_on">Repeat all is on</string>
+    <string name="cd_shuffle_off">Shuffle is off</string>
+    <string name="cd_shuffle_on">Shuffle is on</string>
 
-    <string name="song_added_to_your_queue">Song added to queue</string>
-    <string name="song_removed_from_your_queue">Song removed from queue</string>
-    <string name="song_added_to_playlist">Song added to playlist %s</string>
-    <string name="song_removed_from_playlist">Song removed from playlist %s</string>
-    <string name="cd_album_image">Album image</string>
-    <string name="see_more">See more</string>
+    <!-- Snack bar texts content description section -->
+    <string name="sbt_song_added_to_playlist">Song added to playlist %s</string>
+    <string name="sbt_song_added_to_your_queue">Song added to queue</string>
+    <string name="sbt_song_removed_from_playlist">Song removed from playlist %s</string>
+    <string name="sbt_song_removed_from_your_queue">Song removed from queue</string>
+    <string name="sbt_tags_edited">Tags edited for %s</string>
+    <string name="sbt_new_playlist_created">Playlist %s created</string>
+    <string name="sbt_playlist_removed">Playlist removed from library</string>
+    <string name="sbt_playlist_exported">Playlist exported</string>
+    <string name="sbt_queue_saved">Queue Saved to %s</string>
+    <string name="sbt_queue_cleared">Queue has been Cleared</string>
+    <!--<string name="see_more">See more</string>-->
 
+    <!-- Notification section -->
     <string name="media_notification_channel">Music Player</string>
     <string name="media_notification_channel_description">Shows the currently playing music</string>
+
+    <!-- Icon content descriptions section -->
+    <string name="icon_add_to_playlist">Add Song(s) to Playlist</string>
+    <string name="icon_add_to_queue">Add Song(s) to Queue</string>
+    <string name="icon_album">Go to Album Details</string>
+    <string name="icon_artist">Go to Artist Details</string>
+    <string name="icon_back_nav">Navigate back to previous screen</string>
+    <string name="icon_composer">Go to Composer Details</string>
+    <string name="icon_create_new_playlist">Create New Playlist</string>
+    <string name="icon_delete">Remove from Library</string>
+    <string name="icon_delete_playlist">Remove Playlist from Library</string>
+    <string name="icon_edit">Edit tags</string>
+    <string name="icon_export">Export playlist to device</string>
+    <string name="icon_genre">Go to Genre Details</string>
+    <string name="icon_more">More Options</string>
+    <string name="icon_multi_select">Select Item(s) in List</string>
+    <string name="icon_nav_drawer">Open Navigation Drawer</string>
+    <string name="icon_play">Play item</string>
+    <string name="icon_playlist">Go to Playlist Details</string>
+    <string name="icon_play_next">Play Next in Queue</string>
+    <string name="icon_queue">Open Queue List</string>
+    <string name="icon_queue_clear">Clear Queue</string>
+    <string name="icon_queue_save">Save Queue</string>
+    <string name="icon_remove_item_playlist">Remove from Playlist</string>
+    <string name="icon_remove_item_queue">Remove from Queue</string>
+    <string name="icon_reorder">Change List Order</string>
+    <string name="icon_scroll_to_top">Scroll to top of screen</string>
+    <string name="icon_search">Search</string>
+    <string name="icon_shuffle">Play in shuffled order</string>
+    <string name="icon_song_details">Show Song Details</string>
+    <string name="icon_sort">Open Sort Options</string>
+
 </resources>

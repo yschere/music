@@ -90,6 +90,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.material3)
@@ -135,15 +136,15 @@ dependencies {
     implementation(libs.slf4j.log)
 
     //Media3 Controls
-    implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.cast)// For integrating with Cast
     implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.exoplayer)
-//    implementation(libs.androidx.media3.exoplayer.midi)
-//    implementation(libs.androidx.media3.extractor)// For extracting data from media containers
+    //implementation(libs.androidx.media3.exoplayer.midi)
+    //implementation(libs.androidx.media3.extractor)// For extracting data from media containers
     implementation(libs.androidx.media3.session)// For exposing and controlling media sessions
-//    implementation(libs.androidx.media3.test.utils)// Utilities for testing media components (including ExoPlayer components)
-//    implementation(libs.androidx.media3.transformer)// For transforming media files
+    //implementation(libs.androidx.media3.test.utils)// Utilities for testing media components (including ExoPlayer components)
+    //implementation(libs.androidx.media3.transformer)// For transforming media files
+    implementation(libs.androidx.media3.ui)
 
     // Backwards Compatibility for older APIs to new App versions
     coreLibraryDesugaring(libs.core.jdk.desugaring)

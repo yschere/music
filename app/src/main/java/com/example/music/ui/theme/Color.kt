@@ -24,16 +24,26 @@ val errorContainerBlueLight = Color(0xFFE6ACA9)
 val onErrorContainerBlueLight = Color(0xFF330B09)
 
 val backgroundBlueLight = Color(0xFFFBFCFC)
-val onBackgroundBlueLight = Color(0xFF313233)
+val onBackgroundBlueLight = Color(0xFF0D131A)
 
 val surfaceBlueLight = Color(0xFFFBFCFC)
-val onSurfaceBlueLight = Color(0xFF313233)
+val onSurfaceBlueLight = Color(0xFF191C1F)
 
 val surfaceVariantBlueLight = Color(0xFFD9E2E6)
-val onSurfaceVariantBlueLight = Color(0xFF556166)
+val onSurfaceVariantBlueLight = Color(0xFF384144)
 
 val outlineBlueLight = Color(0xFF7F9199)
 val outlineVariantBlueLight = Color(0xFF283F43)
+
+val scrimBlueLight = Color(0xFF000000)
+
+val inverseSurfaceBlueLight = Color(0xFF2F3135)
+val inverseOnSurfaceBlueLight = Color(0xFFEEEEF6)
+val inversePrimaryBlueLight = Color(0xFFD1DBF3)
+
+val surfaceDimBlueLight = Color(0xFFD8D9E0)
+val surfaceBrightBlueLight = Color(0xFFF8F7FF)
+
 
 // Blue toned Dark Color Section
 val primaryBlueDark = Color(0xFF8FCBE6)
@@ -56,10 +66,10 @@ val onErrorBlueDark = Color(0xFF4C100D)
 val errorContainerBlueDark = Color(0xFF661511)
 val onErrorContainerBlueDark = Color(0xFFE6ACA9)
 
-val backgroundBlueDark = Color(0xFF313233)
-val onBackgroundBlueDark = Color(0xFFe2e5e6)
+val backgroundBlueDark = Color(0xFF0D1123)
+val onBackgroundBlueDark = Color(0xFFE2E5E6)
 
-val surfaceBlueDark = Color(0xFF313233)
+val surfaceBlueDark = Color(0xFF0D1123) //og: 18252D
 val onSurfaceBlueDark = Color(0xFFE2E5E6)
 
 val surfaceVariantBlueDark = Color(0xFF556166)
@@ -67,6 +77,16 @@ val onSurfaceVariantBlueDark = Color(0xFFD4E0E6)
 
 val outlineBlueDark = Color(0xFF283F43)
 val outlineVariantBlueDark = Color(0xFF7F9199)
+
+val scrimBlueDark = Color(0xFF000000)
+
+val inverseSurfaceBlueDark = Color(0xFFE1E0E8)
+val inverseOnSurfaceBlueDark = Color(0xFF2F3135)
+val inversePrimaryBlueDark = Color(0xFF232E4F)
+
+val surfaceDimBlueDark = Color(0xFF121318)
+val surfaceBrightBlueDark = Color(0xFF38383E)
+
 
 // Cool Tones Light Color Section
 val primaryLight = Color(0xFF6D538B)
@@ -103,12 +123,13 @@ val outlineVariantLight = Color(0xFFCCC4CF)
 
 val scrimLight = Color(0xFF000000)
 
-val inverseSurfaceLight = Color(0xFF332F35)
+val inverseSurfaceLight = Color(0xFF1D1A20)
 val inverseOnSurfaceLight = Color(0xFFF6EEF6)
-val inversePrimaryLight = Color(0xFFD9BAFA)
+val inversePrimaryLight = Color(0xFFFFF7FF)
 
 val surfaceDimLight = Color(0xFFDFD8E0)
 val surfaceBrightLight = Color(0xFFFFF7FF)
+
 
 // Cool Tones Dark Color Section
 val primaryDark = Color(0xFFD9BAFA)
@@ -147,7 +168,7 @@ val scrimDark = Color(0xFF000000)
 
 val inverseSurfaceDark = Color(0xFFE8E0E8)
 val inverseOnSurfaceDark = Color(0xFF332F35)
-val inversePrimaryDark = Color(0xFF6D538B)
+val inversePrimaryDark = Color(0xFF160B2A)
 
 val surfaceDimDark = Color(0xFF151218)
 val surfaceBrightDark = Color(0xFF3C383E)

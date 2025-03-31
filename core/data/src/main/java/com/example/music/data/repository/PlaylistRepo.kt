@@ -18,14 +18,13 @@ interface PlaylistRepo {
 
     fun getPlaylistsByIds(ids: List<Long>): Flow<List<Playlist>>
 
-    fun observePlaylist(name: String): Flow<Playlist>
+    fun getPlaylistByName(name: String): Flow<Playlist>
 
     fun getPlaylistWithExtraInfo(playlistId: Long): Flow<PlaylistWithExtraInfo>
 
     fun sortPlaylistsByNameAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>
-
     fun sortPlaylistsByNameDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>
@@ -33,7 +32,6 @@ interface PlaylistRepo {
     fun sortPlaylistsByDateCreatedAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>
-
     fun sortPlaylistsByDateCreatedDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>
@@ -41,7 +39,6 @@ interface PlaylistRepo {
     fun sortPlaylistsByDateLastAccessedAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>
-
     fun sortPlaylistsByDateLastAccessedDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>
@@ -49,7 +46,6 @@ interface PlaylistRepo {
     fun sortPlaylistsByDateLastPlayedAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>
-
     fun sortPlaylistsByDateLastPlayedDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>
@@ -57,17 +53,14 @@ interface PlaylistRepo {
     fun sortPlaylistsBySongCountAsc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>
-
     fun sortPlaylistsBySongCountDesc(
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>
 
     fun sortSongsInPlaylistByTrackNumberAsc(playlistId: Long): Flow<List<Song>>
-
     fun sortSongsInPlaylistByTrackNumberDesc(playlistId: Long): Flow<List<Song>>
 
     fun sortSongsInPlaylistByTitleAsc(playlistId: Long): Flow<List<Song>>
-
     fun sortSongsInPlaylistByTitleDesc(playlistId: Long): Flow<List<Song>>
 
     fun sortSongsAndPlaylistByTrackNumberAsc(playlistId: Long): Map<Playlist, List<Song>>
@@ -97,8 +90,8 @@ class PlaylistRepoImpl(
     override fun getPlaylistsByIds(ids: List<Long>): Flow<List<Playlist>> =
         playlistDao.getPlaylistsByIds(ids)
 
-    override fun observePlaylist(name: String): Flow<Playlist> =
-        playlistDao.observePlaylist(name)
+    override fun getPlaylistByName(name: String): Flow<Playlist> =
+        playlistDao.getPlaylistByName(name)
 
     override fun getPlaylistWithExtraInfo(playlistId: Long): Flow<PlaylistWithExtraInfo> =
         playlistDao.getPlaylistWithExtraInfo(playlistId)

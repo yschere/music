@@ -18,14 +18,20 @@ import com.example.music.ui.home.MainScreen
 import com.example.music.ui.library.LibraryScreen
 import com.example.music.ui.player.PlayerScreen
 import com.example.music.ui.playlistdetails.PlaylistDetailsScreen
+import com.example.music.ui.queue.QueueScreen
 import com.example.music.ui.settings.SettingsScreen
+import com.example.music.util.logger
 
 @Composable
 fun MusicApp(
     displayFeatures: List<DisplayFeature>,
     appState: MusicAppState = rememberMusicAppState()
 ) {
+    logger.info { "Music App - start" }
     val adaptiveInfo = currentWindowAdaptiveInfo()
+    /*val sizeClassText =
+        "${adaptiveInfo.windowSizeClass.windowWidthSizeClass}\n" +
+        "${adaptiveInfo.windowSizeClass.windowHeightSizeClass}"*/
     if (appState.isOnline) {
         NavHost(
             navController = appState.navController,
@@ -44,6 +50,10 @@ fun MusicApp(
 
                     //would it make sense to include all the variations of navigable screens that could come from here?
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
+
+                    navigateToAlbumDetails = { album ->
+                        appState.navigateToAlbumDetails(album.id, backStackEntry)
+                    },
 
                     navigateToPlaylistDetails = { playlist ->
                         appState.navigateToPlaylistDetails(playlist.id, backStackEntry)
@@ -71,11 +81,21 @@ fun MusicApp(
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
                     //navigateToSettings = { appState.navigateToSettings(backStackEntry) },
-                    onShowQueuePress = { appState.showQueueList(backStackEntry) } //navigation to queue list screen (not sure if this will stay as screen or pop up view)
+                    navigateToQueue = { appState.navigateToQueue(backStackEntry) } //navigation to queue list screen (not sure if this will stay as screen or pop up view)
                 )
             }
 
-            //Queuelist Screen Navigation Router
+            //Queue list Screen Navigation Router
+            composable(Screen.Queue.route) { backStackEntry ->
+                QueueScreen(
+                    windowSizeClass = adaptiveInfo.windowSizeClass,
+                    displayFeatures = displayFeatures,
+                    navigateBack = appState::navigateBack,
+                    navigateToPlayerSong = { song ->
+                        appState.navigateToPlayer(song.id, backStackEntry) 
+                    },
+                )
+            }
 
             //Library Screen Navigation Router
             composable(Screen.Library.route) { backStackEntry ->
@@ -211,9 +231,9 @@ fun MusicApp(
                     navigateBack = appState::navigateBack,
 
                     // want ability to navigate to selected album details
-//                    navigateToAlbumDetails = { album ->
-//                        appState.navigateToAlbumDetails(album.id, backStackEntry)
-//                    },
+                    //navigateToAlbumDetails = { album ->
+                        //appState.navigateToAlbumDetails(album.id, backStackEntry)
+                    //},
 
                     // want ability to navigate to song player when song selected to play -- dependent on song list being on screen
                     navigateToPlayer = { song ->

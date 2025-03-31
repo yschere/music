@@ -2,7 +2,8 @@ package com.example.music.domain.model
 
 import com.example.music.data.database.model.Genre
 import com.example.music.data.database.model.GenreWithExtraInfo
-import com.example.music.util.domainLogger
+import com.example.music.domain.util.Genre as GenreV2
+import com.example.music.domain.util.domainLogger
 
 /**
  * External data layer representation of a genre.
@@ -21,8 +22,8 @@ data class GenreInfo(
 fun Genre.asExternalModel(): GenreInfo {
     domainLogger.info { "Genre to GenreInfo external model constructor: \n ${this.id} + ${this.name}" }
     return GenreInfo(
-        id = id,
-        name = name
+        id = this.id,
+        name = this.name
     )
 }
 
@@ -33,5 +34,15 @@ fun GenreWithExtraInfo.asExternalModel(): GenreInfo {
     domainLogger.info { "GenreWithExtraInfo to GenreInfo external model constructor: \n ${this.genre} + ${this.songCount}" }
     return this.genre.asExternalModel().copy(
         songCount = songCount
+    )
+}
+
+fun GenreV2.asExternalModel(): GenreInfo {
+    domainLogger.info { "GenreV2 to GenreInfo external model constructor: \n ${this.id} + ${this.name}" }
+    return GenreInfo(
+        id = this.id,
+        name = this.name,
+        songCount = 0,
+        //not sure how to get songCount
     )
 }

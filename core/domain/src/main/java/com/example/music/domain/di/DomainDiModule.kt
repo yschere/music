@@ -1,15 +1,11 @@
-package com.example.music.di
+package com.example.music.domain.di
 
 import android.content.Context
 import com.example.music.data.Dispatcher
 import com.example.music.data.MusicDispatchers
-import com.example.music.player.SongPlayerImpl
-import com.example.music.player.SongPlayer
-//import com.example.music.store.MediaRetriever
-//import com.example.music.store.MediaRetrieverImpl
-//import com.example.music.store.Resolver
-//import com.example.music.store.MediaProvider
-//import com.example.music.store.MediaProviderImpl
+import com.example.music.domain.player.SongPlayerImpl
+import com.example.music.domain.player.SongPlayer
+import com.example.music.domain.util.MediaRepo
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,12 +23,9 @@ object DomainDiModule {
         @Dispatcher(MusicDispatchers.Main) mainDispatcher: CoroutineDispatcher
     ): SongPlayer = SongPlayerImpl(mainDispatcher)
 
-    /*@Provides
+    @Provides
     @Singleton
-    fun provideResolver(
+    fun provideMediaRepo(
         @ApplicationContext appContext: Context,
-        //@Dispatcher(MusicDispatchers.Main) mainDispatcher: CoroutineDispatcher
-    ): Resolver = Resolver(appContext)
-    //): ContentResolver = Resolver(appContext, mainDispatcher)*/
-
+    ) = MediaRepo(appContext)
 }

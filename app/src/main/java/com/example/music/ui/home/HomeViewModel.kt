@@ -3,34 +3,26 @@ package com.example.music.ui.home
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.data.database.model.Artist
-import com.example.music.data.repository.PlaylistRepo
-import com.example.music.data.repository.SongRepo
-import com.example.music.domain.FeaturedLibraryItemsUseCase
-import com.example.music.domain.GetSongAlbumDataUseCase
-import com.example.music.domain.GetSongArtistDataUseCase
-import com.example.music.domain.GetTotalCountsUseCase
-import com.example.music.model.AlbumInfo
-import com.example.music.model.ArtistInfo
-import com.example.music.model.FeaturedLibraryItemsFilterResult
-import com.example.music.model.PlaylistInfo
-import com.example.music.player.SongPlayer
-import com.example.music.player.model.PlayerSong
-import com.example.music.player.model.toPlayerSong
-import com.example.music.ui.Screen
-import com.example.music.util.combine
+import com.example.music.domain.usecases.FeaturedLibraryItemsUseCase
+import com.example.music.domain.usecases.FeaturedLibraryItemsV2
+import com.example.music.domain.usecases.FeaturedLibraryItemsFilterV2
+import com.example.music.domain.usecases.GetSongAlbumDataUseCase
+import com.example.music.domain.usecases.GetSongArtistDataUseCase
+import com.example.music.domain.usecases.GetTotalCountsUseCase
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.PlaylistInfo
+import com.example.music.domain.player.SongPlayer
+import com.example.music.domain.player.model.PlayerSong
+import com.example.music.data.util.combine
+import com.example.music.domain.player.model.toPlayerSong
+import com.example.music.domain.usecases.GetTotalCountsV2
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.music.util.logger
@@ -39,7 +31,9 @@ import com.example.music.util.logger
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     featuredLibraryItemsUseCase: FeaturedLibraryItemsUseCase,
+    featuredLibraryItemsV2: FeaturedLibraryItemsV2,
     getTotalCountsUseCase: GetTotalCountsUseCase,
+    getTotalCountsV2: GetTotalCountsV2,
     private val getArtistDataUseCase: GetSongArtistDataUseCase,
     private val getAlbumDataUseCase: GetSongAlbumDataUseCase,
     private val songPlayer: SongPlayer
@@ -51,9 +45,18 @@ class HomeViewModel @Inject constructor(
         means of retrieving object: FeaturedLibraryItemsUseCase
      */
 
-    private val selectedLibraryPlaylist = MutableStateFlow<PlaylistInfo?>(null)
+    // original
+    //private val selectedLibraryPlaylist = MutableStateFlow<PlaylistInfo?>(null)
 
-    private val featuredLibraryItems = featuredLibraryItemsUseCase() //returns Flow<FeaturedLibraryItemsFilterResult>
+    // test version for using MediaStore, uses Album instead of playlist
+    private val selectedLibraryAlbum = MutableStateFlow<AlbumInfo?>(null)
+
+    // original
+    //private val featuredLibraryItems = featuredLibraryItemsUseCase() //returns Flow<FeaturedLibraryItemsFilterResult>
+        //.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    // test version for using MediaStore, uses Album instead of playlist for now
+    private val featuredLibraryItems = featuredLibraryItemsV2()
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     // Holds our view state which the UI collects via [state]
@@ -85,7 +88,8 @@ class HomeViewModel @Inject constructor(
         logger.info { "Home View Model - viewModelScope launch start" }
         viewModelScope.launch {
             // Holds the counts of songs, artists, albums, playlists in library for NavDrawer
-            val counts = getTotalCountsUseCase()
+            //val counts = getTotalCountsUseCase()
+            val counts = getTotalCountsV2()
 
             // Combines the latest value from each of the flows, allowing us to generate a
             // view state instance which only contains the latest values.
@@ -99,7 +103,8 @@ class HomeViewModel @Inject constructor(
 
                 logger.info { "Home View Model - viewModelScope launch - combine start" }
                 logger.info { "Home View Model - viewModelScope launch - combine - refreshing: $refreshing" }
-                logger.info { "Home View Model - viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}" }
+                //logger.info { "Home View Model - viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}" }
+                logger.info { "Home View Model - viewModelScope launch - combine - libraryItemsAlbums: ${libraryItems.recentAlbums.size}" }
                 logger.info { "Home View Model - viewModelScope launch - combine - libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}" }
 
                 HomeScreenUiState(
@@ -107,6 +112,15 @@ class HomeViewModel @Inject constructor(
                     featuredLibraryItemsFilterResult = libraryItems,
                     playerSongs = libraryItems.recentlyAddedSongs.map { item ->
                         logger.info { "Song to PlayerSong: ID: ${item.id} - song: ${item.title}" }
+                        // two options here for creating PlayerSong. I can either still do the original method of retrieving an ArtistInfo and AlbumInfo for the given songInfo
+                        // OR
+                        // since I am now able to access MediaStore data that is populating songInfo with much more info, like the artist name and album title, I could just use songInfo to construct PlayerSong
+                        item.toPlayerSong()
+
+                        // OR OR
+                        // even more big brained: I just remove the PlayerSong support because SongInfo is more robust that it can support the UI more directly now
+
+                        /* // ORIGINAL CODE FOR SONGINFO -> PLAYERSONG
                         val art = getArtistDataUseCase(item).first()
                         logger.info { "Song to PlayerSong: artist: ${art.name}" }
                         val alb = getAlbumDataUseCase(item).first()
@@ -115,7 +129,7 @@ class HomeViewModel @Inject constructor(
                             item,
                             art,
                             alb,
-                        )
+                        )*/
                     },//TODO: PlayerSong support
                     totals = counts
                 )
@@ -153,27 +167,29 @@ class HomeViewModel @Inject constructor(
     fun onHomeAction(action: HomeAction) {
         when (action) {
             //is HomeAction.ToggleNavMenu -> onNavigationViewMenu()
-            is HomeAction.LibraryPlaylistSelected -> onLibraryPlaylistSelected(action.playlist)
+            is HomeAction.LibraryAlbumSelected -> onLibraryAlbumSelected(action.album)
+            //is HomeAction.LibraryPlaylistSelected -> onLibraryPlaylistSelected(action.playlist)
             is HomeAction.EmptyLibraryView -> onEmptyPlaylistView()
             is HomeAction.QueueSong -> onQueueSong(action.song)
         }
     }
 
-//    private fun onGenreSelected(genre: GenreInfo) {
-//        _selectedGenre.value = genre
-//    }
-//
-//    private fun onHomeCategorySelected(homeCategory: HomeCategory) {
-//        selectedHomeCategory.value = homeCategory
-//    }
-//
-//    private fun onLibraryAlbumSelected(album: AlbumInfo) {
-//        selectedLibraryAlbum.value = album
-//    }
-//
-//    private fun onLibraryGenreSelected(genre: GenreInfo) {
-//        selectedLibraryGenre.value = genre
-//    }
+    /*private fun onGenreSelected(genre: GenreInfo) {
+        _selectedGenre.value = genre
+    }
+
+    private fun onHomeCategorySelected(homeCategory: HomeCategory) {
+        selectedHomeCategory.value = homeCategory
+    }
+
+    private fun onLibraryAlbumSelected(album: AlbumInfo) {
+        selectedLibraryAlbum.value = album
+    }
+
+    private fun onLibraryGenreSelected(genre: GenreInfo) {
+        selectedLibraryGenre.value = genre
+    }*/
+
     private fun onMoreOptionsBtnClicked(item: Any) {
 
     }
@@ -182,13 +198,16 @@ class HomeViewModel @Inject constructor(
         //showBottomSheet = true
     }
 
-    private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
-        selectedLibraryPlaylist.value = playlist
+    //private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
+        //selectedLibraryPlaylist.value = playlist
+    //}
+    private fun onLibraryAlbumSelected(album: AlbumInfo) {
+        selectedLibraryAlbum.value = album
     }
 
-//    private fun onNavigationViewMenu() {
-//        //toggle NavMenu view here
-//    }
+    /*private fun onNavigationViewMenu() {
+        //toggle NavMenu view here
+    }*/
 
     private fun onEmptyPlaylistView() {
         //featuredPlaylists = null
@@ -202,16 +221,17 @@ class HomeViewModel @Inject constructor(
 /**
  * Enumerated list of Home Screen tab options as Home Screen Categories.
  * --DIFFERENT FROM PODCAST CATEGORY/GENRE--
- * The second half of the Home Screen main pane generates tabs based on these home categories
- * Your Library shows latest songs in library (sorted list of songs by last played desc
- * Discover shows chips of genres in library (currently pulling form domainTesting/PreviewData.kt)
- *  And within the selected genre, shows list of albums within that genre (currently pulling from domainTesting/PreviewData.kt)
+ *  - The second half of the Home Screen main pane generates tabs based on these home categories
+ *  - Your Library shows latest songs in library (sorted list of songs by last played desc
+ *  - Discover shows chips of genres in library (currently pulling form domainTesting/PreviewData.kt)
+ *  - Within the selected genre, shows list of albums within that genre (currently pulling from domainTesting/PreviewData.kt)
  */
 
 @Immutable
 sealed interface HomeAction {
     data class EmptyLibraryView(val playlist: PlaylistInfo) : HomeAction
-    data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
+    data class LibraryAlbumSelected(val album: AlbumInfo) : HomeAction
+    //data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
     data class QueueSong(val song: PlayerSong) : HomeAction
 }
 
@@ -219,7 +239,9 @@ sealed interface HomeAction {
 data class HomeScreenUiState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
-    val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult = FeaturedLibraryItemsFilterResult(),
+    val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2 = FeaturedLibraryItemsFilterV2(),
+    //val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult = FeaturedLibraryItemsFilterResult(),
     val playerSongs: List<PlayerSong> = emptyList(), //TODO: PlayerSong support
     val totals: List<Int> = emptyList()
+    //val totals: List<Pair<String,Int>> = emptyList(),
 )

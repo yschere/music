@@ -1,6 +1,7 @@
 package com.example.music.ui.shared
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,9 +32,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.model.AlbumInfo
-import com.example.music.model.PlaylistInfo
+import com.example.music.designsys.theme.MusicShapes
+import com.example.music.domain.testing.PreviewAlbums
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.PlaylistInfo
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 
 
@@ -73,6 +77,8 @@ fun FeaturedAlbumsCarousel(
                 FeaturedCarouselItem(
                     itemImage = 1,//album.artwork!!,
                     itemTitle = album.title,
+                    itemSize = album.songCount,
+                    // TODO: onClick = AlbumMoreOptionsBottomModal(album),
                     //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
                     modifier = Modifier
                         .fillMaxSize()
@@ -121,6 +127,8 @@ fun FeaturedPlaylistsCarousel(
                 FeaturedCarouselItem(
                     itemImage = 1,//album.artwork!!,
                     itemTitle = playlist.name,
+                    itemSize = playlist.songCount,
+                    // TODO: onClick = PlaylistMoreOptionsBottomModal(playlist),
                     //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
                     modifier = Modifier
                         .fillMaxSize()
@@ -135,15 +143,17 @@ fun FeaturedPlaylistsCarousel(
 
 @Composable
 private fun FeaturedCarouselItem(
-    itemTitle: String,
-    //itemImage: String,
-    itemImage: Int,
+    itemTitle: String = "",
+    itemImage: Int = 0,
+    itemSize: Int = 0,
+    //onClick: () -> Unit, //pass in either Album or Playlist MoreOptionsModal action here
     modifier: Modifier = Modifier,
 ) {
     //logger.info { "Featured Carousel Item function start" }
     Column(modifier) {
         Box(
-            Modifier
+            contentAlignment = Alignment.BottomStart,
+            modifier = Modifier
                 .size(FEATURED_ITEM_IMAGE_SIZE_DP)
                 .align(Alignment.CenterHorizontally)
         ) {
@@ -154,25 +164,44 @@ private fun FeaturedCarouselItem(
                     .size(FEATURED_ITEM_IMAGE_SIZE_DP)
                     .clip(MaterialTheme.shapes.medium),
             )
+            Text(
+                text = quantityStringResource(R.plurals.songs, itemSize, itemSize),
+                maxLines = 1,
+                minLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(10.dp)
+                    .border(1.dp,color = Color.Transparent, shape = MusicShapes.small)
+                    .background(
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        shape = MusicShapes.small
+                    )
+                    .padding(4.dp)
+            )
         }
-        Row(Modifier.fillMaxSize()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxSize()
+        ) {
             Text(
                 text = itemTitle,
-//            style = MaterialTheme.typography.bodySmall,
+                //style = MaterialTheme.typography.bodySmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(4.dp)/*.align(Alignment.CenterVertically)*/.weight(1f,false)
-//            modifier = Modifier
-//                .padding(top = 8.dp)
-//                .align(Alignment.CenterHorizontally)
+                modifier = Modifier.padding(4.dp).weight(1f,true)
+                //modifier = Modifier
+                    //.padding(top = 8.dp)
             )
+
+            // more options btn
             IconButton(
-                onClick = { /* TODO */ },
+                onClick = {  }, // TODO: MoreOptionsBottomModal
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.cd_more),
+                    contentDescription = stringResource(R.string.icon_more),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
@@ -185,11 +214,11 @@ private fun FeaturedCarouselItem(
 private fun PreviewCard() {
     MusicTheme {
         FeaturedCarouselItem(
-            itemImage = 1,//album.artwork!!,
-            itemTitle = "Help",
+            itemImage = PreviewAlbums[0].songCount,//album.artwork!!,
+            itemTitle = PreviewAlbums[0].title,
             //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
             modifier = Modifier
-                .size(FEATURED_ITEM_IMAGE_SIZE_DP, FEATURED_ITEM_IMAGE_SIZE_DP + 30.dp)
+                .size(FEATURED_ITEM_IMAGE_SIZE_DP, FEATURED_ITEM_IMAGE_SIZE_DP + 48.dp)
                 .fillMaxSize()
         )
     }

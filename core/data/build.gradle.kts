@@ -28,7 +28,6 @@ android {
 
     buildFeatures {
         buildConfig = true
-        //viewBinding = true
     }
 
     compileOptions {
@@ -54,6 +53,8 @@ dependencies {
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.activity)
     androidTestImplementation(platform(libs.androidx.compose.bom))
 
     // Dependency injection
@@ -78,6 +79,10 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore) // preferences datastore support
+
+    // Logging
+    implementation(libs.kotlin.logging)
+    implementation(libs.slf4j.log)
 
     // Backwards Compatibility for older APIs to new App versions
     coreLibraryDesugaring(libs.core.jdk.desugaring)

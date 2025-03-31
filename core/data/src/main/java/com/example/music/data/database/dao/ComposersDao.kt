@@ -28,14 +28,24 @@ abstract class ComposersDao : BaseDao<Composer> {
      * Returns a flow of the composer record matching the specified id
      * @param id [Long]
      */
-    @Query("SELECT * FROM composers WHERE id = :id")
+    @Query(
+        """
+        SELECT * FROM composers 
+        WHERE id = :id
+        """
+    )
     abstract fun getComposerById(id: Long): Flow<Composer>
 
     /**
      * Returns a flow of the composer record matching the specified name
      * @param name [String] the record's name to match on
      */
-    @Query("SELECT * FROM composers WHERE name = :name")
+    @Query(
+        """
+        SELECT * FROM composers 
+        WHERE name = :name
+        """
+    )
     abstract fun getComposerByName(name: String): Flow<Composer>
 
     /**

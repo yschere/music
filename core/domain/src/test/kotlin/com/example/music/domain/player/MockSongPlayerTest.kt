@@ -16,8 +16,7 @@
 
 package com.example.music.domain.player
 
-import com.example.music.player.SongPlayerImpl
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.player.model.PlayerSong
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy

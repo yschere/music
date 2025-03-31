@@ -41,7 +41,7 @@ class TestPlaylistRepo : PlaylistRepo {
         TODO("Not yet implemented")
     }
 
-    override fun observePlaylist(name: String): Flow<Playlist> = playlistsFlow.map { playlists ->
+    override fun getPlaylistByName(name: String): Flow<Playlist> = playlistsFlow.map { playlists ->
         playlists.first {it.name == name}
     }
 

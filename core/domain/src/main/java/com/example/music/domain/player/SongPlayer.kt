@@ -1,7 +1,7 @@
-package com.example.music.player
+package com.example.music.domain.player
 
 import com.example.music.data.repository.RepeatType
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.player.model.PlayerSong
 import kotlinx.coroutines.flow.StateFlow
 import java.time.Duration
 

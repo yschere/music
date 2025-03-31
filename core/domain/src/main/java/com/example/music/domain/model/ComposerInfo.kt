@@ -2,7 +2,7 @@ package com.example.music.domain.model
 
 import com.example.music.data.database.model.Composer
 import com.example.music.data.database.model.ComposerWithExtraInfo
-import com.example.music.util.domainLogger
+import com.example.music.domain.util.domainLogger
 
 /**
  * External data layer representation of a composer.

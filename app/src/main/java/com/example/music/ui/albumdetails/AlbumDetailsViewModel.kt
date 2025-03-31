@@ -3,11 +3,13 @@ package com.example.music.ui.albumdetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.GetAlbumDetailsUseCase
-import com.example.music.model.AlbumInfo
-import com.example.music.model.SongInfo
-import com.example.music.player.SongPlayer
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.usecases.GetAlbumDetailsUseCase
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.ArtistInfo
+import com.example.music.domain.model.SongInfo
+import com.example.music.domain.player.SongPlayer
+import com.example.music.domain.player.model.PlayerSong
+import com.example.music.domain.usecases.GetAlbumDetailsV2
 import com.example.music.ui.Screen
 import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +22,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val TAG = "Album Details View Model"
+
 /** ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
  * As of 2/10/2025, this version is in remote branch and working on
  * PlaylistDetailsScreen, PlaylistDetailsViewModel
@@ -29,6 +33,7 @@ data class AlbumUiState (
     val isReady: Boolean = false,
     val errorMessage: String? = null,
     val album: AlbumInfo = AlbumInfo(),
+    val artist: ArtistInfo = ArtistInfo(),
     val songs: List<SongInfo> = emptyList(),
     val pSongs: List<PlayerSong> = emptyList(),
 )
@@ -36,6 +41,7 @@ data class AlbumUiState (
 @HiltViewModel
 class AlbumDetailsViewModel @Inject constructor(
     getAlbumDetailsUseCase: GetAlbumDetailsUseCase,
+    getAlbumDetailsV2: GetAlbumDetailsV2,
     private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -43,7 +49,8 @@ class AlbumDetailsViewModel @Inject constructor(
     private val _albumId: String = savedStateHandle.get<String>(Screen.ARG_ALBUM_ID)!!
     private val albumId = _albumId.toLong()
 
-    private val getAlbumDetailsData = getAlbumDetailsUseCase(albumId)
+    //private val getAlbumDetailsData = getAlbumDetailsUseCase(albumId)
+    private val getAlbumDetailsData = getAlbumDetailsV2(albumId)
             .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     private val _state = MutableStateFlow(AlbumUiState())
@@ -54,24 +61,25 @@ class AlbumDetailsViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "Album Details View Model - albumId: $albumId" }
+        logger.info { "$TAG - albumId: $albumId" }
         viewModelScope.launch {
-            logger.info { "Album Details View Model - init viewModelScope launch start" }
+            logger.info { "$TAG - init viewModelScope launch start" }
             combine(
                 refreshing,
                 getAlbumDetailsData
             ) {
                 refreshing,
                 albumDetailsFilterResult, ->
-                logger.info { "Album Details View Model - AlbumUiState call" }
-                logger.info { "Album Details View Model - albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}" }
-                logger.info { "Album Details View Model - albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}" }
-                logger.info { "Album Details View Model - albumDetailsFilterResult pSongs: ${albumDetailsFilterResult.pSongs.size}" }
-                logger.info { "Album Details View Model - isReady?: ${!refreshing}" }
+                logger.info { "$TAG - AlbumUiState call" }
+                logger.info { "$TAG - albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}" }
+                logger.info { "$TAG - albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}" }
+                logger.info { "$TAG - albumDetailsFilterResult pSongs: ${albumDetailsFilterResult.pSongs.size}" }
+                logger.info { "$TAG - isReady?: ${!refreshing}" }
 
                 AlbumUiState(
                     isReady = !refreshing,
                     album = albumDetailsFilterResult.album,
+                    artist = albumDetailsFilterResult.artist,
                     songs = albumDetailsFilterResult.songs,
                     pSongs = albumDetailsFilterResult.pSongs
                 )

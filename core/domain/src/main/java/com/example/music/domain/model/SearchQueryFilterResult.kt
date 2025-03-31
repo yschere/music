@@ -1,6 +1,6 @@
 package com.example.music.domain.model
 
-import com.example.music.player.model.PlayerSong
+import com.example.music.domain.player.model.PlayerSong
 
 /**
  * Domain model for representing search query results. Each property is the
