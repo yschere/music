@@ -65,6 +65,8 @@ interface PlaylistRepo {
 
     fun sortSongsAndPlaylistByTrackNumberAsc(playlistId: Long): Map<Playlist, List<Song>>
 
+    fun getSongsByPlaylistId(playlistId: Long): Flow<List<Long>>
+
     suspend fun addPlaylist(playlist: Playlist): Long
 
     suspend fun addPlaylists(playlists: Collection<Playlist>)
@@ -143,6 +145,9 @@ class PlaylistRepoImpl(
 
     /* override fun getSongsAndPlaylistSortedByTrackNumberAsc(playlistId: Long): Map<Playlist, List<Song>> =
         playlistDao.getSongsAndPlaylistSortedByTrackNumberAsc(playlistId) */
+
+    override fun getSongsByPlaylistId(playlistId: Long): Flow<List<Long>> =
+        playlistDao.getSongsByPlaylistId(playlistId)
 
     /**
      * Add a new [Playlist] to this store.

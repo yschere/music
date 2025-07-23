@@ -88,7 +88,7 @@ fun SettingsScreen(
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    //navigateToPlayerSong: (PlayerSong) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -109,7 +109,7 @@ fun SettingsScreen(
             navigateToLibrary = navigateToLibrary,
             navigateToSettings = navigateToSettings,
             navigateToPlayer = navigateToPlayer,
-            navigateToPlayerSong = navigateToPlayerSong,
+            ///navigateToPlayerSong = navigateToPlayerSong,
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -153,7 +153,7 @@ private fun SettingsScreen(
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    //navigateToPlayerSong: (PlayerSong) -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -182,8 +182,8 @@ private fun SettingsScreen(
                 bottomBar = {
                     /* //should show BottomBarPlayer here if a queue session is running or service is running
                     BottomBarPlayer(
-                        song = PreviewPlayerSongs[5],
-                        navigateToPlayerSong = { navigateToPlayerSong(PreviewPlayerSongs[5]) },
+                        song = PreviewSongs[5],
+                        navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
                     )*/
                 },
                 modifier = Modifier.fillMaxSize().statusBarsPadding(),
@@ -193,7 +193,6 @@ private fun SettingsScreen(
             ) { contentPadding ->
                 Column {
                     SettingsTopAppBar(
-                        isLoading = isLoading,
                         navigateBack = navigateBack,
                     )
                     if (isLoading) {
@@ -223,7 +222,6 @@ private fun SettingsScreen(
  */
 @Composable
 private fun SettingsTopAppBar(
-    isLoading: Boolean,
     navigateBack: () -> Unit, //use this to capture navDrawer open/close action
     //modifier: Modifier = Modifier,
 ) {
@@ -246,13 +244,6 @@ private fun SettingsTopAppBar(
 
         //right align objects after this space
         Spacer(Modifier.weight(1f))
-    }
-    if (isLoading) {
-        LinearProgressIndicator(
-            Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-        )
     }
 }
 
@@ -786,7 +777,7 @@ private fun PreviewSettings() {
                 navigateToLibrary = {},
                 navigateToSettings = {},
                 navigateToPlayer = {},
-                navigateToPlayerSong = {},
+                //navigateToPlayerSong = {},
             )
         }
     }

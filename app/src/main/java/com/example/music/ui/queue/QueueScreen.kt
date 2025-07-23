@@ -41,6 +41,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.layout.DisplayFeature
 import com.example.music.R
+import com.example.music.data.database.model.Song
+import com.example.music.domain.model.SongInfo
 import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.util.fullWidthItem
@@ -53,7 +55,7 @@ fun QueueScreen(
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
     navigateBack: () -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    navigateToPlayer: (SongInfo) -> Unit,
     viewModel: QueueViewModel = hiltViewModel()
 ) {
     //val uiState = viewModel.state.collectAsStateWithLifecycle() //with lifecycle means it contains its context too
@@ -70,7 +72,7 @@ fun QueueScreen(
             displayFeatures = displayFeatures,
             //onQueueAction = viewModel::onQueueAction,
             navigateBack = navigateBack,
-            navigateToPlayerSong = navigateToPlayerSong,
+            navigateToPlayer = navigateToPlayer,
             //viewModel = viewModel,
             //modifier = Modifier.fillMaxSize()
         )
@@ -108,7 +110,7 @@ private fun QueueScreen(
     displayFeatures: List<DisplayFeature>,
     //onQueueAction: (QueueAction) -> Unit,
     navigateBack: () -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    navigateToPlayer: (SongInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -139,7 +141,7 @@ private fun QueueScreen(
         ) { contentPadding ->
             //Column {  }
             QueueContent(
-                navigateToPlayerSong = navigateToPlayerSong,
+                navigateToPlayer = navigateToPlayer,
                 modifier = Modifier.padding(contentPadding)
             )
         }
@@ -196,7 +198,7 @@ private fun QueueContent(
     //queueList probably needs to get passed in here
     //songs: List<PlayerSong>, //or queue: Queue
     //onQueueAction: (QueueAction) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    navigateToPlayer: (SongInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(

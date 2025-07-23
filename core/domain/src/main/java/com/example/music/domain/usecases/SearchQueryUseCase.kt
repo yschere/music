@@ -15,8 +15,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * Use case which returns the count of songs, artists, albums and playlists
- * in the library to display in the navigation drawer.
+ * Use case which returns a query for songs, artists, albums and composers
+ * that match a query string.
  */
 class SearchQueryUseCase @Inject constructor(
     private val getArtistDataUseCase: GetSongArtistDataUseCase,
@@ -55,14 +55,6 @@ class SearchQueryUseCase @Inject constructor(
                     "total query Composers: ${composers.size}" }
             SearchQueryFilterResult(
                 songs = songs.map { it.asExternalModel() },
-                pSongs = songs.map { item ->
-                    val song = item.asExternalModel()
-                    PlayerSong(
-                        song,
-                        getArtistDataUseCase(song).first(),
-                        getAlbumDataUseCase(song).first()
-                    )
-                },
                 artists = artists.map { it.asExternalModel() },
                 albums = albums.map { it.asExternalModel() },
                 composers = composers.map { it.asExternalModel() }

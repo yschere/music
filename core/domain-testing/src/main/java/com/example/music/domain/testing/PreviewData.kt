@@ -36,18 +36,18 @@ import java.time.ZoneOffset
 //composer_id 11 = "LM.C"
 //composer_id 2950 = Sachiko Miyano 「宮野 幸子」
 //composer_id  = "" //Slow Rain album, After Laughter album, ghost heart has null
-//song_id 1023 = 88
-//song_id 103 = Ghost heart
-//song_id 528 = Slow Rain
-//song_id 529 = Isotope (instrumental)
-//song_id 530 = Walking Dada
-//song_id 12 = Misery Business
-//song_id 17 = Ignorance
-//song_id 21 = Hard Times
-//song_id 6535 = Musique
-//song_id 67 = Sleep Walking Orchestra
-//song_id 59 = Scar
-//song_id 171 = Dearly Beloved
+//song_id 1023 = 88 // -> 1000288299
+//song_id 103 = Ghost heart // -> 1000288293
+//song_id 528 = Slow Rain // -> 1000274878
+//song_id 529 = Isotope (instrumental) // -> 1000274879
+//song_id 530 = Walking Dada // -> 1000274880
+//song_id 12 = Misery Business // -> 1000289340
+//song_id 17 = Ignorance // -> 1000289320
+//song_id 21 = Hard Times // -> 1000685636
+//song_id 6535 = Musique // -> 1001034416
+//song_id 67 = Sleep Walking Orchestra // -> 1000931249
+//song_id 59 = Scar // -> 1000940506
+//song_id 171 = Dearly Beloved // -> 1001034275
 */
 
 val PreviewGenres = listOf(
@@ -100,6 +100,12 @@ val PreviewArtists = listOf(
         albumCount = 1,
         //genreId = 3 //JPop
     ),
+    ArtistInfo(
+        id = 15,
+        name = "Hiroyuki Nakayama 「中山 博之」",
+        songCount = 1,
+        albumCount = 0,
+    )
 )
 
 val PreviewSongs = listOf(
@@ -107,174 +113,372 @@ val PreviewSongs = listOf(
         id = 1023, //id
         title = "88", //title
         artistId = 113, //artist_id
+        artistName = "LM.C",
         albumId = 1145, //album_id
+        albumTitle = "88 / ...With Vampire - Single",
         genreId = 2, //genre_id
+        genreName = "Pop",
         composerId = 11,
+        composerName = "LM.C",
         //albumTrackNumber = 1, //track_number
         trackNumber = 1,
+        discNumber = 1,
         //duration = Duration.parse("PT4M"),//5S"),
         duration = Duration.ofSeconds(232),
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
         dateLastPlayed = OffsetDateTime.of(
             2020, 6, 2, 9,
             27, 0, 0, ZoneOffset.of("-0800")
-        )
+        ),
+        size = 1431,
+        year = 2004,
+        cdTrackNum = 1,
+        srcTrackNum = 1
     ),
     SongInfo(
         id = 103, //id
         title = "Ghost heart", //title
         artistId = 113, //artist_id
+        artistName = "LM.C",
         albumId = 71, //album_id
+        albumTitle = "Wonderful Wonderholic",
         genreId = 2, //genre_id
+        genreName = "Pop",
         composerId = null,
+        composerName = null,
         //albumTrackNumber = 4, //track_number
         trackNumber = 4,
+        discNumber = 1,
         duration = Duration.ofSeconds(217),
         //duration = Duration.parse("PT3M"),//13S"),
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
         dateLastPlayed = OffsetDateTime.of(
             2023, 12, 9, 4,
             24, 0, 0, ZoneOffset.of("-0800")
-        )
+        ),
+        size = 1654,
+        year = 2009,
+        cdTrackNum = 4,
+        srcTrackNum = 1
     ),
     SongInfo(
         id = 528, //id
         title = "Slow Rain", //title
         artistId = 9381, //artist_id
+        artistName = "ACIDMAN",
         albumId = 281, //album_id
+        albumTitle = "Slow Rain",
         genreId = 3, //genre_id
+        genreName = "JPop",
         composerId = null,
+        composerName = null,
         //albumTrackNumber = 1, //track_number
         trackNumber = 1,
+        discNumber = 1,
         duration = Duration.ofSeconds(271),
         //duration = Duration.parse("PT3M"),//42S"),
-        dateLastPlayed = null
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateLastPlayed = null,
+        year = 2007,
+        size = 6542,
+        cdTrackNum = 1,
+        srcTrackNum = 1,
     ),
     SongInfo(
         id = 529, //id
         title = "Isotope (instrumental)", //title
         artistId = 9381, //artist_id
+        artistName = "ACIDMAN",
         albumId = 281, //album_id
+        albumTitle = "Slow Rain",
         genreId = 3, //genre_id
+        genreName = "JPop",
         composerId = null,
+        composerName = null,
         //albumTrackNumber = 2, //track_number
         trackNumber = 2,
+        discNumber = 1,
         duration = Duration.ofSeconds(184),
         //duration = Duration.parse("PT3M"),//19S"),
-        dateLastPlayed = null
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateLastPlayed = null,
+        size = 1231,
+        year = 2007,
+        cdTrackNum = 2,
+        srcTrackNum = 1,
     ),
     SongInfo(
         id = 530, //id
         title = "Walking Dada", //title
         artistId = 9381, //artist_id
+        artistName = "ACIDMAN",
         albumId = 281, //album_id
+        albumTitle = "Slow Rain",
         genreId = 3, //genre_id
+        genreName = "JPop",
         composerId = null,
+        composerName = null,
         //albumTrackNumber = 3, //track_number
         trackNumber = 3,
+        discNumber = 1,
         duration = Duration.ofSeconds(143),
         //duration = Duration.parse("PT4M"),//55S"),
-        dateLastPlayed = null
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateLastPlayed = null,
+        size = 1121,
+        year = 2007,
+        cdTrackNum = 3,
+        srcTrackNum = 1,
     ),
     SongInfo(
         id = 12, //id
         title = "Misery Business", //title
         artistId = 22, //artist_id
+        artistName = "Paramore",
         albumId = 123, //album_id
+        albumTitle = "Riot!",
         genreId = 0, //genreId
+        genreName = "Alternative",
         composerId = 410,
+        composerName = "Hayley Williams/Josh Farro",
         //albumTrackNumber = 8, //track_number
         trackNumber = 8,
+        discNumber = 1,
         duration = Duration.ofSeconds(212),
         //duration = Duration.parse("PT4M"),//10S"),
-        dateLastPlayed = null
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateLastPlayed = null,
+        size = 931,
+        year = 2007,
+        cdTrackNum = 8,
+        srcTrackNum = 1,
     ),
     SongInfo(
         id = 17, //id
         title = "Ignorance", //title
         artistId = 22, //artist_id
+        artistName = "Paramore",
         albumId = 124, //album_id
+        albumTitle = "Brand New Eyes",
         genreId = 0, //genre_id
         composerId = 410,
+        composerName = "Hayley Williams/Josh Farro",
         //albumTrackNumber = 2, //track_number
         trackNumber = 2,
+        discNumber = 1,
         duration = Duration.ofSeconds(218),
         //duration = Duration.parse("PT4M"),//26S"),
-        dateLastPlayed = null
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateLastPlayed = null,
+        size = 352,
+        year = 2009,
+        cdTrackNum = 2,
+        srcTrackNum = 1,
     ),
     SongInfo(
         id = 21, //id
         title = "Hard Times", //title
         artistId = 22, //artist_id
+        artistName = "Paramore",
         albumId = 125, //album_id
+        albumTitle = "After Laughter",
         genreId = 0, //genre_id
         composerId = 410,
+        composerName = "Hayley Williams/Josh Farro",
         //albumTrackNumber = 11, //track_number
         trackNumber = 11,
+        discNumber = 1,
         duration = Duration.ofSeconds(183),
         //duration = Duration.parse("PT2M"),//51S"),
-        dateLastPlayed = null
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateLastPlayed = null,
+        size = 29889,
+        year = 2012,
+        cdTrackNum = 11,
+        srcTrackNum = 1,
     ),
     SongInfo(
         id = 6535, //id
         title = "Musique pour la Tristesse de Xion", //title
-        artistId = 6, //artist_id
+        artistId = 15, //artist_id
+        artistName = "Hiroyuki Nakayama 「中山 博之」",
         albumId = 307, //album_id
+        albumTitle = "Kingdom Hearts Piano Collections - Field & Battle",
         genreId = 1, //genre_id
         composerId = 2950,
+        composerName = "Sachiko Miyano 「宮野 幸子」",
         //albumTrackNumber = 9, //track_number
         trackNumber = 9,
+        discNumber = 1,
         duration = Duration.ofSeconds(336),
         //duration = Duration.parse("PT6M"),//22S"),
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
         dateLastPlayed = OffsetDateTime.of(
             2025, 1, 3, 16,
             24, 45, 0, ZoneOffset.of("-0800")
-        )
+        ),
+        size = 292,
+        year = 2009,
+        cdTrackNum = 9,
+        srcTrackNum = 1,
     ),
     SongInfo(
         id = 67, //id
         title = "Sleep Walking Orchestra", //title
         artistId = 1, //artist_id
+        artistName = "BUMP OF CHICKEN",
         albumId = 216, //album_id
+        albumTitle = "Sleep Walking Orchestra - Single",
         genreId = 3, //genre_id
         composerId = 119,
+        composerName = "Motoo Fujiwara 「藤原 基央」",
         //albumTrackNumber = 1, //track_number
         trackNumber = 1,
+        discNumber = 1,
         duration = Duration.ofSeconds(236),
         //duration = Duration.parse("PT3M"),//42S"),
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
         dateLastPlayed = OffsetDateTime.of(
             2025, 2, 1, 21,
             18, 30, 283, ZoneOffset.of("-0800")
-        )
+        ),
+        size = 1991,
+        year = 2024,
+        cdTrackNum = 1,
+        srcTrackNum = 1,
     ),
     SongInfo(
         id = 59, //id
         title = "Scar", //title
         artistId = 77, //artist_id
+        artistName = "Tatsuya Kitani 「キタニタツヤ」",
         albumId = 964, //album_id
+        albumTitle = "Scar - Single",
         genreId = 3, //genre_id
         composerId = 82,
+        composerName = "Tatsuya Kitani 「キタニタツヤ」",
         //albumTrackNumber = 1, //track_number
         trackNumber = 1,
+        discNumber = 1,
         duration = Duration.ofSeconds(259),
         //duration = Duration.parse("PT3M"),//42S"),
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
         dateLastPlayed = OffsetDateTime.of(
             2025, 1, 27, 11,
             27, 45, 0, ZoneOffset.of("-0800")
-        )
+        ),
+        size = 5762,
+        year = 2024,
+        cdTrackNum = 1,
+        srcTrackNum = 1,
     ),
     SongInfo(
         id = 171, //id
         title = "Dearly Beloved", //title
         artistId = 6, //artist_id
+        artistName = "Yoko Shimomura",
         albumId = 8, //album_id
+        albumTitle = "Kingdom Hearts Original Soundtrack Complete (Disc 1 ~ Kingdom Hearts)",
         genreId = 1, //genre_id
         composerId = 291,
+        composerName = "Yoko Shimomura",
         //albumTrackNumber = 1, //track_number
         trackNumber = 1,
+        discNumber = 1,
         duration = Duration.ofSeconds(131),
+        dateAdded = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        dateModified = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
         dateLastPlayed = OffsetDateTime.of(
             2023, 8, 10, 21,
             12, 41, 652, ZoneOffset.of("-0800")
-        )
+        ),
+        size = 1431,
+        year = 2002,
+        cdTrackNum = 1,
+        srcTrackNum = 1,
     ),
 )
 
@@ -283,14 +487,30 @@ val PreviewAlbums = listOf(
         id = 1145,
         title = "88 / ...With Vampire - Single",
         albumArtistId = 113,
+        albumArtistName = "LM.C",
+        year = 2007,
         //genreId = 2,
         artwork = "",
+        dateLastPlayed = OffsetDateTime.of(
+            2020, 6, 2, 9,
+            27, 0, 0, ZoneOffset.of("-0800")
+        ),
+        trackTotal = 1,
+        discTotal = 1,
         songCount = 1,
     ),
     AlbumInfo(
         id = 71,
         title = "Wonderful Wonderholic",
         albumArtistId = 113,
+        albumArtistName = "LM.C",
+        year = 2009,
+        dateLastPlayed = OffsetDateTime.of(
+            2023, 12, 9, 4,
+            24, 0, 0, ZoneOffset.of("-0800")
+        ),
+        trackTotal = 5,
+        discTotal = 1,
         //genreId = 2,
         artwork = "",
         songCount = 1,
@@ -299,6 +519,11 @@ val PreviewAlbums = listOf(
         id = 281,
         title = "Slow Rain",
         albumArtistId = 9381,
+        albumArtistName = "ACIDMAN",
+        year = 2008,
+        dateLastPlayed = null,
+        trackTotal = 3,
+        discTotal = 1,
         //genreId = 3,
         artwork = "",
         songCount = 3,
@@ -307,6 +532,11 @@ val PreviewAlbums = listOf(
         id = 123,
         title = "Riot!",
         albumArtistId = 22,
+        albumArtistName = "Paramore",
+        year = 2007,
+        dateLastPlayed = null,
+        trackTotal = 11,
+        discTotal = 1,
         //genreId = 0,
         artwork = "",
         songCount = 1,
@@ -315,6 +545,11 @@ val PreviewAlbums = listOf(
         id = 124,
         title = "Brand New Eyes",
         albumArtistId = 22,
+        albumArtistName = "Paramore",
+        year = 2009,
+        dateLastPlayed = null,
+        trackTotal = 10,
+        discTotal = 1,
         //genreId = 0,
         artwork = "",
         songCount = 1,
@@ -323,6 +558,11 @@ val PreviewAlbums = listOf(
         id = 125,
         title = "After Laughter",
         albumArtistId = 22,
+        albumArtistName = "Paramore",
+        year = 2012,
+        dateLastPlayed = null,
+        trackTotal = 14,
+        discTotal = 1,
         //genreId = 0,
         artwork = "",
         songCount = 1,
@@ -331,6 +571,14 @@ val PreviewAlbums = listOf(
         id = 307,
         title = "Kingdom Hearts Piano Collections - Field & Battle",
         albumArtistId = 6,
+        albumArtistName = "Yoko Shimomura",
+        year = 2009,
+        dateLastPlayed = OffsetDateTime.of(
+            2025, 1, 3, 16,
+            24, 45, 0, ZoneOffset.of("-0800")
+        ),
+        trackTotal = 9,
+        discTotal = 1,
         //genreId = 1,
         artwork = "",
         songCount = 1,
@@ -339,6 +587,14 @@ val PreviewAlbums = listOf(
         id = 216,
         title = "Sleep Walking Orchestra - Single",
         albumArtistId = 1,
+        albumArtistName = "BUMP OF CHICKEN",
+        dateLastPlayed = OffsetDateTime.of(
+            2025, 2, 1, 21,
+            18, 30, 283, ZoneOffset.of("-0800")
+        ),
+        year = 2024,
+        trackTotal = 1,
+        discTotal = 1,
         //genreId = 0,
         artwork = "",
         songCount = 1,
@@ -347,6 +603,14 @@ val PreviewAlbums = listOf(
         id = 964,
         title = "Scar - Single",
         albumArtistId = 77,
+        albumArtistName = "Tatsuya Kitani 「キタニタツヤ」",
+        year = 2024,
+        dateLastPlayed = OffsetDateTime.of(
+            2025, 1, 27, 11,
+            27, 45, 0, ZoneOffset.of("-0800")
+        ),
+        trackTotal = 1,
+        discTotal = 1,
         //genreId = 0,
         artwork = "",
         songCount = 1,
@@ -355,6 +619,14 @@ val PreviewAlbums = listOf(
         id = 8,
         title = "Kingdom Hearts Original Soundtrack Complete (Disc 1 ~ Kingdom Hearts)",
         albumArtistId = 6,
+        albumArtistName = "Yoko Shimomura",
+        year = 2002,
+        dateLastPlayed = OffsetDateTime.of(
+            2023, 8, 10, 21,
+            12, 41, 652, ZoneOffset.of("-0800")
+        ),
+        trackTotal = 1,
+        discTotal = 2,
         //genreId = 0,
         artwork = "",
         songCount = 1,
@@ -365,7 +637,7 @@ val PreviewComposers = listOf(
     ComposerInfo(
         id = 291,
         name = "Yoko Shimomura",
-        songCount = 0,
+        songCount = 1,
     ),
     ComposerInfo(
         id = 82,
@@ -487,15 +759,17 @@ fun getPlaylistPlayerSongs(playlistId: Long): List<PlayerSong> = PreviewSongPlay
     }
     .map { song ->
         PlayerSong(
-            song.id,
-            getSongData(song.songId).title,
-            getSongData(song.songId).artistId!!,
-            getArtistData(getSongData(song.songId).artistId!!).name,
-            getSongData(song.songId).albumId!!,
-            getAlbumData(getSongData(song.songId).albumId!!).title,
-            getSongData(song.songId).duration,
-            getAlbumData(getSongData(song.songId).albumId!!).artwork,
-            song.playlistTrackNumber
+            id = song.id,
+            title = getSongData(song.songId).title,
+            artistId = getSongData(song.songId).artistId,
+            artistName = getArtistData(getSongData(song.songId).artistId).name,
+            albumId = getSongData(song.songId).albumId,
+            albumTitle = getAlbumData(getSongData(song.songId).albumId).title,
+            duration = getSongData(song.songId).duration,
+            artwork = getAlbumData(getSongData(song.songId).albumId).artwork,
+            artworkUri = null,
+            art = null,
+            trackNumber = song.playlistTrackNumber
         )
     }
 
@@ -516,8 +790,8 @@ fun getPlaylistPlayerSongs(playlist: PlaylistInfo): List<PlayerSong> {
     return songs.map{
         PlayerSong(
             it,
-            getArtistData(it.artistId!!),
-            getAlbumData(it.albumId!!)
+            getArtistData(it.artistId),
+            getAlbumData(it.albumId)
         )
     }
 }
@@ -535,6 +809,6 @@ fun getSongsInGenre(genreId: Long): List<SongInfo> = PreviewSongs.filter{ entry 
 fun songToPlayerSong(song: SongInfo): PlayerSong =
     PlayerSong(
         song,
-        getArtistData(song.artistId!!),
-        getAlbumData(song.albumId!!)
+        getArtistData(song.artistId),
+        getAlbumData(song.albumId)
     )

@@ -30,23 +30,17 @@ import androidx.compose.ui.res.stringResource
 import com.example.music.R
 
 /**
- * Want this to be the encapsulation of the possible options / actions within app
- * For Sorting Options Modals?
- * For Individual selection More Options modals?
- *
- * Like the data class Action Item in BottomModals
- */
-
-/**
  * Support class for More Options Modals to represent an action item.
  */
 data class ActionItem(
     val name: String = "",
     val icon: ImageVector,
-    val contentDescription: Int = 0, //val contentDescription: String = "",
-    //val action: () -> Unit, //should I really have this here? because it doesn't make sense to have it here
+    val contentDescription: Int = 0, // resource string name
 )
 
+/**
+ * Object that contains all the possible actions for the MoreOptions bottom modals.
+ */
 object Actions {
     val PlayItem: ActionItem = ActionItem("Play", Icons.Filled.PlayArrow, R.string.icon_play) //{ /*navigateToPlayerSong(song)*/ }
     val PlayItemNext: ActionItem = ActionItem("Play next", Icons.AutoMirrored.Filled.QueueMusic, R.string.icon_play_next)
@@ -68,6 +62,7 @@ object Actions {
     val EditGenreTags: ActionItem = ActionItem("Edit Genre Tags", Icons.Filled.Edit, R.string.icon_edit)
     val EditPlaylistTags: ActionItem = ActionItem("Edit Playlist Tags", Icons.Filled.Edit, R.string.icon_edit)
     val EditSongTags: ActionItem = ActionItem("Edit Song Tags", Icons.Filled.Edit, R.string.icon_edit)
+
     val ViewSongDetails: ActionItem = ActionItem("View Song Details", Icons.Filled.Info, R.string.icon_song_details)
     val EditPlaylistOrder: ActionItem = ActionItem("Edit Playlist Song Order", Icons.Filled.Reorder, R.string.icon_reorder)
     val SaveQueueToPlaylist: ActionItem = ActionItem("Save Queue to a Playlist", Icons.Filled.Save, R.string.icon_queue_save)
@@ -76,45 +71,7 @@ object Actions {
     val ExportPlaylist: ActionItem = ActionItem("Export Playlist", Icons.Filled.Download, R.string.icon_export)
     val DeletePlaylist: ActionItem = ActionItem("Delete Playlist", Icons.Filled.PlaylistRemove, R.string.icon_delete_playlist)
 
-    val RemoveFromPlaylist: ActionItem = ActionItem("Remove Song From Playlist", Icons.Filled.PlaylistRemove, R.string.icon_remove_item_playlist) // for song in playlist
-    val RemoveFromQueue: ActionItem = ActionItem("Remove Song from Queue", Icons.Filled.RemoveFromQueue, R.string.icon_remove_item_queue)
-    val DeleteFromLibrary: ActionItem = ActionItem("Delete From Library", Icons.Filled.Delete, R.string.icon_delete) // for song in library
+    val RemoveFromPlaylist: ActionItem = ActionItem("Remove Song From Playlist", Icons.Filled.PlaylistRemove, R.string.icon_remove_song_playlist) // for song in playlist
+    val RemoveFromQueue: ActionItem = ActionItem("Remove Song from Queue", Icons.Filled.RemoveFromQueue, R.string.icon_remove_song_queue)
+    val DeleteFromLibrary: ActionItem = ActionItem("Delete From Library", Icons.Filled.Delete, R.string.icon_delete_song) // for song in library
 }
-
-/**
- * List of actions for song more options modal, section 1
- */
-//val songActions = listOf(
-    //ActionItem("Play", Icons.Filled.PlayArrow, R.string.icon_play, { /*navigateToPlayerSong(song)*/ } ),
-    //ActionItem("Play next", Icons.AutoMirrored.Filled.QueueMusic, stringResource(R.string.icon_play_next), {  } ),
-    //ActionItem("Add to Playlist", Icons.AutoMirrored.Filled.PlaylistAdd, stringResource(R.string.icon_add_to_playlist), {  } ),
-    //ActionItem("Add to Queue", Icons.Filled.Queue, stringResource(R.string.icon_add_to_queue), {  } ),
-//)
-
-/**
- * List of actions for song more options modal, section 2
- */
-val navActions = mutableListOf<ActionItem>()
-
-
-/**
- * List of actions for song more options modal, section 3
- */
-//edit song tags
-//ActionItem("Edit Song Tags", Icons.Filled.Edit, stringResource(R.string.cd_play), { /* TODO */ } )
-
-
-/**
- * Actions that would be for Playlist context?
- */
-
-/**
- * Actions that would be for Queue list context?
- * save queue
- * clear queue
- */
-
-/*
-    -if in playlist context: remove from playlist
-    -if in songs, artists, albums, composers, genres context: delete from library
- */

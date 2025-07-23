@@ -54,7 +54,7 @@ dependencies {
     // Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.media3.common)
-    implementation(libs.androidx.activity)
+    implementation(libs.androidx.activity.compose)
     androidTestImplementation(platform(libs.androidx.compose.bom))
 
     // Dependency injection

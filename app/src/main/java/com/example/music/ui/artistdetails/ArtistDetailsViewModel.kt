@@ -9,6 +9,7 @@ import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.player.model.PlayerSong
+import com.example.music.domain.player.model.toPlayerSong
 import com.example.music.domain.usecases.GetArtistDetailsV2
 import com.example.music.ui.Screen
 import com.example.music.util.logger
@@ -20,13 +21,19 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
 import javax.inject.Inject
 
 private const val TAG = "Artist Details View Model"
 
-/** ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
+/** Changelog:
+ * ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
  * As of 2/10/2025, this version is in remote branch and working on
  * PlaylistDetailsScreen, PlaylistDetailsViewModel
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
  */
 
 data class ArtistUiState (
@@ -35,12 +42,13 @@ data class ArtistUiState (
     val artist: ArtistInfo = ArtistInfo(),
     val albums: /*Persistent*/List<AlbumInfo> = emptyList(),
     val songs: /*Persistent*/List<SongInfo> = emptyList(),
-    val pSongs: /*Persistent*/List<PlayerSong> = emptyList(),
+    val selectAlbum: AlbumInfo = AlbumInfo(),
+    val selectSong: SongInfo = SongInfo()
 )
 
 @HiltViewModel
 class ArtistDetailsViewModel @Inject constructor(
-    getArtistDetailsUseCase: GetArtistDetailsUseCase,
+    //getArtistDetailsUseCase: GetArtistDetailsUseCase,
     getArtistDetailsV2: GetArtistDetailsV2,
     private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,
@@ -52,6 +60,9 @@ class ArtistDetailsViewModel @Inject constructor(
     //private val getArtistDetailsData = getArtistDetailsUseCase(artistId)
     private val getArtistDetailsData = getArtistDetailsV2(artistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    private val selectedSong = MutableStateFlow<SongInfo?>(null)
+    private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
 
     private val _state = MutableStateFlow(ArtistUiState())
 
@@ -67,14 +78,18 @@ class ArtistDetailsViewModel @Inject constructor(
             combine(
                 refreshing,
                 getArtistDetailsData,
+                selectedSong,
+                selectedAlbum,
             ) {
                 refreshing,
-                artistDetailsFilterResult, ->
+                artistDetailsFilterResult,
+                selectSong,
+                selectAlbum ->
                 logger.info { "$TAG - ArtistUiState call" }
                 logger.info { "$TAG - artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}" }
                 logger.info { "$TAG - artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}" }
                 logger.info { "$TAG - artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}" }
-                logger.info { "$TAG - artistDetailsFilterResult pSongs: ${artistDetailsFilterResult.pSongs.size}" }
+                //logger.info { "$TAG - artistDetailsFilterResult pSongs: ${artistDetailsFilterResult.pSongs.size}" }
                 logger.info { "$TAG - isReady?: ${!refreshing}" }
 
                 ArtistUiState(
@@ -82,7 +97,8 @@ class ArtistDetailsViewModel @Inject constructor(
                     artist = artistDetailsFilterResult.artist,
                     albums = artistDetailsFilterResult.albums,
                     songs = artistDetailsFilterResult.songs,
-                    pSongs = artistDetailsFilterResult.pSongs
+                    selectSong = selectSong ?: SongInfo(),
+                    selectAlbum = selectAlbum ?: AlbumInfo(),
                 )
             }.catch { throwable ->
                 emit(
@@ -102,13 +118,46 @@ class ArtistDetailsViewModel @Inject constructor(
     fun refresh(force: Boolean = true) {
         viewModelScope.launch {
             runCatching {
+                logger.info { "$TAG - refresh runCatching" }
                 refreshing.value = true
-            }
-            // TODO: look at result of runCatching and show any errors
+            }.onFailure {
+                logger.info { "$it ::: runCatching, not sure what is failing here tho" }
+            } // TODO: look at result of runCatching and show any errors
 
+            logger.info { "$TAG - refresh to be false -> sets screen to ready state" }
             refreshing.value = false
         }
     }
+
+    fun onArtistAction(action: ArtistAction) {
+        logger.info { "$TAG - onArtistAction - $action" }
+        when (action) {
+            is ArtistAction.AlbumMoreOptionClicked -> onAlbumMoreOptionClicked(action.album)
+            is ArtistAction.QueueSong -> onQueueSong(action.song)
+            is ArtistAction.SongMoreOptionClicked -> onSongMoreOptionClicked(action.song)
+        }
+    }
+
+    private fun onAlbumMoreOptionClicked(album: AlbumInfo) {
+        logger.info { "$TAG - onAlbumMoreOptionClicked - ${album.title}" }
+        selectedAlbum.value = album
+    }
+
+    private fun onQueueSong(song: SongInfo) {
+        logger.info { "$TAG - onQueueSong - ${song.title}" }
+        songPlayer.addToQueue(song.toPlayerSong())
+    }
+
+    private fun onSongMoreOptionClicked(song: SongInfo) {
+        logger.info { "$TAG - onSongMoreOptionClick - ${song.title}" }
+        selectedSong.value = song
+    }
+}
+
+sealed interface ArtistAction {
+    data class AlbumMoreOptionClicked(val album: AlbumInfo) : ArtistAction
+    data class QueueSong(val song: SongInfo) : ArtistAction
+    data class SongMoreOptionClicked(val song: SongInfo) : ArtistAction
 }
 
 /**

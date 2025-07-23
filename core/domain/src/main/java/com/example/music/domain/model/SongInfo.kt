@@ -23,25 +23,27 @@ import java.time.OffsetDateTime
 data class SongInfo(
     val id: Long = 0,
     val title: String = "",
-    val artistId: Long? = 0,
-    val artistName: String? = null,
-    val albumId: Long? = 0,
-    val albumTitle: String? = null,
+    //val artistId: Long? = 0,
+    val artistId: Long = 0,
+    val artistName: String = "",
+    //val albumId: Long? = 0,
+    val albumId: Long = 0,
+    val albumTitle: String = "",
     val genreId: Long? = 0,
     val genreName: String? = null,
     val composerId: Long? = null,
     val composerName: String? = null,
     val trackNumber: Int? = null,
-    val discNumber: Int = 0,
+    val discNumber: Int? = null,
     val duration: Duration = Duration.ZERO,
     val dateAdded: OffsetDateTime? = null,
     val dateModified: OffsetDateTime? = null,
     val dateLastPlayed: OffsetDateTime? = null,
     val size: Long = 0,
     val year: Int? = null,
-    val cdTrackNum: Int = 0,
-    val srcTrackNum: Int = 0,
-    //artwork, dateAdded, fileSize
+    val cdTrackNum: Int? = null,
+    val srcTrackNum: Int? = null,
+    //artwork, fileSize
 )
 
 /**
@@ -51,8 +53,8 @@ fun Song.asExternalModel(): SongInfo =
     SongInfo(
         id = id,
         title = title,
-        artistId = artistId,
-        albumId = albumId,
+        artistId = artistId ?: 0,
+        albumId = albumId ?: 0,
         genreId = genreId,
         composerId = composerId,
         trackNumber = albumTrackNumber,
@@ -69,6 +71,10 @@ fun PlayerSong.asExternalModel(): SongInfo =
     SongInfo(
         id = id,
         title = title,
+        artistId = artistId,
+        artistName = artistName,
+        albumId = albumId,
+        albumTitle = albumTitle,
         trackNumber = trackNumber,
         duration = duration,
     )
@@ -83,7 +89,9 @@ fun Audio.asExternalModel(): SongInfo =
         albumTitle = this.album,
         genreId = this.genreId,
         duration = Duration.ofMillis(this.duration.toLong()),
-        trackNumber = this.trackNumber,
+        //trackNumber = this.trackNumber, // i think this is the combined CD and Track numbers as xyyy
+        trackNumber = this.cdTrackNumber,
         dateLastPlayed = OffsetDateTime.now(),
         //dateLastPlayed = this.dateModified,
+        year = this.year,
     )

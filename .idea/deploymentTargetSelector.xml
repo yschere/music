@@ -16,9 +16,6 @@
       <SelectionState runConfigName="glancewidget">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="PreviewHome">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="PreviewHome - system-dark-view">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
@@ -29,6 +26,9 @@
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="PlayerScreenPreview - system-dark-view">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="AlbumDetailsScreenPreview - system-dark-view">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

@@ -55,6 +55,7 @@ fun FeaturedAlbumsCarousel(
     pagerState: PagerState,
     items: PersistentList<AlbumInfo>,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    onMoreOptionsClick: (Any) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -78,6 +79,7 @@ fun FeaturedAlbumsCarousel(
                     itemImage = 1,//album.artwork!!,
                     itemTitle = album.title,
                     itemSize = album.songCount,
+                    onMoreOptionsClick = { onMoreOptionsClick(album) },
                     // TODO: onClick = AlbumMoreOptionsBottomModal(album),
                     //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
                     modifier = Modifier
@@ -128,6 +130,8 @@ fun FeaturedPlaylistsCarousel(
                     itemImage = 1,//album.artwork!!,
                     itemTitle = playlist.name,
                     itemSize = playlist.songCount,
+                    onMoreOptionsClick = {},
+                    //onMoreOptionsClick = { onMoreOptionsClick(playlist) },
                     // TODO: onClick = PlaylistMoreOptionsBottomModal(playlist),
                     //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
                     modifier = Modifier
@@ -142,10 +146,11 @@ fun FeaturedPlaylistsCarousel(
 }
 
 @Composable
-private fun FeaturedCarouselItem(
+fun FeaturedCarouselItem(
     itemTitle: String = "",
     itemImage: Int = 0,
     itemSize: Int = 0,
+    onMoreOptionsClick: (Any) -> Unit,
     //onClick: () -> Unit, //pass in either Album or Playlist MoreOptionsModal action here
     modifier: Modifier = Modifier,
 ) {
@@ -197,7 +202,7 @@ private fun FeaturedCarouselItem(
 
             // more options btn
             IconButton(
-                onClick = {  }, // TODO: MoreOptionsBottomModal
+                onClick = { onMoreOptionsClick }, // TODO: MoreOptionsBottomModal
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
@@ -216,6 +221,7 @@ private fun PreviewCard() {
         FeaturedCarouselItem(
             itemImage = PreviewAlbums[0].songCount,//album.artwork!!,
             itemTitle = PreviewAlbums[0].title,
+            onMoreOptionsClick = {},
             //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
             modifier = Modifier
                 .size(FEATURED_ITEM_IMAGE_SIZE_DP, FEATURED_ITEM_IMAGE_SIZE_DP + 48.dp)

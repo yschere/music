@@ -23,6 +23,10 @@ import javax.inject.Inject
 /** ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
  * As of 2/10/2025, this version is in remote branch and working on
  * PlaylistDetailsScreen, PlaylistDetailsViewModel
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
  */
 
 data class ComposerUiState (
@@ -30,7 +34,7 @@ data class ComposerUiState (
     val errorMessage: String? = null,
     val composer: ComposerInfo = ComposerInfo(),
     val songs: List<SongInfo> = emptyList(),
-    val pSongs: List<PlayerSong> = emptyList(),
+    //val pSongs: List<PlayerSong> = emptyList(),
 )
 
 @HiltViewModel
@@ -66,14 +70,14 @@ class ComposerDetailsViewModel @Inject constructor(
                 logger.info { "Composer Details View Model - ComposerUiState call" }
                 logger.info { "Composer Details View Model - composerDetailsFilterResult ID: ${composerDetailsFilterResult.composer.id}" }
                 logger.info { "Composer Details View Model - composerDetailsFilterResult songs: ${composerDetailsFilterResult.songs.size}" }
-                logger.info { "Composer Details View Model - composerDetailsFilterResult pSongs: ${composerDetailsFilterResult.pSongs.size}" }
+                //logger.info { "Composer Details View Model - composerDetailsFilterResult pSongs: ${composerDetailsFilterResult.pSongs.size}" }
                 logger.info { "Composer Details View Model - isReady?: ${!refreshing}" }
 
                 ComposerUiState(
                     isReady = !refreshing,
                     composer = composerDetailsFilterResult.composer,
                     songs = composerDetailsFilterResult.songs,
-                    pSongs = composerDetailsFilterResult.pSongs
+                    //pSongs = composerDetailsFilterResult.pSongs
                 )
             }.catch { throwable ->
                 emit(

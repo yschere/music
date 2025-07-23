@@ -3,6 +3,7 @@ package com.example.music.ui
 import android.Manifest
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -23,6 +24,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
@@ -49,20 +51,20 @@ private const val APP_PREFERENCES_NAME = "app_preferences"
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    /* //mediasessionservice best to instantiate here
+    //mediasessionservice best to instantiate here
     //@Inject
     //lateinit var mediaSessionService: MediaSessionService
     //@Inject
     //var mediaSession: MediaSession? = null
+//    @Inject
+//    lateinit var mediaPlayer: Player
     //@Inject
-    //lateinit var mediaPlayer: ExoPlayer
-    //@Inject
-    //lateinit var playerView: PlayerView*/
+    //lateinit var playerView: PlayerView
 
     @Inject
     lateinit var musicDatabase: MusicDatabase
 
-    lateinit var controllerFuture: ListenableFuture<MediaController>
+    //lateinit var controllerFuture: ListenableFuture<MediaController>
 
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,15 +98,15 @@ class MainActivity : ComponentActivity() {
         // need the code to start the file metadata read to be here?
         // something to be done before the ui begins to attempt to render anything
 
-        val sessionToken = SessionToken(this, ComponentName(this, MediaService::class.java))
-        controllerFuture =
-            MediaController.Builder(this, sessionToken).buildAsync()
-        controllerFuture.addListener({
-            logger.info { "SessionToken MediaController - ${controllerFuture.get()}" }
-            // MediaController is available here with controllerFuture.get()
-            // from What's next for AndroidX Media and ExoPlayer video:
-            //playerView.player = controllerFuture.get()
-        }, MoreExecutors.directExecutor())
+//        val sessionToken = SessionToken(this, ComponentName(this, MediaService::class.java))
+//        controllerFuture =
+//            MediaController.Builder(this, sessionToken).buildAsync()
+//        controllerFuture.addListener({
+//            logger.info { "SessionToken MediaController - ${controllerFuture.get()}" }
+//            // MediaController is available here with controllerFuture.get()
+//            // from What's next for AndroidX Media and ExoPlayer video:
+//            //playerView.player = controllerFuture.get()
+//        }, MoreExecutors.directExecutor())
         logger.info { "Main Activity - onCreate after sessionToken" }
 
         enableEdgeToEdge(
@@ -125,19 +127,12 @@ class MainActivity : ComponentActivity() {
             // can get the MusicApp going for real by calling MusicApp to get the main context and navigator going
             val displayFeatures = calculateDisplayFeatures(this)
 
-
             /*mediaPlayer = ExoPlayer.Builder(this).build()
             mediaSession = MediaSession.Builder(this, mediaPlayer).build()
-            playerView = PlayerView(this)
-            playerView.setPlayer(mediaPlayer)
             val mediaItem = MediaItem.fromUri("res/raw/scar.mp3")
             mediaPlayer.setMediaItem(mediaItem)
             mediaPlayer.prepare()
             mediaPlayer.playWhenReady*/
-
-            //media controller build here?
-            //need session token of type session service?
-
 
             MusicTheme {
                 MusicApp(
@@ -147,9 +142,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @OptIn(UnstableApi::class)
     override fun onStop() {
         super.onStop()
-        MediaController.releaseFuture(controllerFuture)
+//        MediaController.releaseFuture(controllerFuture)
         android.util.Log.i("onStop", "STOPPED")
+        stopService(Intent(this, MediaService::class.java))
     }
 }

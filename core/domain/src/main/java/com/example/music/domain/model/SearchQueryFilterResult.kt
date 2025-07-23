@@ -8,7 +8,7 @@ import com.example.music.domain.player.model.PlayerSong
  */
 data class SearchQueryFilterResult (
     val songs: List<SongInfo> = emptyList(),
-    val pSongs: List<PlayerSong> = emptyList(),
+    //val pSongs: List<PlayerSong> = emptyList(),
     val artists: List<ArtistInfo> = emptyList(),
     val albums: List<AlbumInfo> = emptyList(),
     val composers: List<ComposerInfo> = emptyList()

@@ -10,5 +10,5 @@ data class ArtistDetailsFilterResult(
     val artist: ArtistInfo = ArtistInfo(),
     val albums: List<AlbumInfo> = emptyList(),
     val songs: List<SongInfo> = emptyList(),
-    val pSongs: List<PlayerSong> = emptyList(),
+    //val pSongs: List<PlayerSong> = emptyList(),
 )

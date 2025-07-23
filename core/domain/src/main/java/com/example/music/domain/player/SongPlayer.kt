@@ -46,7 +46,13 @@ interface SongPlayer { //equivalent of music playe's MusicController
     //val mediaPlayer: MediaPlayer?
         //get() = null
 
-    fun addToQueue(song: PlayerSong) //might be equivalent of addMediaItems(songs: List<Song>)
+    fun addToQueue(playerSong: PlayerSong) //might be equivalent of addMediaItems(songs: List<Song>)
+
+    fun addToQueue(playerSongs: List<PlayerSong>)
+
+    fun addToQueueNext(playerSong: PlayerSong)
+
+    fun addToQueueNext(playerSongs: List<PlayerSong>)
 
     /**
     * Flushes the queue
@@ -122,4 +128,6 @@ interface SongPlayer { //equivalent of music playe's MusicController
      * Decreases the speed of Player playback by a given time specified in [Duration].
      */
     fun decreaseSpeed(speed: Duration = Duration.ofMillis(500))
+
+    fun shuffle(playerSongs: List<PlayerSong>)
 }

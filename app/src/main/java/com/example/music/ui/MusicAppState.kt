@@ -34,6 +34,10 @@ sealed class Screen(val route: String) {
         fun createRoute() = "queue"
     }
 
+    object Search : Screen("search") {
+        fun createRoute() = "search"
+    }
+
     object Settings : Screen("settings") {
         fun createRoute() = "settings"
     }
@@ -172,6 +176,13 @@ class MusicAppState(
         if (from.lifecycleIsResumed()) {
             logger.info { "\n\n\n\n\n***************** SWITCHING TO QUEUE VIEW *****************" }
             navController.navigate(Screen.Queue.createRoute())
+        }
+    }
+
+    fun navigateToSearch(from: NavBackStackEntry) {
+        if (from.lifecycleIsResumed()) {
+            logger.info { "\n\n\n\n\n***************** SWITCHING TO SEARCH VIEW *****************" }
+            navController.navigate(Screen.Search.createRoute())
         }
     }
 

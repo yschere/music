@@ -1,5 +1,6 @@
 package com.example.music.domain.player
 
+import androidx.media3.session.MediaController
 import com.example.music.data.repository.RepeatType
 import com.example.music.domain.player.model.PlayerSong
 import com.example.music.data.util.combine
@@ -17,11 +18,18 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.Duration
 import javax.inject.Inject
+import kotlin.random.Random
 import kotlin.reflect.KProperty
+
+private const val TAG = "SongPlayerImpl"
+private const val RandSeed = 1 // seed for shuffle randomizer
 
 //implementation for SongPlayer, like AlbumRepo to AlbumRepoImpl
 //intended to be the 'viewmodel' for the player screen's playing object
 //@UnstableApi
+
+// need a way to connect this impl to MediaService in app module ... or need media service to invoke this?
+
 class SongPlayerImpl @Inject constructor(
     mainDispatcher: CoroutineDispatcher
 ) : SongPlayer {
@@ -76,9 +84,35 @@ class SongPlayerImpl @Inject constructor(
 
     override var currentSong: PlayerSong? by _currentSong
 
-    override fun addToQueue(song: PlayerSong) {
+    override fun addToQueue(playerSong: PlayerSong) {
         queue.update {
-            it + song
+            it + playerSong
+        }
+    }
+
+    override fun addToQueue(playerSongs: List<PlayerSong>) {
+        queue.update {
+            it + playerSongs
+        }
+    }
+
+    // this is for "PlayNext" to both place the song after the current song
+    // regardless if the queue is shuffled or not, it will be the next song
+    // so when the queue is unshuffled, it will be set after the placement of
+    // where the current song is. which means this implem would need to know
+    // the placement of the current song to be able to iterate on
+    override fun addToQueueNext(playerSong: PlayerSong) {
+        queue.update {
+            listOf(it[0]) + playerSong + it.subList(1,it.size-1)
+        }
+    }
+
+    // same dead here, it's "PlayNext" but on a list of songs
+    // but if shuffled is on, does it shuffle the incoming list? or place them
+    // next in its original order. survey says yes, place the new songs in order
+    override fun addToQueueNext(playerSongs: List<PlayerSong>) {
+        queue.update {
+            listOf(it[0]) + playerSongs + it.subList(1,it.size-1)
         }
     }
 
@@ -113,10 +147,18 @@ class SongPlayerImpl @Inject constructor(
         }
     }
 
+    // interesting implications part 2:
+    // if this is playing from an item that is already in context of the queue, it just plays that item
+    // ie songInfo.onClick
     override fun play(playerSong: PlayerSong) {
         play(listOf(playerSong))
     }
 
+    // this also has interesting implications after learnings from shuffle
+    // and playNext. for a list of songs, if it invoked with Play or PlayNext,
+    // it will remove the original context that began the queue, but keep the items
+    // that were in queue from "AddToQueue". so if the queue started from "Play" or "Shuffle"
+    // it will get replaced with the new item(s) being played or shuffled
     override fun play(playerSongs: List<PlayerSong>) {
         if (isPlaying.value) {
             pause()
@@ -188,14 +230,26 @@ class SongPlayerImpl @Inject constructor(
         isShuffled.value = !isShuffled.value
         if (isShuffled.value) { //aka shuffle turned on
             //TODO: change the queue to be randomized order
-            domainLogger.info { "SHUFFLE QUEUE" }
-            //ShuffleQueue(shType)
-
+            domainLogger.info { "$TAG - SHUFFLE QUEUE" }
+            shuffleQueue()
         }
         else { //aka shuffle turned off
             //TODO: change the queue to be in normal order
-            domainLogger.info { "UNDO QUEUE SHUFFLE" }
+            domainLogger.info { "$TAG - UNDO QUEUE SHUFFLE" }
             //unShuffleQueue()
+            // this can get real spicy to figure out how to achieve
+            // if i want it to work the same way the play music one works, it would need to keep
+            // the add to history intact, so that switching would just go from one to the other
+            // and hitting shuffle would just throw out a new shuffle order, no need to save it
+            // but to keep the unshuffled order ... would it take a temporary playlist queue?
+            // and it would just have the songs' track number intrinsically?
+            // because i dunno about keeping a history as a side thing ...
+            // actually, if the queue can be manually reordered, then yeah it would be much better
+            // to just directly give the songs in queue their list order
+            // new concern: in play music, trying to reorder a song while unshuffled did not keep
+            // that move after the queue was shuffled, then unshuffled. it returned to its original
+            // placement when it was first added to the queue. maybe it really does use a history ...
+            // or keeps the original placement and reordering uses a temporary shift
         }
         //updatePlayerPreferences.updateShuffleType
     }
@@ -206,18 +260,18 @@ class SongPlayerImpl @Inject constructor(
             //TODO: figure out how the queue / player needs to change
             RepeatType.ON -> {
                 repeatState.value = RepeatType.ONE
-                domainLogger.info { "REPEAT TYPE CHANGED TO ONE" }
+                domainLogger.info { "$TAG - REPEAT TYPE CHANGED TO ONE" }
                 //want to keep queue as is, just include boolean logic to put onNext to play the song over
                 //use same boolean logic/value for onPrevious to restart song over
             }
             RepeatType.OFF -> {
                 repeatState.value = RepeatType.ON
-                domainLogger.info { "REPEAT TYPE CHANGED TO ON" }
+                domainLogger.info { "$TAG - REPEAT TYPE CHANGED TO ON" }
                 //in checking the queue, if the current song is the last song of the queue, set the onNext to play the first song
             }
             RepeatType.ONE -> {
                 repeatState.value = RepeatType.OFF
-                domainLogger.info { "REPEAT TYPE CHANGED TO OFF" }
+                domainLogger.info { "$TAG - REPEAT TYPE CHANGED TO OFF" }
                 //in checking the queue, if the current song is the last song of the queue, trigger the stop function to end the session/queue
             }
         }
@@ -254,7 +308,34 @@ class SongPlayerImpl @Inject constructor(
     private fun hasNext(): Boolean {
         return queue.value.isNotEmpty()
     }
+
+    private fun shuffleQueue() { //this would get called if the queue itself needs to be shuffled
+        queue.update {
+            it.shuffled(Random(RandSeed))
+        }
+    }
+
+    override fun shuffle(playerSongs: List<PlayerSong>) {
+        // ground rules
+            // 1 if the songs here are the first items going into the queue, then the shuffled
+                // order here is the originating order, aka it is the queue's default track order. hitting unshuffle will keep this order intact, and hitting shuffle can change the order but the original needs to remain untouched
+            // 2 this does not change the shuffle type
+            // 3 this does not set isShuffle to true
+        // NOW I'M CONFUSION
+        // CAUSE HITTING SHUFFLE WHILE THERE WAS MULTIPLE ITEMS ADDED TO QUEUE
+        // REMOVED THE ORIGINAL ITEM THAT STARTED THE QUEUE, KEPT THE ITEMS THAT WERE ADDED AFTER,
+        // AND PLACED THE NEW "SHUFFLE" ITEM AT THE TOP OF THE QUEUE
+        // I THOUGHT IT CLEARED THE QUEUE???
+        // THIS ALSO APPLIES TO NON PLAYLISTS, IE IF AN ALBUM'S ADDED USING SHUFFLE. THE NEW SORT IS THE DEFAULT
+        // AND IT WILL BE AT THE TOP OF THE QUEUE, REMOVING THE ORIGINAL CONTEXT BUT KEEPING THE ITEMS THAT WERE
+        // "ADD TO QUEUE"
+        removeAllFromQueue()
+        queue.update {
+            playerSongs.shuffled(Random(RandSeed))
+        }
+    }
 }
+
 // Used to enable property delegation
 private operator fun <T> MutableStateFlow<T>.setValue(
     thisObj: Any?,

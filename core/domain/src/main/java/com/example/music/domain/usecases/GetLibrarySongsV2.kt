@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+/** logger info for this class */
 private const val TAG = "Get Library Songs V2"
 
 class GetLibrarySongsV2 @Inject constructor(

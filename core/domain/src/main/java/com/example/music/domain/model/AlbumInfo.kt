@@ -23,7 +23,7 @@ data class AlbumInfo(
     val title: String = "",
     val albumArtistId: Long? = null,
     val albumArtistName: String? = null,
-    //val year: Int? = null,
+    val year: Int? = null,
     val trackTotal: Int? = null,
     val discTotal: Int? = null,
     val artwork: String? = null,
@@ -40,7 +40,7 @@ fun Album.asExternalModel(): AlbumInfo {
         id = this.id,
         title = this.title,
         albumArtistId = this.albumArtistId,
-        //year = this.year,
+        year = this.year,
         trackTotal = this.trackTotal,
         discTotal = this.discTotal,
         artwork = this.artwork
@@ -66,10 +66,10 @@ fun AlbumV2.asExternalModel(): AlbumInfo {
         title = this.title,
         albumArtistId = this.artistId,
         albumArtistName = this.artist,
-        //year = this.lastYear,
+        year = this.lastYear,
         //trackTotal = this.numTracksByArtist,
-        dateLastPlayed = OffsetDateTime.now(),
-        songCount = 0, //not sure if this is numTracks or need to set this value in a different way
+        //dateLastPlayed = OffsetDateTime.now(),
+        songCount = this.numTracks, //not sure if this is numTracks or need to set this value in a different way
         //not sure how to set discTotal nor artwork . might need to figure that out within MediaRetriever
     )
 }

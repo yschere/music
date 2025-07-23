@@ -68,13 +68,23 @@ import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
+/** Changelog:
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
+ */
+
 /**
  * Stateful version of Composer Details Screen
  */
 @Composable
 fun ComposerDetailsScreen(
     navigateToPlayer: (SongInfo) -> Unit = {},
-    navigateToPlayerSong: (PlayerSong) -> Unit = {},
+    //navigateToPlayerSong: (PlayerSong) -> Unit = {},
+    navigateToSearch: () -> Unit,
     navigateBack: () -> Unit = {},
     //showBackButton: Boolean,
     //modifier: Modifier = Modifier,
@@ -91,10 +101,11 @@ fun ComposerDetailsScreen(
             ComposerDetailsScreen(
                 composer = uiState.composer,
                 songs = uiState.songs,
-                pSongs = uiState.pSongs,
+                //pSongs = uiState.pSongs,
                 //onQueueSong = viewModel::onQueueSong,
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerSong = navigateToPlayerSong,
+                //navigateToPlayerSong = navigateToPlayerSong,
+                navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 //showBackButton = showBackButton,
                 modifier = Modifier.fillMaxSize(),
@@ -146,10 +157,11 @@ private fun ComposerDetailsLoadingScreen(
 fun ComposerDetailsScreen(
     composer: ComposerInfo,
     songs: List<SongInfo>,
-    pSongs: List<PlayerSong>,
+    //pSongs: List<PlayerSong>,
     //onQueueSong: (PlayerSong) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //showBackButton: Boolean,
     modifier: Modifier = Modifier
@@ -165,14 +177,15 @@ fun ComposerDetailsScreen(
             contentWindowInsets = WindowInsets.systemBarsIgnoringVisibility,
             topBar = {
                 ComposerDetailsTopAppBar(
+                    navigateToSearch = navigateToSearch,
                     navigateBack = navigateBack,
                 )
             },
             bottomBar = {
                 /* //should show BottomBarPlayer here if a queue session is running or service is running
                 BottomBarPlayer(
-                    song = PreviewPlayerSongs[5],
-                    navigateToPlayerSong = { navigateToPlayerSong(PreviewPlayerSongs[5]) },
+                    song = PreviewSongs[5],
+                    navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
                 )*/
             },
             snackbarHost = {
@@ -186,7 +199,7 @@ fun ComposerDetailsScreen(
             ComposerDetailsContent(
                 composer = composer,
                 songs = songs,
-                pSongs = pSongs,
+                //pSongs = pSongs,
                 /*onQueueSong = {
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(snackBarText)
@@ -194,7 +207,7 @@ fun ComposerDetailsScreen(
                     onQueueSong(it)
                 },*/
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerSong = navigateToPlayerSong,
+                //navigateToPlayerSong = navigateToPlayerSong,
                 modifier = Modifier.padding(contentPadding)
             )
         }
@@ -206,6 +219,7 @@ fun ComposerDetailsScreen(
  */
 @Composable
 fun ComposerDetailsTopAppBar(
+    navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -217,7 +231,7 @@ fun ComposerDetailsTopAppBar(
             .padding(horizontal = 8.dp)
     ) {
         //back button
-        IconButton(onClick = navigateBack) {
+        IconButton( onClick = navigateBack ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(id = R.string.icon_back_nav),
@@ -229,7 +243,7 @@ fun ComposerDetailsTopAppBar(
         Spacer(Modifier.weight(1f))
 
         // search btn //TODO: does this make more sense as a more options btn?
-        IconButton(onClick = { /* TODO */ }) {
+        IconButton( onClick = navigateToSearch ) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = stringResource(R.string.icon_search),
@@ -254,10 +268,10 @@ fun ComposerDetailsTopAppBar(
 fun ComposerDetailsContent(
     composer: ComposerInfo,
     songs: List<SongInfo>,
-    pSongs: List<PlayerSong>,
+    //pSongs: List<PlayerSong>,
     //onQueueSong: (PlayerSong) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -290,24 +304,28 @@ fun ComposerDetailsContent(
 
 
             fullWidthItem {
-                ShufflePlayButtons(
-                    onShuffleClick = {},
-                    onPlayClick = {}
+                PlayShuffleButtons(
+                    onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                    onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
                 )
             }
 
             // songs list
-            items(pSongs) { song ->
+            items(songs) { song ->
+            //items(pSongs) { song ->
                 Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                     SongListItem(
                         song = song,
-                        onClick = navigateToPlayerSong,
+                        onClick = navigateToPlayer,
+                        onMoreOptionsClick = {},
+                        //onClick = navigateToPlayerSong,
                         //onQueueSong = { },
                         modifier = Modifier.fillMaxWidth(),
                         isListEditable = false,
                         showAlbumTitle = true,
                         showArtistName = true,
                         showAlbumImage = true,
+                        showTrackNumber = false,
                     )
                 }
             }
@@ -404,14 +422,41 @@ private fun SongCountAndSortSelectButtons(
 
 // section 1.5: shuffle and play buttons
 @Composable
-private fun ShufflePlayButtons(
-    onShuffleClick: () -> Unit,
+private fun PlayShuffleButtons(
     onPlayClick: () -> Unit,
+    onShuffleClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Row(Modifier.padding(horizontal = 12.dp).padding(bottom = 8.dp)) {
+    Row(modifier.padding(horizontal = 12.dp).padding(bottom = 8.dp)) {
+        //Row(Modifier.padding(bottom = 8.dp)) { // original version for screens that don't have carousel / don't need to remove horizontal padding on lazyVerticalGrid
+        // play btn
+        Button(
+            onClick = onPlayClick, //what is the thing that would jump start this step process. would it go thru the viewModel??
+            //step 1: regardless of shuffle being on or off, set shuffle to off
+            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
+            //step 3: set the player to play the first item in queue
+            //step 4: navigateToPlayer(first item)
+            //step 5: start playing
+            /*coroutineScope.launch {
+                sheetState.hide()
+                showThemeSheet = false
+            }*/
+            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
+            shape = MusicShapes.small,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .weight(0.5f)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.PlayArrow,
+                contentDescription = stringResource(R.string.icon_play)
+            )
+            Text("PLAY")
+        }
+
         // shuffle btn
         Button(
-            onClick = onShuffleClick,
+            onClick = onShuffleClick, //what is the thing that would jump start this step process
             //step 1: regardless of shuffle being on or off, set shuffle to on
             //step 2?: confirm the shuffle type
             //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
@@ -435,31 +480,6 @@ private fun ShufflePlayButtons(
             )
             Text("SHUFFLE")
         }
-
-        // play btn
-        Button(
-            onClick = onPlayClick,
-            //step 1: regardless of shuffle being on or off, set shuffle to off
-            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
-            //step 3: set the player to play the first item in queue
-            //step 4: navigateToPlayer(first item)
-            //step 5: start playing
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
-            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
-            shape = MusicShapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PlayArrow,
-                contentDescription = stringResource(R.string.icon_play)
-            )
-            Text("PLAY")
-        }
     }
 }
 
@@ -479,20 +499,19 @@ fun ComposerDetailsScreenPreview() {
         ComposerDetailsScreen(
             //composer = PreviewComposers[0],
             //songs = getSongsByComposer(291),
-            //pSongs = getSongsByComposer(291).map { it.toPlayerSong() },
 
             //Paramore
             //composer = PreviewComposers[3],
-            //songs = getSongsByComposer(410),
-            //pSongs = getSongsByComposer(410).map { it.toPlayerSong() },
+            //songs = getSongsByComposer(410),]
 
             //Tatsuya Kitani
             composer = PreviewComposers[1],
             songs = getSongsByComposer(PreviewComposers[1].id),
-            pSongs = getSongsByComposer(PreviewComposers[1].id).map { it.toPlayerSong() },
+            //pSongs = getSongsByComposer(PreviewComposers[1].id).map { it.toPlayerSong() },
 
             navigateToPlayer = {},
-            navigateToPlayerSong = {},
+            //navigateToPlayerSong = {},
+            navigateToSearch = {},
             navigateBack = {},
         )
     }

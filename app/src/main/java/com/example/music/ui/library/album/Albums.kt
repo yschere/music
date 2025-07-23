@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Checklist
@@ -58,8 +60,9 @@ import kotlinx.coroutines.CoroutineScope
  * Provides header item with a count of the albums given, and
  * generates a column of albums, with each album shown as a row.
  */
-/*fun LazyListScope.albumItems(
+fun LazyListScope.albumItems(
     albums: List<AlbumInfo>,
+    coroutineScope: CoroutineScope,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
 ) {
     item {
@@ -75,13 +78,15 @@ import kotlinx.coroutines.CoroutineScope
             modifier = Modifier.padding(8.dp)
         )
     }
+
     items(albums) { item ->
         AlbumItemRow(
             album = item,
+            coroutineScope = coroutineScope,
             navigateToAlbumDetails = navigateToAlbumDetails,
         )
     }
-}*/
+}
 
 /**
  * Album Items Lazy Grid Scope Generator.
@@ -164,7 +169,6 @@ fun LazyGridScope.albumItems(
 /**
  * Create a composable view of a Album in a row form
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AlbumItemRow(
     album: AlbumInfo,

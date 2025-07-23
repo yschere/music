@@ -3,8 +3,10 @@ package com.example.music.domain.util
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Size
 import com.example.music.data.util.combine
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -21,8 +23,11 @@ class MediaRepo (
     private val resolver: ContentResolver = context.contentResolver
 
     companion object {
-        private const val ALBUM_ART_URI: String = "content://media/external/audio/albumart"
-        fun toAlbumArtUri(id: Long): Uri = ContentUris.withAppendedId(Uri.parse(ALBUM_ART_URI), id)
+//        private const val ALBUM_ART_URI: String = "content://media/external/audio/albumart"
+//        fun toAlbumArtUri(id: Long): Uri = ContentUris.withAppendedId(Uri.parse(ALBUM_ART_URI), id)
+        val EXTERNAL_CONTENT_URI = MediaStore.Files.getContentUri("external")
+        private val ALBUM_ART_URI: Uri = Uri.parse("content://media/external/audio/albumart")
+        fun toAlbumArtUri(id: Long): Uri = ContentUris.withAppendedId(ALBUM_ART_URI, id)
     }
 
     // registers an observer class for getting preference settings
@@ -79,7 +84,7 @@ class MediaRepo (
             null)
         if (genreCursor != null && genreCursor.moveToFirst()) {
             //counts.add(Pair("GENRE", genreCursor.count))
-            counts.add(genreCursor.count)
+            counts.add(genreCursor.count - 1) // this is to remove the 'null' row that genre counts
         }
 
         albumCursor?.close()
@@ -89,6 +94,8 @@ class MediaRepo (
 
         return counts
     }
+
+    fun loadThumb(uri: Uri): Bitmap = resolver.loadThumbnail(uri, Size(640, 480), null)
 
 
     /***********************************************************************************************
@@ -119,6 +126,7 @@ class MediaRepo (
 
     /**
      * Get all audios
+     * @return [List] of [Audio]
      */
     suspend fun getAllSongs(
         order: String,
@@ -139,6 +147,7 @@ class MediaRepo (
 
     /**
      * Get all audios
+     * @return [Flow] of [List] of [Audio]
      */
     fun getAllSongsFlow(
         order: String,
@@ -163,7 +172,7 @@ class MediaRepo (
 
     /**
      * Get Audio based on id
-     * @return [Audio]
+     * @return [Audio] filtered to match id
      */
     suspend fun getAudio(id: Long) = resolver.findAudio(id)
 
@@ -174,18 +183,18 @@ class MediaRepo (
     fun getAudioFlow(id: Long) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                domainLogger.info { "$TAG - Flow Get Audio by ID: $it" }
+                domainLogger.info { "$TAG - Flow Get Audio by ID: $id; observe MediaStore result: $it" }
                 resolver.findAudio(id)
             }
 
     /**
      * Get Audios based on list of ids
-     * @return [List] of [Audio]
+     * @return [List] of [Audio] filtered to match ids
      */
     suspend fun getAudios(ids: List<Long>) =
-        ids.map {
-            domainLogger.info { "$TAG - Get Audios by ID: $it" }
-            resolver.findAudio(it)
+        ids.map { id ->
+            domainLogger.info { "$TAG - Get Audios by ID: $id" }
+            resolver.findAudio(id)
         }
 
     /**
@@ -195,9 +204,9 @@ class MediaRepo (
     fun getAudiosFlow(ids: List<Long>) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                ids.map {
-                    domainLogger.info { "$TAG - Flow Get Audios by ID: $it" }
-                    resolver.findAudio(it)
+                ids.map { id ->
+                    domainLogger.info { "$TAG - Flow Get Audios by ID: $id" }
+                    resolver.findAudio(id)
                 }
             }
 
@@ -220,7 +229,7 @@ class MediaRepo (
      **********************************************************************************************/
 
     /**
-     * get all artists
+     * Get all artists
      * @return [List] of [Artist]
      */
     suspend fun getAllArtists( order: String, ascending: Boolean ) =
@@ -230,7 +239,7 @@ class MediaRepo (
         )
 
     /**
-     * get all artists
+     * Get all artists
      * @return [Flow] of [List] of [Artist]
      */
     fun getAllArtistsFlow( order: String, ascending: Boolean ) =
@@ -247,7 +256,7 @@ class MediaRepo (
      * @param query string for filtering based on user input
      * @return [List] of [Artist]
      */
-    private suspend fun findArtists(
+    suspend fun findArtists(
         query: String? = null,
         order: String = MediaStore.Audio.Artists.ARTIST,
         ascending: Boolean = true,
@@ -357,6 +366,7 @@ class MediaRepo (
 
     /**
      * returns most recent album ids. have this rewritten and repurposed in featuredLibraryItemsV2.albumItems
+     * TODO why should this be rewritten?
      */
     fun mostRecentAlbums(limit: Int) =
         observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
@@ -403,7 +413,7 @@ class MediaRepo (
      * @param query string for filtering based on user input
      * @return [List] of [Album]
      */
-    private suspend fun findAlbums(
+    suspend fun findAlbums(
         query: String? = null,
         order: String = MediaStore.Audio.Albums.ALBUM,
         ascending: Boolean = true,
@@ -464,7 +474,6 @@ class MediaRepo (
      *
      **********************************************************************************************/
 
-
     /**
      * get all genres
      * @return [List] of [Genre]
@@ -497,8 +506,6 @@ class MediaRepo (
                 domainLogger.info { "$TAG - Get Genre by ID: $id" }
                 resolver.findGenre(id)
             }
-
-    // no search for genre function for external use, not needed
 
     /**
      * Get Genres via resolver

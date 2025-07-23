@@ -74,13 +74,13 @@ abstract class AlbumsDao : BaseDao<Album> {
     @Transaction //TODO check how to use coalesce to set null to empty string, for if album_artist_name is null
     @Query(
         """
-        SELECT albums.*, COALESCE(song_count, 0) AS song_count, date_last_played, artists.name AS album_artist_name FROM albums 
+        SELECT albums.*, COALESCE(song_count, 0) AS song_count, date_last_played, COALESCE(artists.name,"") AS album_artist_name FROM albums 
         INNER JOIN (
             SELECT album_id, COUNT(*) AS song_count, MAX(songs.date_last_played) AS date_last_played
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
-        INNER JOIN artists ON artists.id = albums.album_artist_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         WHERE albums.id = :albumId
         """
     )
@@ -94,12 +94,13 @@ abstract class AlbumsDao : BaseDao<Album> {
     @Transaction
     @Query(
         """
-        SELECT albums.*, COALESCE(song_count, 0) AS song_count, date_last_played FROM albums 
+        SELECT albums.*, COALESCE(song_count, 0) AS song_count, date_last_played, COALESCE(artists.name,"") as album_artist_name FROM albums 
         INNER JOIN (
             SELECT album_id, COUNT(*) AS song_count, MAX(songs.date_last_played) AS date_last_played
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         WHERE albums.album_artist_id = :albumArtistId
         LIMIT :limit
         """
@@ -116,13 +117,13 @@ abstract class AlbumsDao : BaseDao<Album> {
     @Transaction
     @Query(
         """
-        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
-        LEFT JOIN artists ON albums.album_artist_id = artists.id
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count, COALESCE(artists.name,"") AS album_artist_name FROM albums
         LEFT JOIN (
             SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         ORDER BY artists.name ASC, albums.title ASC
         LIMIT :limit
         """
@@ -139,13 +140,13 @@ abstract class AlbumsDao : BaseDao<Album> {
     @Transaction
     @Query(
         """
-        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
-        LEFT JOIN artists ON albums.album_artist_id = artists.id
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count, COALESCE(artists.name,"") AS album_artist_name FROM albums
         LEFT JOIN (
             SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         ORDER BY artists.name DESC, albums.title DESC 
         LIMIT :limit
         """
@@ -164,12 +165,13 @@ abstract class AlbumsDao : BaseDao<Album> {
     @Transaction
     @Query(
         """
-        SELECT albums.*, COALESCE(date_last_played, datetime(current_timestamp, 'localtime')) as date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        SELECT albums.*, COALESCE(date_last_played, datetime(current_timestamp, 'localtime')) as date_last_played, COALESCE(song_count, 0) AS song_count, COALESCE(artists.name,"") AS album_artist_name FROM albums
         INNER JOIN (
             SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         ORDER BY datetime(date_last_played) ASC
         LIMIT :limit
         """
@@ -190,12 +192,13 @@ abstract class AlbumsDao : BaseDao<Album> {
     @Transaction
     @Query(
         """
-        SELECT albums.*, COALESCE(date_last_played,'1900-01-01 00:00:00.000') AS date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        SELECT albums.*, COALESCE(date_last_played,'1900-01-01 00:00:00.000') AS date_last_played, COALESCE(song_count, 0) AS song_count, COALESCE(artists.name,"") AS album_artist_name FROM albums
         INNER JOIN (
             SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         ORDER BY datetime(date_last_played) DESC
         LIMIT :limit
         """
@@ -214,12 +217,13 @@ abstract class AlbumsDao : BaseDao<Album> {
     @Transaction
     @Query(
         """
-        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count, COALESCE(artists.name,"") AS album_artist_name FROM albums
         INNER JOIN (
             SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         ORDER BY song_count ASC, albums.title ASC
         LIMIT :limit
         """
@@ -238,12 +242,13 @@ abstract class AlbumsDao : BaseDao<Album> {
     @Transaction
     @Query(
         """
-        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count, COALESCE(artists.name,"") AS album_artist_name FROM albums
         INNER JOIN (
             SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         ORDER BY song_count DESC, albums.title DESC
         LIMIT :limit
         """
@@ -261,12 +266,13 @@ abstract class AlbumsDao : BaseDao<Album> {
      */
     @Query(
         """
-        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count, COALESCE(artists.name,"") AS album_artist_name FROM albums
         INNER JOIN (
             SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         ORDER BY albums.title ASC
         LIMIT :limit
         """
@@ -282,12 +288,13 @@ abstract class AlbumsDao : BaseDao<Album> {
      */
     @Query(
         """
-        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count, COALESCE(artists.name,"") AS album_artist_name FROM albums
         INNER JOIN (
             SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         ORDER BY title DESC
         LIMIT :limit
         """
@@ -385,12 +392,13 @@ abstract class AlbumsDao : BaseDao<Album> {
     @Transaction
     @Query(
         """
-        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM albums
+        SELECT albums.*, date_last_played, COALESCE(song_count, 0) AS song_count, COALESCE(artists.name,"") AS album_artist_name FROM albums
         INNER JOIN (
             SELECT album_id, MAX(date_last_played) AS date_last_played, COUNT(*) AS song_count
             FROM songs
             GROUP BY album_id
         ) AS songs ON albums.id = songs.album_id
+        LEFT JOIN artists ON albums.album_artist_id = artists.id
         WHERE albums.title LIKE '%' || :query || '%'
         ORDER BY albums.title ASC
         LIMIT :limit
@@ -398,30 +406,8 @@ abstract class AlbumsDao : BaseDao<Album> {
     )
     abstract fun searchAlbumsByTitle(query: String, limit: Int): Flow<List<AlbumWithExtraInfo>> //equivalent of PodcastsDao.searchPodcastByTitle
 
-    /* //TODO: not sure if searchAlbumByTitleAndGenre is needed
-    @Transaction
-    @Query(
-        """
-        SELECT albums.*, song_count, date_last_played
-        FROM albums
-        INNER JOIN (
-            SELECT album_id, count(*) as song_count, max(date_last_played) as date_last_played
-            FROM songs
-            WHERE genre_id IN (:genreIdList)
-            GROUP BY album_id
-        ) as songs ON albums.id = songs.album_id
-        WHERE albums.title LIKE '%' || :query || '%'
-        ORDER BY datetime(date_last_played) DESC
-        LIMIT :limit
-        """
-    )
-    abstract fun searchAlbumByTitleAndGenre(  //equivalent of PodcastsDao.searchPodcastByTitleAndCategory
-        query: String,
-        genreIdList: List<Long>,
-        limit: Int
-    ): Flow<List<AlbumWithExtraInfo>> */
-
-
+    // TODO see if its better for this to return as Artist or as Int of just artists.id
+    //  want to know it'll be easier to make check for artist exists
     @Transaction
     @Query(
         """

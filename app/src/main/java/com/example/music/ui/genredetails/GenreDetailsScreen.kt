@@ -67,6 +67,15 @@ import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
+/** Changelog:
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
+ */
+
 /**
  * Stateful version of Genre Details Screen
  */
@@ -74,7 +83,8 @@ import com.example.music.util.quantityStringResource
 fun GenreDetailsScreen(
     //navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    //navigateToPlayerSong: (PlayerSong) -> Unit,
+    navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //modifier: Modifier = Modifier,
     viewModel: GenreDetailsViewModel = hiltViewModel(),
@@ -90,11 +100,11 @@ fun GenreDetailsScreen(
                 genre = uiState.genre,
                 //albums = uiState.albums.toPersistentList(),
                 songs = uiState.songs,
-                pSongs = uiState.pSongs,
                 //onQueueSong = viewModel::onQueueSong,
                 //navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerSong = navigateToPlayerSong,
+                //navigateToPlayerSong = navigateToPlayerSong,
+                navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -110,7 +120,10 @@ fun GenreDetailsScreen(
  * Error Screen
  */
 @Composable
-private fun GenreDetailsError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+private fun GenreDetailsError(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -146,11 +159,12 @@ fun GenreDetailsScreen(
     genre: GenreInfo,
     //albums: PersistentList<AlbumInfo>,
     songs: List<SongInfo>,
-    pSongs: List<PlayerSong>,
+    //pSongs: List<PlayerSong>,
     //onQueueSong: (PlayerSong) -> Unit,
     //navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //showBackButton: Boolean,
     modifier: Modifier = Modifier
@@ -166,14 +180,15 @@ fun GenreDetailsScreen(
             contentWindowInsets = WindowInsets.systemBarsIgnoringVisibility,
             topBar = {
                 GenreDetailsTopAppBar(
+                    navigateToSearch = navigateToSearch,
                     navigateBack = navigateBack,
                 )
             },
             bottomBar = {
                 /* //should show BottomBarPlayer here if a queue session is running or service is running
                 BottomBarPlayer(
-                    song = PreviewPlayerSongs[5],
-                    navigateToPlayerSong = { navigateToPlayerSong(PreviewPlayerSongs[5]) },
+                    song = PreviewSongs[5],
+                    navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
                 )*/
             },
             snackbarHost = {
@@ -188,7 +203,7 @@ fun GenreDetailsScreen(
                 genre = genre,
                 //albums = albums,
                 songs = songs,
-                pSongs = pSongs,
+                //pSongs = pSongs,
                 /*onQueueSong = {
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(snackBarText)
@@ -197,7 +212,7 @@ fun GenreDetailsScreen(
                 },*/
                 //navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerSong = navigateToPlayerSong,
+                //navigateToPlayerSong = navigateToPlayerSong,
                 modifier = Modifier.padding(contentPadding)
             )
         }
@@ -209,6 +224,7 @@ fun GenreDetailsScreen(
  */
 @Composable
 fun GenreDetailsTopAppBar(
+    navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -220,7 +236,7 @@ fun GenreDetailsTopAppBar(
             .padding(horizontal = 8.dp)
     ) {
         //back button
-        IconButton(onClick = navigateBack) {
+        IconButton( onClick = navigateBack ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(id = R.string.icon_back_nav),
@@ -232,7 +248,7 @@ fun GenreDetailsTopAppBar(
         Spacer(Modifier.weight(1f))
 
         // search btn //TODO: does this make more sense as a more options btn?
-        IconButton(onClick = { /* TODO */ }) {
+        IconButton( onClick = navigateToSearch ) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = stringResource(R.string.icon_search),
@@ -258,11 +274,11 @@ fun GenreDetailsContent(
     genre: GenreInfo,
     //albums: PersistentList<AlbumInfo>,
     songs: List<SongInfo>,
-    pSongs: List<PlayerSong>,
+    //pSongs: List<PlayerSong>,
     //onQueueSong: (PlayerSong) -> Unit,
     //navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) {
 
@@ -273,7 +289,7 @@ fun GenreDetailsContent(
         // has because of the possible future where Albums shown in a horizontal pager
         // aka it mimics ArtistDetails
     ) {
-        //section 1: header item
+        // section 1: header item
         fullWidthItem {
             GenreDetailsHeaderItem(
                 genre = genre,
@@ -282,7 +298,7 @@ fun GenreDetailsContent(
             )
         }
 
-        //section 2: albums list
+        // section 2: albums list
         /*if (!albums.isEmpty()) {
             fullWidthItem {
                 Text(
@@ -306,37 +322,44 @@ fun GenreDetailsContent(
             }
         }*/
 
-        //section 3: songs list
-        if (songs.isNotEmpty()) {
+        // section 3: songs list
+        if (songs.isNotEmpty()) { // this is just to make sure the songs list loaded
 
             // songs header
             fullWidthItem {
                 SongCountAndSortSelectButtons(
                     songs = songs,
-                    onSortClick = {},
-                    onSelectClick = {}
+                    onSelectClick = {},
+                    onSortClick = {
+                        //showBottomSheet = true
+                        //showSortSheet = true
+                    }
                 )
             }
 
             fullWidthItem {
-                ShufflePlayButtons(
-                    onShuffleClick = {},
-                    onPlayClick = {}
+                PlayShuffleButtons(
+                    onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                    onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
                 )
             }
 
             // songs list
-            items(pSongs) { song ->
+            items(songs) { song ->
+            //items(pSongs) { song ->
                 Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                     SongListItem(
                         song = song,
-                        onClick = navigateToPlayerSong,
+                        onClick = navigateToPlayer,
+                        onMoreOptionsClick = {},
+                        //onClick = navigateToPlayerSong,
                         //onQueueSong = { },
-                        modifier = Modifier.fillMaxWidth(),
                         isListEditable = false,
-                        showAlbumTitle = true,
                         showArtistName = true,
                         showAlbumImage = true,
+                        showAlbumTitle = true,
+                        showTrackNumber = false,
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
@@ -382,7 +405,9 @@ fun GenreDetailsHeaderItem(
     }
 }
 
-// section 1.3: song count and list sort icons
+/**
+ * Content section 1.3: song count and list sort icons
+ */
 @Composable
 private fun SongCountAndSortSelectButtons(
     songs: List<SongInfo>,
@@ -430,16 +455,45 @@ private fun SongCountAndSortSelectButtons(
     }
 }
 
-// section 1.5: shuffle and play buttons
+/**
+ * Content section 1.5: play and shuffle buttons
+ */
 @Composable
-private fun ShufflePlayButtons(
-    onShuffleClick: () -> Unit,
+private fun PlayShuffleButtons(
     onPlayClick: () -> Unit,
+    onShuffleClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Row(Modifier.padding(horizontal = 12.dp).padding(bottom = 8.dp)) {
+    Row(modifier.padding(horizontal = 12.dp).padding(bottom = 8.dp)) {
+        //Row(Modifier.padding(bottom = 8.dp)) { // original version for screens that don't have carousel / don't need to remove horizontal padding on lazyVerticalGrid
+        // play btn
+        Button(
+            onClick = onPlayClick, //what is the thing that would jump start this step process. would it go thru the viewModel??
+            //step 1: regardless of shuffle being on or off, set shuffle to off
+            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
+            //step 3: set the player to play the first item in queue
+            //step 4: navigateToPlayer(first item)
+            //step 5: start playing
+            /*coroutineScope.launch {
+                sheetState.hide()
+                showThemeSheet = false
+            }*/
+            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
+            shape = MusicShapes.small,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .weight(0.5f)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.PlayArrow,
+                contentDescription = stringResource(R.string.icon_play)
+            )
+            Text("PLAY")
+        }
+
         // shuffle btn
         Button(
-            onClick = onShuffleClick,
+            onClick = onShuffleClick, //what is the thing that would jump start this step process
             //step 1: regardless of shuffle being on or off, set shuffle to on
             //step 2?: confirm the shuffle type
             //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
@@ -462,31 +516,6 @@ private fun ShufflePlayButtons(
                 contentDescription = stringResource(R.string.icon_shuffle)
             )
             Text("SHUFFLE")
-        }
-
-        // play btn
-        Button(
-            onClick = onPlayClick,
-            //step 1: regardless of shuffle being on or off, set shuffle to off
-            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
-            //step 3: set the player to play the first item in queue
-            //step 4: navigateToPlayer(first item)
-            //step 5: start playing
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
-            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
-            shape = MusicShapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PlayArrow,
-                contentDescription = stringResource(R.string.icon_play)
-            )
-            Text("PLAY")
         }
     }
 }
@@ -512,11 +541,12 @@ fun GenreDetailsScreenPreview() {
             //JPop
             genre = PreviewGenres[3],
             songs = getSongsInGenre(3),
-            pSongs = getSongsInGenre(3).map { it.toPlayerSong() },
+            //pSongs = getSongsInGenre(3).map { it.toPlayerSong() },
 
             //navigateToAlbumDetails = {},
             navigateToPlayer = {},
-            navigateToPlayerSong = {},
+            //navigateToPlayerSong = {},
+            navigateToSearch = {},
             navigateBack = {},
         )
     }

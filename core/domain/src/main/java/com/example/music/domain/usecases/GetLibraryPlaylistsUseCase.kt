@@ -40,11 +40,11 @@ class GetLibraryPlaylistsUseCase @Inject constructor(
                     else playlistRepo.sortPlaylistsByDateLastAccessedDesc()
             }
 
-            "DATE_LAST_PLAYED" -> { //"dateLastPlayed" -> {
+            /*"DATE_LAST_PLAYED" -> { //"dateLastPlayed" -> {
                 playlistsList =
                     if (isAscending) playlistRepo.sortPlaylistsByDateLastPlayedAsc()
                     else playlistRepo.sortPlaylistsByDateLastPlayedDesc()
-            }
+            }*/
 
             "SONG_COUNT" -> { //"songCount" -> {
                 playlistsList =

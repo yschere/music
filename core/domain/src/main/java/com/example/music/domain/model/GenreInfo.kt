@@ -42,7 +42,7 @@ fun GenreV2.asExternalModel(): GenreInfo {
     return GenreInfo(
         id = this.id,
         name = this.name,
-        songCount = 0,
+        songCount = this.numTracks,
         //not sure how to get songCount
     )
 }

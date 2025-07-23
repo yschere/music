@@ -9,5 +9,5 @@ import com.example.music.domain.player.model.PlayerSong
 data class PlaylistDetailsFilterResult(
     val playlist: PlaylistInfo = PlaylistInfo(),
     val songs: List<SongInfo> = emptyList(),
-    val pSongs: List<PlayerSong> = emptyList(),
+    //val pSongs: List<PlayerSong> = emptyList(),
 )

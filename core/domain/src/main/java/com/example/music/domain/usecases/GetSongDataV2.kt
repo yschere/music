@@ -8,8 +8,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+/** logger tag for this class */
 private const val TAG = "Get Song Data V2"
 
+//TODO what is GetSongDataV2 used for again?
+// it's not quite the same as GetSongDataUseCase since it's returing with PlayerSong types
 class GetSongDataV2 @Inject constructor(
     private val resolver: MediaRepo
 ) {

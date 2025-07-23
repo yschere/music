@@ -32,16 +32,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.player.model.PlayerSong
 import com.example.music.domain.player.model.toPlayerSong
 import com.example.music.ui.theme.MusicTheme
 
+/** Changelog:
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
+ */
+
 @Composable
 fun EditSongScreen(
     //windowSizeClass: WindowSizeClass,
     //displayFeatures: List<DisplayFeature>,
-    song: PlayerSong, // this should likely change to be SongInfo or Song
+    song: SongInfo, // this should likely change to be SongInfo or Song
     navigateBack: () -> Unit,
     //viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -113,7 +121,7 @@ fun EditSongTopAppBar(
 
 @Composable
 fun EditSongContent(
-    song: PlayerSong,
+    song: SongInfo,
     modifier: Modifier = Modifier,
 ) {
     OutlinedTextField(
@@ -178,8 +186,6 @@ fun EditSongContent(
         ),
         label = { Text("Track Number") },
     )
-
-    
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -187,7 +193,7 @@ fun EditSongContent(
 fun PreviewEditSongScreen(){
     MusicTheme {
         EditSongScreen(
-            song = PreviewSongs[0].toPlayerSong(),
+            song = PreviewSongs[0],
             navigateBack = {}
         )
     }

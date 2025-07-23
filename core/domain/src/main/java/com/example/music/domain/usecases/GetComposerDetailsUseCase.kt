@@ -10,12 +10,17 @@ import kotlinx.coroutines.flow.flatMapLatest
 import com.example.music.domain.util.domainLogger
 import javax.inject.Inject
 
+/** Changelog:
+ * 4/2/2025 - Removing SongInfo to PlayerSong conversion. PlayerSong is no longer
+ * needed to display Song data in LazyList or LazyGrid in the UI, as SongInfo has
+ * been updated to support this.
+ */
+
 /**
  * Use case to retrieve data for [ComposerDetailsFilterResult] domain model for ComposerDetailsScreen UI.
  * @property getSongDataUseCase [GetSongDataUseCase] Use case for generating PlayerSong
  * @property composerRepo [ComposerRepo] The repository for accessing Composer data
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 class GetComposerDetailsUseCase @Inject constructor(
     val getSongDataUseCase: GetSongDataUseCase,
     private val composerRepo: ComposerRepo,
@@ -31,23 +36,15 @@ class GetComposerDetailsUseCase @Inject constructor(
         domainLogger.info { "Get Composer Details Use Case - Get Songs by Composer ID" }
         val songsFlow = composerRepo.getSongsByComposerId(composerId)
 
-        val pSongsFlow = songsFlow.flatMapLatest { item ->
-            domainLogger.info { "Get Composer Details Use Case - Get Player Songs: ${item.size}" }
-            getSongDataUseCase(item)
-        }
-
         return combine(
             composerFlow,
             songsFlow,
-            pSongsFlow,
         ) {
             composer,
-            songs,
-            pSongs, ->
+            songs, ->
             ComposerDetailsFilterResult(
                 composer.asExternalModel(),
                 songs.map{ it.asExternalModel() },
-                pSongs,
             )
         }
     }

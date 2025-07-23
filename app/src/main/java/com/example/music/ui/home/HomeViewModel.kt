@@ -15,7 +15,11 @@ import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.player.model.PlayerSong
 import com.example.music.data.util.combine
 import com.example.music.domain.player.model.toPlayerSong
+import com.example.music.domain.usecases.GetThumbnailUseCase
 import com.example.music.domain.usecases.GetTotalCountsV2
+import com.example.music.domain.usecases.SearchQueryFilterV2
+import com.example.music.domain.usecases.SearchQueryV2
+import com.example.music.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,15 +31,26 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.music.util.logger
 
+/** Changelog:
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
+ */
+
+/** logger tag for this class */
+private const val TAG = "Home View Model"
+
 //this is where all the components to create the HomeScreen view are stored/collected
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    featuredLibraryItemsUseCase: FeaturedLibraryItemsUseCase,
+//    featuredLibraryItemsUseCase: FeaturedLibraryItemsUseCase,
     featuredLibraryItemsV2: FeaturedLibraryItemsV2,
-    getTotalCountsUseCase: GetTotalCountsUseCase,
+//    getTotalCountsUseCase: GetTotalCountsUseCase,
     getTotalCountsV2: GetTotalCountsV2,
-    private val getArtistDataUseCase: GetSongArtistDataUseCase,
-    private val getAlbumDataUseCase: GetSongAlbumDataUseCase,
+//    private val getArtistDataUseCase: GetSongArtistDataUseCase,
+//    private val getAlbumDataUseCase: GetSongAlbumDataUseCase,
+   // private val searchQueryV2: SearchQueryV2,
     private val songPlayer: SongPlayer
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
@@ -58,6 +73,8 @@ class HomeViewModel @Inject constructor(
     // test version for using MediaStore, uses Album instead of playlist for now
     private val featuredLibraryItems = featuredLibraryItemsV2()
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    //private val searchResults = MutableStateFlow<SearchQueryFilterV2?>(null)//searchQueryV2
 
     // Holds our view state which the UI collects via [state]
     private val _state = MutableStateFlow(HomeScreenUiState())
@@ -85,7 +102,7 @@ class HomeViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "Home View Model - viewModelScope launch start" }
+        logger.info { "$TAG - viewModelScope launch start" }
         viewModelScope.launch {
             // Holds the counts of songs, artists, albums, playlists in library for NavDrawer
             //val counts = getTotalCountsUseCase()
@@ -96,42 +113,24 @@ class HomeViewModel @Inject constructor(
             combine(
                 refreshing,
                 featuredLibraryItems,
+                ///searchResults,
             ) {
                 refreshing,
                 libraryItems,
+                //searchResult,
                 ->
 
-                logger.info { "Home View Model - viewModelScope launch - combine start" }
-                logger.info { "Home View Model - viewModelScope launch - combine - refreshing: $refreshing" }
-                //logger.info { "Home View Model - viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}" }
-                logger.info { "Home View Model - viewModelScope launch - combine - libraryItemsAlbums: ${libraryItems.recentAlbums.size}" }
-                logger.info { "Home View Model - viewModelScope launch - combine - libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}" }
+                logger.info { "$TAG - viewModelScope launch - combine start" }
+                logger.info { "$TAG - viewModelScope launch - combine - refreshing: $refreshing" }
+                //logger.info { "$TAG - viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}" }
+                logger.info { "$TAG - viewModelScope launch - combine - libraryItemsAlbums: ${libraryItems.recentAlbums.size}" }
+                logger.info { "$TAG - viewModelScope launch - combine - libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}" }
 
                 HomeScreenUiState(
                     isLoading = refreshing,
                     featuredLibraryItemsFilterResult = libraryItems,
-                    playerSongs = libraryItems.recentlyAddedSongs.map { item ->
-                        logger.info { "Song to PlayerSong: ID: ${item.id} - song: ${item.title}" }
-                        // two options here for creating PlayerSong. I can either still do the original method of retrieving an ArtistInfo and AlbumInfo for the given songInfo
-                        // OR
-                        // since I am now able to access MediaStore data that is populating songInfo with much more info, like the artist name and album title, I could just use songInfo to construct PlayerSong
-                        item.toPlayerSong()
-
-                        // OR OR
-                        // even more big brained: I just remove the PlayerSong support because SongInfo is more robust that it can support the UI more directly now
-
-                        /* // ORIGINAL CODE FOR SONGINFO -> PLAYERSONG
-                        val art = getArtistDataUseCase(item).first()
-                        logger.info { "Song to PlayerSong: artist: ${art.name}" }
-                        val alb = getAlbumDataUseCase(item).first()
-                        logger.info { "Song to PlayerSong: album: ${alb.title}" }
-                        PlayerSong(
-                            item,
-                            art,
-                            alb,
-                        )*/
-                    },//TODO: PlayerSong support
-                    totals = counts
+                    totals = counts,
+                    //searchResults = searchResult ?: SearchQueryFilterV2(),
                 )
             }.catch { throwable ->
                 emit(
@@ -147,12 +146,12 @@ class HomeViewModel @Inject constructor(
 
         refresh(force = false)
 
-        logger.info { "Home View Model - init end" }
+        logger.info { "$TAG - init end" }
     }
 
     fun refresh(force: Boolean = true) {
-        logger.info { "Home View Model - refresh function start" }
-        logger.info { "Home View Model - refreshing: ${refreshing.value}" }
+        logger.info { "$TAG - refresh function start" }
+        logger.info { "$TAG - refreshing: ${refreshing.value}" }
         viewModelScope.launch {
             runCatching {
                 refreshing.value = true
@@ -171,24 +170,9 @@ class HomeViewModel @Inject constructor(
             //is HomeAction.LibraryPlaylistSelected -> onLibraryPlaylistSelected(action.playlist)
             is HomeAction.EmptyLibraryView -> onEmptyPlaylistView()
             is HomeAction.QueueSong -> onQueueSong(action.song)
+            //is HomeAction.SendQuery -> onQuerySearch(action.query)
         }
     }
-
-    /*private fun onGenreSelected(genre: GenreInfo) {
-        _selectedGenre.value = genre
-    }
-
-    private fun onHomeCategorySelected(homeCategory: HomeCategory) {
-        selectedHomeCategory.value = homeCategory
-    }
-
-    private fun onLibraryAlbumSelected(album: AlbumInfo) {
-        selectedLibraryAlbum.value = album
-    }
-
-    private fun onLibraryGenreSelected(genre: GenreInfo) {
-        selectedLibraryGenre.value = genre
-    }*/
 
     private fun onMoreOptionsBtnClicked(item: Any) {
 
@@ -205,10 +189,6 @@ class HomeViewModel @Inject constructor(
         selectedLibraryAlbum.value = album
     }
 
-    /*private fun onNavigationViewMenu() {
-        //toggle NavMenu view here
-    }*/
-
     private fun onEmptyPlaylistView() {
         //featuredPlaylists = null
     }
@@ -216,6 +196,18 @@ class HomeViewModel @Inject constructor(
     private fun onQueueSong(song: PlayerSong) {
         songPlayer.addToQueue(song)
     }
+
+//    private fun onQuerySearch(query: String) {
+//        logger.info { query }
+//        viewModelScope.launch {
+//            searchResults.value = searchQueryV2(query)
+//            // now that I have the songs, artists, albums ... how do i get them onto the UI?
+//            //  or is this a case where I should have created a different 'screen' or 'activity' or 'fragment'
+//            //  and have that handle the result -> UI conversion?
+//        }
+//    }
+
+    // TODO create search query function for home search bar to call
 }
 
 /**
@@ -233,6 +225,8 @@ sealed interface HomeAction {
     data class LibraryAlbumSelected(val album: AlbumInfo) : HomeAction
     //data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
     data class QueueSong(val song: PlayerSong) : HomeAction
+    // TODO create search query class ... would this make it so the query string needs to be part of homeViewModel? maybe not?
+    //data class SendQuery(val query: String) : HomeAction
 }
 
 @Immutable
@@ -241,7 +235,7 @@ data class HomeScreenUiState(
     val errorMessage: String? = null,
     val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2 = FeaturedLibraryItemsFilterV2(),
     //val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult = FeaturedLibraryItemsFilterResult(),
-    val playerSongs: List<PlayerSong> = emptyList(), //TODO: PlayerSong support
-    val totals: List<Int> = emptyList()
+    val totals: List<Int> = emptyList(),
+    //val searchResults: SearchQueryFilterV2 = SearchQueryFilterV2(),
     //val totals: List<Pair<String,Int>> = emptyList(),
 )

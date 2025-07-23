@@ -8,6 +8,15 @@ import com.example.music.data.database.model.PlaylistWithExtraInfo
 import com.example.music.data.database.model.Song
 import kotlinx.coroutines.flow.Flow
 
+/** Changelog:
+ * 4/5/2025 - I adjusted the song_playlist_entries Table in preview_data.db to reference ids from
+ * MediaStore. So want to adjust song_playlist_entries queries to just get the ids. Will use
+ * ContentResolver to retrieve the referenced Audios elsewhere.
+ *
+ * TODO: This won't help with needing the
+ *  date_last_played property, but not sure how to solve that yet.
+ */
+
 /**
  * Room DAO for [Playlist] related operations.
  */
@@ -64,7 +73,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
      * NOTE: Setting of null song_count to 0 necessary because playlists can have 0 songs.
      * @param playlistId [Long] the playlist_id to match on
      */
-    @Query(
+    /*@Query(
         """
         SELECT playlists.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
         LEFT JOIN (
@@ -76,7 +85,21 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
         WHERE playlists.id = :playlistId
         """
     )
+    abstract fun getPlaylistWithExtraInfo(playlistId: Long): Flow<PlaylistWithExtraInfo>*/
+
+    // TODO: revised to not use songs table
+    @Query(
+        """
+        SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
+        LEFT JOIN (
+            SELECT playlist_id, COUNT(song_playlist_entries.id) as song_count FROM song_playlist_entries
+            GROUP BY song_playlist_entries.playlist_id
+        ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
+        WHERE playlists.id = :playlistId
+        """
+    )
     abstract fun getPlaylistWithExtraInfo(playlistId: Long): Flow<PlaylistWithExtraInfo>
+
 
     /**
      * Returns a flow of the list of playlist records and their aggregated songs data,
@@ -84,13 +107,28 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
      * NOTE: Setting of null song_count to 0 necessary because playlists can have 0 songs.
      * @param limit [Int] an optional limit on the records returned
      */
-    @Query(
+    /*@Query(
         """
         SELECT playlists.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
         LEFT JOIN (
             SELECT songs.id, song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count, MAX(songs.date_last_played) AS date_last_played
             FROM songs
             INNER JOIN song_playlist_entries ON songs.id = song_playlist_entries.song_id
+            GROUP BY song_playlist_entries.playlist_id
+        ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
+        ORDER BY playlists.name ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortPlaylistsByNameAsc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/
+
+    // TODO: revised to not use songs table
+    @Query(
+        """
+        SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
+        LEFT JOIN (
+            SELECT song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count
+            FROM song_playlist_entries
             GROUP BY song_playlist_entries.playlist_id
         ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         ORDER BY playlists.name ASC
@@ -105,13 +143,28 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
      * NOTE: Setting of null song_count to 0 necessary because playlists can have 0 songs.
      * @param limit [Int] an optional limit on the records returned
      */
-    @Query(
+    /*@Query(
         """
         SELECT playlists.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
         LEFT JOIN (
             SELECT songs.id, song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count, MAX(songs.date_last_played) AS date_last_played
             FROM songs
             INNER JOIN song_playlist_entries ON songs.id = song_playlist_entries.song_id
+            GROUP BY song_playlist_entries.playlist_id
+        ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
+        ORDER BY playlists.name DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortPlaylistsByNameDesc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/
+
+    // TODO: revised to not use songs table
+    @Query(
+        """
+        SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
+        LEFT JOIN (
+            SELECT song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count
+            FROM song_playlist_entries
             GROUP BY song_playlist_entries.playlist_id
         ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         ORDER BY playlists.name DESC
@@ -126,13 +179,28 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
      * NOTE: Setting of null song_count to 0 necessary because playlists can have 0 songs.
      * @param limit [Int] an optional limit on the records returned
      */
-    @Query(
+    /*@Query(
         """
         SELECT playlists.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
         LEFT JOIN (
             SELECT songs.id, song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count, MAX(songs.date_last_played) AS date_last_played
             FROM songs
             INNER JOIN song_playlist_entries ON songs.id = song_playlist_entries.song_id
+            GROUP BY song_playlist_entries.playlist_id
+        ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
+        ORDER BY playlists.date_created ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortPlaylistsByDateCreatedAsc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/
+
+    // TODO: revised to not use songs table
+    @Query(
+        """
+        SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
+        LEFT JOIN (
+            SELECT song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count
+            FROM song_playlist_entries
             GROUP BY song_playlist_entries.playlist_id
         ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         ORDER BY playlists.date_created ASC
@@ -147,13 +215,28 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
      * NOTE: Setting of null song_count to 0 necessary because playlists can have 0 songs.
      * @param limit [Int] an optional limit on the records returned
      */
-    @Query(
+    /*@Query(
         """
         SELECT playlists.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
         LEFT JOIN (
             SELECT songs.id, song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count, MAX(songs.date_last_played) AS date_last_played
             FROM songs
             INNER JOIN song_playlist_entries ON songs.id = song_playlist_entries.song_id
+            GROUP BY song_playlist_entries.playlist_id
+        ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
+        ORDER BY playlists.date_created DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortPlaylistsByDateCreatedDesc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/
+
+    // TODO: revised to not use songs table
+    @Query(
+        """
+        SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
+        LEFT JOIN (
+            SELECT song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count
+            FROM song_playlist_entries
             GROUP BY song_playlist_entries.playlist_id
         ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         ORDER BY playlists.date_created DESC
@@ -168,13 +251,28 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
      * NOTE: Setting of null song_count to 0 necessary because playlists can have 0 songs.
      * @param limit [Int] an optional limit on the records returned
      */
-    @Query(
+    /*@Query(
         """
         SELECT playlists.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
         LEFT JOIN (
             SELECT songs.id, song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count, MAX(songs.date_last_played) AS date_last_played
             FROM songs
             INNER JOIN song_playlist_entries ON songs.id = song_playlist_entries.song_id
+            GROUP BY song_playlist_entries.playlist_id
+        ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
+        ORDER BY datetime(date_last_accessed) ASC, playlists.name ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortPlaylistsByDateLastAccessedAsc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/
+
+    // TODO: revised to not use songs table
+    @Query(
+        """
+        SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
+        LEFT JOIN (
+            SELECT song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count
+            FROM song_playlist_entries
             GROUP BY song_playlist_entries.playlist_id
         ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         ORDER BY datetime(date_last_accessed) ASC, playlists.name ASC
@@ -189,7 +287,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
      * NOTE: Setting of null song_count to 0 necessary because playlists can have 0 songs.
      * @param limit [Int] an optional limit on the records returned
      */
-    @Query(
+    /*@Query(
         """
         SELECT playlists.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
         LEFT JOIN (
@@ -202,8 +300,23 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
         LIMIT :limit
         """
     )
-    abstract fun sortPlaylistsByDateLastAccessedDesc(limit: Int): Flow<List<PlaylistWithExtraInfo>> //mostRecentPlaylists(limit: Int): Flow<List<Playlist>>
+    abstract fun sortPlaylistsByDateLastAccessedDesc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/ //mostRecentPlaylists(limit: Int): Flow<List<Playlist>>
     // want this to be used for ... add to playlist i think? ie if adding a song to playlist and added a song previously, want that previous playlist to show up first
+
+    // TODO: revised to not use songs table
+    @Query(
+        """
+        SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
+        LEFT JOIN (
+            SELECT song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count
+            FROM song_playlist_entries
+            GROUP BY song_playlist_entries.playlist_id
+        ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
+        ORDER BY datetime(date_last_accessed) ASC, playlists.name DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortPlaylistsByDateLastAccessedDesc(limit: Int): Flow<List<PlaylistWithExtraInfo>>
 
     /**
      * Returns a flow of the list of playlist records and their aggregated songs data,
@@ -263,7 +376,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
      * NOTE: Setting of null song_count to 0 necessary because playlists can have 0 songs.
      * @param limit [Int] an optional limit on the records returned
      */
-    @Transaction
+    /*@Transaction
     @Query(
         """
         SELECT playlists.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
@@ -271,6 +384,24 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
             SELECT songs.id, song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count, MAX(songs.date_last_played) AS date_last_played
             FROM songs
             INNER JOIN song_playlist_entries ON songs.id = song_playlist_entries.song_id
+            GROUP BY song_playlist_entries.playlist_id
+        ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
+        ORDER BY song_count ASC, playlists.name ASC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortPlaylistsBySongCountAsc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<PlaylistWithExtraInfo>>*/
+
+    // TODO: revised to not use songs table
+    @Transaction
+    @Query(
+        """
+        SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
+        LEFT JOIN (
+            SELECT song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count
+            FROM song_playlist_entries
             GROUP BY song_playlist_entries.playlist_id
         ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         ORDER BY song_count ASC, playlists.name ASC
@@ -287,7 +418,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
      * NOTE: Setting of null song_count to 0 necessary because playlists can have 0 songs.
      * @param limit [Int] an optional limit on the records returned
      */
-    @Transaction
+    /*@Transaction
     @Query(
         """
         SELECT playlists.*, date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
@@ -298,6 +429,24 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
             GROUP BY song_playlist_entries.playlist_id
         ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         ORDER BY song_count DESC, playlists.name DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun sortPlaylistsBySongCountDesc(
+        limit: Int = Integer.MAX_VALUE
+    ): Flow<List<PlaylistWithExtraInfo>>*/
+
+    // TODO: revised to not use songs table
+    @Transaction
+    @Query(
+        """
+        SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
+        LEFT JOIN (
+            SELECT song_playlist_entries.playlist_id, COUNT(song_playlist_entries.song_id) AS song_count
+            FROM song_playlist_entries
+            GROUP BY song_playlist_entries.playlist_id
+        ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
+        ORDER BY song_count ASC, playlists.name DESC
         LIMIT :limit
         """
     )
@@ -400,6 +549,17 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     )
     abstract fun sortSongsAndPlaylistByTrackNumberAsc(playlistId: Long): Map<Playlist, List<Song>>
     //NOTE: playlist_track_number+1 is to cover the fact that the numbers are autogenerated with 0 as the starting number
+
+    @Transaction
+    @Query(
+        """
+        SELECT song_playlist_entries.song_id FROM playlists
+        LEFT JOIN song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
+        WHERE playlists.id = :playlistId
+        ORDER BY song_playlist_entries.playlist_track_number ASC
+        """
+    )
+    abstract fun getSongsByPlaylistId(playlistId: Long): Flow<List<Long>>
 
     //need update function, for updating song_playlist_entries, for removing songs from playlist
     //maybe need delete function / remove hide function

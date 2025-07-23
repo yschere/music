@@ -48,7 +48,7 @@ fun ArtistV2.asExternalModel(): ArtistInfo {
     return ArtistInfo(
         id = this.id,
         name = this.name,
-        albumCount = 0,//this.numAlbums,
-        songCount = 0,//this.numTracks,
+        albumCount = this.numAlbums,
+        songCount = this.numTracks,
     )
 }

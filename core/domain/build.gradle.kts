@@ -44,7 +44,7 @@ dependencies {
     // Dependency injection
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.dagger.hilt.android)
-    implementation(libs.androidx.activity)
+    implementation(libs.androidx.activity.compose)
 //    implementation(libs.play.services.cast.framework)
     ksp(libs.dagger.hilt.compiler)
 

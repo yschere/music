@@ -59,6 +59,7 @@ import com.example.music.designsys.theme.blueLightSet
 fun AlbumImage(
     albumImage: Int = 0,
     //albumImage: String,
+    //albumImage: Bitmap,
     contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,

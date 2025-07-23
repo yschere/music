@@ -99,6 +99,15 @@ import com.example.music.util.logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+/** Changelog:
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
+ */
+
 /**
  * Stateful Composable for the Library Screen of the app. Contains windowSizeClass,
  * navigateToPlayer, and viewModel as parameters.
@@ -110,13 +119,14 @@ fun LibraryScreen(
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
+    navigateToSearch: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     navigateToGenreDetails: (GenreInfo) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    //navigateToPlayerSong: (PlayerSong) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -138,7 +148,7 @@ fun LibraryScreen(
             libraryComposers = uiState.libraryComposers,
             libraryGenres = uiState.libraryGenres,
             libraryPlaylists = uiState.libraryPlaylists,
-            libraryPlayerSongs = uiState.libraryPlayerSongs,
+            //libraryPlayerSongs = uiState.libraryPlayerSongs,
             librarySongs = uiState.librarySongs,
             totals = uiState.totals,
             onLibraryAction = viewModel::onLibraryAction,
@@ -150,7 +160,6 @@ fun LibraryScreen(
                //  can encapsulate the type of properties needed that Podcast has
                 navigator.navigateTo(SupportingPaneScaffoldRole.Supporting, it.id.toString())
             },*/
-            navigateBack = navigateBack,
             navigateToHome = navigateToHome,
             navigateToLibrary = navigateToLibrary,
             navigateToSettings = navigateToSettings,
@@ -160,7 +169,8 @@ fun LibraryScreen(
             navigateToGenreDetails = navigateToGenreDetails,
             navigateToPlaylistDetails = navigateToPlaylistDetails,
             navigateToPlayer = navigateToPlayer,
-            navigateToPlayerSong = navigateToPlayerSong,
+            //navigateToPlayerSong = navigateToPlayerSong,
+            navigateToSearch = navigateToSearch,
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -170,7 +180,10 @@ fun LibraryScreen(
  * Error Screen
  */
 @Composable
-private fun LibraryScreenError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+private fun LibraryScreenError(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -204,11 +217,11 @@ private fun LibraryScreen(
     libraryGenres: List<GenreInfo>,
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
-    libraryPlayerSongs: List<PlayerSong>, //TODO: PlayerSong support
+    //libraryPlayerSongs: List<PlayerSong>, //TODO: PlayerSong support
     totals: List<Int>,
     //totals: List<Pair<String,Int>>,
     onLibraryAction: (LibraryAction) -> Unit,
-    navigateBack: () -> Unit,
+    //navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
@@ -218,7 +231,8 @@ private fun LibraryScreen(
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    //navigateToPlayerSong: (PlayerSong) -> Unit,
+    navigateToSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -248,7 +262,7 @@ private fun LibraryScreen(
             Scaffold(
                 topBar = {
                     LibraryTopAppBar(
-                        isExpanded = windowSizeClass.isCompact,
+                        navigateToSearch = navigateToSearch,
                         onNavigationIconClick = {
                             coroutineScope.launch {
                                 drawerState.apply {
@@ -272,33 +286,11 @@ private fun LibraryScreen(
                         navigateToPlayerSong = { navigateToPlayerSong(PreviewPlayerSongs[5]) },
                     )*/
                 },
-                /* //jump to top of screen FAB
-                floatingActionButton = {
-                    FloatingActionButton(
-                        modifier = Modifier,
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        shape = MusicShapes.small,
-                        /*.animateFloatingActionButton(
-                            visible = fabVisible,
-                            alignment = Alignment.BottomEnd
-                        ),*/
-
-                        onClick = { /* do something */ },
-                    ) {
-                        Icon(
-                            Icons.Filled.KeyboardDoubleArrowUp,
-                            contentDescription = "Jump to top of screen",
-                            modifier = Modifier.size(40.dp),//.clip(FloatingActionButtonDefaults.smallShape),
-                        )
-                    }
-                },
-                floatingActionButtonPosition = FabPosition.Center,*/
                 snackbarHost = {
                     SnackbarHost(hostState = snackbarHostState)
                 },
                 containerColor = Color.Transparent,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
-                //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
             ) { contentPadding ->
                 // Main Content
                 LibraryContent(
@@ -310,7 +302,7 @@ private fun LibraryScreen(
                     libraryComposers = libraryComposers,
                     libraryGenres = libraryGenres,
                     libraryPlaylists = libraryPlaylists,
-                    libraryPlayerSongs = libraryPlayerSongs,
+                    //libraryPlayerSongs = libraryPlayerSongs,
                     librarySongs = librarySongs,
                     modifier = Modifier.padding(contentPadding),
                     onLibraryAction = { action ->
@@ -327,7 +319,7 @@ private fun LibraryScreen(
                     navigateToGenreDetails = navigateToGenreDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToPlayer = navigateToPlayer,
-                    navigateToPlayerSong = navigateToPlayerSong,
+                    //navigateToPlayerSong = navigateToPlayerSong,
                 )
             }
         }
@@ -339,13 +331,10 @@ private fun LibraryScreen(
  */
 @Composable
 private fun LibraryTopAppBar(
-    isExpanded: Boolean,
-    onNavigationIconClick: () -> Unit, //use this to capture navDrawer open/close action
+    navigateToSearch: () -> Unit,
+    onNavigationIconClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var queryText by remember {
-        mutableStateOf("")
-    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -354,7 +343,7 @@ private fun LibraryTopAppBar(
             .padding(horizontal = 8.dp)
     ) {
         // nav drawer btn
-        IconButton(onClick = onNavigationIconClick) {
+        IconButton( onClick = onNavigationIconClick ) {
             Icon(
                 imageVector = Icons.Outlined.Menu,
                 contentDescription = stringResource(R.string.icon_nav_drawer),
@@ -366,45 +355,13 @@ private fun LibraryTopAppBar(
         Spacer(Modifier.weight(1f))
 
         // search btn
-        IconButton(onClick = { /* TODO */ }) {
+        IconButton( onClick = navigateToSearch ) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = stringResource(R.string.icon_search),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
-
-        /*SearchBar( //TODO: determine if this can be a shared item & if this can have visibility functionality
-            inputField = {
-                SearchBarDefaults.InputField(
-                    query = queryText,
-                    onQueryChange = { queryText = it },
-                    onSearch = {},
-                    expanded = false,
-                    onExpandedChange = {},
-                    enabled = true,
-                    placeholder = {
-                        Text(stringResource(id = R.string.cd_search))
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null
-                        )
-                    },
-                    // trailingIcon = {
-                        // Icon(
-                            // imageVector = Icons.Default.AccountCircle,
-                            // contentDescription = null, //was stringResource(R.string.cd_account)
-                        // )
-                    // },
-                    interactionSource = null,
-                    modifier = if (isExpanded) Modifier.fillMaxWidth() else Modifier
-                )
-            },
-            expanded = false,
-            onExpandedChange = {}
-        ) {}*/
     }
 }
 
@@ -427,7 +384,7 @@ private fun LibraryContent(
     libraryGenres: List<GenreInfo>,
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
-    libraryPlayerSongs: List<PlayerSong>,
+    //libraryPlayerSongs: List<PlayerSong>,
 
     modifier: Modifier = Modifier,
     onLibraryAction: (LibraryAction) -> Unit,
@@ -438,7 +395,7 @@ private fun LibraryContent(
     navigateToGenreDetails: (GenreInfo) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    //navigateToPlayerSong: (PlayerSong) -> Unit,
 ) {
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
@@ -462,7 +419,7 @@ private fun LibraryContent(
     val groupedComposerItems = libraryComposers.groupBy { it.name.first() }
     val groupedGenreItems = libraryGenres.groupBy { it.name.first() }
     val groupedPlaylistItems = libraryPlaylists.groupBy { it.name.first() }
-    val groupedSongItems = libraryPlayerSongs.groupBy { it.title.first() }
+    val groupedSongItems = librarySongs.groupBy { it.title.first() }
 
     groupedArtistItems.forEach { (letter, artist) ->
         logger.info { "Output for groupedArtists Letter: $letter, artist: $artist" }
@@ -544,26 +501,13 @@ private fun LibraryContent(
                 }
 
                 LibraryCategory.Songs -> {
-                    /** player song version **/
                     songItems(
                         //what would the songs screen need?
-                        playerSongs = libraryPlayerSongs,
+                        songs = librarySongs,
                         coroutineScope = coroutineScope,
                         navigateToPlayer = navigateToPlayer,
-                        navigateToPlayerSong = navigateToPlayerSong,
                         //onQueueSong = { onLibraryAction(LibraryAction.QueueSong(it)) },
                     )
-
-                    /** song info version **/
-                    /*songItems(
-                        //what would the songs screen need?
-                        songs = librarySongs,
-                        playerSongs = libraryPlayerSongs,
-                        coroutineScope = coroutineScope,
-                        navigateToPlayer = navigateToPlayer,
-                        navigateToPlayerSong = navigateToPlayerSong,
-                        //onQueueSong = { onLibraryAction(LibraryAction.QueueSong(it)) },
-                    )*/
                 }
 
                 /** adaptive columns section **/
@@ -714,7 +658,7 @@ private fun lastUpdated(updated: OffsetDateTime): String {
 private fun LibraryTopAppBarPreview() {
     MusicTheme {
         LibraryTopAppBar(
-            isExpanded = false,
+            navigateToSearch = {},
             onNavigationIconClick = {},
         )
     }
@@ -737,7 +681,7 @@ private fun PreviewLibrary() {
             libraryComposers = PreviewComposers,
             libraryGenres = PreviewGenres,
             libraryPlaylists = PreviewPlaylists,
-            libraryPlayerSongs = PreviewPlayerSongs,
+            //libraryPlayerSongs = PreviewPlayerSongs,
             librarySongs = PreviewSongs,
             totals = listOf(
                 PreviewSongs.size,
@@ -745,7 +689,7 @@ private fun PreviewLibrary() {
                 PreviewAlbums.size,
                 PreviewPlaylists.size),
             onLibraryAction = {},
-            navigateBack = {},
+            //navigateBack = {},
             navigateToHome = {},
             navigateToLibrary = {},
             navigateToSettings = {},
@@ -755,7 +699,8 @@ private fun PreviewLibrary() {
             navigateToGenreDetails = {},
             navigateToComposerDetails = {},
             navigateToPlayer = {},
-            navigateToPlayerSong = {},
+            //navigateToPlayerSong = {},
+            navigateToSearch = {},
         )
     }
 }

@@ -11,13 +11,17 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.CancellationSignal
 import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
 import androidx.compose.runtime.Stable
 import androidx.core.app.ActivityCompat
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.Size
+import androidx.media3.common.util.UnstableApi
 import com.example.music.domain.util.MediaRepo.Companion.toAlbumArtUri
 //import com.example.music.data.store.MediaRetriever
 import kotlinx.coroutines.Dispatchers
@@ -182,6 +186,7 @@ data class Audio(
     @JvmField val discNumber: Int,
     @JvmField val srcTrackNumber: Int,
     @JvmField val cdTrackNumber: Int,
+    //@JvmField val isDRM: Int,
 )
 
 /**
@@ -200,8 +205,8 @@ private fun Cursor.toAudio(): Audio {
         title = getString(1) ?: MediaStore.UNKNOWN_STRING,
         mimeType = getString(2) ?: MediaStore.UNKNOWN_STRING,
         path = getString(3) ?: MediaStore.UNKNOWN_STRING,
-        dateAdded = getLong(4) * 1000, //normally return in ms, so multiply by 100 to turn into seconds
-        dateModified = getLong(5) * 1000, //normally return in ms, so multiply by 100 to turn into seconds
+        dateAdded = getLong(4) * 1000, //normally return in ms, so multiply by 1000 to turn into seconds
+        dateModified = getLong(5) * 1000, //normally return in ms, so multiply by 1000 to turn into seconds
         size = getLong(6),
 
         artist = getString(7) ?: MediaStore.UNKNOWN_STRING,
@@ -221,6 +226,7 @@ private fun Cursor.toAudio(): Audio {
         discNumber = getInt(20),
         srcTrackNumber = getInt(21),
         cdTrackNumber = getInt(22),
+        //isDRM = getInt(23)
     )
 }
 
@@ -230,31 +236,32 @@ private fun Cursor.toAudio(): Audio {
 private val AUDIO_PROJECTION
     get() = arrayOf(
         MediaStore.Audio.Media._ID, // 0
-        MediaStore.Audio.Media.TITLE, // 2
-        MediaStore.Audio.Media.MIME_TYPE, // 3
-        MediaStore.Audio.Media.DATA, // 4
-        MediaStore.Audio.Media.DATE_ADDED, // 5
-        MediaStore.Audio.Media.DATE_MODIFIED, // 6
-        MediaStore.Audio.Media.SIZE, // 7
+        MediaStore.Audio.Media.TITLE, // 1
+        MediaStore.Audio.Media.MIME_TYPE, // 2
+        MediaStore.Audio.Media.DATA, // 3
+        MediaStore.Audio.Media.DATE_ADDED, // 4
+        MediaStore.Audio.Media.DATE_MODIFIED, // 5
+        MediaStore.Audio.Media.SIZE, // 6
 
-        MediaStore.Audio.AudioColumns.ARTIST, // 9
-        MediaStore.Audio.AudioColumns.ARTIST_ID, // 10
-        MediaStore.Audio.AudioColumns.ALBUM, // 11
-        MediaStore.Audio.AudioColumns.ALBUM_ID, // 12
-        MediaStore.Audio.AudioColumns.ALBUM_ARTIST, // 13
-        MediaStore.Audio.AudioColumns.COMPOSER, // 14
-        MediaStore.Audio.AudioColumns.GENRE, // 15
-        MediaStore.Audio.AudioColumns.GENRE_ID, // 16
-        MediaStore.Audio.AudioColumns.YEAR, // 17
-        MediaStore.Audio.AudioColumns.TRACK, // 18
-        MediaStore.Audio.AudioColumns.DURATION, // 19
-        MediaStore.Audio.AudioColumns.BITRATE, // 20
+        MediaStore.Audio.AudioColumns.ARTIST, // 7
+        MediaStore.Audio.AudioColumns.ARTIST_ID, // 8
+        MediaStore.Audio.AudioColumns.ALBUM, // 9
+        MediaStore.Audio.AudioColumns.ALBUM_ID, // 10
+        MediaStore.Audio.AudioColumns.ALBUM_ARTIST, // 11
+        MediaStore.Audio.AudioColumns.COMPOSER, // 12
+        MediaStore.Audio.AudioColumns.GENRE, // 13
+        MediaStore.Audio.AudioColumns.GENRE_ID, // 14
+        MediaStore.Audio.AudioColumns.YEAR, // 15
+        MediaStore.Audio.AudioColumns.TRACK, // 16
+        MediaStore.Audio.AudioColumns.DURATION, // 17
+        MediaStore.Audio.AudioColumns.BITRATE, // 18
 
         //adding for testing what these columns return as
-        MediaStore.Audio.AudioColumns._ID, // 21
-        MediaStore.Audio.AudioColumns.DISC_NUMBER, // 22
-        MediaStore.Audio.AudioColumns.NUM_TRACKS, // 23
-        MediaStore.MediaColumns.CD_TRACK_NUMBER, // 24
+        MediaStore.Audio.AudioColumns._ID, // 19
+        MediaStore.Audio.AudioColumns.DISC_NUMBER, // 20
+        MediaStore.Audio.AudioColumns.NUM_TRACKS, // 21
+        MediaStore.MediaColumns.CD_TRACK_NUMBER, // 22
+        //MediaStore.Audio.Media.IS_DRM, // 23
     )
 
 private const val DEFAULT_AUDIO_SELECTION = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
@@ -273,14 +280,14 @@ suspend fun ContentResolver.getAudios(
 ): List<Audio> {
     val id = MediaStore.Audio.Media._ID
     val title = MediaStore.Audio.Media.TITLE
-    val artist = MediaStore.Audio.Media.ARTIST
-    val album = MediaStore.Audio.Media.ALBUM
+//    val artist = MediaStore.Audio.Media.ARTIST
+//    val album = MediaStore.Audio.Media.ALBUM
 
     return query2(
         uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
         projection = AUDIO_PROJECTION,
         selection = DEFAULT_AUDIO_SELECTION +
-            if (sQuery != null) " AND $id || $title || $artist || $album LIKE ?"
+            if (sQuery != null) " AND $id || $title LIKE ?"
             else "", /// ......... IS FILTER THE INSERT FOR A SEARCH QUERY???? HAS THAT BEEN IT???!?!?!
         args =
             if (sQuery != null) arrayOf("%$sQuery%")
@@ -447,8 +454,8 @@ fun ContentResolver.audios(
 data class Artist(
     @JvmField val id: Long,
     @JvmField val name: String,
-    //@JvmField val numTracks: Int,
-    //@JvmField val numAlbums: Int,
+    @JvmField val numTracks: Int,
+    @JvmField val numAlbums: Int,
     @JvmField val sort: String,
 )
 
@@ -481,8 +488,8 @@ private fun Cursor.toArtist(): Artist {
     return Artist(
         id = getLong(0),
         name = getString(1) ?: MediaStore.UNKNOWN_STRING,
-        //numTracks = getInt(2),
-        //numAlbums = getInt(2),
+        numTracks = getInt(2),
+        numAlbums = getInt(3),
         sort = getString(4) ?: MediaStore.UNKNOWN_STRING,
     )
 }
@@ -510,7 +517,7 @@ suspend fun ContentResolver.getArtists(
     offset = offset,
     limit = limit,
     transform = { c ->
-        domainLogger.info { "$TAG - Artist count returned: ${c.count}rows + ${c.columnNames}" }
+        domainLogger.info { "$TAG - Artist count returned: ${c.count} rows + ${c.columnNames}" }
         List(c.count) {
             c.moveToPosition(it)
             c.toArtist()
@@ -655,10 +662,8 @@ data class Album(
     @JvmField val albumId: Long,
     @JvmField val artist: String,
     @JvmField val artistId: Long,
-    //@JvmField val firstYear: Int,
-    //@JvmField val lastYear: Int,
-    //@JvmField val numTracks: Int,
-    //@JvmField val numTracksByArtist: Int,
+    @JvmField val lastYear: Int,
+    @JvmField val numTracks: Int,
     @JvmField val sort: String,
 )
 
@@ -677,8 +682,8 @@ private val ALBUM_PROJECTION
         MediaStore.Audio.Albums.ALBUM_ID,
         MediaStore.Audio.Albums.ARTIST,
         MediaStore.Audio.Albums.ARTIST_ID,
-        //MediaStore.Audio.Albums.LAST_YEAR,
-        //MediaStore.Audio.Albums.NUMBER_OF_SONGS,
+        MediaStore.Audio.Albums.LAST_YEAR,
+        MediaStore.Audio.Albums.NUMBER_OF_SONGS,
         MediaStore.Audio.Albums.DEFAULT_SORT_ORDER,
         //MediaStore.Audio.Albums.ALBUM_ART,//says to use ContentResolver.loadThumbnail?
     )
@@ -700,10 +705,9 @@ private fun Cursor.toAlbum(): Album {
         albumId = getLong(2),
         artist = getString(3) ?: MediaStore.UNKNOWN_STRING,
         artistId = getLong(4),
-        //lastYear = getInt(5),
-        //numTracks = getInt(5),
-        //numTracksByArtist = getInt(5),
-        sort = getString(5) ?: MediaStore.UNKNOWN_STRING,
+        lastYear = getInt(5),
+        numTracks = getInt(6),
+        sort = getString(7) ?: MediaStore.UNKNOWN_STRING,
     )
 }
 
@@ -739,7 +743,7 @@ suspend fun ContentResolver.getAlbums(
             c.close()
             temp
         },
-    ) ?: emptyList()
+    )
 }
 
 /**
@@ -851,7 +855,6 @@ fun ContentResolver.album(
  *
  **********************************************************************************************/
 
-
 /**
  * Domain model Genre for Resolver
  */
@@ -859,8 +862,8 @@ fun ContentResolver.album(
 data class Genre(
     @JvmField val id: Long,
     @JvmField val name: String,
-    @JvmField val sort: String,
-    //@JvmField val numTracks: Int = -1
+    //@JvmField val sort: String,
+    @JvmField val numTracks: Int = -1
 )
 
 /**
@@ -870,7 +873,7 @@ private val GENRE_PROJECTION
     get() = arrayOf(
         MediaStore.Audio.Genres._ID,
         MediaStore.Audio.Genres.NAME,
-        MediaStore.Audio.Genres.DEFAULT_SORT_ORDER,
+        //MediaStore.Audio.Genres.DEFAULT_SORT_ORDER,
     )
 
 /**
@@ -885,7 +888,13 @@ private fun Cursor.toGenre(): Genre {
     return Genre(
         id = getLong(0),
         name = getString(1) ?: MediaStore.UNKNOWN_STRING,
-        sort = getString(2) ?: MediaStore.UNKNOWN_STRING,
+        //sort = getString(2) ?: MediaStore.UNKNOWN_STRING,
+    )
+}
+
+private fun Cursor.toGenre(count: Int): Genre {
+    return this.toGenre().copy(
+        numTracks = count
     )
 }
 
@@ -914,12 +923,16 @@ suspend fun ContentResolver.getGenres(
     transform = { c ->
         val temp = List(c.count) {
             c.moveToPosition(it)
-            c.toGenre()
+            c.toGenre(
+                getGenreAudioCount(
+                    c.getLong(0)
+                )
+            )
         }
         c.close()
         temp
     },
-) ?: emptyList()
+)
 
 /**
  * Builds Audio list via getting genre id through genre name
@@ -947,7 +960,7 @@ suspend fun ContentResolver.getGenreAudios(
         if (it.count == 0) return emptyList()
         it.moveToPosition(0)
         it.getLong(0)
-    } ?: return emptyList()
+    }
 
     // calculate the ids.
     val list = query2(
@@ -963,7 +976,7 @@ suspend fun ContentResolver.getGenreAudios(
         }
         c.close()
         buffer.toString()
-    } ?: return emptyList()
+    }
 
     val like = if (sQuery != null) " AND ${MediaStore.Audio.Media.TITLE} LIKE ?" else ""
     return query2(
@@ -982,11 +995,11 @@ suspend fun ContentResolver.getGenreAudios(
             c.close()
             temp
         }
-    } ?: emptyList()
+    }
 }
 
 /**
- * @return list of [Audio] based on Genre
+ * @return list of [Audio] based on Genre ID
  */
 suspend fun ContentResolver.getGenreAudios(
     id: Long,
@@ -1030,6 +1043,36 @@ suspend fun ContentResolver.findGenre(id: Long): Genre {
 }
 
 /**
+ * Find count of audios in genre by genre id
+ * @return [Int] audio count
+ */
+//suspend fun ContentResolver.getGenreWithAudioCount(id: Long): Genre {
+//    val gen = findGenre(id)
+//    val count = query2(
+//        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+//        arrayOf(MediaStore.Audio.Media._ID),
+//        "${MediaStore.Audio.Media.GENRE_ID} == ?",
+//        arrayOf("$id"),
+//    ) {
+//        it.moveToFirst()
+//        it.count
+//    }
+//    return Genre(id, gen.name, count)
+//}
+
+suspend fun ContentResolver.getGenreAudioCount(id: Long): Int {
+    return query2(
+        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+        arrayOf(MediaStore.Audio.Media._ID),
+        "${MediaStore.Audio.Media.GENRE_ID} == ?",
+        arrayOf("$id"),
+    ) {
+        it.moveToFirst()
+        it.count
+    }
+}
+
+/**
  * External function for content resolver to retrieve genres
  */
 fun ContentResolver.genres(
@@ -1058,7 +1101,6 @@ fun ContentResolver.genre(
  * **********  EXTRA PROPERTIES SECTION ***********
  *
  **********************************************************************************************/
-
 
 /**
  * Returns the content URI for this audio file, using the [MediaStore.Audio.Media.EXTERNAL_CONTENT_URI]
@@ -1104,12 +1146,54 @@ val Audio.toMediaItem // the other one had its own class MediaItem that it const
     get() = MediaItem.Builder()
         .setMediaId("$id")
         .setUri(uri)
+        .setMimeType(mimeType)
+
 //.setMediaMetadata() uri, name, artist, "$id", albumUri
 //inline val Audio.toMediaItem
 //    get() = MediaItem(uri, name, artist, "$id", albumUri)
 
+private const val ALBUM_ART_URI: String = "content://media/external/audio/albumart"
 fun toAlbumArtUri(id: Long): Uri = ContentUris.withAppendedId(Uri.parse(ALBUM_ART_URI), id)
-private val ALBUM_ART_URI: String = "content://media/external/audio/albumart"
+
+/**
+ * Fetches the content URIs for the given media IDs.
+ *
+ * This function queries the MediaStore to determine the typeof each media item (image or video)
+ * based on the provided IDs and constructs the corresponding content URIs.
+ *
+ * @param ids The IDs of the media items to fetch URIs for.
+ * @return A list of content URIs corresponding to the given IDs.
+ */
+internal suspend fun ContentResolver.fetchContentUri(vararg ids: Long): List<Uri> {
+    // Create a comma-separated string of IDs for the SQL IN clause.
+    val idsString = ids.joinToString(",") { it.toString() }
+
+    // Define the projection to retrieve the ID and media type of each item.
+    val projection = arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.CONTENT_TYPE)
+
+    // Define the selection clause to filter items based on the provided IDs.
+    val selection = "${MediaStore.Audio.Media._ID} IN ($idsString)"
+
+    // Query the MediaStore and transform the result into a list of content URIs.
+    return query2(
+        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, // The base content URI for media files
+        projection, // The columns to retrieve
+        selection, // The selection clause to filter results
+        transform = { c ->
+            List(c.count) { index -> // Iterate over the cursor results
+                c.moveToPosition(index) // Move to the current row
+                val type = c.getInt(1) // Get the media type (image or video)
+                // Construct the appropriate content URI based on the media type.
+                val uri = when (type) {
+                    MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+                    else -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                }
+                ContentUris.withAppendedId(uri, c.getLong(0)) // Append the ID to the URI
+            }
+        }
+    )
+}
 
 
 /**

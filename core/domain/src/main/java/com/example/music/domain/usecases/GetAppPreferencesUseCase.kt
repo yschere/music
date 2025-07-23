@@ -24,12 +24,6 @@ class GetAppPreferencesUseCase @Inject constructor(
 ) {
     operator fun invoke(): Flow<AppPreferences> {
         domainLogger.info { "Get App Preferences Flow - ${appPrefRepo.appPreferencesFlow}" }
-        val pap = appPrefRepo.appPreferencesFlow.map {
-            domainLogger.info { "$TAG - appPref: \n" +
-                "songSortOrder: ${it.songSortOrder}\n" +
-                "albumSortOrder: ${it.albumSortOrder}\n" +
-                "isAlbumAscending: ${it.isAlbumAsc}" }
-        }
         return appPrefRepo.appPreferencesFlow
     }
 

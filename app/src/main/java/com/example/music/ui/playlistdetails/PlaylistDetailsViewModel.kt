@@ -10,6 +10,8 @@ import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.Screen
 import com.example.music.data.util.combine
+import com.example.music.domain.player.model.toPlayerSong
+import com.example.music.domain.usecases.GetPlaylistDetailsV2
 import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,8 +22,16 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
+/** Changelog:
+ *
+ * ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
  * THIS WILL REPLACE NEED FOR ASSISTED INJECTION AND CHANGE INTERACTION WITH UISTATE
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 4/5/2025 - Testing out accessing Songs through MediaStore with GetPlaylistDetailsV2
  */
 
 data class PlaylistUiState(
@@ -29,12 +39,13 @@ data class PlaylistUiState(
     val errorMessage: String? = null,
     val playlist: PlaylistInfo = PlaylistInfo(),
     val songs: List<SongInfo> = emptyList(),
-    val pSongs: List<PlayerSong> = emptyList(),
+    //val pSongs: List<PlayerSong> = emptyList(),
 )
 
 @HiltViewModel
 class PlaylistDetailsViewModel @Inject constructor(
     getPlaylistDetailsUseCase: GetPlaylistDetailsUseCase,
+    getPlaylistDetailsV2: GetPlaylistDetailsV2,
     private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -42,7 +53,8 @@ class PlaylistDetailsViewModel @Inject constructor(
     private val _playlistId: String = savedStateHandle.get<String>(Screen.ARG_PLAYLIST_ID)!!
     private val playlistId = _playlistId.toLong()
 
-    private val getPlaylistDetailsData = getPlaylistDetailsUseCase(playlistId)
+//    private val getPlaylistDetailsData = getPlaylistDetailsUseCase(playlistId)
+    private val getPlaylistDetailsData = getPlaylistDetailsV2(playlistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     /* ---- Initial version that uses playlistRepo directly to retrieve Flow data for Playlist Details
@@ -77,36 +89,18 @@ class PlaylistDetailsViewModel @Inject constructor(
                 logger.info { "Playlist Details View Model - PlaylistUiState call" }
                 logger.info { "Playlist Details View Model - playlistDetailsFilterResult ID: ${playlistDetailsFilterResult.playlist.id}" }
                 logger.info { "Playlist Details View Model - playlistDetailsFilterResult songs: ${playlistDetailsFilterResult.songs.size}" }
-                for (items in playlistDetailsFilterResult.songs) {
-                    logger.info { "song ID: ${items.id}" }
-                    logger.info { "song name: ${items.title}" }
-                }
-                logger.info { "Playlist Details View Model - playlistDetailsFilterResult playerSongs: ${playlistDetailsFilterResult.pSongs.size}" }
+                //for (items in playlistDetailsFilterResult.songs) {
+                    //logger.info { "song ID: ${items.id}" }
+                    //logger.info { "song name: ${items.title}" }
+                //}
                 logger.info { "Playlist Details View Model - isReady?: ${!refreshing}" }
                 PlaylistUiState(
                     isReady = !refreshing,
                     playlist = playlistDetailsFilterResult.playlist,
                     songs = playlistDetailsFilterResult.songs,
-                    pSongs = playlistDetailsFilterResult.pSongs,
+                    //pSongs = playlistDetailsFilterResult.pSongs,
                 )
             }
-            /*combine(
-                refreshing,
-                playlist,
-                pSongsList,
-                songs,
-            ) {
-                refreshing,
-                plist,
-                pSongs,
-                songs ->
-                PlaylistUiState(
-                    isReady = !refreshing,
-                    playlist = plist.asExternalModel(),
-                    pSongs = pSongs,
-                    songs = songs.map{ it.asExternalModel() },
-                )
-            }.*/
             .catch { throwable ->
                 emit(
                     PlaylistUiState(
@@ -133,8 +127,8 @@ class PlaylistDetailsViewModel @Inject constructor(
         }
     }
 
-    fun onQueueSong(playerSong: PlayerSong) {
-        songPlayer.addToQueue(playerSong)
+    fun onQueueSong(song: SongInfo) {
+        songPlayer.addToQueue(song.toPlayerSong())
     }
 }
 

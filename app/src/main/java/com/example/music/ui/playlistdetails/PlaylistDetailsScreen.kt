@@ -75,13 +75,23 @@ import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
+/** Changelog:
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
+ */
+
 /**
  * Stateful version of Playlist Details Screen
  */
 @Composable
 fun PlaylistDetailsScreen(
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    //navigateToPlayerSong: (PlayerSong) -> Unit,
+    navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //modifier: Modifier = Modifier,
     viewModel: PlaylistDetailsViewModel = hiltViewModel(),
@@ -98,10 +108,11 @@ fun PlaylistDetailsScreen(
             PlaylistDetailsScreen(
                 playlist = uiState.playlist,
                 songs = uiState.songs,
-                pSongs = uiState.pSongs, //TODO: PlayerSong support
+                //pSongs = uiState.pSongs, //TODO: PlayerSong support
                 onQueueSong = viewModel::onQueueSong,
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
+                //navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
+                navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -177,10 +188,11 @@ private fun PlaylistDetailsLoadingScreen(
 private fun PlaylistDetailsScreen(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
-    pSongs: List<PlayerSong>, //TODO: PlayerSong support
-    onQueueSong: (PlayerSong) -> Unit,
+    //pSongs: List<PlayerSong>, //TODO: PlayerSong support
+    onQueueSong: (SongInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) { //base level screen data / coroutine setter / screen component(s) caller
@@ -200,14 +212,15 @@ private fun PlaylistDetailsScreen(
                 // was this meant to keep all the contents within the window insets?
             topBar = {
                 PlaylistDetailsTopAppBar(
+                    navigateToSearch = navigateToSearch,
                     navigateBack = navigateBack, //since using topAppBar here, separating navigateBack from the other navigate functions here
                 )
             },
             bottomBar = {
                 /* //should show BottomBarPlayer here if a queue session is running or service is running
                 BottomBarPlayer(
-                    song = PreviewPlayerSongs[5],
-                    navigateToPlayerSong = { navigateToPlayerSong(PreviewPlayerSongs[5]) },
+                    song = PreviewSongs[5],
+                    navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
                 )*/
             },
             snackbarHost = { // setting the snackbar hoststate to the scaffold
@@ -222,15 +235,15 @@ private fun PlaylistDetailsScreen(
             PlaylistDetailsContent(
                 playlist = playlist,
                 songs = songs,
-                pSongs = pSongs,//.toPersistentList(), //TODO: PlayerSong support
+                //pSongs = pSongs,//.toPersistentList(), //TODO: PlayerSong support
                 /*onQueueSong = {
                     coroutineScope.launch { //use the onQueueSong btn onClick to trigger snackbar
                         snackbarHostState.showSnackbar(snackBarText)
                     }
                     onQueueSong(it)
                 },*/
-                //navigateToPlayer = navigateToPlayer,
-                navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
+                navigateToPlayer = navigateToPlayer,
+                //navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
                 modifier = Modifier.padding(contentPadding)//.padding(horizontal = 8.dp)
             )
         }
@@ -243,6 +256,7 @@ private fun PlaylistDetailsScreen(
  */
 @Composable
 private fun PlaylistDetailsTopAppBar(
+    navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //should include album more options btn action here,
     //pretty sure that button also needs a context driven options set
@@ -256,7 +270,7 @@ private fun PlaylistDetailsTopAppBar(
             .padding(horizontal = 8.dp)
     ) {
         //back button
-        IconButton(onClick = navigateBack) {
+        IconButton( onClick = navigateBack ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(id = R.string.icon_back_nav),
@@ -268,7 +282,7 @@ private fun PlaylistDetailsTopAppBar(
         Spacer(Modifier.weight(1f))
 
         // search btn
-        IconButton(onClick = { /* TODO */ }) {
+        IconButton( onClick = navigateToSearch ) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = stringResource(R.string.icon_search),
@@ -293,10 +307,10 @@ private fun PlaylistDetailsTopAppBar(
 private fun PlaylistDetailsContent(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
-    pSongs: List<PlayerSong>, //TODO: PlayerSong support
+    //pSongs: List<PlayerSong>, //TODO: PlayerSong support
     //onQueueSong: (PlayerSong) -> Unit,
-    //navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    navigateToPlayer: (SongInfo) -> Unit,
+    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) { //determines content of details screen
     //logger.info { "Playlist Details Content function start" }
@@ -317,12 +331,15 @@ private fun PlaylistDetailsContent(
 
         // section 2: songs list
         fullWidthItem {
-            if (pSongs.isEmpty()) {
+            if (songs.isEmpty()) {
                 PlaylistDetailsEmptyList(onClick = {})
             } else {
                 Column {
                     SongCountAndAddSortSelectButtons( songs = songs, onAddClick = {}, onSelectClick = {}, onSortClick = {} )
-                    ShufflePlayButtons( onShuffleClick = {}, onPlayClick = {} )
+                    PlayShuffleButtons(
+                        onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                        onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                    )
                 }
             }
         }
@@ -331,32 +348,33 @@ private fun PlaylistDetailsContent(
          * ORIGINAL VERSION: using songs: List<SongInfo>
          */
         //items(songs, key = { it.id }) { song -> // for each song in list:
-        /* items(songs) { song ->
+        items(songs) { song ->
             //TODO: because playlists are capable of having multiple copies of
             // the same song, its likely necessary going forward to change the
             // referencing of each song thru its playlist entry
             // for now, not using unique id, just outputting the list
-            song.albumId?.let { getAlbumData(it) }?.let {
-                SongListItem( //call the SongListItem function to display each one, include the data needed to display item in full,
+            Box(Modifier.padding(horizontal = 4.dp, vertical = 0.dp)) {
+                SongListItem(
+                    //call the SongListItem function to display each one, include the data needed to display item in full,
                     //and should likely share context from where this call being made incase specific data needs to be shown / not shown
                     song = song,
-                    //artist = artist,
-                    album = it,
                     onClick = navigateToPlayer,
-                    onQueueSong = onQueueSong,
+                    onMoreOptionsClick = {},
+                    //onQueueSong = onQueueSong,
                     modifier = Modifier.fillMaxWidth(),
                     isListEditable = false,
                     showArtistName = true,
                     showAlbumImage = true,
                     showAlbumTitle = true,
+                    showTrackNumber = false,
                 )
             }
-        } */
+        }
 
         /**
          * PLAYERSONG VERSION: using pSongs: List<PlayerSong>
          */
-        items(pSongs) { song ->
+        /*items(pSongs) { song ->
             //logger.info { "Playlist Details Content - songs layout for song ${song.id}" }
             Box(Modifier.padding(horizontal = 4.dp, vertical = 0.dp)) {
                 SongListItem(
@@ -371,7 +389,7 @@ private fun PlaylistDetailsContent(
                     showTrackNumber = true,
                 )
             }
-        }
+        }*/
         //logger.info { "Playlist Details Content - lazy vertical grid end" }
     }
     //logger.info { "Playlist Details Content function end" }
@@ -569,14 +587,40 @@ private fun SongCountAndAddSortSelectButtons(
  * Content section 1.5: shuffle and play buttons
  */
 @Composable
-private fun ShufflePlayButtons(
-    onShuffleClick: () -> Unit,
+private fun PlayShuffleButtons(
     onPlayClick: () -> Unit,
+    onShuffleClick: () -> Unit,
+    //modifier: Modifier = Modifier,
 ) {
     Row(Modifier.padding(bottom = 8.dp)) {
+        // play btn
+        Button(
+            onClick = onPlayClick, //what is the thing that would jump start this step process. would it go thru the viewModel??
+            //step 1: regardless of shuffle being on or off, set shuffle to off
+            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
+            //step 3: set the player to play the first item in queue
+            //step 4: navigateToPlayer(first item)
+            //step 5: start playing
+            /*coroutineScope.launch {
+                sheetState.hide()
+                showThemeSheet = false
+            }*/
+            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
+            shape = MusicShapes.small,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .weight(0.5f)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.PlayArrow,
+                contentDescription = stringResource(R.string.icon_play)
+            )
+            Text("PLAY")
+        }
+
         // shuffle btn
         Button(
-            onClick = onShuffleClick,
+            onClick = onShuffleClick, //what is the thing that would jump start this step process
             //step 1: regardless of shuffle being on or off, set shuffle to on
             //step 2?: confirm the shuffle type
             //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
@@ -599,31 +643,6 @@ private fun ShufflePlayButtons(
                 contentDescription = stringResource(R.string.icon_shuffle)
             )
             Text("SHUFFLE")
-        }
-
-        // play btn
-        Button(
-            onClick = onPlayClick,
-            //step 1: regardless of shuffle being on or off, set shuffle to off
-            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
-            //step 3: set the player to play the first item in queue
-            //step 4: navigateToPlayer(first item)
-            //step 5: start playing
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
-            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
-            shape = MusicShapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PlayArrow,
-                contentDescription = stringResource(R.string.icon_play)
-            )
-            Text("PLAY")
         }
     }
 }
@@ -677,7 +696,6 @@ fun PlaylistDetailsScreenPreview() {
             //hello
             //playlist = PreviewPlaylists[0],
             //songs = getPlaylistSongs(0),
-            //pSongs= PreviewPlayerSongs, //TODO: PlayerSong support
 
             //ack
             //playlist = PreviewPlaylists[1],
@@ -690,12 +708,12 @@ fun PlaylistDetailsScreenPreview() {
             //TODO: PlayerSong support
             playlist = PreviewPlaylists[2],
             songs = getPlaylistSongs(2),
-            pSongs = getPlaylistPlayerSongs(2),
 
-            onQueueSong = { },
-            navigateToPlayer = { },
-            navigateToPlayerSong = { }, //TODO: PlayerSong support
-            navigateBack = { },
+            onQueueSong = {},
+            navigateToPlayer = {},
+            //navigateToPlayerSong = { }, //TODO: PlayerSong support
+            navigateToSearch = {},
+            navigateBack = {},
         )
     }
 }

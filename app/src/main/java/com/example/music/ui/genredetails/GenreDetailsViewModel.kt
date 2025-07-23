@@ -23,9 +23,14 @@ import javax.inject.Inject
 
 private const val TAG = "Genre Details View Model"
 
-/** ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
+/** Changelog:
+ * ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
  * As of 2/10/2025, this version is in remote branch and working on
  * PlaylistDetailsScreen, PlaylistDetailsViewModel
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
  */
 
 data class GenreUiState (
@@ -34,7 +39,7 @@ data class GenreUiState (
     val genre: GenreInfo = GenreInfo(),
     //val albums: /*Persistent*/List<AlbumInfo> = emptyList(),
     val songs: /*Persistent*/List<SongInfo> = emptyList(),
-    val pSongs: /*Persistent*/List<PlayerSong> = emptyList(),
+    //val pSongs: /*Persistent*/List<PlayerSong> = emptyList(),
 )
 
 @HiltViewModel
@@ -73,7 +78,7 @@ class GenreDetailsViewModel @Inject constructor(
                 logger.info { "Genre Details View Model - genreDetailsFilterResult ID: ${genreDetailsFilterResult.genre.id}" }
                 //logger.info { "Genre Details View Model - genreDetailsFilterResult albums: ${genreDetailsFilterResult.albums.size}" }
                 logger.info { "Genre Details View Model - genreDetailsFilterResult songs: ${genreDetailsFilterResult.songs.size}" }
-                logger.info { "Genre Details View Model - genreDetailsFilterResult pSongs: ${genreDetailsFilterResult.pSongs.size}" }
+                //logger.info { "Genre Details View Model - genreDetailsFilterResult pSongs: ${genreDetailsFilterResult.pSongs.size}" }
                 logger.info { "Genre Details View Model - isReady?: ${!refreshing}" }
 
                 GenreUiState(
@@ -81,7 +86,7 @@ class GenreDetailsViewModel @Inject constructor(
                     genre = genreDetailsFilterResult.genre,
                     //albums = genreDetailsFilterResult.albums,
                     songs = genreDetailsFilterResult.songs,
-                    pSongs = genreDetailsFilterResult.pSongs
+                    //pSongs = genreDetailsFilterResult.pSongs
                 )
             }.catch { throwable ->
                 emit(

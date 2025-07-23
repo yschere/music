@@ -3,6 +3,7 @@ package com.example.music.ui.library
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.domain.usecases.GetLibraryAlbumsUseCase
 import com.example.music.domain.usecases.GetLibraryArtistsUseCase
 import com.example.music.domain.usecases.GetLibraryComposersUseCase
@@ -20,6 +21,7 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.player.model.PlayerSong
 import com.example.music.data.util.combine
+import com.example.music.domain.player.model.toPlayerSong
 import com.example.music.domain.usecases.GetLibraryAlbumsV2
 import com.example.music.domain.usecases.GetLibraryArtistsV2
 import com.example.music.domain.usecases.GetLibraryGenresV2
@@ -30,22 +32,34 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val TAG = "Library View Model"
+
+/** Changelog:
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 5/3/2025 - Added AppPreferencesRepo back in to try sorting through it again.
+ */
+
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    getLibrarySongsUseCase: GetLibrarySongsUseCase,
+//    getLibrarySongsUseCase: GetLibrarySongsUseCase,
+//    getLibraryGenresUseCase: GetLibraryGenresUseCase,
+//    getLibraryArtistsUseCase: GetLibraryArtistsUseCase,
+//    getLibraryAlbumsUseCase: GetLibraryAlbumsUseCase,
+//    getTotalCountsUseCase: GetTotalCountsUseCase,
     getLibrarySongsV2: GetLibrarySongsV2,
     getLibraryPlaylistsUseCase: GetLibraryPlaylistsUseCase,
-    getLibraryGenresUseCase: GetLibraryGenresUseCase,
     getLibraryGenresV2: GetLibraryGenresV2,
     getLibraryComposersUseCase: GetLibraryComposersUseCase,
-    getLibraryArtistsUseCase: GetLibraryArtistsUseCase,
     getLibraryArtistsV2: GetLibraryArtistsV2,
-    getLibraryAlbumsUseCase: GetLibraryAlbumsUseCase,
     getLibraryAlbumsV2: GetLibraryAlbumsV2,
-    getTotalCountsUseCase: GetTotalCountsUseCase,
     getTotalCountsV2: GetTotalCountsV2,
     getAppPreferences: GetAppPreferencesUseCase, //checks AppPreferencesDataStore
     private val songPlayer: SongPlayer,
@@ -58,6 +72,9 @@ class LibraryViewModel @Inject constructor(
         means of retrieving objects: GetLibrarySongsUseCase, GetLibraryPlaylistsUseCase,
             GetLibraryArtistsUseCase, GetLibraryAlbumsUseCase, GetLibraryGenresUseCase
      */
+
+//    @Inject
+//    lateinit var appPreferences: AppPreferencesRepo
 
     // Holds the currently all available library categories
     private val libraryCategories = MutableStateFlow(LibraryCategory.entries)
@@ -98,7 +115,7 @@ class LibraryViewModel @Inject constructor(
     private val playlistSortModel = playlists1.value
     */
 
-    //private val appPreferencesFlow = getAppPreferences()
+    private val appPreferencesFlow = getAppPreferences()
 
     // Holds the sorting preferences saved in the data store
     //private val sortPrefs = getAppPreferences()
@@ -114,14 +131,10 @@ class LibraryViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "Library View Model - viewModelScope launch start" }
+        logger.info { "$TAG - viewModelScope launch start" }
         viewModelScope.launch {
             //val counts = getTotalCountsUseCase()
             val counts = getTotalCountsV2()
-            //var albSort: sortObject = sortObject()
-            //appPreferencesFlow.collect{
-                //albSort = sortObject(it.albumSortOrder.name,it.isAlbumAsc)
-            //}
 
             // Combines the latest value from each of the flows, allowing us to generate a
             // view state instance which only contains the latest values.
@@ -130,11 +143,10 @@ class LibraryViewModel @Inject constructor(
                 selectedLibraryCategory,
                 refreshing,
                 showBottomSheet,
-                //appPreferencesFlow,
-
+//                appPreferences.appPreferencesFlow,
+                appPreferencesFlow,
                 //getLibraryAlbumsUseCase("title", true),//sortedAlbums,
                 //getLibraryAlbumsV2("title", true),
-                //getLibraryAlbumsV2(albSort.sort, albSort.asc),
 
                 //getLibraryArtistsUseCase("name", true),//sortedArtists,
                 //getLibraryArtistsV2("name", true),
@@ -177,7 +189,7 @@ class LibraryViewModel @Inject constructor(
                 libraryCategory,
                 refreshing,
                 showBottomSheet,
-                //appPreferences,
+                appPreferences,
                 //libraryAlbums,
                 //libraryArtists,
                 libraryComposers,
@@ -186,10 +198,10 @@ class LibraryViewModel @Inject constructor(
                 //librarySongs,
                 ->
 
-                logger.info { "Library View Model - LibraryScreenUiState:"}
-                logger.info { "Library View Model - isLoading: $refreshing"}
-                logger.info { "Library View Model - libraryCategories: $libraryCategories"}
-                logger.info { "Library View Model - selectedLibraryCategory: $libraryCategory"}
+                logger.info { "$TAG - LibraryScreenUiState:"}
+                logger.info { "$TAG - isLoading: $refreshing"}
+                logger.info { "$TAG - libraryCategories: $libraryCategories"}
+                logger.info { "$TAG - selectedLibraryCategory: $libraryCategory"}
                 var libraryAlbums: List<AlbumInfo> = emptyList()
                 var libraryArtists: List<ArtistInfo> = emptyList()
                 //var libraryComposers: List<ComposerInfo> = emptyList()
@@ -199,25 +211,33 @@ class LibraryViewModel @Inject constructor(
                 when (libraryCategory) {
                     LibraryCategory.Playlists -> {
                         //libraryPlaylists = getLibraryPlaylistsUseCase("name", true)//sortedPlaylists,
+                        //libraryPlaylists = getLibraryPlaylistsUseCase(appPreferences.playlistSortOrder.name, appPreferences.isPlaylistAsc)
                     }
                     LibraryCategory.Songs -> {
-                        librarySongs = getLibrarySongsV2("TITLE", true)
+                        //librarySongs = getLibrarySongsV2("TITLE", true)
+                        //librarySongs = getLibrarySongsV2("TITLE", appPreferences.isSongAsc)
+                        librarySongs = getLibrarySongsV2(appPreferences.songSortOrder.name, appPreferences.isSongAsc)
                     }
                     LibraryCategory.Artists -> {
-                        libraryArtists = getLibraryArtistsV2("ARTIST", true)
+                        //libraryArtists = getLibraryArtistsV2("ARTIST", true)
+                        //libraryArtists = getLibraryArtistsV2("ARTIST", appPreferences.isArtistAsc)
+                        libraryArtists = getLibraryArtistsV2(appPreferences.artistSortOrder.name, appPreferences.isArtistAsc)
                     }
                     LibraryCategory.Albums -> {
-                        libraryAlbums = getLibraryAlbumsV2("ALBUM", true)
+                        //libraryAlbums = getLibraryAlbumsV2("ALBUM", true)
+                        //libraryAlbums = getLibraryAlbumsV2("ALBUM", appPreferences.isAlbumAsc)
+                        libraryAlbums = getLibraryAlbumsV2(appPreferences.albumSortOrder.name, appPreferences.isAlbumAsc)
                     }
                     LibraryCategory.Genres -> {
-                        libraryGenres = getLibraryGenresV2("NAME", false)
+                        //libraryGenres = getLibraryGenresV2("NAME", true)
+                        //libraryGenres = getLibraryGenresV2("NAME", appPreferences.isGenreAsc)
+                        libraryGenres = getLibraryGenresV2(appPreferences.genreSortOrder.name, appPreferences.isGenreAsc)
                     }
                     LibraryCategory.Composers -> {
-                        //like playlists
+                        //libraryComposers = getLibraryComposersUseCase(appPreferences.composerSortOrder.name, appPreferences.isComposerAsc)
                     }
                 }
 
-                //val libraryAlbums = getLibraryAlbumsV2(appPreferences.albumSortOrder.name, appPreferences.isAlbumAsc)
                 logger.info { "did we see albums tho" }
                 /*val libraryPlayerSongs = librarySongs.map { item->
                     PlayerSong(
@@ -226,7 +246,7 @@ class LibraryViewModel @Inject constructor(
                         libraryAlbums.find { it.id == item.albumId }?: AlbumInfo(),
                     )
                 }*/
-                val libraryPlayerSongs = librarySongs.map { item ->
+                /*val libraryPlayerSongs = librarySongs.map { item ->
                     PlayerSong(
                         id = item.id,
                         title = item.title,
@@ -239,8 +259,7 @@ class LibraryViewModel @Inject constructor(
                         trackNumber = item.trackNumber,
                         discNumber = item.discNumber,
                     )
-                }
-                logger.info { "did we thooooooo" }
+                }*/
                 LibraryScreenUiState(
                     isLoading = refreshing,
                     libraryCategories = libraryCategories,
@@ -251,12 +270,12 @@ class LibraryViewModel @Inject constructor(
                     libraryGenres = libraryGenres,
                     libraryPlaylists = libraryPlaylists,
                     librarySongs = librarySongs,
-                    libraryPlayerSongs = libraryPlayerSongs,
+                    //libraryPlayerSongs = libraryPlayerSongs,
                     totals = counts,
                     showBottomModal = showBottomSheet,
                 )
             }.catch { throwable ->
-                logger.info { "Library View Model - Error Caught: ${throwable.message}"}
+                logger.info { "$TAG - Error Caught: ${throwable.message}"}
                 emit(
                     LibraryScreenUiState(
                         isLoading = false,
@@ -272,22 +291,21 @@ class LibraryViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        logger.info { "Library View Model - Refresh call" }
+        logger.info { "$TAG - Refresh call" }
         viewModelScope.launch {
             runCatching {
-                logger.info { "Library View Model - Refresh runCatching" }
+                logger.info { "$TAG - Refresh runCatching" }
                 refreshing.value = true
                 //podcastsRepository.updatePodcasts(force)
             }.onFailure {
                 logger.info { "$it ::: runCatching, not sure what is failing here tho" }
             } // TODO: look at result of runCatching and show any errors
 
-            logger.info { "Library View Model - refresh to be false -> sets Library to ready state" }
+            logger.info { "$TAG - refresh to be false -> sets screen to ready state" }
             refreshing.value = false
         }
     }
 
-    //TODO: retro fit this for library
     fun onLibraryAction(action: LibraryAction) {
         when (action) {
             is LibraryAction.LibraryCategorySelected -> onLibraryCategorySelected(action.libraryCategory)
@@ -302,8 +320,8 @@ class LibraryViewModel @Inject constructor(
         refresh()
     }
 
-    private fun onQueueSong(song: PlayerSong) {
-        songPlayer.addToQueue(song)
+    private fun onQueueSong(song: SongInfo) {
+        songPlayer.addToQueue(song.toPlayerSong())
     }
 
     private fun onShowModal(libraryCategory: LibraryCategory, isModalOpen: Boolean) {
@@ -312,7 +330,6 @@ class LibraryViewModel @Inject constructor(
         // want to have a way for contexted modal? how would this accomplish it tho
         showBottomSheet.value = isModalOpen
     }
-
 }
 
 enum class LibraryCategory {
@@ -322,7 +339,7 @@ enum class LibraryCategory {
 @Immutable
 sealed interface LibraryAction {
     data class LibraryCategorySelected(val libraryCategory: LibraryCategory) : LibraryAction
-    data class QueueSong(val song: PlayerSong) : LibraryAction
+    data class QueueSong(val song: SongInfo) : LibraryAction
     data class ShowModal(val libraryCategory: LibraryCategory, val isModalOpen: Boolean) : LibraryAction
 }
 
@@ -336,7 +353,7 @@ data class LibraryScreenUiState(
     val libraryComposers: List<ComposerInfo> = emptyList(),
     val libraryGenres: List<GenreInfo> = emptyList(),
     val libraryPlaylists: List<PlaylistInfo> = emptyList(),
-    val libraryPlayerSongs: List<PlayerSong> = emptyList(),//TODO: PlayerSong support
+    //val libraryPlayerSongs: List<PlayerSong> = emptyList(),//TODO: PlayerSong support
     val librarySongs: List<SongInfo> = emptyList(),
     val totals: List<Int> = emptyList(),
     //val totals: List<Pair<String,Int>> = emptyList(),

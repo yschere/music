@@ -33,7 +33,7 @@ fun ToggleFollowPodcastIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val clickLabel = stringResource(if (isFollowed) R.string.cd_play else R.string.cd_pause)
+    val clickLabel = stringResource(if (isFollowed) R.string.pb_play else R.string.pb_pause)
     IconButton(
         onClick = onClick,
         modifier = modifier.semantics {
@@ -46,8 +46,8 @@ fun ToggleFollowPodcastIconButton(
                 else -> Icons.Default.Add
             },
             contentDescription = when {
-                isFollowed -> stringResource(R.string.cd_play)
-                else -> stringResource(R.string.cd_pause)
+                isFollowed -> stringResource(R.string.pb_play)
+                else -> stringResource(R.string.pb_pause)
             },
             tint = animateColorAsState(
                 when {

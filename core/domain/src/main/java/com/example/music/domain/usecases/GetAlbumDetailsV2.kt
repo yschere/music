@@ -13,6 +13,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+/** Changelog:
+ * 4/2/2025 - Removing SongInfo to PlayerSong conversion. PlayerSong is no longer
+ * needed to display Song data in LazyList or LazyGrid in the UI, as SongInfo has
+ * been updated to support this.
+ */
+
+/** logger tag for this class */
 private const val TAG = "Get Album Details V2"
 
 class GetAlbumDetailsV2 @Inject constructor(
@@ -48,11 +55,6 @@ class GetAlbumDetailsV2 @Inject constructor(
                 songs = songs.map {
                     domainLogger.info { "SONGINFO - PLEASE IS THERE SOMETHING IN HERE: ${it.title}"}
                     it.asExternalModel()
-                },
-                pSongs = songs.map {
-                    domainLogger.info { "PLAYERSONG - PLEASE IS THERE SOMETHING IN HERE: ${it.id} "}
-                    //item.asExternalModel()
-                    it.audioToPlayerSong()
                 },
             )
         }

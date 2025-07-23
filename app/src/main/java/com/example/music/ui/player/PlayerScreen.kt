@@ -76,7 +76,7 @@ import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.ImageBackgroundRadialGradientScrim
 import com.example.music.domain.testing.PreviewPlayerSongs
-import com.example.music.domain.player.SongPlayerState
+import com.example.music.service.SongControllerState
 import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
@@ -167,7 +167,7 @@ private fun PlayerScreen(
         // background function
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
     ) { contentPadding ->
-        if (uiState.songPlayerState.currentSong != null) {
+        if (uiState.songControllerState.currentSong != null) {
             PlayerContentWithBackground(
                 uiState = uiState,
                 windowSizeClass = windowSizeClass,
@@ -222,7 +222,7 @@ fun PlayerContentWithBackground(
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         PlayerBackground(
-            song = uiState.songPlayerState.currentSong,
+            song = uiState.songControllerState.currentSong,
             modifier = Modifier.fillMaxSize()
         )
         PlayerContent(
@@ -302,7 +302,7 @@ private fun PlayerContentRegular(
     playerControlActions: PlayerControlActions, // call from seek toNextMedium Item
     modifier: Modifier = Modifier
 ) {
-    val playerSong = uiState.songPlayerState
+    val playerSong = uiState.songControllerState
     val currentSong = playerSong.currentSong ?: return
     Column(
         modifier = modifier
@@ -316,7 +316,7 @@ private fun PlayerContentRegular(
             .padding(horizontal = 8.dp)
     ) {
         PlayerTopAppBar(
-            queue = uiState.songPlayerState.queue,
+            queue = uiState.songControllerState.queue,
             navigateBack = navigateBack,
             navigateToQueue = navigateToQueue,
         )
@@ -382,7 +382,7 @@ private fun PlayerTopAppBar(
         IconButton(onClick = navigateBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.cd_back),
+                contentDescription = stringResource(R.string.icon_back_nav),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
@@ -512,7 +512,7 @@ private fun SongLyricsSwitch(
                 ) {
                     // TODO: Add gradient effect
                     Text(
-                        text = stringResource(id = R.string.cd_lyrics),
+                        text = stringResource(id = R.string.pb_show_lyrics),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             textDecoration = TextDecoration.Underline,
                             fontWeight = FontWeight.Bold
@@ -700,7 +700,7 @@ private fun PlayerButtons(
                 //imageVector = Icons.Default.ShuffleOn,
                 //imageVector = Icons.Outlined.ShuffleOn,
                 imageVector = Icons.Filled.ShuffleOn,
-                contentDescription = stringResource(R.string.cd_shuffle_on),
+                contentDescription = stringResource(R.string.pb_shuffle_on),
                 contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer), //TODO
                 modifier = sideButtonsModifier
@@ -712,7 +712,7 @@ private fun PlayerButtons(
             //determined that the current state IS NOT shuffled (isShuffled is false)
             Image(
                 imageVector = Icons.Filled.Shuffle,
-                contentDescription = stringResource(R.string.cd_shuffle_off),
+                contentDescription = stringResource(R.string.pb_shuffle_off),
                 contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer), //TODO
                 modifier = sideButtonsModifier
@@ -723,7 +723,7 @@ private fun PlayerButtons(
         //Image for Skip back to previous button
         Image(
             imageVector = Icons.Filled.SkipPrevious,
-            contentDescription = stringResource(R.string.cd_skip_previous),
+            contentDescription = stringResource(R.string.pb_skip_previous),
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
             modifier = sideButtonsModifier
@@ -737,7 +737,7 @@ private fun PlayerButtons(
             Image(
                 imageVector = Icons.Filled.Pause,
                 //imageVector = Icons.Outlined.Pause,
-                contentDescription = stringResource(R.string.cd_pause),
+                contentDescription = stringResource(R.string.pb_pause),
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = primaryButtonModifier
@@ -751,7 +751,7 @@ private fun PlayerButtons(
             Image(
                 imageVector = Icons.Filled.PlayArrow,
                 //imageVector = Icons.Outlined.PlayArrow,
-                contentDescription = stringResource(R.string.cd_play),
+                contentDescription = stringResource(R.string.pb_play),
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = primaryButtonModifier
@@ -765,7 +765,7 @@ private fun PlayerButtons(
         //skip to next playable button
         Image(
             imageVector = Icons.Filled.SkipNext,
-            contentDescription = stringResource(R.string.cd_skip_next),
+            contentDescription = stringResource(R.string.pb_skip_next),
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
             modifier = sideButtonsModifier
@@ -779,7 +779,7 @@ private fun PlayerButtons(
             "OFF" -> {
                 Image( //shows unfilled icon (because it is set to off)
                     imageVector = Icons.Filled.Repeat,
-                    contentDescription = stringResource(R.string.cd_repeat_off),
+                    contentDescription = stringResource(R.string.pb_repeat_off),
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                     modifier = sideButtonsModifier
@@ -791,7 +791,7 @@ private fun PlayerButtons(
             "ON" -> {
                 Image( //shows the icon as the filled version (because its set to on)
                     imageVector = Icons.Filled.RepeatOn,
-                    contentDescription = stringResource(R.string.cd_repeat_on),
+                    contentDescription = stringResource(R.string.pb_repeat_on),
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                     modifier = sideButtonsModifier
@@ -803,7 +803,7 @@ private fun PlayerButtons(
             "ONE" -> {
                 Image( //shows the icon with 1 in center (because its set to repeat one song only)
                     imageVector = Icons.Filled.RepeatOneOn,
-                    contentDescription = stringResource(R.string.cd_repeat_one_on),
+                    contentDescription = stringResource(R.string.pb_repeat_one_on),
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                     modifier = sideButtonsModifier
@@ -855,7 +855,7 @@ fun PlayerScreenPreview() {
         BoxWithConstraints {
             PlayerScreen(
                 PlayerUiState(
-                    songPlayerState = SongPlayerState(
+                    songControllerState = SongControllerState(
                         currentSong = PreviewPlayerSongs[0],
                         isPlaying = false,
                         queue = PreviewPlayerSongs

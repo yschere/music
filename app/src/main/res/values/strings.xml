@@ -60,32 +60,34 @@
     <string name="song_date_duration">%1$s &#8226; %2$d mins</string>
 
     <!-- Player specific buttons content description section -->
-    <string name="cd_add">Add</string>
-    <string name="cd_album_image">Show Album image</string>
-    <string name="cd_back">Back</string>
-    <string name="cd_lyrics">Lyrics</string>
-    <string name="cd_pause">Pause</string>
-    <string name="cd_play">Play</string>
-    <string name="cd_skip_next">Skip to next</string>
-    <string name="cd_skip_previous">Skip to previous</string>
-    <string name="cd_repeat_off">Repeat is off</string>
-    <string name="cd_repeat_one_on">Repeat one is on</string>
-    <string name="cd_repeat_on">Repeat all is on</string>
-    <string name="cd_shuffle_off">Shuffle is off</string>
-    <string name="cd_shuffle_on">Shuffle is on</string>
+<!--    <string name="cd_add">Add</string>-->
+<!--    <string name="cd_back">Back</string>-->
+    <string name="pb_pause">Pause</string>
+    <string name="pb_play">Play</string>
+    <string name="pb_skip_next">Skip to next</string>
+    <string name="pb_skip_previous">Skip to previous</string>
+    <string name="pb_repeat_off">Repeat is off</string>
+    <string name="pb_repeat_one_on">Repeat one is on</string>
+    <string name="pb_repeat_on">Repeat all is on</string>
+    <string name="pb_show_album_image">Show Album Image</string>
+    <string name="pb_show_lyrics">Show Lyrics</string>
+    <string name="pb_shuffle_off">Shuffle is off</string>
+    <string name="pb_shuffle_on">Shuffle is on</string>
 
     <!-- Snack bar texts content description section -->
-    <string name="sbt_song_added_to_playlist">Song added to playlist %s</string>
-    <string name="sbt_song_added_to_your_queue">Song added to queue</string>
-    <string name="sbt_song_removed_from_playlist">Song removed from playlist %s</string>
-    <string name="sbt_song_removed_from_your_queue">Song removed from queue</string>
-    <string name="sbt_tags_edited">Tags edited for %s</string>
+    <string name="sbt_no_item_found">No new items found</string>
+    <string name="sbt_new_item_added">%d songs added to library</string>
     <string name="sbt_new_playlist_created">Playlist %s created</string>
     <string name="sbt_playlist_removed">Playlist removed from library</string>
     <string name="sbt_playlist_exported">Playlist exported</string>
     <string name="sbt_queue_saved">Queue Saved to %s</string>
     <string name="sbt_queue_cleared">Queue has been Cleared</string>
-    <!--<string name="see_more">See more</string>-->
+    <string name="sbt_searching">Library searching for new songs</string>
+    <string name="sbt_song_added_to_playlist">Song added to playlist %s</string>
+    <string name="sbt_song_added_to_your_queue">Song added to queue</string>
+    <string name="sbt_song_removed_from_playlist">Song removed from playlist %s</string>
+    <string name="sbt_song_removed_from_your_queue">Song removed from queue</string>
+    <string name="sbt_tags_edited">Tags edited for %s</string>
 
     <!-- Notification section -->
     <string name="media_notification_channel">Music Player</string>
@@ -99,12 +101,12 @@
     <string name="icon_back_nav">Navigate back to previous screen</string>
     <string name="icon_composer">Go to Composer Details</string>
     <string name="icon_create_new_playlist">Create New Playlist</string>
-    <string name="icon_delete">Remove from Library</string>
+    <string name="icon_delete_song">Remove from Library</string>
     <string name="icon_delete_playlist">Remove Playlist from Library</string>
     <string name="icon_edit">Edit tags</string>
     <string name="icon_export">Export playlist to device</string>
     <string name="icon_genre">Go to Genre Details</string>
-    <string name="icon_more">More Options</string>
+    <string name="icon_more">Show More Options</string>
     <string name="icon_multi_select">Select Item(s) in List</string>
     <string name="icon_nav_drawer">Open Navigation Drawer</string>
     <string name="icon_play">Play item</string>
@@ -112,14 +114,18 @@
     <string name="icon_play_next">Play Next in Queue</string>
     <string name="icon_queue">Open Queue List</string>
     <string name="icon_queue_clear">Clear Queue</string>
+    <string name="icon_queue_close">Close Queue List</string>
     <string name="icon_queue_save">Save Queue</string>
-    <string name="icon_remove_item_playlist">Remove from Playlist</string>
-    <string name="icon_remove_item_queue">Remove from Queue</string>
+    <string name="icon_remove_song_playlist">Remove from Playlist</string>
+    <string name="icon_remove_song_queue">Remove from Queue</string>
     <string name="icon_reorder">Change List Order</string>
     <string name="icon_scroll_to_top">Scroll to top of screen</string>
     <string name="icon_search">Search</string>
     <string name="icon_shuffle">Play in shuffled order</string>
     <string name="icon_song_details">Show Song Details</string>
     <string name="icon_sort">Open Sort Options</string>
+
+    <!-- Miscellaneous-->
+    <string name="unknown">Unknown</string>
 
 </resources>

@@ -5,7 +5,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.ArtistWithExtraInfo
-import com.example.music.data.database.model.Song
 import kotlinx.coroutines.flow.Flow
 
 /**

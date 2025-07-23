@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -22,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
@@ -50,7 +53,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetDefaults.properties
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -98,27 +100,50 @@ import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.PlaylistInfo
+import com.example.music.domain.model.SongInfo
 import com.example.music.domain.player.model.PlayerSong
+import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.player.PlayerSlider
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.time.Duration
 
+/** Changelog:
+ *
+ * 4/2/2025 - Revised PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong. This doesn't mean full
+ * removal like the other, non-Player screens because Bottom Modals also contains
+ * BottomPlayer, which does need PlayerSong as the supporting model.
+ *
+ * 4/9/2025 - Updated AlbumMoreOptions, ComposerMoreOptions, GenreMoreOptions, PlaylistMoreOptions
+ * to use ActionOptionRow for displaying their individual object's actions. And cleaned up some
+ * of the commented out code that's not needed anymore.
+ *
+ * 4/14/2024 - Created CustomDragHandle to create a drag handle that takes up less space.
+ * Updated the bottom modals' padding for column structure and list items so the onPress, onClick
+ * highlight covers the full width of the item.
+ */
+
 //More Options Modal Content - Action Options Row Composable
 // contains the Action Item to display and the onClick action to be performed when the row is clicked
 // ActionItem contains the icon, name, and contentDescription of the action to perform
 @Composable
-fun ActionOptionRow(item: Pair<ActionItem, ()->Unit>) {
+fun ActionOptionRow(
+    item: Pair<ActionItem, ()->Unit>
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
             .clickable { item.second }
+            .height(56.dp)
+            .padding(horizontal = 24.dp)
     ) {
         Icon(
             imageVector = item.first.icon,
@@ -144,11 +169,11 @@ fun MoreOptionModalHeader(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 24.dp, vertical = 12.dp)
     ) {
         // either item image or item first initial
         when (item) {
-            is PlayerSong -> {
+            is SongInfo -> {
                 HeaderImage(2, item.title) //fake hardcoded artwork value
             }
             is PlaylistInfo -> {
@@ -169,7 +194,7 @@ fun MoreOptionModalHeader(
         }
 
         // item name/title and item extraInfo
-        Column(Modifier.padding(8.dp)) {
+        Column(Modifier.padding(8.dp).weight(1f)) {
             Text(
                 text = title,
                 maxLines = 1,
@@ -179,24 +204,40 @@ fun MoreOptionModalHeader(
             )
             Text(
                 text = when(item) {
-                    is PlayerSong -> {
-                        songSubtext(item)
-                    } //if ((song.artistName != "") && (song.albumTitle != "")) {song.artistName + " • " + song.albumTitle} else {(song.artistName) + (song.albumTitle)}
+                    is SongInfo -> {
+                        item.setSubtitle()
+                        //songSubtext(item)
+                    }
+
                     is PlaylistInfo -> {
-                        songCountSubtext(item)
-                    } //playlist.songCount
+                        item.setSubtitle()
+                        //songCountSubtext(item)
+                    }
+
                     is ArtistInfo -> {
-                        artistSubtext(item)
-                    } //artist.albumCount + artist.songCount
+                        item.setSubtitle()
+                        //artistSubtext(item)
+                    }
+
                     is AlbumInfo -> {
-                        songCountSubtext(item)
-                    } //album.songCount
+                        item.setSubtitle()
+                        //songCountSubtext(item)
+                    }
+
                     is ComposerInfo -> {
-                        songCountSubtext(item)
-                    } //composer.songCount
+                        item.setSubtitle()
+                        //songCountSubtext(item)
+                    }
+
                     is GenreInfo -> {
-                        songCountSubtext(item)
-                    } //genre.songCount
+                        item.setSubtitle()
+                        //songCountSubtext(item)
+                    }
+
+                    is PlayerSong -> {
+                        item.setSubtitle()
+                    }
+
                     else -> {
                         "" // or some error handling
                     }
@@ -209,7 +250,7 @@ fun MoreOptionModalHeader(
         }
 
         // if item is a PlayerSong, include info icon to pop up song details
-        if( item is PlayerSong) {
+        if( item is SongInfo || item is PlayerSong ) {
             IconButton( onClick = {} ) { // whatever way to show song details, still not sure how yet
                 Icon(
                     imageVector = Icons.Filled.Info,
@@ -223,7 +264,7 @@ fun MoreOptionModalHeader(
 }
 
 //More Options Modal Header - Header Item Image
-// used for PlayerSong and AlbumInfo (maybe should also be fore PlaylistInfo)
+// used for SongInfo, PlayerSong, AlbumInfo (maybe should also be fore PlaylistInfo)
 @Composable
 fun HeaderImage(
     artwork: Int,
@@ -264,50 +305,64 @@ fun HeaderInitial(
 }
 
 //More Options Modal Header - Song Item Subtitle text
-@Composable
-fun songSubtext(song: PlayerSong): String =
-    if ((song.artistName != "") && (song.albumTitle != "")) {
-        song.artistName + " • " + song.albumTitle
+fun SongInfo.setSubtitle(): String =
+    if ((this.artistName != "") && (this.albumTitle != "")) {
+        this.artistName + " • " + this.albumTitle
     } else {
-        (song.artistName) + (song.albumTitle)
+        (this.artistName) + (this.albumTitle)
+    }
+
+//More Options Modal Header - Song Item Subtitle text
+fun PlayerSong.setSubtitle(): String =
+    if ((this.artistName != "") && (this.albumTitle != "")) {
+        this.artistName + " • " + this.albumTitle
+    } else {
+        (this.artistName) + (this.albumTitle)
     }
 
 //More Options Modal Header - Artist Item Subtitle text
 @Composable
-fun artistSubtext(artist: ArtistInfo): String =
-    if ((artist.albumCount != null) && (artist.songCount != null))
-        quantityStringResource(R.plurals.albums, artist.albumCount!!, artist.albumCount!!) +
+fun ArtistInfo.setSubtitle(): String =
+    quantityStringResource(R.plurals.albums, this.albumCount, this.albumCount) +
             " • " +
-            quantityStringResource(R.plurals.songs, artist.songCount!!, artist.songCount!!)
-        //"${artist.albumCount} albums • ${artist.songCount} songs"
-    else
-        artist.albumCount?.let { quantityStringResource(R.plurals.albums, it, it) } +
-            artist.songCount?.let {quantityStringResource(R.plurals.songs, it, it)}
+            quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
 
 //More Options Modal Header - Playlist Item Subtitle text
 @Composable
-fun songCountSubtext(playlist: PlaylistInfo): String =
-    quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount)
+fun PlaylistInfo.setSubtitle(): String =
+    quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
 
 //More Options Modal Header - Composer Item Subtitle text
 @Composable
-fun songCountSubtext(composer: ComposerInfo): String =
-    quantityStringResource(R.plurals.songs, composer.songCount, composer.songCount)
+fun ComposerInfo.setSubtitle(): String =
+    quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
 
 //More Options Modal Header - Genre Item Subtitle text
 @Composable
-fun songCountSubtext(genre: GenreInfo): String =
-    quantityStringResource(R.plurals.songs, genre.songCount, genre.songCount)
+fun GenreInfo.setSubtitle(): String =
+    quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
 
 //More Options Modal Header - Album Item Subtitle text
 @Composable
-fun songCountSubtext(album: AlbumInfo): String = //want to show album artist name and song count
-    if (album.albumArtistId == null) //if no artist to show
-        quantityStringResource(R.plurals.songs, album.songCount, album.songCount)
+fun AlbumInfo.setSubtitle(): String =
+    if (this.albumArtistId == null)
+        quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
     else {
-        /* album artist name would go here */ " • " +
-            quantityStringResource(R.plurals.songs, album.songCount, album.songCount) // TODO get albumArtistName in AlbumInfo
+        this.albumArtistName + " • " +
+            quantityStringResource(R.plurals.songs, this.songCount, this.songCount) // TODO get albumArtistName in AlbumInfo
     }
+
+@Composable
+fun CustomDragHandle() {
+    Box(
+        modifier = Modifier
+            .padding(vertical = 12.dp)
+            .width(30.dp)
+            .height(4.dp)
+            .clip(MusicShapes.small)
+            .background(MaterialTheme.colorScheme.onBackground)
+    )
+}
 
 /**
  * Other ideas that could be done thru bottom modal
@@ -315,11 +370,6 @@ fun songCountSubtext(album: AlbumInfo): String = //want to show album artist nam
  * -edit Playlist details (depends if description is a thing)
  * -view song info (media metadata)
  */
-
-/**
- * Support class for More Options Modals to represent an action item.
- */
-//data class ActionItem(val name: String, val icon: ImageVector, val contentDescription: String, val action: () -> Unit)
 
 /** Idea for modal: to show action items like a dropdown menu when an item's more options btn is clicked/pressed.
  *  First, need to be able to call it from any screen that has a more options btn.
@@ -330,18 +380,24 @@ fun songCountSubtext(album: AlbumInfo): String = //want to show album artist nam
 @Composable
 fun SongMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
+
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
     containerColor: Color = MaterialTheme.colorScheme.background,
     scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
     properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+
     coroutineScope: CoroutineScope,
-    song: PlayerSong,
-    navigateToPlayerSong: (PlayerSong) -> Unit = {},
-    //would likely need the other navigateTo screens here too
+    song: SongInfo,
+    navigateToPlayer: (SongInfo) -> Unit = {},
+    //song: PlayerSong,
+    //navigateToPlayerSong: (PlayerSong) -> Unit = {},
+    // keeping playersong parts since i want to be able to use moreOptionsModal with songs in PlayerScreen or QueueScreen
+    // would likely need the other navigateTo screens here too
 
     //do i need a context variable? like if this was from PlaylistDetails, or ArtistDetails, or Home, or Library
     // could this be done with the navController? or does it have to be a string? or an enum?
+    context: String = "",
     //showBottomSheet: Boolean,
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -353,104 +409,58 @@ fun SongMoreOptionsBottomModal(
         containerColor = containerColor, //MaterialTheme.colorScheme.background,
         scrimColor = scrimColor, //MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
         properties = properties, //ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+        dragHandle = { CustomDragHandle() }
     ) {
         Column (
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier,
         ) {
             // header section
             MoreOptionModalHeader(song.title, song)
-            /*Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                AlbumImage(
-                    albumImage = 1,
-                    contentDescription = song.artwork,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(56.dp)
-                        .clip(MusicShapes.small)
-                )
-                Column(Modifier.padding(8.dp)) {
-                    Text(
-                        text = song.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        text = if ((song.artistName != "") && (song.albumTitle != "")) {song.artistName + " • " + song.albumTitle} else {(song.artistName) + (song.albumTitle)},
-                        style = MaterialTheme.typography.bodySmall,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
-                IconButton( onClick = {} ) {
-                    Icon(
-                        imageVector = Icons.Filled.Info,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(R.string.icon_song_details),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                }
-            }*/
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             val songActions = arrayListOf(
-                Pair(Actions.PlayItem) { navigateToPlayerSong(song) },
+                Pair(Actions.PlayItem) { navigateToPlayer(song) },
                 Pair(Actions.PlayItemNext) {},
                 Pair(Actions.AddToPlaylist) {},
                 Pair(Actions.AddToQueue) {},
             )
-            /* val songActions = listOf(
-                ActionItem("Play",Icons.Filled.PlayArrow, R.string.icon_play, { navigateToPlayerSong(song) } ),
-                ActionItem("Play next", Icons.AutoMirrored.Filled.QueueMusic, R.string.icon_play_next, {  } ),
-                ActionItem("Add to Playlist", Icons.AutoMirrored.Filled.PlaylistAdd, R.string.icon_add_to_playlist, {  } ),
-                ActionItem("Add to Queue", Icons.Filled.Queue, R.string.icon_add_to_queue, {  } ),
-            )*/
 
             // action items, shown items are dependent on this being a song item
             songActions.forEach { item ->
                 ActionOptionRow(item)
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            val navActions = mutableListOf< Pair< ActionItem, () -> Unit > >()
-            if (song.artistName != "")
-                navActions.add( Pair(Actions.GoToArtist) {  } ) //navigateToArtistDetails()
-            if (song.albumTitle != "")
-                navActions.add( Pair(Actions.GoToAlbum) {  } ) //navigateToAlbumDetails()
-            /*val navActions = mutableListOf<ActionItem>()
-            if (song.artistName != "")
-                navActions.add( ActionItem("Go to Artist", Icons.Filled.Person, R.string.icon_artist, {  } ) )// TODO: navigateToArtistDetails(transform artistName to artist.Id)
+            // if the song has an artist name and current screen is not ArtistDetails
+            if (song.artistName != "" && context != "ArtistDetails")
+                ActionOptionRow( Pair(Actions.GoToArtist) {  } ) //navigateToArtistDetails()
 
-            if (song.albumTitle != "")
-                navActions.add( ActionItem("Go to Album", Icons.Filled.Album, R.string.icon_album, {  } ) ) // TODO: navigateToAlbumDetails(transform albumTitle to album.Id)
-            */
-            navActions.forEach { item ->
-                ActionOptionRow(item)
-            }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            // if the song has an album title and current screen is not AlbumDetails
+            if (song.albumTitle != "" && context != "AlbumDetails")
+                ActionOptionRow( Pair(Actions.GoToAlbum) {  } ) //navigateToAlbumDetails()
 
-            ActionOptionRow(Pair(Actions.EditSongTags) {}) //onClick action would go into lambda edit song tags
-            /*Row(//edit song tags
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(8.dp).clickable {  } //edit song tags
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = stringResource(R.string.icon_edit),
-                    modifier = Modifier.padding(4.dp)
-                )
-                Text(
-                    text = "Edit Song Tags", // edit song details: song title, artist, album, genre, composer, year, comment
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-            }*/
+//            if (song.genreName != "" && context != "GenreDetails")
+//                ActionOptionRow( Pair(Actions.GoToGenre) {} )
 
-            //if in playlistDetails: ActionOptionRow( Pair(Actions.RemoveFromPlaylist)) {} )
-            //if in artistDetails, albumDetails, composerDetails, genreDetails, playlistDetails,
-            // home.FeaturedSongs, library.Songs: ActionOptionRow( Pair(Actions.DeleteFromLibrary) {} ) )
+//            if (song.composerName != "" && context != "ComposerDetails")
+//                ActionOptionRow( Pair(Actions.GoToComposer) {} )
+
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+
+            ActionOptionRow( Pair(Actions.EditSongTags) {} ) //onClick action would go into lambda edit song tags
+
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+
+            if (context == "PlaylistDetails")
+                ActionOptionRow( Pair(Actions.RemoveFromPlaylist) {} )
+
+            if (context == "Queue")
+                ActionOptionRow( Pair(Actions.RemoveFromQueue) {} )
+
+            ActionOptionRow( Pair(Actions.DeleteFromLibrary) {} )
 
             Button( // close btn
                 onClick = {
@@ -481,18 +491,20 @@ fun SongMoreOptionsBottomModal(
 @Composable
 fun AlbumMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
+
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
     containerColor: Color = MaterialTheme.colorScheme.background,
     scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
     properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+
     coroutineScope: CoroutineScope,
     album: AlbumInfo,
-    artist: ArtistInfo,
+    context: String,
     //AlbumDetails context? ArtistDetails context?
     //navigateToAlbumDetails: (AlbumInfo) -> Unit, //usage depends on content: if on library.albums, albumDetails, artistDetails. aka not necessary for moreOptions on albumDetails
     //navigateToArtistDetails: (ArtistInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit = {},
+    //navigateToPlayer: (SongInfo) -> Unit = {},
     //showBottomSheet: Boolean,
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -504,45 +516,17 @@ fun AlbumMoreOptionsBottomModal(
         containerColor = containerColor,//MaterialTheme.colorScheme.background,
         scrimColor = scrimColor,//MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
         properties = properties, //ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+        dragHandle = { CustomDragHandle() }
     ) {
-
         Column (
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier,
         ) {
             // header section
-            //MoreOptionModalHeader(album.title, album)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                AlbumImage(
-                    albumImage = 1,
-                    contentDescription = album.artwork,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(MusicShapes.medium)
-                )
-                Column(Modifier.padding(8.dp)) {
-                    Text(
-                        text = album.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        text =
-                            if (album.albumArtistId == null) quantityStringResource(R.plurals.songs, album.songCount, album.songCount)
-                            else { "${artist.name} • " + quantityStringResource(R.plurals.songs, album.songCount, album.songCount) },
-                        style = MaterialTheme.typography.bodySmall,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
-            }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            MoreOptionModalHeader(album.title, album)
+
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             val albumActions = arrayListOf(
                 Pair(Actions.PlayItem) {  }, //play(album)
@@ -551,61 +535,24 @@ fun AlbumMoreOptionsBottomModal(
                 Pair(Actions.AddToQueue) {  }, //addToQueue(album)
             )
 
-            /*val albumActions = listOf(
-                ActionItem("Play",Icons.Filled.PlayArrow, R.string.icon_play, {  } ), // probably call controller here, pass in album songs
-                ActionItem("Shuffle", Icons.Filled.Shuffle, R.string.icon_shuffle, {  } ), // probably call controller here, pass in album songs
-                ActionItem("Add to Playlist", Icons.AutoMirrored.Filled.PlaylistAdd, R.string.icon_add_to_playlist, { } ), // probably call controller here, pass in album songs
-                ActionItem("Add to Queue", Icons.Filled.Queue, R.string.icon_add_to_queue, {  } ), // probably call controller here, pass in album songs
-            )*/
-
             // action items, shown items are dependent on this being a song item
             albumActions.forEach { item ->
                 ActionOptionRow(item)
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            val navActions = mutableListOf<Pair<ActionItem,()->Unit>>()
-            if (album.albumArtistId != null)
-                navActions.add( Pair(ActionItem("Go to Album Artist", Icons.Filled.Person, R.string.icon_artist)) { }) // TODO: navigateToArtistDetails(transform artistName to artist.Id) /* navigateToArtistDetails(albumArtistId) */
-            //if in artistDetails, in library.Albums,
-            navActions.add( Pair(ActionItem("Go to Album", Icons.Filled.Album, R.string.icon_album)) {  } )// TODO: navigateToAlbumDetails(albumId) //navigateToAlbumDetails(album)
+            // if album has album artist and not already on ArtistDetails screen
+            if (album.albumArtistId != null && context != "ArtistDetails")
+                ActionOptionRow( Pair(Actions.GoToAlbumArtist) {} ) // TODO: navigateToArtistDetails(transform artistName to artist.Id) /* navigateToArtistDetails(albumArtistId) */
 
-            navActions.forEach { item ->
-                ActionOptionRow(item)
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.second }
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(item.contentDescription),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = item.name,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }*/
-            }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            // if in artistDetails, in library.Albums,
+            if (context != "AlbumDetails")
+                ActionOptionRow( Pair(Actions.GoToAlbum) {} ) // TODO: navigateToAlbumDetails(albumId) //navigateToAlbumDetails(album)
 
-            ActionOptionRow(Pair(Actions.EditAlbumTags) {}) //onClick action would go into lambda edit album tags
-            /*Row(//edit tags
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(8.dp).clickable {  } //edit tags
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = stringResource(R.string.icon_edit),
-                    modifier = Modifier.padding(4.dp)
-                )
-                Text(
-                    text = "Edit Album Tags", // edit details: title, artwork?
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-            }*/
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+
+            ActionOptionRow( Pair(Actions.EditAlbumTags) {} ) //onClick action would go into lambda edit album tags
+
             Button(
                 onClick = {
                     showBottomSheet = false
@@ -635,15 +582,18 @@ fun AlbumMoreOptionsBottomModal(
 @Composable
 fun ArtistMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
+
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
     containerColor: Color = MaterialTheme.colorScheme.background,
     scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
     properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+
     coroutineScope: CoroutineScope,
     artist: ArtistInfo,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit = {},
+    navigateToPlayer: (SongInfo) -> Unit = {},
+    context: String = "",
     //showBottomSheet: Boolean,
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -655,121 +605,41 @@ fun ArtistMoreOptionsBottomModal(
         containerColor = containerColor,//MaterialTheme.colorScheme.background,
         scrimColor = scrimColor,//MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
         properties = properties, //ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+        dragHandle = { CustomDragHandle() }
     ) {
 
         Column (
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier,
         ) {
             // header section
             MoreOptionModalHeader(artist.name, artist)
-            /*Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(MusicShapes.small)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
-                    Text(
-                        text = artist.name[0].toString(), //TODO: FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songInfo, albumInfo)
-                        minLines = 1,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
-                    )
-                }
 
-                Column(Modifier.padding(8.dp)) {
-                    Text(
-                        text = artist.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        text = "$artist.songCount",
-                        style = MaterialTheme.typography.bodySmall,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
-            }*/
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             val artistActions = arrayListOf(
-                Pair(ActionItem("Play",Icons.Filled.PlayArrow, R.string.icon_play)) { /* probably call controller here, pass in artist songs */ }, // play(artist)
-                Pair(ActionItem("Shuffle", Icons.Filled.Shuffle, R.string.icon_shuffle)) { /* probably call controller here, pass in artist songs */ }, // shuffle(artist)
-                Pair(ActionItem("Add to Playlist", Icons.AutoMirrored.Filled.PlaylistAdd, R.string.icon_add_to_playlist)) { /* probably call controller here, pass in artist songs */ }, //addToPlaylist(artist)
-                Pair(ActionItem("Add to Queue", Icons.Filled.Queue, R.string.icon_add_to_queue)) { /* probably call controller here, pass in artist songs */ }, //addToQueue(artist)
+                Pair(Actions.PlayItem) { /* probably call controller here, pass in artist songs */ }, // play(artist)
+                Pair(Actions.ShuffleItem) { /* probably call controller here, pass in artist songs */ }, // shuffle(artist)
+                Pair(Actions.AddToPlaylist) { /* probably call controller here, pass in artist songs */ }, //addToPlaylist(artist)
+                Pair(Actions.AddToQueue) { /* probably call controller here, pass in artist songs */ }, //addToQueue(artist)
             )
 
-            // action items, shown items are dependent on this being a song item
+            // action items, shown items are dependent on this being an artist item
             artistActions.forEach { item ->
                 ActionOptionRow(item)
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.second }
-                ) {
-                    Icon(
-                        imageVector = item.first.icon,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(item.first.contentDescription),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = item.first.name,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }*/
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            val navActions = mutableListOf<Pair<ActionItem,()->Unit>>()
-            //if on library.Artists
-            navActions.add( Pair(ActionItem("Go to Artist", Icons.Filled.Person, R.string.icon_artist)) {
-                navigateToArtistDetails(
-                    artist
-                )
-            })// TODO: navigateToArtistDetails(transform artistName to artist.Id)
-
-            navActions.forEach { item ->
-                ActionOptionRow(item)
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.second }
-                ) {
-                    Icon(
-                        imageVector = item.first.icon,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(item.first.contentDescription),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = item.first.name,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }*/
+            // if on library.artists
+            if (context != "ArtistDetails") {
+                ActionOptionRow(Pair(Actions.GoToArtist) {
+                    navigateToArtistDetails(artist)
+                }) // TODO: navigateToArtistDetails(transform artistName to artist.Id)
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
             ActionOptionRow(Pair(Actions.EditArtistTags) {}) //onClick action in the lambda
-            /*Row(//edit tags
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(8.dp).clickable {  } //edit tags
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = stringResource(R.string.icon_edit),
-                    modifier = Modifier.padding(4.dp)
-                )
-                Text(
-                    text = "Edit Artist Tags", // edit details: name
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-            }*/
 
             Button(
                 onClick = {
@@ -800,15 +670,18 @@ fun ArtistMoreOptionsBottomModal(
 @Composable
 fun ComposerMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
+
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
     containerColor: Color = MaterialTheme.colorScheme.background,
     scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
     properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+
     coroutineScope: CoroutineScope,
     composer: ComposerInfo,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit = {},
+    navigateToPlayer: (SongInfo) -> Unit = {},
+    context: String = "",
     //showBottomSheet: Boolean,
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -820,120 +693,43 @@ fun ComposerMoreOptionsBottomModal(
         containerColor = containerColor,//MaterialTheme.colorScheme.background,
         scrimColor = scrimColor,//MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
         properties = properties, //ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+        dragHandle = { CustomDragHandle() }
     ) {
 
         Column (
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+            modifier = Modifier.padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
         ) {
             // header section
             MoreOptionModalHeader(composer.name, composer)
-            /*Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(MusicShapes.small)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
-                    Text(
-                        text = composer.name[0].toString(), //TODO: FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songInfo, albumInfo)
-                        minLines = 1,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
-                    )
-                }
 
-                Column(Modifier.padding(8.dp)) {
-                    Text(
-                        text = composer.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        text = "$composer.songCount",
-                        style = MaterialTheme.typography.bodySmall,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
-            }*/
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             val composerActions = listOf(
-                Pair(ActionItem("Play",Icons.Filled.PlayArrow, R.string.icon_play)) { /* probably call controller here, pass in artist songs */ },
-                Pair(ActionItem("Shuffle", Icons.Filled.Shuffle, R.string.icon_shuffle)) { /* probably call controller here, pass in artist songs */ },
-                Pair(ActionItem("Add to Playlist", Icons.AutoMirrored.Filled.PlaylistAdd, R.string.icon_add_to_playlist)) { /* probably call controller here, pass in artist songs */ },
-                Pair(ActionItem("Add to Queue", Icons.Filled.Queue, R.string.icon_add_to_queue)) { /* probably call controller here, pass in artist songs */ },
+                Pair(Actions.PlayItem) { /* probably call controller here, pass in composer songs */ }, // play(composer)
+                Pair(Actions.ShuffleItem) { /* probably call controller here, pass in composer songs */ }, // shuffle(composer)
+                Pair(Actions.AddToPlaylist) { /* probably call controller here, pass in composer songs */ }, //addToPlaylist(composer)
+                Pair(Actions.AddToQueue) { /* probably call controller here, pass in composer songs */ }, //addToQueue(composer)
             )
 
             // action items, shown items are dependent on this being a song item
             composerActions.forEach { item ->
                 ActionOptionRow(item)
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.action }
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(item.contentDescription),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = item.name,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }*/
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            val navActions = mutableListOf<Pair<ActionItem,()->Unit>>()
-            navActions.add( Pair(ActionItem("Go to Composer", Icons.Filled.Person, R.string.icon_composer)) {
-                navigateToComposerDetails(
-                    composer
-                )
-            })
+            // if on library.composers
+            if (context != "ComposerDetails") {
+                ActionOptionRow(Pair(Actions.GoToComposer) {
+                    navigateToComposerDetails(composer)
+                }) // TODO: navigateToComposerDetails(transform composerName to composer.Id)
 
-            navActions.forEach { item ->
-                ActionOptionRow(item)
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.action }
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(item.contentDescription),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = item.name,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }*/
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
-            ActionOptionRow(Pair(Actions.EditComposerTags) {})
-            /*Row(//edit tags
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(8.dp).clickable {  } //edit tags
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = stringResource(R.string.icon_edit),
-                    modifier = Modifier.padding(4.dp)
-                )
-                Text(
-                    text = "Edit Composer Tags", // edit details: name
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-            }*/
+            ActionOptionRow( Pair(Actions.EditComposerTags) {} )
+
             Button(
                 onClick = {
                     showBottomSheet = false
@@ -963,15 +759,18 @@ fun ComposerMoreOptionsBottomModal(
 @Composable
 fun GenreMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
+
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
     containerColor: Color = MaterialTheme.colorScheme.background,
     scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
     properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+
     coroutineScope: CoroutineScope,
     genre: GenreInfo,
     navigateToGenreDetails: (GenreInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit = {},
+    navigateToPlayer: (SongInfo) -> Unit = {},
+    context: String = "",
     //showBottomSheet: Boolean,
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -983,120 +782,42 @@ fun GenreMoreOptionsBottomModal(
         containerColor = containerColor,//MaterialTheme.colorScheme.background,
         scrimColor = scrimColor,//MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
         properties = properties, //ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+        dragHandle = { CustomDragHandle() }
     ) {
 
         Column (
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+            modifier = Modifier.padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
         ) {
             // header section
             MoreOptionModalHeader(genre.name, genre)
-            /*Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(MusicShapes.small)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
-                    Text(
-                        text = genre.name[0].toString(), //TODO: FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songInfo, albumInfo)
-                        minLines = 1,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
-                    )
-                }
 
-                Column(Modifier.padding(8.dp)) {
-                    Text(
-                        text = genre.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        text = "$genre.songCount",
-                        style = MaterialTheme.typography.bodySmall,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
-            }*/
             HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
             val genreActions = listOf(
-                Pair(ActionItem("Play",Icons.Filled.PlayArrow, R.string.icon_play)) { /* probably call controller here, pass in genre songs */ },
-                Pair(ActionItem("Shuffle", Icons.Filled.Shuffle, R.string.icon_shuffle)) { /* probably call controller here, pass in genre songs */ },
-                Pair(ActionItem("Add to Playlist", Icons.AutoMirrored.Filled.PlaylistAdd, R.string.icon_add_to_playlist)) { /* probably call controller here, pass in genre songs */ },
-                Pair(ActionItem("Add to Queue", Icons.Filled.Queue, R.string.icon_add_to_queue)) { /* probably call controller here, pass in genre songs */ },
+                Pair(Actions.PlayItem) { /* probably call controller here, pass in genre songs */ }, // play(genre)
+                Pair(Actions.ShuffleItem) { /* probably call controller here, pass in genre songs */ }, // shuffle(genre)
+                Pair(Actions.AddToPlaylist) { /* probably call controller here, pass in genre songs */ }, //addToPlaylist(genre)
+                Pair(Actions.AddToQueue) { /* probably call controller here, pass in genre songs */ }, //addToQueue(genre)
             )
 
             // action items, shown items are dependent on this being a song item
             genreActions.forEach { item ->
                 ActionOptionRow(item)
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.action }
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(item.contentDescription),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = item.name,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }*/
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            val navActions = mutableListOf<Pair<ActionItem,()->Unit>>()
-            navActions.add( Pair(ActionItem("Go to Genre", Icons.Filled.Person, R.string.icon_genre)) {
-                navigateToGenreDetails(
-                    genre
-                )
-            })
-
-            navActions.forEach { item ->
-                ActionOptionRow(item)
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.action }
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(item.contentDescription),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = item.name,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }*/
+            // if on library.genres
+            if (context != "GenreDetails") {
+                ActionOptionRow(Pair(Actions.GoToGenre) {
+                    navigateToGenreDetails(genre)
+                }) // TODO: navigateToGenreDetails(transform genreName to genre.Id)
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
 
-            ActionOptionRow(Pair(Actions.EditComposerTags) {})
-            /*Row(//edit tags
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(8.dp).clickable {  } //edit tags
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = stringResource(R.string.icon_edit),
-                    modifier = Modifier.padding(4.dp)
-                )
-                Text(
-                    text = "Edit Composer Tags", // edit details: name
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-            }*/
+            ActionOptionRow(Pair(Actions.EditGenreTags) {})
+
             Button(
                 onClick = {
                     showBottomSheet = false
@@ -1134,7 +855,8 @@ fun PlaylistMoreOptionsBottomModal(
     coroutineScope: CoroutineScope,
     playlist: PlaylistInfo,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit = {},
+    navigateToPlayer: (SongInfo) -> Unit = {},
+    context: String = "",
     //showBottomSheet: Boolean,
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -1146,152 +868,124 @@ fun PlaylistMoreOptionsBottomModal(
         containerColor = containerColor,//MaterialTheme.colorScheme.background,
         scrimColor = scrimColor,//MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
         properties = properties, //ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+        dragHandle = { CustomDragHandle() }
     ) {
 
         Column (
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier//.padding(horizontal = 24.dp),
         ) {
             // header section
             MoreOptionModalHeader(playlist.name, playlist)
-            /*Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(MusicShapes.small)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
-                    Text(
-                        text = playlist.name[0].toString(), //TODO: FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songInfo, albumInfo)
-                        minLines = 1,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
-                    )
-                }
 
-                AlbumImage(
-                    albumImage = 1,
-                    contentDescription = playlist.name, //playlist.artwork
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(56.dp)
-                        .clip(MusicShapes.small)
-                )
-                Column(Modifier.padding(8.dp)) {
-                    Text(
-                        text = playlist.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        text = "$playlist.songCount",
-                        style = MaterialTheme.typography.bodySmall,
-                        //color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
-            }*/
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             val playlistActions = listOf(
-                Pair(ActionItem("Play",Icons.Filled.PlayArrow, R.string.icon_play)) { /* probably call controller here, pass in genre songs */ },
-                Pair(ActionItem("Shuffle", Icons.Filled.Shuffle, R.string.icon_shuffle)) { /* probably call controller here, pass in genre songs */ },
-                Pair(ActionItem("Add to Playlist", Icons.AutoMirrored.Filled.PlaylistAdd, R.string.icon_add_to_playlist)) { /* probably call controller here, pass in genre songs */ },
-                Pair(ActionItem("Add to Queue", Icons.Filled.Queue, R.string.icon_add_to_queue)) { /* probably call controller here, pass in genre songs */ },
+                Pair(Actions.PlayItem) { /* probably call controller here, pass in playlist songs */ }, // play(playlist)
+                Pair(Actions.ShuffleItem) { /* probably call controller here, pass in playlist songs */ }, // shuffle(playlist)
+                Pair(Actions.AddToPlaylist) { /* probably call controller here, pass in playlist songs */ }, //addToPlaylist(playlist)
+                Pair(Actions.AddToQueue) { /* probably call controller here, pass in playlist songs */ }, //addToQueue(playlist)
             )
 
             // action items, shown items are dependent on this being a song item
             playlistActions.forEach { item ->
                 ActionOptionRow(item)
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.action }
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(item.contentDescription),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = item.name,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }*/
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            val navActions = mutableListOf<Pair<ActionItem,()->Unit>>()
-            navActions.add( Pair(ActionItem("Go to Playlist", Icons.Filled.Person, R.string.icon_playlist)) {
-                navigateToPlaylistDetails(
-                    playlist
-                )
-            })
-
-            navActions.forEach { item ->
-                ActionOptionRow(item)
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.action }
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(item.contentDescription),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = item.name,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }*/
+            // if on library.playlists
+            if (context != "PlaylistDetails") {
+                ActionOptionRow( Pair(Actions.GoToPlaylist) {
+                    navigateToPlaylistDetails(playlist)
+                }) // TODO: navigateToPlaylistDetails(transform playlistName to playlist.Id)
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+
             ActionOptionRow(Pair(Actions.EditPlaylistTags) {})
             ActionOptionRow(Pair(Actions.EditPlaylistOrder) {})
-            /*Row(//edit tags
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(8.dp).clickable {  } //edit tags
+
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            ActionOptionRow( Pair(Actions.ExportPlaylist) { /*  */ } )
+            ActionOptionRow( Pair(Actions.DeletePlaylist) { /* */ } )
+
+            Button(
+                onClick = {
+                    showBottomSheet = false
+                    coroutineScope.launch {
+                        sheetState.hide()
+                        showBottomSheet = false
+                    }
+                },
+                colors = buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
+                ),
+                shape = MusicShapes.small,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = stringResource(R.string.icon_edit),
-                    modifier = Modifier.padding(4.dp)
-                )
-                Text(
-                    text = "Edit Playlist Tags", // edit details: name, description, artwork?
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-            }*/
-
-            val playActions = listOf(
-                Pair(ActionItem("Export Playlist", Icons.Filled.Download, R.string.icon_export)) { /*  */ },
-                Pair(ActionItem("Delete from Library",Icons.Filled.Delete, R.string.icon_delete)) { /* */ },
-            )
-
-            // action items, shown items are dependent on this being a song item
-            playActions.forEach { item ->
-                ActionOptionRow(item)
-                /*Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.action }
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        contentDescription = stringResource(item.contentDescription),
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = item.name,
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }*/
+                Text("CLOSE")
             }
+        }
+    }
+}
+
+/**
+ * Preemptively adding this since will likely need more options for the queue
+ * just not sure how or in what capacity
+ *
+ * Actual content of this would either need to be dependent on:
+ * 1 - is this modal being used for the sake of the current song?
+ * 2 - is this modal being used to operate on the queue itself
+ * 3 - is this modal being used to operate on the list of songs in the queue
+ * 4 - how is the queue itself being displayed in UI
+ * each of these contexts would need slightly different actions/modal content
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QueueMoreOptionsBottomModal(
+    onDismissRequest: () -> Unit,
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    contentColor: Color = MaterialTheme.colorScheme.onBackground,
+    containerColor: Color = MaterialTheme.colorScheme.background,
+    scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
+    properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+    coroutineScope: CoroutineScope,
+    queue: String = "", // TODO: placeholder
+) {
+    var showBottomSheet by remember { mutableStateOf(false) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,//{showBottomSheet = false}
+        sheetState = sheetState,//rememberModalBottomSheetState(skipPartiallyExpanded = false,),
+        contentColor = contentColor,//MaterialTheme.colorScheme.onBackground,
+        containerColor = containerColor,//MaterialTheme.colorScheme.background,
+        scrimColor = scrimColor,//MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
+        properties = properties, //ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+        dragHandle = { CustomDragHandle() }
+    ) {
+        Column (
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier,
+        ) {
+            Row(
+                //verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                Text("Now Playing")
+            }
+            HorizontalDivider( thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp) )
+
+            ActionOptionRow( Pair(Actions.AddToPlaylist) {} )
+            ActionOptionRow( Pair(Actions.ClearQueue) {} )
+            ActionOptionRow( Pair(Actions.SaveQueueToPlaylist) {} )
 
             Button(
                 onClick = {
@@ -1325,33 +1019,36 @@ fun PlaylistMoreOptionsBottomModal(
 @Composable
 fun LibrarySortSelectionBottomModal(
     onDismissRequest: () -> Unit,// = { var showBottomSheet = false },
+
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
     containerColor: Color = MaterialTheme.colorScheme.background,
     scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
     properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+
     coroutineScope: CoroutineScope,
     libraryCategory: LibraryCategory,
 ){
     //var showBottomSheet by remember { mutableStateOf(false) }
     ModalBottomSheet(
-        onDismissRequest = onDismissRequest, //onDismissRequest = { showBottomSheet = false },
+        onDismissRequest = onDismissRequest,
         sheetState = sheetState,
         contentColor = contentColor,
         containerColor = containerColor,
         scrimColor = scrimColor,
         properties = properties,
+        dragHandle = { CustomDragHandle() }
     ) {
         LazyColumn (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier
-                .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
             item {
                 Text(
                     text = "Sort by",
-                    modifier = Modifier.padding(start = 16.dp),
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
                     textAlign = TextAlign.Left,
                     style = MaterialTheme.typography.titleLarge,
                 )
@@ -1416,14 +1113,10 @@ fun LibrarySortSelectionBottomModal(
                 }
             }
 
-            item {
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray)
-            }
+            item { HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) }
 
-            item {
-                //radio buttons for selecting ascending or descending
-                RadioGroupSet(listOf("Ascending", "Descending"))
-            }
+            // radio buttons for selecting ascending or descending
+            item { RadioGroupSet(listOf("Ascending", "Descending")) }
 
             item {
                 Row {
@@ -1459,13 +1152,12 @@ fun LibrarySortSelectionBottomModal(
                             }
                         },
                         colors = buttonColors(
-                            //containerColor = MaterialTheme.colorScheme.primaryContainer,//.copy(alpha = 0.5f),
                             contentColor = MaterialTheme.colorScheme.background,
                             disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
                         ),
                         shape = MusicShapes.small,
-                        modifier = Modifier//.fillMaxWidth()
+                        modifier = Modifier
                             .padding(10.dp)
                             .weight(0.5f)
                     ) {
@@ -1474,136 +1166,6 @@ fun LibrarySortSelectionBottomModal(
                 }
             }
         }
-        /*LazyVerticalGrid(
-            columns = GridCells.Fixed(1),
-            verticalArrangement = Arrangement.Top,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .padding(horizontal = 24.dp, vertical = 16.dp) //(horizontal = 12.dp)
-        ) {
-            fullWidthItem {
-                Text(
-                    text = "Sort by",
-                    modifier = Modifier.padding(start = 16.dp),
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            }
-
-            fullWidthItem {
-                //list of radio buttons, set of options determined by context
-                when (libraryCategory) {
-
-                    LibraryCategory.Albums -> {
-                        //sorting on library.albums screen
-                        RadioGroupSet(
-                            listOf(
-                                "Title",
-                                "Album Artist",
-                                "Date Last Played",
-                                "Song Count"
-                            )
-                        )
-                    }
-
-                    LibraryCategory.Artists -> {
-                        //sorting on library.artists screen
-                        RadioGroupSet(listOf("Name", "Album Count", "Song Count"))
-                    }
-
-                    LibraryCategory.Composers -> {
-                        //sorting on library.composers screen
-                        RadioGroupSet(listOf("Name", "Song Count"))
-                    }
-
-                    LibraryCategory.Genres -> {
-                        //sorting on library.genres screen
-                        RadioGroupSet(listOf("Name", "Song Count"))
-                    }
-
-                    LibraryCategory.Playlists -> {
-                        //sorting on library.playlists screen
-                        RadioGroupSet(
-                            listOf(
-                                "Playlist name",
-                                "Date created",
-                                "Date last accessed",
-                                "Date last played",
-                                "Song Count"
-                            )
-                        )
-                    }
-
-                    LibraryCategory.Songs -> {
-                        //sorting on library.songs screen
-                        RadioGroupSet(
-                            listOf(
-                                "Song title",
-                                "Artist name",
-                                "Album title",
-                                "Date added",
-                                "Date last played"
-                            )
-                        )
-                    }
-                }
-            }
-            fullWidthItem {
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray)
-            }
-
-            fullWidthItem {
-                //radio buttons for selecting ascending or descending
-                RadioGroupSet(listOf("Ascending", "Descending"))
-            }
-
-            fullWidthItem {
-                Row {
-                    //cancel/exit btn
-                    Button(
-                        onClick = {
-                            //showBottomSheet = false
-                            coroutineScope.launch {
-                                sheetState.hide()
-                                //showBottomSheet = false
-                            }
-                        },
-                        colors = buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp).weight(0.5f)
-                    ) {
-                        Text("CANCEL")
-                    }
-
-                    //apply btn
-                    Button(
-                        onClick = {
-                            //showBottomSheet = false
-                            coroutineScope.launch {
-                                sheetState.hide()
-                            }
-                        },
-                        colors = buttonColors(
-                            //containerColor = MaterialTheme.colorScheme.primaryContainer,//.copy(alpha = 0.5f),
-                            contentColor = MaterialTheme.colorScheme.background,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier//.fillMaxWidth()
-                            .padding(10.dp).weight(0.5f)
-                    ) {
-                        Text("APPLY")
-                    }
-                }
-            }
-        }*/
     }
 }
 
@@ -1614,110 +1176,18 @@ fun LibrarySortSelectionBottomModal(
 @Composable
 fun DetailsSortSelectionBottomModal(
     onDismissRequest: () -> Unit,// = { var showBottomSheet = false },
-    sheetState: SheetState = rememberModalBottomSheetState(),
+
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
     containerColor: Color = MaterialTheme.colorScheme.background,
     scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
-    //properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
-    //coroutineScope: CoroutineScope,
-    //itemInfo: Any,
-    content: String = "",
-    context: String = "",
+    properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+
+    coroutineScope: CoroutineScope,
+    content: String = "", // item(s) to be sorted
+    context: String = "", // screen containing item(s) to sort
 ){
     // var showBottomSheet by remember { mutableStateOf(false) }
-    //var showBottomSheet by remember { mutableStateOf(true) }
-
-    /*ModalBottomSheet(
-        //onDismissRequest = { showBottomSheet = false },
-        onDismissRequest = onDismissRequest,
-        sheetState = sheetState,
-        contentColor = contentColor,
-        containerColor = containerColor,
-        scrimColor = scrimColor,
-        properties = properties,
-    ) {
-        Text(
-            text = "Sort by",
-            modifier = Modifier,
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleMedium,
-        )
-
-        //list of radio buttons, set of options determined by context
-        when(itemInfo) {
-
-            is AlbumInfo -> {
-                //sorting on artist details -> album list screen
-                RadioGroupSet(listOf("Album Title", "Song Count"))
-            }
-            /**
-                is ArtistInfo -> {
-                    //currently there is no screen that would sort artists within a higher context other than library screen
-                    // possible future version could use this within composer or genre, but not set up to support
-
-                    //sorting if artist is supported on future version for composer/genre details screen
-                    //RadioGroupSet(listOf("Name", "Song Count"))
-                }
-
-                is ComposerInfo -> {
-                    //currently there is no screen that needs composer sorting outside of library -> composers
-                }
-
-                is GenreInfo -> {
-                    //currently there is no screen that needs genre sorting outside of library -> genres
-                }
-
-                is PlaylistInfo -> {
-                    //currently there is no screen that needs playlist sorting outside of library -> playlists
-                }
-            **/
-
-            is SongInfo -> {
-                //sorting on album details screen -> "Title, Track Number" -found in albumRepo, songRepo
-                RadioGroupSet(listOf("Title", "Track number"))
-
-                //sorting on artist details screen -> "Song Title, Album Title" -songRepo
-                RadioGroupSet(listOf("Title", "Album Title"))
-
-                //sorting on composer details screen -> "Title -songRepo, date last played -composerRepo
-                RadioGroupSet(listOf("Title", "Date Last Played"))
-
-                //sorting on genre details screen -> "Title, date last played -songRepo, genreRepo
-                RadioGroupSet(listOf("Title", "Date Last Played"))
-
-                //sorting on playlist details screen -> "Title, track number
-                RadioGroupSet(listOf("Title", "Track number"))
-
-            }
-
-            is PlayerSong -> {
-                //sorting on album details screen -> "Title, Track Number" -found in albumRepo, songRepo
-                RadioGroupSet(listOf("Title", "Track number"))
-
-                //sorting on artist details screen -> "Song Title, Album Title" -songRepo
-                RadioGroupSet(listOf("Title", "Album Title"))
-
-                //sorting on composer details screen -> "Title -songRepo, date last played -composerRepo
-                RadioGroupSet(listOf("Title", "Date Last Played"))
-
-                //sorting on genre details screen -> "Title, date last played -songRepo, genreRepo
-                RadioGroupSet(listOf("Title", "Date Last Played"))
-
-                //sorting on playlist details screen -> "Title, track number
-                RadioGroupSet(listOf("Title", "Track number"))
-
-            }
-
-            else -> {
-                Text("this is not a valid object to pass")
-            }
-        }
-
-        HorizontalDivider(Modifier.size(1.dp))
-
-        //radio buttons for selecting ascending or descending
-        RadioGroupSet(listOf("Ascending", "Descending"))
-    }*/
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
@@ -1725,55 +1195,33 @@ fun DetailsSortSelectionBottomModal(
         containerColor = containerColor,
         scrimColor = scrimColor,
         properties = properties,
+        dragHandle = { CustomDragHandle() }
     ) {
         LazyColumn(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier
-                .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
             item {
                 Text(
                     text = "Sort by",
-                    modifier = Modifier.padding(start = 16.dp),
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
                     textAlign = TextAlign.Left,
                     style = MaterialTheme.typography.titleLarge,
                 )
             }
 
             //list of radio buttons, set of options determined by context
-            when (content) {
+            item {
+                when (content) {
 
-                "AlbumInfo" -> { //is AlbumInfo -> {
-                    //sorting on artist details -> album list screen
-                    item {
+                    "AlbumInfo" -> { // is AlbumInfo
+                        //sorting on artist details -> album list screen
                         RadioGroupSet(listOf("Album Title", "Song Count"))
                     }
-                }
-                /**
-                is ArtistInfo -> {
-                //currently there is no screen that would sort artists within a higher context other than library screen
-                // possible future version could use this within composer or genre, but not set up to support
 
-                //sorting if artist is supported on future version for composer/genre details screen
-                //RadioGroupSet(listOf("Name", "Song Count"))
-                }
-
-                is ComposerInfo -> {
-                //currently there is no screen that needs composer sorting outside of library -> composers
-                }
-
-                is GenreInfo -> {
-                //currently there is no screen that needs genre sorting outside of library -> genres
-                }
-
-                is PlaylistInfo -> {
-                //currently there is no screen that needs playlist sorting outside of library -> playlists
-                }
-                 **/
-
-                "SongInfo" -> {//is SongInfo -> {
-                    item {
+                    "SongInfo" -> { // is SongInfo
                         //sorting on album details screen -> "Title, Track Number" -found in albumRepo, songRepo
                         if (context == "AlbumDetails")
                             RadioGroupSet(listOf("Title", "Track number"))
@@ -1795,41 +1243,64 @@ fun DetailsSortSelectionBottomModal(
                             RadioGroupSet(listOf("Title", "Track number"))
                     }
 
-                }
-
-                "PlayerSong" -> {//is PlayerSong -> {
-                    item {
-                        //sorting on album details screen -> "Title, Track Number" -found in albumRepo, songRepo
-                        if (context == "AlbumDetails")
-                            RadioGroupSet(listOf("Title", "Track number"))
-
-                        //sorting on artist details screen -> "Song Title, Album Title" -songRepo
-                        if (context == "ArtistDetails")
-                            RadioGroupSet(listOf("Title", "Album Title"))
-
-                        //sorting on composer details screen -> "Title -songRepo, date last played -composerRepo
-                        if (context == "ComposerDetails")
-                            RadioGroupSet(listOf("Title", "Date Last Played"))
-
-                        //sorting on genre details screen -> "Title, date last played -songRepo, genreRepo
-                        if (context == "GenreDetails")
-                            RadioGroupSet(listOf("Title", "Date Last Played"))
-
-                        //sorting on playlist details screen -> "Title, track number
-                        if (context == "PlaylistDetails")
-                            RadioGroupSet(listOf("Title", "Track number"))
+                    else -> {
+                        Text("this is not a valid object to pass")
                     }
-                }
-
-                else -> {
-                    item { Text("this is not a valid object to pass") }
                 }
             }
 
-            item { HorizontalDivider(Modifier.size(1.dp)) }
+            item { HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) }
 
             //radio buttons for selecting ascending or descending
             item { RadioGroupSet(listOf("Ascending", "Descending")) }
+
+            item {
+                Row {
+                    //cancel/exit btn
+                    Button(
+                        onClick = {
+                            //showBottomSheet = false
+                            coroutineScope.launch {
+                                sheetState.hide()
+                                //showBottomSheet = false
+                            }
+                        },
+                        colors = buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onBackground,
+                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
+                        ),
+                        shape = MusicShapes.small,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .weight(0.5f)
+                    ) {
+                        Text("CANCEL")
+                    }
+
+                    //apply btn
+                    Button(
+                        onClick = {
+                            //showBottomSheet = false
+                            coroutineScope.launch {
+                                sheetState.hide()
+                            }
+                        },
+                        colors = buttonColors(
+                            contentColor = MaterialTheme.colorScheme.background,
+                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
+                        ),
+                        shape = MusicShapes.small,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .weight(0.5f)
+                    ) {
+                        Text("APPLY")
+                    }
+                }
+            }
         }
     }
 }
@@ -1841,11 +1312,13 @@ fun DetailsSortSelectionBottomModal(
 @Composable
 fun CreatePlaylistBottomModal(
     onDismissRequest: () -> Unit,
+
     sheetState: SheetState = rememberModalBottomSheetState(),
     contentColor: Color = MaterialTheme.colorScheme.onBackground,
     containerColor: Color = MaterialTheme.colorScheme.background,
     scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
     properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+
     coroutineScope: CoroutineScope,
 ) {
     var nameText by remember { mutableStateOf("") }
@@ -1873,13 +1346,14 @@ fun CreatePlaylistBottomModal(
         containerColor = containerColor,
         scrimColor = scrimColor,
         properties = properties,
+        dragHandle = { CustomDragHandle() }
     ) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(1),
             verticalArrangement = Arrangement.Top,
             horizontalArrangement = Arrangement.Start,
             modifier = Modifier
-                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .padding(horizontal = 24.dp)//, vertical = 16.dp)
         ) {
             fullWidthItem {
                 Text(
@@ -1987,13 +1461,12 @@ fun CreatePlaylistBottomModal(
                         },
                         enabled = !createEnabled.value,
                         colors = buttonColors(
-                            //containerColor = MaterialTheme.colorScheme.primaryContainer,//.copy(alpha = 0.5f),
                             contentColor = MaterialTheme.colorScheme.background,
                             disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
                         ),
                         shape = MusicShapes.small,
-                        modifier = Modifier//.fillMaxWidth()
+                        modifier = Modifier
                             .padding(10.dp)
                             .weight(0.5f)
                     ) {
@@ -2005,12 +1478,14 @@ fun CreatePlaylistBottomModal(
     }
 }
 
+// TODO: determine if this should remain using PlayerSong or be changed to SongInfo
+//  initial idea is to remain as is - 4/2/2025
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheet(
-    song: PlayerSong,
+    song: PlayerSong, //actually ... should this be SongInfo or PlayerSong, since the context is related to the Player
     isPlaying: Boolean = true,
-    navigateToPlayerSong: (PlayerSong) -> Unit = {},
+    navigateToPlayerSong: (PlayerSong) -> Unit = {}, //consequently, should this be using PlayerSong since it is indeed related to the Player
     navigateToQueue: () -> Unit = {},
     sheetState: BottomSheetScaffoldState =
         rememberBottomSheetScaffoldState(
@@ -2045,8 +1520,9 @@ fun BottomSheet(
         sheetContainerColor = MaterialTheme.colorScheme.onPrimaryContainer,
         sheetDragHandle = {
             if (sheetState.bottomSheetState.hasExpandedState) {
-                BottomSheetDefaults.DragHandle()
-            }
+                CustomDragHandle()
+            } else
+                null
         },
         sheetShape = MusicShapes.extraSmall,
         sheetContent = {
@@ -2079,6 +1555,7 @@ fun BottomSheet(
     }
 }
 
+// TODO: same concern as BottomSheet above
 @Composable
 fun BottomSheetPlayer(
     song: PlayerSong,
@@ -2131,7 +1608,7 @@ fun BottomSheetPlayer(
                         modifier = Modifier.basicMarquee()
                     )
                     Text(
-                        text = songSubtext(song),
+                        text = song.setSubtitle(),
                         maxLines = 1,
                         minLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -2143,7 +1620,7 @@ fun BottomSheetPlayer(
                     //determined that the current state is playing (isPlaying is true)
                     Image(
                         imageVector = Icons.Filled.Pause,
-                        contentDescription = stringResource(R.string.cd_pause),
+                        contentDescription = stringResource(R.string.pb_pause),
                         contentScale = ContentScale.Fit,
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                         modifier = primaryButtonModifier
@@ -2156,7 +1633,7 @@ fun BottomSheetPlayer(
                     //determined that the current state is paused (isPlaying is false)
                     Image(
                         imageVector = Icons.Filled.PlayArrow,
-                        contentDescription = stringResource(R.string.cd_play),
+                        contentDescription = stringResource(R.string.pb_play),
                         contentScale = ContentScale.Fit,
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                         modifier = primaryButtonModifier
@@ -2185,6 +1662,7 @@ fun BottomSheetPlayer(
     }
 }
 
+// TODO: same concern as above
 @Composable
 fun BottomSheetFullPlayer(
     song: PlayerSong,
@@ -2242,7 +1720,7 @@ fun BottomSheetFullPlayer(
                             modifier = Modifier.basicMarquee()
                         )
                         Text(
-                            text = songSubtext(song),
+                            text = song.setSubtitle(),
                             maxLines = 1,
                             minLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -2312,21 +1790,20 @@ fun BottomSheetPlayerButtons(
         //Image for Skip back to previous button
         Image(
             imageVector = Icons.Filled.SkipPrevious,
-            contentDescription = stringResource(R.string.cd_skip_previous),
+            contentDescription = stringResource(R.string.pb_skip_previous),
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
             modifier = sideButtonsModifier
                 .clickable(enabled = true, onClick = onPrevious)
-            //.clickable(enabled = isPlaying, onClick = onPrevious)
-            //.alpha(if (isPlaying) 1f else 0.25f)
+                //.clickable(enabled = isPlaying, onClick = onPrevious)
+                //.alpha(if (isPlaying) 1f else 0.25f)
         )
 
         if (isPlaying) {
             //determined that the current state is playing (isPlaying is true)
             Image(
                 imageVector = Icons.Filled.Pause,
-                //imageVector = Icons.Outlined.Pause,
-                contentDescription = stringResource(R.string.cd_pause),
+                contentDescription = stringResource(R.string.pb_pause),
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = primaryButtonModifier
@@ -2339,8 +1816,7 @@ fun BottomSheetPlayerButtons(
             //determined that the current state is paused (isPlaying is false)
             Image(
                 imageVector = Icons.Filled.PlayArrow,
-                //imageVector = Icons.Outlined.PlayArrow,
-                contentDescription = stringResource(R.string.cd_play),
+                contentDescription = stringResource(R.string.pb_play),
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = primaryButtonModifier
@@ -2354,13 +1830,13 @@ fun BottomSheetPlayerButtons(
         //skip to next playable button
         Image(
             imageVector = Icons.Filled.SkipNext,
-            contentDescription = stringResource(R.string.cd_skip_next),
+            contentDescription = stringResource(R.string.pb_skip_next),
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
             modifier = sideButtonsModifier
                 .clickable(enabled = true, onClick = onNext)
-            //.clickable(enabled = hasNext, onClick = onNext)
-            //.alpha(if (hasNext) 1f else 0.25f)
+                //.clickable(enabled = hasNext, onClick = onNext)
+                //.alpha(if (hasNext) 1f else 0.25f)
         )
     }
 }
@@ -2375,7 +1851,6 @@ fun RadioGroupSet(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
         modifier = Modifier
-            //.padding(horizontal = 25.dp, vertical = 15.dp)
             .selectableGroup()
     ) {
         radioOptions.forEach { text ->
@@ -2387,8 +1862,7 @@ fun RadioGroupSet(
                         selected = (text == selectedOption),
                         onClick = { onOptionSelected(text) },
                         role = Role.RadioButton
-                    )
-                    .padding(horizontal = 16.dp),
+                    ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(
@@ -2397,7 +1871,8 @@ fun RadioGroupSet(
                         selectedColor = MaterialTheme.colorScheme.primary,
                         unselectedColor = MaterialTheme.colorScheme.onBackground,
                     ),
-                    onClick = null // null recommended for accessibility with screen readers
+                    modifier = Modifier.padding(start = 24.dp),
+                    onClick = null, // null recommended for accessibility with screen readers
                 )
                 Text(
                     text = text,
@@ -2437,8 +1912,7 @@ fun RadioGroupSet(
     * playlist page (from all playlists to selected playlist): on individual song context - play next, add to queue, add to playlist, edit playlist, remove from playlist, delete(?), view tags(?)
  */
 
-
-//@Preview
+@CompLightPreview
 @Composable
 fun PreviewRadioButtons() {
     MusicTheme {
@@ -2479,7 +1953,7 @@ fun PreviewMoreOptionsModal() {
                 density = Density(1f,1f)
             ),
             coroutineScope = rememberCoroutineScope(),
-            song = PreviewPlayerSongs[0],
+            song = PreviewSongs[0],
         )
     }
 }

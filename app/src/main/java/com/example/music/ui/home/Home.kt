@@ -1,6 +1,9 @@
 package com.example.music.ui.home
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 //import androidx.compose.foundation.background
 //import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +28,8 @@ import androidx.compose.foundation.lazy.grid.items
 //import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cancel
@@ -36,11 +41,13 @@ import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
@@ -49,6 +56,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarDefaults.TopAppBarExpandedHeight
+import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.Posture
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
@@ -68,18 +81,28 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -88,6 +111,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
+import com.example.music.data.database.model.Song
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.usecases.FeaturedLibraryItemsFilterV2
@@ -98,11 +122,15 @@ import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
+import com.example.music.domain.model.SearchQueryFilterResult
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.player.model.PlayerSong
+import com.example.music.domain.usecases.SearchQueryFilterV2
+import com.example.music.ui.search.SearchFieldState
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.shared.formatStr
 import com.example.music.ui.theme.MusicTheme
@@ -112,10 +140,25 @@ import com.example.music.util.isCompact
 import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
+
+/** Changelog:
+ *
+ * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
+ * has been adjusted to support UI with the string values of the foreign key
+ * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 4/11/2025 - Connected search implementation in HomeViewModel and domain's SearchQueryV2 to
+ * the HomeScreen in HomeTopAppBarV2
+ *
+ * 4/13/2025 - Further revised search implementation in app so that it is on a separate screen
+ * SearchScreen / SearchQueryViewModel, and now tapping the Search Icon in the TopAppBar
+ * will navigate to SearchScreen view. Removed HomeTopAppBarV2.
+ */
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 private fun <T> ThreePaneScaffoldNavigator<T>.isMainPaneHidden(): Boolean {
@@ -201,6 +244,7 @@ fun MainScreen(
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
+    navigateToSearch: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
@@ -220,7 +264,8 @@ fun MainScreen(
             navigateToPlaylistDetails = navigateToPlaylistDetails,
             navigateToLibrary = navigateToLibrary,
             navigateToPlayer = navigateToPlayer,
-            navigateToPlayerSong = navigateToPlayerSong,
+            navigateToSearch = navigateToSearch,
+            //navigateToPlayerSong = navigateToPlayerSong,
             navigateToSettings = navigateToSettings,
             viewModel = viewModel,
         )
@@ -260,10 +305,11 @@ private fun HomeScreenReady(
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
+    navigateToSearch: () -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     //logger.info { "Home Screen Ready function start" }
@@ -284,7 +330,7 @@ private fun HomeScreenReady(
                     windowSizeClass = windowSizeClass,
                     isLoading = uiState.isLoading,
                     featuredLibraryItemsFilterResult = uiState.featuredLibraryItemsFilterResult,
-                    librarySongs = uiState.playerSongs, //TODO: PlayerSong support
+                    //searchResults = uiState.searchResults,
                     totals = uiState.totals,
                     onHomeAction = viewModel::onHomeAction,
                     /*navigateToPlaylistDetails = {
@@ -296,8 +342,9 @@ private fun HomeScreenReady(
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToLibrary = navigateToLibrary,
                     navigateToPlayer = navigateToPlayer,
-                    navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
+                    //navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
                     navigateToSettings = navigateToSettings,
+                    navigateToSearch = navigateToSearch,
                     modifier = Modifier.fillMaxSize()
                 )
             },
@@ -337,16 +384,17 @@ private fun HomeScreen(
     isLoading: Boolean,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
     //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
-    librarySongs: List<PlayerSong>, //TODO: PlayerSong support
     totals: List<Int>,
+    //searchResults: SearchQueryFilterV2,
     onHomeAction: (HomeAction) -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
+    navigateToSearch: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) {
     //logger.info { "Home Screen function start" }
@@ -379,8 +427,7 @@ private fun HomeScreen(
             Scaffold(
                 topBar = {
                     HomeTopAppBar(
-                        isExpanded = windowSizeClass.isCompact,
-                        isSearchOn = false,
+                        navigateToSearch = navigateToSearch,
                         onNavigationIconClick = {
                             coroutineScope.launch {
                                 drawerState.apply {
@@ -400,8 +447,8 @@ private fun HomeScreen(
                 bottomBar = {
                     /* //should show BottomBarPlayer here if a queue session is running or service is running
                     BottomBarPlayer(
-                        song = PreviewPlayerSongs[5],
-                        navigateToPlayerSong = { navigateToPlayerSong(PreviewPlayerSongs[5]) },
+                        song = PreviewSongs[5],
+                        navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
                     )*/
                 },
                 snackbarHost = {
@@ -415,7 +462,7 @@ private fun HomeScreen(
                 HomeContent(
                     coroutineScope = coroutineScope,
                     featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
-                    librarySongs = librarySongs, //TODO: PlayerSong support
+                    //librarySongs = librarySongs, //TODO: PlayerSong support
                     modifier = modifier.padding(contentPadding), //this contentPadding comes from the Scaffold /*.statusBarsPadding()*/
                     onHomeAction = { action ->
                         if (action is HomeAction.QueueSong) {
@@ -429,7 +476,7 @@ private fun HomeScreen(
                     navigateToAlbumDetails = navigateToAlbumDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToPlayer = navigateToPlayer,
-                    navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
+                    //navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
                 )
             }
         }
@@ -442,25 +489,13 @@ private fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopAppBar(
-    isSearchOn: Boolean,
-    isExpanded: Boolean,
-    onNavigationIconClick: () -> Unit, //use this to capture navDrawer open/close action
+    onNavigationIconClick: () -> Unit,
+    navigateToSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //logger.info { "Home App Bar function start" }
-    var queryText by remember {
-        mutableStateOf("")
-    }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp)
-    ) {
-        if (!isSearchOn) {
-
-            //not search time
+    TopAppBar(
+        title = {},
+        navigationIcon = {
             IconButton(onClick = onNavigationIconClick) {
                 Icon(
                     imageVector = Icons.Outlined.Menu,
@@ -468,66 +503,27 @@ private fun HomeTopAppBar(
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
-
-            //right align objects after this space
-            Spacer(Modifier.weight(1f))
-
-            // search btn
-            IconButton(onClick = { /* TODO */ }) {
+        },
+        actions = {
+            IconButton( onClick = navigateToSearch ) {
                 Icon(
                     imageVector = Icons.Outlined.Search,
                     contentDescription = stringResource(R.string.icon_search),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
-        } else {
-            // search time
-            //back button
-            IconButton(onClick = { }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.icon_back_nav),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-
-            //right align objects after this space
-            Spacer(Modifier.weight(1f))
-
-            SearchBar( //TODO: determine if this can be a shared item & if this can have visibility functionality
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        query = queryText,
-                        onQueryChange = { queryText = it },
-                        onSearch = {},
-                        expanded = true,
-                        onExpandedChange = {},
-                        enabled = true,
-                        placeholder = {
-                            Text(stringResource(id = R.string.icon_search))
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = null
-                            )
-                        },
-                        trailingIcon = {
-                            //TODO add actual icon or something here
-                            Icon(
-                                imageVector = Icons.Default.Cancel,
-                                contentDescription = stringResource(R.string.icon_search)
-                            )
-                        },
-                        interactionSource = null,
-                        modifier = if (isExpanded) Modifier.fillMaxWidth() else Modifier
-                    )
-                },
-                expanded = false,
-                onExpandedChange = {}
-            ) {}
-        }
-    }
+        },
+        expandedHeight = TopAppBarExpandedHeight,
+        windowInsets = TopAppBarDefaults.windowInsets,
+        colors = TopAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Transparent,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        scrollBehavior = pinnedScrollBehavior(),
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -536,14 +532,14 @@ private fun HomeContent(
     coroutineScope: CoroutineScope,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
     //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
-    librarySongs: List<PlayerSong>, //TODO: PlayerSong support
+    //librarySongs: List<PlayerSong>, //TODO: PlayerSong support
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
 ) {
     // Main Content on Home screen
     //logger.info { "Home Content function start" }
@@ -569,7 +565,7 @@ private fun HomeContent(
         //sheetState = sheetState,
         pagerState = pagerState,
         featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
-        librarySongs = librarySongs, //TODO: PlayerSong support
+        //librarySongs = librarySongs, //TODO: PlayerSong support
         modifier = modifier,
         onHomeAction = onHomeAction,
         onMoreOptionsClick = { showBottomSheet = true },
@@ -577,15 +573,17 @@ private fun HomeContent(
         navigateToAlbumDetails = navigateToAlbumDetails,
         navigateToPlaylistDetails = navigateToPlaylistDetails,
         navigateToPlayer = navigateToPlayer,
-        navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
+        //navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
     )
 
     if(showBottomSheet) {
         SongMoreOptionsBottomModal(
             onDismissRequest = { showBottomSheet = false },
             coroutineScope = coroutineScope,
-            song = librarySongs[0],
-            navigateToPlayerSong = navigateToPlayerSong
+            song = featuredLibraryItemsFilterResult.recentlyAddedSongs[0],
+            //song = librarySongs[0],
+            navigateToPlayer = navigateToPlayer
+            //navigateToPlayerSong = navigateToPlayerSong
         )
     }
 }
@@ -596,7 +594,7 @@ private fun HomeContentGrid(
     pagerState: PagerState,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
     //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
-    librarySongs: List<PlayerSong>, //TODO: PlayerSong support
+    //librarySongs: List<PlayerSong>, //TODO: PlayerSong support
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
     onMoreOptionsClick: (Any) -> Unit,
@@ -604,7 +602,7 @@ private fun HomeContentGrid(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
+    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
 ) {
     //logger.info { "Home Content Grid function start" }
     LazyVerticalGrid(
@@ -652,6 +650,7 @@ private fun HomeContentGrid(
                     items = featuredLibraryItemsFilterResult.recentAlbums.toPersistentList(),//recentPlaylists.toPersistentList(),
                     //navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToAlbumDetails = navigateToAlbumDetails,
+                    onMoreOptionsClick = {},//onHomeAction( HomeAction.LibraryAlbumSelected ),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -692,36 +691,40 @@ private fun HomeContentGrid(
             /**
              * ORIGINAL VERSION: using featuredLibraryItemsFilterResult.recentlyAddedSongs which is List<SongInfo>
              */
-            /*items(featuredLibraryItemsFilterResult.recentlyAddedSongs, key = {it.id}) { song ->
+            items(featuredLibraryItemsFilterResult.recentlyAddedSongs) { song ->
                 //recently added songs as featured songs would go here, limit 5-10. More btn would take to fuller list of songs, limit 100
-                SongListItem(
-                    song = song,
-                    album = getAlbumData(song.albumId!!),
-                    onClick = navigateToPlayer,
-                    onQueueSong = { },
-                    modifier = Modifier.fillMaxWidth(),
-                    isListEditable = false,
-                    showArtistName = true,
-                    showAlbumImage = true,
-                    showAlbumTitle = true,
-                )
-            }*/
+                Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
+                    HomeSongListItem(
+                        song = song,
+                        onClick = navigateToPlayer,
+                        //onQueueSong = { },
+                        onMoreOptionsClick = { onMoreOptionsClick(song) },
+                        modifier = Modifier.fillMaxWidth(),
+                        //isListEditable = false,
+                        //showArtistName = true,
+                        //showAlbumImage = true,
+                        //showAlbumTitle = true,
+                        //showTrackNumber = false,
+                    )
+                }
+            }
 
             /**
              * PLAYERSONG SUPPORT VERSION: using HomeScreen's uiState.librarySongs which is List<PlayerSong>
+             *     was also adjusted so that this could be used to test the moreOptions Modal within Home Screen
              */
-            items(librarySongs) { song ->
+            /*items(librarySongs) { song ->
                 //logger.info { "Home Content Grid - songs layout for song ${song.id}" }
                 //recently added songs as featured songs would go here, limit 5-10. More btn would take to fuller list of songs, limit 100
                 Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                     HomeSongListItem(
                         song = song,
-                        onClick = navigateToPlayerSong,
+                        onClick = navigateToPlayer,
                         onMoreOptionsClick = { onMoreOptionsClick(song) }, //connects the song to the more options call
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
-            }
+            }*/
         }
         //logger.info { "Home Content Grid - lazy vertical grid end" }
     }
@@ -730,8 +733,8 @@ private fun HomeContentGrid(
 
 @Composable
 fun HomeSongListItem(
-    song: PlayerSong,
-    onClick: (PlayerSong) -> Unit,
+    song: SongInfo,
+    onClick: (SongInfo) -> Unit,
     onMoreOptionsClick: () -> Unit,
     //onMoreOptionsClick: (Any) -> Unit,
     modifier: Modifier = Modifier,
@@ -739,7 +742,7 @@ fun HomeSongListItem(
     Box(modifier = modifier.padding(4.dp)) {
         Surface(
             shape = MaterialTheme.shapes.large,
-            //color = Color.Transparent,
+            color = Color.Transparent,
             //color = MaterialTheme.colorScheme.surfaceContainer,
             onClick = { onClick(song) },
         ) {
@@ -754,7 +757,7 @@ fun HomeSongListItem(
 
 @Composable
 private fun HomeSongListItemRow(
-    song: PlayerSong,
+    song: SongInfo,
     onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -860,7 +863,6 @@ private fun PreviewHome() {
                 recentAlbums = PreviewAlbums,
                 recentlyAddedSongs = PreviewSongs
             ),
-            librarySongs = PreviewPlayerSongs,
             totals = listOf(
                 PreviewSongs.size,
                 PreviewArtists.size,
@@ -871,10 +873,11 @@ private fun PreviewHome() {
             navigateToHome = {},
             navigateToLibrary = {},
             navigateToSettings = {},
+            navigateToSearch = {},
             navigateToAlbumDetails = {},
             navigateToPlaylistDetails = {},
             navigateToPlayer = {},
-            navigateToPlayerSong = {},
+            //navigateToPlayerSong = {},
         )
     }
 }
