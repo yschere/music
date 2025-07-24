@@ -68,13 +68,17 @@ import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+
+/** Changelog:
+ *
+ * 7/22-23/2025 - Deleted SongPlayer from domain layer.
+ */
 
 /**
  * Stateful Composable for the Settings Screen
@@ -88,7 +92,6 @@ fun SettingsScreen(
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -109,7 +112,6 @@ fun SettingsScreen(
             navigateToLibrary = navigateToLibrary,
             navigateToSettings = navigateToSettings,
             navigateToPlayer = navigateToPlayer,
-            ///navigateToPlayerSong = navigateToPlayerSong,
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -153,7 +155,6 @@ private fun SettingsScreen(
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit,
     modifier: Modifier = Modifier,
 ) {
 

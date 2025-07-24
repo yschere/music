@@ -3,13 +3,10 @@ package com.example.music.ui.artistdetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.usecases.GetArtistDetailsUseCase
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.SongPlayer
-import com.example.music.domain.player.model.PlayerSong
-import com.example.music.domain.player.model.toPlayerSong
+//import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetArtistDetailsV2
 import com.example.music.ui.Screen
 import com.example.music.util.logger
@@ -21,7 +18,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.select
 import javax.inject.Inject
 
 private const val TAG = "Artist Details View Model"
@@ -34,6 +30,8 @@ private const val TAG = "Artist Details View Model"
  * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
  * has been adjusted to support UI with the string values of the foreign key
  * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 7/22-23/2025 - Deleted SongPlayer from domain layer.
  */
 
 data class ArtistUiState (
@@ -50,7 +48,7 @@ data class ArtistUiState (
 class ArtistDetailsViewModel @Inject constructor(
     //getArtistDetailsUseCase: GetArtistDetailsUseCase,
     getArtistDetailsV2: GetArtistDetailsV2,
-    private val songPlayer: SongPlayer,
+    //private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -89,7 +87,6 @@ class ArtistDetailsViewModel @Inject constructor(
                 logger.info { "$TAG - artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}" }
                 logger.info { "$TAG - artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}" }
                 logger.info { "$TAG - artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}" }
-                //logger.info { "$TAG - artistDetailsFilterResult pSongs: ${artistDetailsFilterResult.pSongs.size}" }
                 logger.info { "$TAG - isReady?: ${!refreshing}" }
 
                 ArtistUiState(
@@ -145,7 +142,7 @@ class ArtistDetailsViewModel @Inject constructor(
 
     private fun onQueueSong(song: SongInfo) {
         logger.info { "$TAG - onQueueSong - ${song.title}" }
-        songPlayer.addToQueue(song.toPlayerSong())
+        //songPlayer.addToQueue(song)
     }
 
     private fun onSongMoreOptionClicked(song: SongInfo) {

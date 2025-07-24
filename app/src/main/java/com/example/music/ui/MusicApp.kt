@@ -30,6 +30,8 @@ import com.example.music.util.logger
  * has been adjusted to support UI with the string values of the foreign key
  * ids and remaining extra info that was not in PlayerSong. For MusicApp, this means
  * removing the navigateToPlayerSong(PlayerSong) navigation link
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 /**
@@ -73,11 +75,6 @@ fun MusicApp(
                     },
 
                     navigateToPlayer = { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
-
-                    //TODO: PlayerSong support
-                    navigateToPlayerSong = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
 

@@ -18,10 +18,10 @@ import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.SongPlayer
-import com.example.music.domain.player.model.PlayerSong
+//import com.example.music.domain.player.SongPlayer
+
 import com.example.music.data.util.combine
-import com.example.music.domain.player.model.toPlayerSong
+//
 import com.example.music.domain.usecases.GetLibraryAlbumsV2
 import com.example.music.domain.usecases.GetLibraryArtistsV2
 import com.example.music.domain.usecases.GetLibraryGenresV2
@@ -45,6 +45,8 @@ private const val TAG = "Library View Model"
  * ids and remaining extra info that was not in PlayerSong.
  *
  * 5/3/2025 - Added AppPreferencesRepo back in to try sorting through it again.
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 @HiltViewModel
@@ -62,7 +64,7 @@ class LibraryViewModel @Inject constructor(
     getLibraryAlbumsV2: GetLibraryAlbumsV2,
     getTotalCountsV2: GetTotalCountsV2,
     getAppPreferences: GetAppPreferencesUseCase, //checks AppPreferencesDataStore
-    private val songPlayer: SongPlayer,
+    //private val songPlayer: SongPlayer,
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
         library needs to have categories: playlists, songs, artists, albums, genres, composers
@@ -238,28 +240,6 @@ class LibraryViewModel @Inject constructor(
                     }
                 }
 
-                logger.info { "did we see albums tho" }
-                /*val libraryPlayerSongs = librarySongs.map { item->
-                    PlayerSong(
-                        item,
-                        libraryArtists.find { it.id == item.artistId }?: ArtistInfo(),
-                        libraryAlbums.find { it.id == item.albumId }?: AlbumInfo(),
-                    )
-                }*/
-                /*val libraryPlayerSongs = librarySongs.map { item ->
-                    PlayerSong(
-                        id = item.id,
-                        title = item.title,
-                        artistId = item.artistId?:0,
-                        artistName = item.artistName?:"",
-                        albumId = item.albumId?:0,
-                        albumTitle = item.albumTitle?:"",
-                        duration = item.duration,
-                        artwork = item.title,
-                        trackNumber = item.trackNumber,
-                        discNumber = item.discNumber,
-                    )
-                }*/
                 LibraryScreenUiState(
                     isLoading = refreshing,
                     libraryCategories = libraryCategories,
@@ -270,7 +250,6 @@ class LibraryViewModel @Inject constructor(
                     libraryGenres = libraryGenres,
                     libraryPlaylists = libraryPlaylists,
                     librarySongs = librarySongs,
-                    //libraryPlayerSongs = libraryPlayerSongs,
                     totals = counts,
                     showBottomModal = showBottomSheet,
                 )
@@ -321,7 +300,7 @@ class LibraryViewModel @Inject constructor(
     }
 
     private fun onQueueSong(song: SongInfo) {
-        songPlayer.addToQueue(song.toPlayerSong())
+        //songPlayer.addToQueue(song)
     }
 
     private fun onShowModal(libraryCategory: LibraryCategory, isModalOpen: Boolean) {
@@ -353,10 +332,8 @@ data class LibraryScreenUiState(
     val libraryComposers: List<ComposerInfo> = emptyList(),
     val libraryGenres: List<GenreInfo> = emptyList(),
     val libraryPlaylists: List<PlaylistInfo> = emptyList(),
-    //val libraryPlayerSongs: List<PlayerSong> = emptyList(),//TODO: PlayerSong support
     val librarySongs: List<SongInfo> = emptyList(),
     val totals: List<Int> = emptyList(),
-    //val totals: List<Pair<String,Int>> = emptyList(),
     val showBottomModal: Boolean = false,
 )
 /* sealed interface LibraryScreenUiState {

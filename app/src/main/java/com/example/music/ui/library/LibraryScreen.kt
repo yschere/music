@@ -74,7 +74,6 @@ import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewComposers
 import com.example.music.domain.testing.PreviewGenres
-import com.example.music.domain.testing.PreviewPlayerSongs
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.model.AlbumInfo
@@ -83,7 +82,6 @@ import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.library.album.albumItems
 import com.example.music.ui.library.artist.artistItems
 import com.example.music.ui.library.composer.composerItems
@@ -106,6 +104,8 @@ import kotlinx.coroutines.launch
  * ids and remaining extra info that was not in PlayerSong.
  *
  * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 /**
@@ -126,7 +126,6 @@ fun LibraryScreen(
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -148,7 +147,6 @@ fun LibraryScreen(
             libraryComposers = uiState.libraryComposers,
             libraryGenres = uiState.libraryGenres,
             libraryPlaylists = uiState.libraryPlaylists,
-            //libraryPlayerSongs = uiState.libraryPlayerSongs,
             librarySongs = uiState.librarySongs,
             totals = uiState.totals,
             onLibraryAction = viewModel::onLibraryAction,
@@ -169,7 +167,6 @@ fun LibraryScreen(
             navigateToGenreDetails = navigateToGenreDetails,
             navigateToPlaylistDetails = navigateToPlaylistDetails,
             navigateToPlayer = navigateToPlayer,
-            //navigateToPlayerSong = navigateToPlayerSong,
             navigateToSearch = navigateToSearch,
             modifier = Modifier.fillMaxSize()
         )
@@ -217,9 +214,7 @@ private fun LibraryScreen(
     libraryGenres: List<GenreInfo>,
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
-    //libraryPlayerSongs: List<PlayerSong>, //TODO: PlayerSong support
     totals: List<Int>,
-    //totals: List<Pair<String,Int>>,
     onLibraryAction: (LibraryAction) -> Unit,
     //navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
@@ -231,7 +226,6 @@ private fun LibraryScreen(
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit,
     navigateToSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -302,7 +296,6 @@ private fun LibraryScreen(
                     libraryComposers = libraryComposers,
                     libraryGenres = libraryGenres,
                     libraryPlaylists = libraryPlaylists,
-                    //libraryPlayerSongs = libraryPlayerSongs,
                     librarySongs = librarySongs,
                     modifier = Modifier.padding(contentPadding),
                     onLibraryAction = { action ->
@@ -319,7 +312,6 @@ private fun LibraryScreen(
                     navigateToGenreDetails = navigateToGenreDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToPlayer = navigateToPlayer,
-                    //navigateToPlayerSong = navigateToPlayerSong,
                 )
             }
         }
@@ -384,7 +376,6 @@ private fun LibraryContent(
     libraryGenres: List<GenreInfo>,
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
-    //libraryPlayerSongs: List<PlayerSong>,
 
     modifier: Modifier = Modifier,
     onLibraryAction: (LibraryAction) -> Unit,
@@ -395,7 +386,6 @@ private fun LibraryContent(
     navigateToGenreDetails: (GenreInfo) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit,
 ) {
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
@@ -681,7 +671,6 @@ private fun PreviewLibrary() {
             libraryComposers = PreviewComposers,
             libraryGenres = PreviewGenres,
             libraryPlaylists = PreviewPlaylists,
-            //libraryPlayerSongs = PreviewPlayerSongs,
             librarySongs = PreviewSongs,
             totals = listOf(
                 PreviewSongs.size,
@@ -689,7 +678,6 @@ private fun PreviewLibrary() {
                 PreviewAlbums.size,
                 PreviewPlaylists.size),
             onLibraryAction = {},
-            //navigateBack = {},
             navigateToHome = {},
             navigateToLibrary = {},
             navigateToSettings = {},
@@ -699,7 +687,6 @@ private fun PreviewLibrary() {
             navigateToGenreDetails = {},
             navigateToComposerDetails = {},
             navigateToPlayer = {},
-            //navigateToPlayerSong = {},
             navigateToSearch = {},
         )
     }

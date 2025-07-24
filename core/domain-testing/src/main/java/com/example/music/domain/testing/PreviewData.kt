@@ -6,7 +6,6 @@ import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
 import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -63,42 +62,36 @@ val PreviewArtists = listOf(
         name = "LM.C",
         songCount = 2,
         albumCount = 2,
-        //genreId = 2 //Pop
     ),
     ArtistInfo(
         id = 22,
         name = "Paramore",
         songCount = 3,
         albumCount = 3,
-        //genreId = 0 //Alternative
     ),
     ArtistInfo(
         id = 9381,
         name = "ACIDMAN",
         songCount = 3,
         albumCount = 1,
-        //genreId = 3 //JPop
     ),
     ArtistInfo(
         id = 6,
         name = "Yoko Shimomura",
         songCount = 1,
         albumCount = 2,
-        //genreId = 1 //Soundtrack
     ),
     ArtistInfo(
         id = 1,
         name = "BUMP OF CHICKEN",
         songCount = 1,
         albumCount = 1,
-        //genreId = 3 //JPop
     ),
     ArtistInfo(
         id = 77,
         name = "Tatsuya Kitani 「キタニタツヤ」",
         songCount = 1,
         albumCount = 1,
-        //genreId = 3 //JPop
     ),
     ArtistInfo(
         id = 15,
@@ -110,17 +103,17 @@ val PreviewArtists = listOf(
 
 val PreviewSongs = listOf(
     SongInfo(
-        id = 1023, //id
-        title = "88", //title
-        artistId = 113, //artist_id
+        id = 1023,
+        title = "88",
+        artistId = 113,
         artistName = "LM.C",
-        albumId = 1145, //album_id
+        albumId = 1145,
         albumTitle = "88 / ...With Vampire - Single",
-        genreId = 2, //genre_id
+        genreId = 2,
         genreName = "Pop",
         composerId = 11,
         composerName = "LM.C",
-        //albumTrackNumber = 1, //track_number
+        //albumTrackNumber = 1,
         trackNumber = 1,
         discNumber = 1,
         //duration = Duration.parse("PT4M"),//5S"),
@@ -143,17 +136,17 @@ val PreviewSongs = listOf(
         srcTrackNum = 1
     ),
     SongInfo(
-        id = 103, //id
-        title = "Ghost heart", //title
-        artistId = 113, //artist_id
+        id = 103,
+        title = "Ghost heart",
+        artistId = 113,
         artistName = "LM.C",
-        albumId = 71, //album_id
+        albumId = 71,
         albumTitle = "Wonderful Wonderholic",
-        genreId = 2, //genre_id
+        genreId = 2,
         genreName = "Pop",
         composerId = null,
         composerName = null,
-        //albumTrackNumber = 4, //track_number
+        //albumTrackNumber = 4,
         trackNumber = 4,
         discNumber = 1,
         duration = Duration.ofSeconds(217),
@@ -176,17 +169,17 @@ val PreviewSongs = listOf(
         srcTrackNum = 1
     ),
     SongInfo(
-        id = 528, //id
-        title = "Slow Rain", //title
-        artistId = 9381, //artist_id
+        id = 528,
+        title = "Slow Rain",
+        artistId = 9381,
         artistName = "ACIDMAN",
-        albumId = 281, //album_id
+        albumId = 281,
         albumTitle = "Slow Rain",
-        genreId = 3, //genre_id
+        genreId = 3,
         genreName = "JPop",
         composerId = null,
         composerName = null,
-        //albumTrackNumber = 1, //track_number
+        //albumTrackNumber = 1,
         trackNumber = 1,
         discNumber = 1,
         duration = Duration.ofSeconds(271),
@@ -206,17 +199,17 @@ val PreviewSongs = listOf(
         srcTrackNum = 1,
     ),
     SongInfo(
-        id = 529, //id
-        title = "Isotope (instrumental)", //title
-        artistId = 9381, //artist_id
+        id = 529,
+        title = "Isotope (instrumental)",
+        artistId = 9381,
         artistName = "ACIDMAN",
-        albumId = 281, //album_id
+        albumId = 281,
         albumTitle = "Slow Rain",
-        genreId = 3, //genre_id
+        genreId = 3,
         genreName = "JPop",
         composerId = null,
         composerName = null,
-        //albumTrackNumber = 2, //track_number
+        //albumTrackNumber = 2,
         trackNumber = 2,
         discNumber = 1,
         duration = Duration.ofSeconds(184),
@@ -236,17 +229,17 @@ val PreviewSongs = listOf(
         srcTrackNum = 1,
     ),
     SongInfo(
-        id = 530, //id
-        title = "Walking Dada", //title
-        artistId = 9381, //artist_id
+        id = 530,
+        title = "Walking Dada",
+        artistId = 9381,
         artistName = "ACIDMAN",
-        albumId = 281, //album_id
+        albumId = 281,
         albumTitle = "Slow Rain",
-        genreId = 3, //genre_id
+        genreId = 3,
         genreName = "JPop",
         composerId = null,
         composerName = null,
-        //albumTrackNumber = 3, //track_number
+        //albumTrackNumber = 3,
         trackNumber = 3,
         discNumber = 1,
         duration = Duration.ofSeconds(143),
@@ -266,17 +259,17 @@ val PreviewSongs = listOf(
         srcTrackNum = 1,
     ),
     SongInfo(
-        id = 12, //id
-        title = "Misery Business", //title
-        artistId = 22, //artist_id
+        id = 12,
+        title = "Misery Business",
+        artistId = 22,
         artistName = "Paramore",
-        albumId = 123, //album_id
+        albumId = 123,
         albumTitle = "Riot!",
-        genreId = 0, //genreId
+        genreId = 0,
         genreName = "Alternative",
         composerId = 410,
         composerName = "Hayley Williams/Josh Farro",
-        //albumTrackNumber = 8, //track_number
+        //albumTrackNumber = 8,
         trackNumber = 8,
         discNumber = 1,
         duration = Duration.ofSeconds(212),
@@ -296,16 +289,16 @@ val PreviewSongs = listOf(
         srcTrackNum = 1,
     ),
     SongInfo(
-        id = 17, //id
-        title = "Ignorance", //title
-        artistId = 22, //artist_id
+        id = 17,
+        title = "Ignorance",
+        artistId = 22,
         artistName = "Paramore",
-        albumId = 124, //album_id
+        albumId = 124,
         albumTitle = "Brand New Eyes",
-        genreId = 0, //genre_id
+        genreId = 0,
         composerId = 410,
         composerName = "Hayley Williams/Josh Farro",
-        //albumTrackNumber = 2, //track_number
+        //albumTrackNumber = 2,
         trackNumber = 2,
         discNumber = 1,
         duration = Duration.ofSeconds(218),
@@ -325,16 +318,16 @@ val PreviewSongs = listOf(
         srcTrackNum = 1,
     ),
     SongInfo(
-        id = 21, //id
-        title = "Hard Times", //title
-        artistId = 22, //artist_id
+        id = 21,
+        title = "Hard Times",
+        artistId = 22,
         artistName = "Paramore",
-        albumId = 125, //album_id
+        albumId = 125,
         albumTitle = "After Laughter",
-        genreId = 0, //genre_id
+        genreId = 0,
         composerId = 410,
         composerName = "Hayley Williams/Josh Farro",
-        //albumTrackNumber = 11, //track_number
+        //albumTrackNumber = 11,
         trackNumber = 11,
         discNumber = 1,
         duration = Duration.ofSeconds(183),
@@ -354,16 +347,16 @@ val PreviewSongs = listOf(
         srcTrackNum = 1,
     ),
     SongInfo(
-        id = 6535, //id
-        title = "Musique pour la Tristesse de Xion", //title
-        artistId = 15, //artist_id
+        id = 6535,
+        title = "Musique pour la Tristesse de Xion",
+        artistId = 15,
         artistName = "Hiroyuki Nakayama 「中山 博之」",
-        albumId = 307, //album_id
+        albumId = 307,
         albumTitle = "Kingdom Hearts Piano Collections - Field & Battle",
-        genreId = 1, //genre_id
+        genreId = 1,
         composerId = 2950,
         composerName = "Sachiko Miyano 「宮野 幸子」",
-        //albumTrackNumber = 9, //track_number
+        //albumTrackNumber = 9,
         trackNumber = 9,
         discNumber = 1,
         duration = Duration.ofSeconds(336),
@@ -386,16 +379,16 @@ val PreviewSongs = listOf(
         srcTrackNum = 1,
     ),
     SongInfo(
-        id = 67, //id
-        title = "Sleep Walking Orchestra", //title
-        artistId = 1, //artist_id
+        id = 67,
+        title = "Sleep Walking Orchestra",
+        artistId = 1,
         artistName = "BUMP OF CHICKEN",
-        albumId = 216, //album_id
+        albumId = 216,
         albumTitle = "Sleep Walking Orchestra - Single",
-        genreId = 3, //genre_id
+        genreId = 3,
         composerId = 119,
         composerName = "Motoo Fujiwara 「藤原 基央」",
-        //albumTrackNumber = 1, //track_number
+        //albumTrackNumber = 1,
         trackNumber = 1,
         discNumber = 1,
         duration = Duration.ofSeconds(236),
@@ -418,16 +411,16 @@ val PreviewSongs = listOf(
         srcTrackNum = 1,
     ),
     SongInfo(
-        id = 59, //id
-        title = "Scar", //title
-        artistId = 77, //artist_id
+        id = 59,
+        title = "Scar",
+        artistId = 77,
         artistName = "Tatsuya Kitani 「キタニタツヤ」",
-        albumId = 964, //album_id
+        albumId = 964,
         albumTitle = "Scar - Single",
-        genreId = 3, //genre_id
+        genreId = 3,
         composerId = 82,
         composerName = "Tatsuya Kitani 「キタニタツヤ」",
-        //albumTrackNumber = 1, //track_number
+        //albumTrackNumber = 1,
         trackNumber = 1,
         discNumber = 1,
         duration = Duration.ofSeconds(259),
@@ -450,16 +443,16 @@ val PreviewSongs = listOf(
         srcTrackNum = 1,
     ),
     SongInfo(
-        id = 171, //id
-        title = "Dearly Beloved", //title
-        artistId = 6, //artist_id
+        id = 171,
+        title = "Dearly Beloved",
+        artistId = 6,
         artistName = "Yoko Shimomura",
-        albumId = 8, //album_id
+        albumId = 8,
         albumTitle = "Kingdom Hearts Original Soundtrack Complete (Disc 1 ~ Kingdom Hearts)",
-        genreId = 1, //genre_id
+        genreId = 1,
         composerId = 291,
         composerName = "Yoko Shimomura",
-        //albumTrackNumber = 1, //track_number
+        //albumTrackNumber = 1,
         trackNumber = 1,
         discNumber = 1,
         duration = Duration.ofSeconds(131),
@@ -489,7 +482,6 @@ val PreviewAlbums = listOf(
         albumArtistId = 113,
         albumArtistName = "LM.C",
         year = 2007,
-        //genreId = 2,
         artwork = "",
         dateLastPlayed = OffsetDateTime.of(
             2020, 6, 2, 9,
@@ -511,7 +503,6 @@ val PreviewAlbums = listOf(
         ),
         trackTotal = 5,
         discTotal = 1,
-        //genreId = 2,
         artwork = "",
         songCount = 1,
     ),
@@ -524,7 +515,6 @@ val PreviewAlbums = listOf(
         dateLastPlayed = null,
         trackTotal = 3,
         discTotal = 1,
-        //genreId = 3,
         artwork = "",
         songCount = 3,
     ),
@@ -537,7 +527,6 @@ val PreviewAlbums = listOf(
         dateLastPlayed = null,
         trackTotal = 11,
         discTotal = 1,
-        //genreId = 0,
         artwork = "",
         songCount = 1,
     ),
@@ -550,7 +539,6 @@ val PreviewAlbums = listOf(
         dateLastPlayed = null,
         trackTotal = 10,
         discTotal = 1,
-        //genreId = 0,
         artwork = "",
         songCount = 1,
     ),
@@ -563,7 +551,6 @@ val PreviewAlbums = listOf(
         dateLastPlayed = null,
         trackTotal = 14,
         discTotal = 1,
-        //genreId = 0,
         artwork = "",
         songCount = 1,
     ),
@@ -579,7 +566,6 @@ val PreviewAlbums = listOf(
         ),
         trackTotal = 9,
         discTotal = 1,
-        //genreId = 1,
         artwork = "",
         songCount = 1,
     ),
@@ -595,7 +581,6 @@ val PreviewAlbums = listOf(
         year = 2024,
         trackTotal = 1,
         discTotal = 1,
-        //genreId = 0,
         artwork = "",
         songCount = 1,
     ),
@@ -611,7 +596,6 @@ val PreviewAlbums = listOf(
         ),
         trackTotal = 1,
         discTotal = 1,
-        //genreId = 0,
         artwork = "",
         songCount = 1,
     ),
@@ -627,7 +611,6 @@ val PreviewAlbums = listOf(
         ),
         trackTotal = 1,
         discTotal = 2,
-        //genreId = 0,
         artwork = "",
         songCount = 1,
     ),
@@ -699,9 +682,12 @@ val PreviewPlaylists = listOf(
     ),
 )
 
-val PreviewPlayerSongs = PreviewSongs.map { songToPlayerSong(it) }
-
-data class SongPlaylistCombo(val id: Long, val playlistId: Long, val songId: Long, val playlistTrackNumber: Int)
+data class SongPlaylistCombo(
+    val id: Long,
+    val playlistId: Long,
+    val songId: Long,
+    val playlistTrackNumber: Int
+)
 
 val PreviewSongPlaylistCombo = listOf(
     SongPlaylistCombo(
@@ -744,7 +730,6 @@ val PreviewSongPlaylistCombo = listOf(
 
 fun getAlbumData(albumId: Long): AlbumInfo = PreviewAlbums.single { s -> s.id == albumId }
 fun getSongData(songId: Long): SongInfo = PreviewSongs.single { s -> s.id == songId }
-fun getPlayerSongData(songId: Long): PlayerSong = PreviewPlayerSongs.single { s -> s.id == songId }
 fun getGenreData(genreId: Long): GenreInfo = PreviewGenres.single { s -> s.id == genreId }
 fun getArtistData(artistId: Long): ArtistInfo = PreviewArtists.single { s -> s.id == artistId }
 fun getPlaylistData(playlistId: Long): PlaylistInfo = PreviewPlaylists.single { s -> s.id == playlistId }
@@ -753,25 +738,6 @@ fun getPlaylistSongs(playlistId: Long): List<SongInfo> = PreviewSongPlaylistComb
     }.map { song ->
         getSongData(song.songId)
     } //returns songs in playlist
-
-fun getPlaylistPlayerSongs(playlistId: Long): List<PlayerSong> = PreviewSongPlaylistCombo.filter { entry ->
-        entry.playlistId == playlistId
-    }
-    .map { song ->
-        PlayerSong(
-            id = song.id,
-            title = getSongData(song.songId).title,
-            artistId = getSongData(song.songId).artistId,
-            artistName = getArtistData(getSongData(song.songId).artistId).name,
-            albumId = getSongData(song.songId).albumId,
-            albumTitle = getAlbumData(getSongData(song.songId).albumId).title,
-            duration = getSongData(song.songId).duration,
-            artwork = getAlbumData(getSongData(song.songId).albumId).artwork,
-            artworkUri = null,
-            art = null,
-            trackNumber = song.playlistTrackNumber
-        )
-    }
 
 fun getSongsInAlbum(albumId: Long): List<SongInfo> = PreviewSongs.filter { entry ->
     entry.albumId == albumId
@@ -785,17 +751,6 @@ fun getSongsByArtist(artistId: Long): List<SongInfo> = PreviewSongs.filter { ent
     entry.artistId == artistId
 }
 
-fun getPlaylistPlayerSongs(playlist: PlaylistInfo): List<PlayerSong> {
-    val songs = getPlaylistSongs(playlist.id)
-    return songs.map{
-        PlayerSong(
-            it,
-            getArtistData(it.artistId),
-            getAlbumData(it.albumId)
-        )
-    }
-}
-
 fun getComposerData(composerId: Long): ComposerInfo = PreviewComposers.single { s -> s.id == composerId }
 
 fun getSongsByComposer(composerId: Long): List<SongInfo> = PreviewSongs.filter { entry ->
@@ -805,10 +760,3 @@ fun getSongsByComposer(composerId: Long): List<SongInfo> = PreviewSongs.filter {
 fun getSongsInGenre(genreId: Long): List<SongInfo> = PreviewSongs.filter{ entry ->
     entry.genreId == genreId
 }
-
-fun songToPlayerSong(song: SongInfo): PlayerSong =
-    PlayerSong(
-        song,
-        getArtistData(song.artistId),
-        getAlbumData(song.albumId)
-    )

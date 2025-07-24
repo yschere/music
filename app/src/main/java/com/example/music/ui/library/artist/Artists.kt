@@ -44,6 +44,11 @@ import com.example.music.util.quantityStringResource
 import com.example.music.util.stickyHeader
 import kotlinx.coroutines.CoroutineScope
 
+/** Changelog:
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
+ */
+
 /**
  * Artist Items Lazy List Scope Generator.
  * Provides header item with a count of the artist given, and
@@ -52,9 +57,8 @@ import kotlinx.coroutines.CoroutineScope
 /*fun LazyListScope.artistItems(
     artists: List<ArtistInfo>,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
-    //playerSongs: List<PlayerSong>, //TODO: PlayerSong support
 //    navigateToPlayer: (SongInfo) -> Unit,
-//    onQueueSong: (PlayerSong) -> Unit
+//    onQueueSong: (SongInfo) -> Unit
 ) {
     item {
         Text(
@@ -73,7 +77,7 @@ import kotlinx.coroutines.CoroutineScope
     items(artists) { item ->
         ArtistListItem(
             //what is needed for the artist list navigation use case
-            artist = item, //TODO: PlayerSong support
+            artist = item,
             navigateToArtistDetails = navigateToArtistDetails,
             modifier = Modifier.fillParentMaxWidth(),
         )
@@ -90,7 +94,6 @@ fun LazyGridScope.artistItems(
     artists: List<ArtistInfo>,
     coroutineScope: CoroutineScope,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
-    //playerSongs: List<PlayerSong>, //TODO: PlayerSong support
     //navigateToPlayer: (SongInfo) -> Unit,
     //onQueueSong: (PlayerSong) -> Unit
 ) {
@@ -147,7 +150,7 @@ fun LazyGridScope.artistItems(
         span = { GridItemSpan(maxLineSpan) }
     ) { item ->
         ArtistListItem(
-            artist = item, //TODO: PlayerSong support
+            artist = item,
             navigateToArtistDetails = navigateToArtistDetails,
             modifier = Modifier.fillMaxWidth()
         )
@@ -223,7 +226,7 @@ fun LazyGridScope.artistItems(
             span = { GridItemSpan(maxLineSpan) }
         ) { item ->
             ArtistListItem(
-                artist = item, //TODO: PlayerSong support
+                artist = item,
                 navigateToArtistDetails = navigateToArtistDetails,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -281,26 +284,22 @@ private fun ArtistListItemRow(
             Row(
                 modifier = modifier.padding(horizontal = 10.dp)
             ) {
-                if (artist.albumCount != null) { //if showArtistName is true
-                    Text(
-                        text = quantityStringResource(R.plurals.albums, artist.albumCount!!, artist.albumCount!!),
-                        maxLines = 1,
-                        minLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(vertical = 2.dp),
-                    )
-                }
-                if (artist.songCount != null) {
-                    Text(
-                        text = " • " + quantityStringResource(R.plurals.songs, artist.songCount!!, artist.songCount!!),
-                        maxLines = 1,
-                        minLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(vertical = 2.dp),
-                    )
-                }
+                Text(
+                    text = quantityStringResource(R.plurals.albums, artist.albumCount, artist.albumCount),
+                    maxLines = 1,
+                    minLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(vertical = 2.dp),
+                )
+                Text(
+                    text = " • " + quantityStringResource(R.plurals.songs, artist.songCount, artist.songCount),
+                    maxLines = 1,
+                    minLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(vertical = 2.dp),
+                )
             }
         }
 

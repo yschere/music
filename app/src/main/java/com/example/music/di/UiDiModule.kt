@@ -32,7 +32,6 @@ object UiDiModule {
 
     @OptIn(UnstableApi::class)
     @Provides
-    //@Singleton
     fun providePlayer(
         @ApplicationContext context: Context,
         audioAttributes: AudioAttributes,

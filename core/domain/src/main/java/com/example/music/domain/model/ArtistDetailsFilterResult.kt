@@ -1,6 +1,9 @@
 package com.example.music.domain.model
 
-import com.example.music.domain.player.model.PlayerSong
+/** Changelog:
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
+ */
 
 /**
  * A domain model for holding an artist object, its list of albums, and its list of songs.
@@ -10,5 +13,4 @@ data class ArtistDetailsFilterResult(
     val artist: ArtistInfo = ArtistInfo(),
     val albums: List<AlbumInfo> = emptyList(),
     val songs: List<SongInfo> = emptyList(),
-    //val pSongs: List<PlayerSong> = emptyList(),
 )

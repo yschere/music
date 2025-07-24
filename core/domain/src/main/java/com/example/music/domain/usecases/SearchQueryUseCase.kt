@@ -6,7 +6,6 @@ import com.example.music.data.repository.ComposerRepo
 import com.example.music.data.repository.SongRepo
 import com.example.music.domain.model.SearchQueryFilterResult
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.player.model.PlayerSong
 import com.example.music.data.util.combine
 import javax.inject.Inject
 import com.example.music.domain.util.domainLogger

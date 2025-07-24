@@ -5,10 +5,14 @@ import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import com.example.music.domain.util.domainLogger
 import javax.inject.Inject
+
+/** Changelog:
+ *
+ * 7/22-23/2025 - Simplified return statement since SongInfo does not have nullable albumId
+ */
 
 /**
  * Use case to retrieve Flow[AlbumInfo] for given song [SongInfo]
@@ -27,18 +31,13 @@ class GetSongAlbumDataUseCase @Inject constructor(
     operator fun invoke(song: SongInfo): Flow<AlbumInfo> {
         domainLogger.info { "GetSongAlbumDataUseCase start:\n" +
                 " song.id: ${song.id};\n" +
-                " song.albumId: ${song.albumId ?: "null"};"}
+                " song.albumId: ${song.albumId};"}
 
-        return if (song.albumId != null) {
-            albumRepo.getAlbumWithExtraInfo(song.albumId).map {
-                domainLogger.info { "AlbumWithExtraInfo: \n" +
-                        " Album: ${it.album};\n" +
-                        " Album songCount: ${it.songCount};"}
-                it.asExternalModel()
-            }
-        } else {
-            domainLogger.info { "AlbumInfo is empty" }
-            flowOf(AlbumInfo())
+        return albumRepo.getAlbumWithExtraInfo(song.albumId).map {
+            domainLogger.info { "AlbumWithExtraInfo: \n" +
+                    " Album: ${it.album};\n" +
+                    " Album songCount: ${it.songCount};"}
+            it.asExternalModel()
         }
     }
 }

@@ -117,14 +117,14 @@ import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.usecases.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
-import com.example.music.domain.testing.PreviewPlayerSongs
+//import com.example.music.domain.testing.PreviewPlayerSongs
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SearchQueryFilterResult
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
+
 import com.example.music.domain.usecases.SearchQueryFilterV2
 import com.example.music.ui.search.SearchFieldState
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
@@ -158,6 +158,8 @@ import java.time.OffsetDateTime
  * 4/13/2025 - Further revised search implementation in app so that it is on a separate screen
  * SearchScreen / SearchQueryViewModel, and now tapping the Search Icon in the TopAppBar
  * will navigate to SearchScreen view. Removed HomeTopAppBarV2.
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -248,24 +250,20 @@ fun MainScreen(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     Box {
-        //logger.info { "Main Screen function start" }
         HomeScreenReady(
             uiState = uiState,
             windowSizeClass = windowSizeClass,
-            //navigateBack = navigateBack,
             navigateToHome = navigateToHome,
             navigateToAlbumDetails = navigateToAlbumDetails,
             navigateToPlaylistDetails = navigateToPlaylistDetails,
             navigateToLibrary = navigateToLibrary,
             navigateToPlayer = navigateToPlayer,
             navigateToSearch = navigateToSearch,
-            //navigateToPlayerSong = navigateToPlayerSong,
             navigateToSettings = navigateToSettings,
             viewModel = viewModel,
         )
@@ -273,13 +271,17 @@ fun MainScreen(
         if (uiState.errorMessage != null) {
             HomeScreenError(onRetry = viewModel::refresh)
         }
-        //logger.info { "Main Screen function end" }
     }
 }
 
+/**
+ * Error Screen
+ */
 @Composable
-private fun HomeScreenError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    //logger.info { "Home Screen Error function start" }
+private fun HomeScreenError(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -312,8 +314,6 @@ private fun HomeScreenReady(
     //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    //logger.info { "Home Screen Ready function start" }
-
     val navigator = rememberSupportingPaneScaffoldNavigator<String>(
         scaffoldDirective = calculateScaffoldDirective(currentWindowAdaptiveInfo())
     )
@@ -342,7 +342,6 @@ private fun HomeScreenReady(
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToLibrary = navigateToLibrary,
                     navigateToPlayer = navigateToPlayer,
-                    //navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
                     navigateToSettings = navigateToSettings,
                     navigateToSearch = navigateToSearch,
                     modifier = Modifier.fillMaxSize()
@@ -394,11 +393,8 @@ private fun HomeScreen(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) {
-    //logger.info { "Home Screen function start" }
-
     // Effect that changes the home category selection when there are no subscribed podcasts
     //TODO: repurpose this for RecentPlaylists, so that if there's no recent playlists as featured playlists, have a defaulted view
     LaunchedEffect(key1 = featuredLibraryItemsFilterResult.recentAlbums) {//featuredLibraryItemsFilterResult.recentPlaylists) {
@@ -476,7 +472,6 @@ private fun HomeScreen(
                     navigateToAlbumDetails = navigateToAlbumDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToPlayer = navigateToPlayer,
-                    //navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
                 )
             }
         }
@@ -532,18 +527,15 @@ private fun HomeContent(
     coroutineScope: CoroutineScope,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
     //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
-    //librarySongs: List<PlayerSong>, //TODO: PlayerSong support
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
 ) {
     // Main Content on Home screen
     //logger.info { "Home Content function start" }
-    //val pLists = featuredLibraryItemsFilterResult.recentPlaylists.toPersistentList()
     val pLists = featuredLibraryItemsFilterResult.recentAlbums.toPersistentList()
     val pagerState = rememberPagerState { pLists.size }
     LaunchedEffect(pagerState, pLists) {
@@ -565,7 +557,6 @@ private fun HomeContent(
         //sheetState = sheetState,
         pagerState = pagerState,
         featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
-        //librarySongs = librarySongs, //TODO: PlayerSong support
         modifier = modifier,
         onHomeAction = onHomeAction,
         onMoreOptionsClick = { showBottomSheet = true },
@@ -573,7 +564,6 @@ private fun HomeContent(
         navigateToAlbumDetails = navigateToAlbumDetails,
         navigateToPlaylistDetails = navigateToPlaylistDetails,
         navigateToPlayer = navigateToPlayer,
-        //navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
     )
 
     if(showBottomSheet) {
@@ -581,9 +571,7 @@ private fun HomeContent(
             onDismissRequest = { showBottomSheet = false },
             coroutineScope = coroutineScope,
             song = featuredLibraryItemsFilterResult.recentlyAddedSongs[0],
-            //song = librarySongs[0],
             navigateToPlayer = navigateToPlayer
-            //navigateToPlayerSong = navigateToPlayerSong
         )
     }
 }
@@ -594,7 +582,6 @@ private fun HomeContentGrid(
     pagerState: PagerState,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
     //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
-    //librarySongs: List<PlayerSong>, //TODO: PlayerSong support
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
     onMoreOptionsClick: (Any) -> Unit,
@@ -602,7 +589,6 @@ private fun HomeContentGrid(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
 ) {
     //logger.info { "Home Content Grid function start" }
     LazyVerticalGrid(
@@ -708,23 +694,6 @@ private fun HomeContentGrid(
                     )
                 }
             }
-
-            /**
-             * PLAYERSONG SUPPORT VERSION: using HomeScreen's uiState.librarySongs which is List<PlayerSong>
-             *     was also adjusted so that this could be used to test the moreOptions Modal within Home Screen
-             */
-            /*items(librarySongs) { song ->
-                //logger.info { "Home Content Grid - songs layout for song ${song.id}" }
-                //recently added songs as featured songs would go here, limit 5-10. More btn would take to fuller list of songs, limit 100
-                Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
-                    HomeSongListItem(
-                        song = song,
-                        onClick = navigateToPlayer,
-                        onMoreOptionsClick = { onMoreOptionsClick(song) }, //connects the song to the more options call
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }*/
         }
         //logger.info { "Home Content Grid - lazy vertical grid end" }
     }
@@ -877,9 +846,6 @@ private fun PreviewHome() {
             navigateToAlbumDetails = {},
             navigateToPlaylistDetails = {},
             navigateToPlayer = {},
-            //navigateToPlayerSong = {},
         )
     }
 }
-
-

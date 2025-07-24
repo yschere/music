@@ -2,16 +2,23 @@ package com.example.music.service
 
 import androidx.media3.common.MediaItem
 import com.example.music.data.repository.RepeatType
-import com.example.music.domain.player.model.PlayerSong
+import com.example.music.domain.model.SongInfo
 import kotlinx.coroutines.flow.StateFlow
 import java.time.Duration
+
+/** Changelog:
+ *
+ * 7/22-23/2025 - Revised currentSong and queue to be MediaItem based.
+ * Changed the queue, play, mediaItem functions to use SongInfo.
+ * Removed PlayerSong completely
+ */
 
 val DefaultPlaybackSpeed = Duration.ofSeconds(1)
 //TODO: see if there is way to confirm what type DefaultPlaybackSpeed is supposed to be
 
 data class SongControllerState( //equivalent of music playe's MusicControllerUiState
-    val currentSong: PlayerSong? = null,
-    val queue: List<PlayerSong> = emptyList(),
+    val currentSong: MediaItem? = null,
+    val queue: List<MediaItem> = emptyList(),
     val playbackSpeed: Duration = DefaultPlaybackSpeed,
     val isPlaying: Boolean = false, //tracks the current playing state, instead of having playing, paused, stopped like music playe's PlayerState
     val timeElapsed: Duration = Duration.ZERO,
@@ -47,19 +54,19 @@ interface SongController { //equivalent of music playe's MusicController
     //val mediaPlayer: MediaPlayer?
         //get() = null
 
-    fun addMediaItem(item: PlayerSong)
+    fun addMediaItem(item: SongInfo)
 
-    fun addMediaItems(items: List<PlayerSong>)
+    fun addMediaItems(items: List<SongInfo>)
 
-    fun addToQueue(playerSong: PlayerSong) //might be equivalent of addMediaItems(songs: List<Song>)
+    fun addToQueue(songInfo: SongInfo) //might be equivalent of addMediaItems(songs: List<Song>)
 
-    fun addToQueue(playerSongs: List<PlayerSong>)
+    fun addToQueue(songInfos: List<SongInfo>)
 
-    fun addToQueueNext(playerSong: PlayerSong)
+    fun addToQueueNext(songInfo: SongInfo)
 
-    fun addToQueueNext(playerSongs: List<PlayerSong>)
+    fun addToQueueNext(songInfos: List<SongInfo>)
 
-    fun setMediaItem(item: PlayerSong)
+    fun setMediaItem(item: SongInfo)
 
     fun preparePlayer()
 
@@ -76,12 +83,12 @@ interface SongController { //equivalent of music playe's MusicController
     /**
      * Plays the specified song
      */
-    fun play(playerSong: PlayerSong) //might be closest equivalent of play(mediaItemIndex: Int)
+    fun play(songInfo: SongInfo) //might be closest equivalent of play(mediaItemIndex: Int)
 
     /**
      * Plays the specified list of songs
      */
-    fun play(playerSongs: List<PlayerSong>)
+    fun play(songInfos: List<SongInfo>)
 
     /**
      * Pauses the currently played song
@@ -138,5 +145,15 @@ interface SongController { //equivalent of music playe's MusicController
      */
     fun decreaseSpeed(speed: Duration = Duration.ofMillis(500))
 
-    fun shuffle(playerSongs: List<PlayerSong>)
+    fun shuffle(songInfos: List<SongInfo>)
+
+    fun getIsPlaying() : Boolean
+
+    fun getIsShuffled() : Boolean
+
+    fun getRepeatState() : RepeatType
+
+    fun getTimeElapsed() : Duration
+
+    fun getHasNext() : Boolean
 }

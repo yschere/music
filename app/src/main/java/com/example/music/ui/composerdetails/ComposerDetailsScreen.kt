@@ -57,8 +57,8 @@ import com.example.music.domain.testing.PreviewComposers
 import com.example.music.domain.testing.getSongsByComposer
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
-import com.example.music.domain.player.model.toPlayerSong
+
+
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
@@ -75,6 +75,8 @@ import com.example.music.util.quantityStringResource
  * ids and remaining extra info that was not in PlayerSong.
  *
  * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 /**
@@ -83,7 +85,6 @@ import com.example.music.util.quantityStringResource
 @Composable
 fun ComposerDetailsScreen(
     navigateToPlayer: (SongInfo) -> Unit = {},
-    //navigateToPlayerSong: (PlayerSong) -> Unit = {},
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit = {},
     //showBackButton: Boolean,
@@ -101,10 +102,8 @@ fun ComposerDetailsScreen(
             ComposerDetailsScreen(
                 composer = uiState.composer,
                 songs = uiState.songs,
-                //pSongs = uiState.pSongs,
                 //onQueueSong = viewModel::onQueueSong,
                 navigateToPlayer = navigateToPlayer,
-                //navigateToPlayerSong = navigateToPlayerSong,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 //showBackButton = showBackButton,
@@ -157,10 +156,8 @@ private fun ComposerDetailsLoadingScreen(
 fun ComposerDetailsScreen(
     composer: ComposerInfo,
     songs: List<SongInfo>,
-    //pSongs: List<PlayerSong>,
-    //onQueueSong: (PlayerSong) -> Unit,
+    //onQueueSong: (SongInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //showBackButton: Boolean,
@@ -207,7 +204,6 @@ fun ComposerDetailsScreen(
                     onQueueSong(it)
                 },*/
                 navigateToPlayer = navigateToPlayer,
-                //navigateToPlayerSong = navigateToPlayerSong,
                 modifier = Modifier.padding(contentPadding)
             )
         }
@@ -268,8 +264,7 @@ fun ComposerDetailsTopAppBar(
 fun ComposerDetailsContent(
     composer: ComposerInfo,
     songs: List<SongInfo>,
-    //pSongs: List<PlayerSong>,
-    //onQueueSong: (PlayerSong) -> Unit,
+    //onQueueSong: (SongInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
@@ -312,7 +307,6 @@ fun ComposerDetailsContent(
 
             // songs list
             items(songs) { song ->
-            //items(pSongs) { song ->
                 Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                     SongListItem(
                         song = song,
@@ -502,15 +496,13 @@ fun ComposerDetailsScreenPreview() {
 
             //Paramore
             //composer = PreviewComposers[3],
-            //songs = getSongsByComposer(410),]
+            //songs = getSongsByComposer(410),
 
             //Tatsuya Kitani
             composer = PreviewComposers[1],
             songs = getSongsByComposer(PreviewComposers[1].id),
-            //pSongs = getSongsByComposer(PreviewComposers[1].id).map { it.toPlayerSong() },
 
             navigateToPlayer = {},
-            //navigateToPlayerSong = {},
             navigateToSearch = {},
             navigateBack = {},
         )

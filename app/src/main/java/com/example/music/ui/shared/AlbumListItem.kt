@@ -43,7 +43,7 @@ fun AlbumListItem(
     //TODO: will want to add onQueueAlbum onClick action if I keep the FAB over each album in box version
     modifier: Modifier = Modifier,
     /*//not passing in artistInfo from ArtistDetailsScreen because want to use album's album artist id info instead
-        // onQueueSong: (PlayerSong) -> Unit, //don't think onQueueSong will be needed for list item, but maybe a navigate to album details screen btn instead
+        // onQueueSong: (SongInfo) -> Unit, //don't think onQueueSong will be needed for list item, but maybe a navigate to album details screen btn instead
         // showAlbumImage: Boolean, //this should be true all the time, so is unnecessary for album list item
         // showAlbumTitle: Boolean, //this should be true all the time, so is unnecessary for album list item
         // maybe a song count property? if that can be shown or is wanted? wait no that's part of albumWithExtraInfo,

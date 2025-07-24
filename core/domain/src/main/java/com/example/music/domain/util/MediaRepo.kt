@@ -30,8 +30,11 @@ class MediaRepo (
         fun toAlbumArtUri(id: Long): Uri = ContentUris.withAppendedId(ALBUM_ART_URI, id)
     }
 
-    // registers an observer class for getting preference settings
-    // hope to find a way to repurpose this for data store -> user settings or maybe other save-able data
+    /**
+     * Registers an observer class for getting preference settings.
+     * --Hope/want to find a way to repurpose this for getting data store user settings or at least
+     * save-able data
+     */
     fun observe(uri: Uri) =
         combine(
             flow = resolver.observe(uri),
@@ -40,6 +43,9 @@ class MediaRepo (
             self
         }
 
+    /**
+     * Inspect the MediaStore to retrieve the total counts of songs, artists, albums and genres.
+     */
     fun inspectMediaStore(): MutableList<Int> {
         val counts = mutableListOf<Int>()
 
@@ -95,6 +101,9 @@ class MediaRepo (
         return counts
     }
 
+    /**
+     * Return the bitmap of a thumbnail from a given uri
+     */
     fun loadThumb(uri: Uri): Bitmap = resolver.loadThumbnail(uri, Size(640, 480), null)
 
 
@@ -106,6 +115,7 @@ class MediaRepo (
 
     /**
      * Get most recently added songs from MediaStore
+     * @return [Flow] of [List] of [Audio]
      */
     fun mostRecentSongs(limit: Int) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
@@ -366,7 +376,6 @@ class MediaRepo (
 
     /**
      * returns most recent album ids. have this rewritten and repurposed in featuredLibraryItemsV2.albumItems
-     * TODO why should this be rewritten?
      */
     fun mostRecentAlbums(limit: Int) =
         observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)

@@ -1,6 +1,9 @@
 package com.example.music.domain.model
 
-import com.example.music.domain.player.model.PlayerSong
+/** Changelog:
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
+ */
 
 /**
  * Domain model for representing search query results. Each property is the
@@ -8,7 +11,6 @@ import com.example.music.domain.player.model.PlayerSong
  */
 data class SearchQueryFilterResult (
     val songs: List<SongInfo> = emptyList(),
-    //val pSongs: List<PlayerSong> = emptyList(),
     val artists: List<ArtistInfo> = emptyList(),
     val albums: List<AlbumInfo> = emptyList(),
     val composers: List<ComposerInfo> = emptyList()

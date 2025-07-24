@@ -11,6 +11,8 @@ import javax.inject.Inject
 /** Changelog:
  * Created on 4/4/2025 to invoke a search function for the app
  * to use for querying string matches to media in MediaStore.
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 /** logger tag for this class */

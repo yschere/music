@@ -11,10 +11,9 @@ import com.example.music.domain.usecases.GetSongArtistDataUseCase
 import com.example.music.domain.usecases.GetTotalCountsUseCase
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
-import com.example.music.domain.player.SongPlayer
-import com.example.music.domain.player.model.PlayerSong
+//import com.example.music.domain.player.SongPlayer
 import com.example.music.data.util.combine
-import com.example.music.domain.player.model.toPlayerSong
+import com.example.music.domain.model.SongInfo
 import com.example.music.domain.usecases.GetThumbnailUseCase
 import com.example.music.domain.usecases.GetTotalCountsV2
 import com.example.music.domain.usecases.SearchQueryFilterV2
@@ -36,6 +35,8 @@ import com.example.music.util.logger
  * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
  * has been adjusted to support UI with the string values of the foreign key
  * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 /** logger tag for this class */
@@ -51,7 +52,7 @@ class HomeViewModel @Inject constructor(
 //    private val getArtistDataUseCase: GetSongArtistDataUseCase,
 //    private val getAlbumDataUseCase: GetSongAlbumDataUseCase,
    // private val searchQueryV2: SearchQueryV2,
-    private val songPlayer: SongPlayer
+    //private val songPlayer: SongPlayer
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
         objects: FeaturedLibraryItemsFilterResult, which contains
@@ -193,8 +194,8 @@ class HomeViewModel @Inject constructor(
         //featuredPlaylists = null
     }
 
-    private fun onQueueSong(song: PlayerSong) {
-        songPlayer.addToQueue(song)
+    private fun onQueueSong(song: SongInfo) {
+        //songPlayer.addToQueue(song)
     }
 
 //    private fun onQuerySearch(query: String) {
@@ -224,7 +225,7 @@ sealed interface HomeAction {
     data class EmptyLibraryView(val playlist: PlaylistInfo) : HomeAction
     data class LibraryAlbumSelected(val album: AlbumInfo) : HomeAction
     //data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
-    data class QueueSong(val song: PlayerSong) : HomeAction
+    data class QueueSong(val song: SongInfo) : HomeAction
     // TODO create search query class ... would this make it so the query string needs to be part of homeViewModel? maybe not?
     //data class SendQuery(val query: String) : HomeAction
 }
@@ -237,5 +238,4 @@ data class HomeScreenUiState(
     //val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult = FeaturedLibraryItemsFilterResult(),
     val totals: List<Int> = emptyList(),
     //val searchResults: SearchQueryFilterV2 = SearchQueryFilterV2(),
-    //val totals: List<Pair<String,Int>> = emptyList(),
 )

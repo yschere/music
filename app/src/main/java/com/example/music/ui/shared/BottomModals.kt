@@ -93,16 +93,14 @@ import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.MusicShapes
-import com.example.music.domain.testing.PreviewPlayerSongs
-import com.example.music.domain.testing.getPlayerSongData
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
 import com.example.music.domain.testing.PreviewSongs
+import com.example.music.domain.testing.getSongData
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.player.PlayerSlider
 import com.example.music.ui.theme.MusicTheme
@@ -128,6 +126,8 @@ import java.time.Duration
  * 4/14/2024 - Created CustomDragHandle to create a drag handle that takes up less space.
  * Updated the bottom modals' padding for column structure and list items so the onPress, onClick
  * highlight covers the full width of the item.
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 //More Options Modal Content - Action Options Row Composable
@@ -234,10 +234,6 @@ fun MoreOptionModalHeader(
                         //songCountSubtext(item)
                     }
 
-                    is PlayerSong -> {
-                        item.setSubtitle()
-                    }
-
                     else -> {
                         "" // or some error handling
                     }
@@ -250,7 +246,7 @@ fun MoreOptionModalHeader(
         }
 
         // if item is a PlayerSong, include info icon to pop up song details
-        if( item is SongInfo || item is PlayerSong ) {
+        if( item is SongInfo ) {
             IconButton( onClick = {} ) { // whatever way to show song details, still not sure how yet
                 Icon(
                     imageVector = Icons.Filled.Info,
@@ -306,14 +302,6 @@ fun HeaderInitial(
 
 //More Options Modal Header - Song Item Subtitle text
 fun SongInfo.setSubtitle(): String =
-    if ((this.artistName != "") && (this.albumTitle != "")) {
-        this.artistName + " • " + this.albumTitle
-    } else {
-        (this.artistName) + (this.albumTitle)
-    }
-
-//More Options Modal Header - Song Item Subtitle text
-fun PlayerSong.setSubtitle(): String =
     if ((this.artistName != "") && (this.albumTitle != "")) {
         this.artistName + " • " + this.albumTitle
     } else {
@@ -390,9 +378,6 @@ fun SongMoreOptionsBottomModal(
     coroutineScope: CoroutineScope,
     song: SongInfo,
     navigateToPlayer: (SongInfo) -> Unit = {},
-    //song: PlayerSong,
-    //navigateToPlayerSong: (PlayerSong) -> Unit = {},
-    // keeping playersong parts since i want to be able to use moreOptionsModal with songs in PlayerScreen or QueueScreen
     // would likely need the other navigateTo screens here too
 
     //do i need a context variable? like if this was from PlaylistDetails, or ArtistDetails, or Home, or Library
@@ -1480,12 +1465,13 @@ fun CreatePlaylistBottomModal(
 
 // TODO: determine if this should remain using PlayerSong or be changed to SongInfo
 //  initial idea is to remain as is - 4/2/2025
+//  making it SongInfo - 7/23/2025
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheet(
-    song: PlayerSong, //actually ... should this be SongInfo or PlayerSong, since the context is related to the Player
+    song: SongInfo, //actually ... should this be SongInfo or PlayerSong, since the context is related to the Player
     isPlaying: Boolean = true,
-    navigateToPlayerSong: (PlayerSong) -> Unit = {}, //consequently, should this be using PlayerSong since it is indeed related to the Player
+    navigateToPlayer: (SongInfo) -> Unit = {}, //consequently, should this be using PlayerSong since it is indeed related to the Player
     navigateToQueue: () -> Unit = {},
     sheetState: BottomSheetScaffoldState =
         rememberBottomSheetScaffoldState(
@@ -1530,7 +1516,7 @@ fun BottomSheet(
                 BottomSheetPlayer(
                     song = song,
                     isPlaying = isPlaying,
-                    navigateToPlayerSong = navigateToPlayerSong,
+                    navigateToPlayer = navigateToPlayer,
                     navigateToQueue = navigateToQueue,
                     onPlayPress = {  },
                     onPausePress = {  },
@@ -1540,7 +1526,7 @@ fun BottomSheet(
                 BottomSheetFullPlayer(
                     song = song,
                     isPlaying = isPlaying,
-                    navigateToPlayerSong = navigateToPlayerSong,
+                    navigateToPlayer = navigateToPlayer,
                     navigateToQueue = navigateToQueue,
                     onPlayPress = {  },
                     onPausePress = {  },
@@ -1558,9 +1544,9 @@ fun BottomSheet(
 // TODO: same concern as BottomSheet above
 @Composable
 fun BottomSheetPlayer(
-    song: PlayerSong,
+    song: SongInfo,
     isPlaying: Boolean = true,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    navigateToPlayer: (SongInfo) -> Unit,
     navigateToQueue: () -> Unit = {},
     onPlayPress: () -> Unit = {},
     onPausePress: () -> Unit = {},
@@ -1591,7 +1577,7 @@ fun BottomSheetPlayer(
         Surface(
             modifier = modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surfaceContainer,
-            onClick = { navigateToPlayerSong(song) },
+            onClick = { navigateToPlayer(song) },
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -1665,9 +1651,9 @@ fun BottomSheetPlayer(
 // TODO: same concern as above
 @Composable
 fun BottomSheetFullPlayer(
-    song: PlayerSong,
+    song: SongInfo,
     isPlaying: Boolean = true,
-    navigateToPlayerSong: (PlayerSong) -> Unit,
+    navigateToPlayer: (SongInfo) -> Unit,
     navigateToQueue: () -> Unit = {},
     onPlayPress: () -> Unit = {},
     onPausePress: () -> Unit = {},
@@ -1701,7 +1687,7 @@ fun BottomSheetFullPlayer(
             modifier = Modifier
                 .fillMaxWidth(),
             color = MaterialTheme.colorScheme.surfaceContainer,
-            onClick = { navigateToPlayerSong(song) },
+            onClick = { navigateToPlayer(song) },
         ) {
             Column {
                 //track info row
@@ -1964,7 +1950,7 @@ fun PreviewMoreOptionsModal() {
 fun PreviewBottomSheet() {
     MusicTheme {
         BottomSheet(
-            PreviewPlayerSongs[0]
+            PreviewSongs[0]
         )
     }
 }
@@ -1975,9 +1961,9 @@ fun PreviewBottomSheet() {
 fun PreviewBottomBarPlayer() {
     MusicTheme {
         BottomSheetPlayer(
-            song = getPlayerSongData(6535),
+            song = getSongData(6535),
             isPlaying = true,
-            navigateToPlayerSong = {},
+            navigateToPlayer = {},
             navigateToQueue = {},
             onPlayPress = {},
             onPausePress = {},

@@ -33,8 +33,7 @@ import androidx.media3.session.SessionResult
 import com.example.music.data.repository.AppPreferences
 import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.data.repository.RepeatType
-import com.example.music.domain.player.SongPlayer
-import com.example.music.domain.player.model.asMediaSource
+import com.example.music.domain.player.model.asLocalMediaItem
 import com.example.music.domain.player.model.mediaUri
 import com.example.music.ui.player.NowPlaying
 import com.example.music.ui.shared.isThirdPartyUri
@@ -57,33 +56,20 @@ import javax.inject.Inject
 import kotlin.math.roundToLong
 
 private const val TAG = "Media Service"
-/*
- want this to be the service that controls media session that interacts with media player
- extend media3's session service
-
- need to define the list of interactions, functions, and/or components this will work with
+/* TODO: want this to be the service that controls media session that interacts with media player
+ *  extend media3's session service
+ *  need to define the list of interactions, functions, and/or components this will work with
  */
 
-//equivalent to Audiofy's Playback
 @UnstableApi
 @AndroidEntryPoint
 class MediaService : MediaSessionService(), Callback, Player.Listener {
+
     /**
      * The media session of this service, initially null so that it can "exist" before being accessed later.
      * Used to have it be instantiated after mediaPlayer since it needs the Player object for builder creation.
      */
     private var mediaSession: MediaSession? = null
-    /* // ex media session builder
-        private val mediaSession: MediaSession by lazy {
-            MediaSession.Builder(this, mediaPlayer)
-                .setSessionActivity(activity)
-                .build()
-        }
-    */
-
-    // may need a companion object for defining vars and playback change events
-    // would need a way to reference data store variables, ie preferences
-    // --- is at bottom of file
 
     /**
      * The timestamp, in milliseconds, representing the scheduled time to pause playback.
@@ -122,29 +108,6 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
      */
     @Inject
     lateinit var mediaPlayer: Player
-    /* // ex mediaPlayer creation
-    private val mediaPlayer: Player by lazy {
-        val mediaSrcFactory =
-            DefaultMediaSourceFactory(applicationContext)
-
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(C.USAGE_MEDIA)
-            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-            .build()
-
-        /*val loadControl = LoadControl()
-            .setAllocator(Allocator(true, 16))
-            .setBufferDurationsMs(2000, 5000, 1500, 2000)
-            .setTargetBufferBytes(-1)
-            .setPrioritizeTimeOverSizeThresholds(true)
-            .build()*/
-
-        ExoPlayer.Builder(this, mediaSrcFactory)
-            //.setLoadControl(loadControl)
-            .setAudioAttributes(audioAttributes, true)
-            .setWakeMode(C.WAKE_MODE_LOCAL)
-            .build()
-    }*/
 
     /**
      * The repository for accessing the app preferences data store.
@@ -152,111 +115,12 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
     @Inject
     lateinit var appPreferences: AppPreferencesRepo
 
-    // this is how a media controller connects to a sessionService
-    //Called when a MediaController is created with this service's SessionToken.
-    // Returns a MediaSession that the controller will connect to, or null to reject the connection request.
-    // session token is the token that validates the creation of a session.
+    /**
+     * This is how a media controller connects to a sessionService. Returns a MediaSession
+     * that the controller will connect to, or null to reject the connection request.
+     */
     override fun onGetSession(controllerInfo: ControllerInfo) =
         mediaSession
-
-    /* // --- Practicing with mediaSession creation
-    @OptIn(UnstableApi::class)
-    override fun onCreate() {
-        super.onCreate()
-
-        // creates generic instance of media source factory
-        // this would need to be changed if I want to define actual media sources from given media items
-        // need media items to create a media source
-        val mediaSrcFactory: MediaSource.Factory =
-            DefaultMediaSourceFactory(this)
-
-        // --- Equivalences found between variables and their actual directory counterparts
-        // this.applicationInfo.dataDir === /data/user/0/com.example.music/
-        // this.applicationInfo.sourceDir === /data/app/~~sRkdfNjc324-5PPktPGIMQ==/com.example.music-UY4ghV5Vw91FcuuM1yo6bA==/base.apk
-        // this.applicationInfo.publicSourceDir === /data/app/~~sRkdfNjc324-5PPktPGIMQ==/com.example.music-UY4ghV5Vw91FcuuM1yo6bA==/base.apk
-        // Environment.getExternalStorageDirectory() === /storage/emulated/0
-        // Environment.getRootDirectory() === /system
-        // Environment.getDataDirectory() === /data
-        // Environment.getStorageDirectory() === /storage
-        //logger.info { "\n\n\n ********** ${Environment.getExternalStorageDirectory()} ********** \n\n\n"}
-
-        // --- Need to used Scoped Storage in apps pointing to Android v10+
-        // --trying to access folders like this directly will otherwise get blocked
-        //val path = Environment.getExternalStorageDirectory().toString() + "/Music/1208"
-        //logger.info{"MEDIA SERVICE -- Path: $path"}
-        //val directory = File(path)
-        //val files = directory.listFiles()
-        //logger.info{"MEDIA SERVICE -- Size: ${files.size}" }
-        //for (i in files.indices) {
-            //logger.info{"MEDIA SERVICE -- FileName: ${files[i].name}" }
-        //}
-
-        //logger.info { this.filesDir.toString() }
-        //var iS: InputStream = this.resources.openRawResource(R.raw.scar)
-        val uri = Uri.Builder()
-            .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-            .authority(packageName)
-            .appendPath("${R.raw.scar}")
-            .build()
-
-
-        // does not work with scoped storage permission
-        val uri2 = Uri.Builder()
-            .scheme(ContentResolver.SCHEME_CONTENT)
-            .authority(packageName)
-            .appendPath(Environment.getExternalStorageDirectory().toString()+"/Music/Woodkid/Iron.mp3")
-            .build()
-
-
-        val audiosUri = MediaStore.Audio.Media.INTERNAL_CONTENT_URI
-        val projection = arrayOf(MediaStore.Audio.AudioColumns._ID)
-        var outputArray: String = Environment.getExternalStorageDirectory().toString()+"/Music/Woodkid/Iron.mp3"//null
-        //val cursor: Cursor? = contentResolver.query(audiosUri, projection, MediaStore.Audio.Media.DATA + "LIKE ?",
-            //arrayOf(outputArray), null)
-        //cursor?.moveToFirst()
-
-
-        val mediaItem = MediaItem.fromUri(uri)
-        //val mediaItem = MediaItem.fromUri("file://"+Environment.getExternalStorageDirectory().toString()+"/Music/Eve/Bunka/Kaishingeki.mp3")
-        //this.applicationInfo.sourceDir//.dataDir+
-                //Environment.getRootDirectory()
-        val mediaPlayer: ExoPlayer = ExoPlayer.Builder(this,mediaSrcFactory).build()//.setMediaItem(mediaItem)
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(C.USAGE_MEDIA)
-            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-            .build()
-        mediaPlayer.setAudioAttributes(audioAttributes, true)
-        mediaSession = MediaSession.Builder(this, mediaPlayer).build()
-
-        // Media Source is an interface that provides information and functions for media interaction
-        // Clears the playlist, adds the specified MediaSource and resets the position to the default position
-        //mediaPlayer.setMediaSource(mediaSrcFactory.createMediaSource(mediaItem)) // would this need to be changed if I want to define actual media sources from given media items
-
-        // Media Item is a representation of a piece of media
-        // Clears the playlist, adds the specified MediaItem and resets the position to the default position.
-        // To replace a media item (possibly seamlessly) without clearing the playlist, use replaceMediaItem.
-        // This method must only be called if COMMAND_SET_MEDIA_ITEM is available.
-        //mediaPlayer.setMediaItem(mediaItem)
-
-        //mediaPlayer.prepare()
-        //mediaPlayer.play()
-
-
-
-
-        // cleaned up version before adjusting mediaService
-        //val mediaSrcFactory = DefaultMediaSourceFactory(applicationContext)
-
-        //val mediaPlayer: ExoPlayer = ExoPlayer.Builder(this, mediaSrcFactory).build()
-
-        //mediaSession = MediaSession.Builder(this, mediaPlayer).build()
-
-        //val audioAttributes = AudioAttributes.Builder()
-            //.setUsage(C.USAGE_MEDIA)
-            //.setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-            //.build()
-        //mediaPlayer.setAudioAttributes(audioAttributes, true)
-    }*/
 
     @OptIn(UnstableApi::class)
     override fun onCreate() {
@@ -264,7 +128,8 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         logger.info { "$TAG - WHERE YE ARE" }
 
         if (!this::mediaPlayer.isInitialized) {
-            // this is to attempt to have mediaPlayer be initialized before it is required. Because I've run into that error numerous times while trying to play an audio file in app
+            // this is to attempt to have mediaPlayer be initialized before it is required.
+            // Because I've run into that error numerous times while trying to play an audio file in app
             logger.info { "$TAG - MEDIA  PLAYER NOT INITIALIZED" }
             mediaPlayer.deviceInfo
         }
@@ -273,8 +138,9 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         mediaSession = MediaSession.Builder(this, mediaPlayer)
             .setSessionActivity(activity)
             .build()
-        // would instantiate any lateinit vars here. like the appPreferencesRepo
-        // or begin connection to preferences data store
+
+        // TODO: would instantiate any lateinit vars here. like the appPreferencesRepo
+        //  or begin connection to preferences data store
 
         scope.launch{
             runCatching {
@@ -362,7 +228,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         mediaItems: MutableList<MediaItem>
     ): ListenableFuture<List<MediaItem>> =
         Futures.immediateFuture(
-            mediaItems.map{ it.asMediaSource }
+            mediaItems.map{ it.asLocalMediaItem }
         )
 
     override fun onMediaItemTransition(

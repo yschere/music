@@ -12,15 +12,13 @@ import androidx.media3.session.SessionToken
 import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.data.repository.RepeatType
 import com.example.music.data.util.combine
+import com.example.music.domain.model.SongInfo
 import com.example.music.service.SongController
 import com.example.music.service.SongControllerState
-import com.example.music.domain.player.model.PlayerSong
-import com.example.music.domain.player.model.asExternalModel
-import com.example.music.domain.player.model.asMediaSource
+import com.example.music.domain.player.model.asLocalMediaItem
 import com.example.music.domain.player.model.duration
 import com.example.music.domain.player.model.title
 import com.example.music.domain.player.model.toMediaItem
-import com.example.music.domain.player.model.toMediaSource
 import com.example.music.domain.util.domainLogger
 import com.example.music.ui.shared.mediaItems
 import com.example.music.ui.shared.queue
@@ -49,6 +47,11 @@ import kotlin.reflect.KProperty
  * 4/??/2025 - Moved from domain module to app module, so it can access MediaService
  * without creating a compiler dependency error. And moved the MediaController to here
  * so that it can be used as the controller for the MediaPlayer within MediaService.
+ *
+ * 7/22-23/2025 - Adjusted play() functions logic so that excess queue logic is removed.
+ * Added get functions to separate PlayerUiState's reliance on songControllerState.
+ * Changed the queue, play, mediaItem functions to use SongInfo.
+ * Removed PlayerSong completely
  */
 
 private const val TAG = "SongControllerImpl"
@@ -68,15 +71,19 @@ class SongControllerImpl @Inject constructor(
         get() = if (mediaControllerFuture.isDone) mediaControllerFuture.get() else null
 
     private val _playerState = MutableStateFlow(SongControllerState())
-//    private val _currentSong = MutableStateFlow<PlayerSong?>(null)
+
+
+//    private val _currentSong = MutableStateFlow<SongInfo?>(null)
     private val _currentSong = MutableStateFlow<MediaItem?>(null)
-    private val queue = MutableStateFlow<List<PlayerSong>>(emptyList())
+    private val queue = MutableStateFlow<List<MediaItem>>(emptyList())
     private val isPlaying = MutableStateFlow(false)
     private val isShuffled = MutableStateFlow(false)
     private val repeatState = MutableStateFlow(RepeatType.OFF)
     private val timeElapsed = MutableStateFlow(Duration.ZERO)
-    private val _playerSpeed =
-        MutableStateFlow(DefaultPlaybackSpeed)
+    private val _playerSpeed = MutableStateFlow(DefaultPlaybackSpeed)
+    // rethink from here which of these values are still needed for propagation between media service and rest of app
+    // or if that is even needed as well
+
     private val coroutineScope = CoroutineScope(mainDispatcher)
 
     private var timerJob: Job? = null
@@ -132,7 +139,7 @@ class SongControllerImpl @Inject constructor(
                         "\n repeatState: $repeatState" +
                         "\n isShuffled: $isShuffled" }
                 SongControllerState(
-                    currentSong = currentSong?.asExternalModel(),
+                    currentSong = currentSong,
                     queue = queue,
                     isPlaying = isPlaying,
                     timeElapsed = timeElapsed,
@@ -193,17 +200,17 @@ class SongControllerImpl @Inject constructor(
 
     override var currentSong: MediaItem? by _currentSong
 
-    override fun addMediaItem(item: PlayerSong) {
+    override fun addMediaItem(item: SongInfo) {
         addToQueue(item)
         logger.info { "$TAG - media item: ${item.id}" }
-        mediaController?.setMediaItem(item.toMediaItem())
+        mediaController?.setMediaItem(item.toMediaItem)
     }
 
-    override fun addMediaItems(items: List<PlayerSong>) {
+    override fun addMediaItems(items: List<SongInfo>) {
         addToQueue(items)
         mediaController?.setMediaItems(
             items.map {
-                it.toMediaItem()
+                it.toMediaItem
             }
         )
     }
@@ -212,18 +219,18 @@ class SongControllerImpl @Inject constructor(
         mediaController?.prepare()
     }
 
-    override fun addToQueue(playerSong: PlayerSong) {
+    override fun addToQueue(songInfo: SongInfo) {
         //queue.update {
-            //it + playerSong
+            //it + songInfo
         //}
-        mediaController?.addMediaItem(playerSong.toMediaSource)
+        mediaController?.addMediaItem(songInfo.toMediaItem)
     }
 
-    override fun addToQueue(playerSongs: List<PlayerSong>) {
+    override fun addToQueue(songInfos: List<SongInfo>) {
 //        queue.update {
-//            it + playerSongs
+//            it + songInfos
 //        }
-        mediaController?.addMediaItems( playerSongs.map { it.toMediaSource } )
+        mediaController?.addMediaItems( songInfos.map { it.toMediaItem } )
     }
 
     // this is for "PlayNext" to both place the song after the current song
@@ -231,24 +238,24 @@ class SongControllerImpl @Inject constructor(
     // so when the queue is unshuffled, it will be set after the placement of
     // where the current song is. which means this implem would need to know
     // the placement of the current song to be able to iterate on
-    override fun addToQueueNext(playerSong: PlayerSong) {
+    override fun addToQueueNext(songInfo: SongInfo) {
 //        queue.update {
-//            listOf(it[0]) + playerSong + it.subList(1,it.size-1)
+//            listOf(it[0]) + songInfo + it.subList(1,it.size-1)
 //        }
-        mediaController?.addMediaItem(1,playerSong.toMediaSource)
+        mediaController?.addMediaItem(1,songInfo.toMediaItem)
     }
 
     // same deal here, it's "PlayNext" but on a list of songs
     // but if shuffled is on, does it shuffle the incoming list? or place them
     // next in its original order. survey says yes, place the new songs in order
-    override fun addToQueueNext(playerSongs: List<PlayerSong>) {
+    override fun addToQueueNext(songInfos: List<SongInfo>) {
 //        queue.update {
-//            listOf(it[0]) + playerSongs + it.subList(1,it.size-1)
+//            listOf(it[0]) + songInfos + it.subList(1,it.size-1)
 //        }
-        mediaController?.addMediaItems(1,playerSongs.map { it.toMediaSource })
+        mediaController?.addMediaItems(1,songInfos.map { it.toMediaItem })
     }
 
-    override fun setMediaItem(item: PlayerSong) {
+    override fun setMediaItem(item: SongInfo) {
 //        addToQueue(item)
         logger.info { "$TAG - media item: ${item.id}" }
         play(item)
@@ -277,7 +284,7 @@ class SongControllerImpl @Inject constructor(
         logger.info {"$TAG - Current media item is ${item?.title}"}
 
         // This is almost definitely in the wrong place.
-        play(currentSong!!.asExternalModel())
+        //play(currentSong!!.asExternalModel())
         isPlaying.value = true
         //mediaController?.mediaItemCount
         timerJob = coroutineScope.launch {
@@ -314,8 +321,8 @@ class SongControllerImpl @Inject constructor(
     // interesting implications part 2:
     // if this is playing from an item that is already in context of the queue, it just plays that item
     // ie songInfo.onClick
-    override fun play(playerSong: PlayerSong) {
-        play(listOf(playerSong))
+    override fun play(songInfo: SongInfo) {
+        play(listOf(songInfo))
     }
 
     // this also has interesting implications after learnings from shuffle
@@ -323,7 +330,7 @@ class SongControllerImpl @Inject constructor(
     // it will remove the original context that began the queue, but keep the items
     // that were in queue from "AddToQueue". so if the queue started from "Play" or "Shuffle"
     // it will get replaced with the new item(s) being played or shuffled
-    override fun play(playerSongs: List<PlayerSong>) {
+    override fun play(songInfos: List<SongInfo>) {
         if (isPlaying.value) {
             pause()
             mediaController?.pause()
@@ -333,11 +340,11 @@ class SongControllerImpl @Inject constructor(
 //        val playingSong = _currentSong.value
         val playingSong = mediaController?.currentMediaItem
 
-//        var previousList: List<PlayerSong> = emptyList()
+//        var previousList: List<SongInfo> = emptyList()
         var previousList: List<MediaItem> = emptyList()
 
 //        queue.update { queue ->
-//            playerSongs.map { song ->
+//            songInfos.map { song ->
 //                if (queue.contains(song)) {
 //                    val mutableList = queue.toMutableList()
 //                    mutableList.remove(song)
@@ -347,14 +354,14 @@ class SongControllerImpl @Inject constructor(
 //                }
 //            }
 //            if (playingSong != null) {
-//                playerSongs + listOf(playingSong) + previousList
+//                songInfos + listOf(playingSong) + previousList
 //            } else {
-//                playerSongs + previousList
+//                songInfos + previousList
 //            }
 //        }
 //        next()
 //
-//         playerSongs.forEach { song ->
+//         songInfos.forEach { song ->
 //            if (mediaController?.queue?.contains(song.toMediaSource) == true) {
 //                val mutableList = mediaController?.queue?.toMutableList()
 //                mutableList?.remove(song.toMediaSource)
@@ -364,13 +371,13 @@ class SongControllerImpl @Inject constructor(
 //            }
 //
 //            if (playingSong != null) {
-//                playerSongs.map{ it.toMediaSource } + listOf(playingSong) + previousList
+//                songInfos.map{ it.toMediaSource } + listOf(playingSong) + previousList
 //            } else {
-//                playerSongs.map{ it.toMediaSource } + previousList
+//                songInfos.map{ it.toMediaSource } + previousList
 //            }
 //        }
 //
-//        val temp2 = playerSongs.map { it.toMediaSource }
+//        val temp2 = songInfos.map { it.toMediaSource }
 ////
 ////        val temp3 = listOf(playingSong).plus(mediaController?.queue?.filter { item ->
 ////            !temp2.contains(item)
@@ -381,7 +388,7 @@ class SongControllerImpl @Inject constructor(
 //        if (temp3 != null) {
 //            mediaController?.setMediaItems(temp3 as MutableList<MediaItem>)
 //        }
-        val queue = playerSongs.map{it.toMediaSource}
+        val queue = songInfos.map{it.toMediaItem}
         mediaController?.setMediaItems(queue)
         logger.info {"$TAG - Current queue has ${queue.size} items."}
         logger.info {"$TAG - Current media controller state before apply is ${mediaController?.playbackState}."}
@@ -441,14 +448,14 @@ class SongControllerImpl @Inject constructor(
         //val currentSongDuration = _currentSong.value?.duration ?: return
         //timeElapsed.update { duration.coerceIn(Duration.ZERO, currentSongDuration) }
         //play()
-        logger.info("$TAG - In the controller's onSeekingFinished() function, presumably after a song has finished.")
+        logger.info { "$TAG - In the controller's onSeekingFinished() function, presumably after a song has finished." }
 
         play()
     }
 
     override fun onShuffle() {
         isShuffled.value = !isShuffled.value
-        if (isShuffled.value == true) { //aka shuffle turned on
+        if (isShuffled.value) { //aka shuffle turned on
             //TODO: change the queue to be randomized order
             domainLogger.info { "$TAG - SHUFFLE QUEUE" }
             shuffleQueue()
@@ -506,7 +513,7 @@ class SongControllerImpl @Inject constructor(
     }
 
     override fun next() {
-        logger.info("$TAG - In the controller's next() function, presumably after a song is skipped.")
+        logger.info { "$TAG - In the controller's next() function, presumably after a song is skipped." }
         //val q = queue.value
         val q = mediaController?.queue
         if (q?.isEmpty() == true) {
@@ -552,7 +559,7 @@ class SongControllerImpl @Inject constructor(
         }
     }
 
-    override fun shuffle(playerSongs: List<PlayerSong>) {
+    override fun shuffle(songInfos: List<SongInfo>) {
         // ground rules
             // 1 if the songs here are the first items going into the queue, then the shuffled
                 // order here is the originating order, aka it is the queue's default track order. hitting unshuffle will keep this order intact, and hitting shuffle can change the order but the original needs to remain untouched
@@ -567,15 +574,35 @@ class SongControllerImpl @Inject constructor(
         // AND IT WILL BE AT THE TOP OF THE QUEUE, REMOVING THE ORIGINAL CONTEXT BUT KEEPING THE ITEMS THAT WERE
         // "ADD TO QUEUE"
 //        queue.update {
-//            playerSongs.shuffled(Random(RandSeed))
+//            songInfos.shuffled(Random(RandSeed))
 //        }
         removeAllFromQueue()
 
         mediaController?.setMediaItems(
-            playerSongs.map {
-                it.toMediaSource
+            songInfos.map {
+                it.toMediaItem
             }.shuffled( Random(RandSeed) )
         )
+    }
+
+    override fun getIsPlaying() : Boolean {
+        return isPlaying.value
+    }
+
+    override fun getIsShuffled() : Boolean {
+        return isShuffled.value
+    }
+
+    override fun getRepeatState() : RepeatType {
+        return repeatState.value
+    }
+
+    override fun getTimeElapsed() : Duration {
+        return timeElapsed.value
+    }
+
+    override fun getHasNext(): Boolean {
+        return mediaController?.hasNextMediaItem() ?: false
     }
 }
 

@@ -2,21 +2,23 @@ package com.example.music.ui.queue
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.player.SongPlayer
-import com.example.music.domain.player.SongPlayerState
-import com.example.music.domain.player.model.PlayerSong
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 import com.example.music.util.logger
 import kotlinx.coroutines.launch
 
+/** Changelog:
+ *
+ * 7/22-23/2025 - Deleted SongPlayer from domain layer.
+ */
+
 data class QueueScreenUiState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
-    val queueSongs: List<PlayerSong> = emptyList(),
-    val songPlayerState: SongPlayerState = SongPlayerState(),
-    val songPlayer: SongPlayer,
+//    val queueSongs: List<SongInfo> = emptyList(),
+//    val songPlayerState: SongPlayerState = SongPlayerState(),
+//    val songPlayer: SongPlayer,
 )
 
 @HiltViewModel

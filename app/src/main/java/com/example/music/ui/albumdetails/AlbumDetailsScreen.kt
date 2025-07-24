@@ -109,8 +109,7 @@ import com.example.music.domain.testing.getSongsInAlbum
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
-import com.example.music.domain.player.model.toPlayerSong
+
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.albumdetails.AlbumAction.SongMoreOptionClicked
@@ -145,6 +144,8 @@ import kotlinx.coroutines.launch
  * 4/4/2025 - Testing out scrollbar with lazy grid, placed in ui/shared/Scrollbar.kt
  *
  * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 /**
@@ -153,7 +154,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun AlbumDetailsScreen(
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit,
     //navigateToArtist: (ArtistInfo) -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
@@ -173,11 +173,8 @@ fun AlbumDetailsScreen(
                 artist = uiState.artist,
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
-                //pSongs = uiState.pSongs,
                 onAlbumAction = viewModel::onAlbumAction,
-                // or
                 navigateToPlayer = navigateToPlayer,
-                //navigateToPlayerSong = navigateToPlayerSong,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 showBackButton = showBackButton,
@@ -235,10 +232,9 @@ fun AlbumDetailsScreen(
     artist: ArtistInfo,
     songs: List<SongInfo>,
     selectSong: SongInfo,
-    //onQueueSong: (PlayerSong) -> Unit,
+    //onQueueSong: (SongInfo) -> Unit,
     onAlbumAction: (AlbumAction) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -668,7 +664,7 @@ fun AlbumDetailsContent(
     album: AlbumInfo,
     artist: ArtistInfo,
     songs: List<SongInfo>,
-    //onQueueSong: (PlayerSong) -> Unit,
+    //onQueueSong: (SongInfo) -> Unit,
     coroutineScope: CoroutineScope,
     navigateToPlayer: (SongInfo) -> Unit,
     modifier: Modifier = Modifier

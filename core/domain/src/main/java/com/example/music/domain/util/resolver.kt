@@ -41,6 +41,9 @@ private const val DUMMY_SELECTION = "${MediaStore.Audio.Media._ID} != 0"
  **********************************************************************************************/
 
 
+/**
+ * Content Resolver's query to MediaStore to retrieve Cursor containing query result
+ */
 @SuppressLint("Recycle")
 suspend fun ContentResolver.query2(
     uri: Uri,
@@ -197,7 +200,7 @@ private fun Cursor.toAudio(): Audio {
         "Cursor to Audio: \n" +
             "id: ${getLong(0)} \n" +
             "title: ${getString(1)}\n" +
-            "year: ${getInt(15)}\n" +
+            "path ${getString(3)}\n" +
             "testing if id is same as audioId: ${getLong(0)==getLong(19)}"
     }
     return Audio(
@@ -1112,6 +1115,14 @@ val Audio.uri
     get() = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
 
 /**
+ * Returns the content URI for this audio file as a string, using the [uri] property of the audio file.
+ *
+ * @return the content URI for this audio file as a string
+ */
+val Audio.key
+    get() = uri.toString()
+
+/**
  * Returns the content URI for the album art image of this audio file's album, using the
  * [MediaStore.Images.Media.EXTERNAL_CONTENT_URI] and appending the album ID to the end of the URI.
  *
@@ -1130,23 +1141,17 @@ val Album.uri
     get() = toAlbumArtUri(id)
 
 /**
- * Returns the content URI for this audio file as a string, using the [uri] property of the audio file.
- *
- * @return the content URI for this audio file as a string
- */
-val Audio.key
-    get() = uri.toString()
-
-/**
  * Returns a [MediaItem] object that represents this audio file as a playable media item.
  *
  * @return the [MediaItem] object that represents this audio file
+ *
+ * **created a different version of this within domain/player/model MediaItem
  */
-val Audio.toMediaItem // the other one had its own class MediaItem that it constructed here
-    get() = MediaItem.Builder()
-        .setMediaId("$id")
-        .setUri(uri)
-        .setMimeType(mimeType)
+//val Audio.toMediaItem // the other one had its own class MediaItem that it constructed here
+//    get() = MediaItem.Builder()
+//        .setMediaId("$id")
+//        .setUri(uri)
+//        .setMimeType(mimeType)
 
 //.setMediaMetadata() uri, name, artist, "$id", albumUri
 //inline val Audio.toMediaItem

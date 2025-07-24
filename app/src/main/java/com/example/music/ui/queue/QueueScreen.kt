@@ -43,9 +43,14 @@ import androidx.window.layout.DisplayFeature
 import com.example.music.R
 import com.example.music.data.database.model.Song
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
+
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.util.fullWidthItem
+
+/** Changelog:
+ *
+ * 7/22-23/2025 - Deleted SongPlayer from domain layer.
+ */
 
 /**
  * StateFUL version of queue screen
@@ -196,7 +201,7 @@ private fun QueueTopAppBar(
 @Composable
 private fun QueueContent(
     //queueList probably needs to get passed in here
-    //songs: List<PlayerSong>, //or queue: Queue
+    //songs: List<SongInfo>, //or queue: Queue
     //onQueueAction: (QueueAction) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     modifier: Modifier = Modifier,

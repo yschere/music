@@ -1,15 +1,33 @@
 package com.example.music.domain.model
 
+import android.net.Uri
+import androidx.media3.common.MediaItem
 import com.example.music.data.database.model.Song
-import com.example.music.domain.player.model.PlayerSong
+import com.example.music.domain.player.model.album
+import com.example.music.domain.player.model.artist
+import com.example.music.domain.player.model.artworkUri
+import com.example.music.domain.player.model.duration
+import com.example.music.domain.player.model.mediaUri
+import com.example.music.domain.player.model.title
+import com.example.music.domain.player.model.year
+
 import com.example.music.domain.util.Audio
+import com.example.music.domain.util.uri
 import java.time.Duration
 import java.time.OffsetDateTime
+
+/** Changelog:
+ *
+ * 7/22-23/2025 - Added Uri property to SongInfo.
+ * Added transformer from MediaItem to SongInfo.
+ * Removed PlayerSong completely
+ */
 
 /**
  * External data layer representation of a song.Intent: to represent a Playlist for the UI, with the ability to
  * order playlists by dateCreated, dateLastAccessed, dateLastPlayed, and song count.
  * @property id [Long] The song's unique ID
+ * @property uri [Uri] The song's uri
  * @property title [String] The title of the song
  * @property artistId [Long] The unique ID for the song's artist, foreign key to the artists table
  * @property albumId [Long] The unique ID for the song's album, foreign key to the albums table
@@ -22,6 +40,7 @@ import java.time.OffsetDateTime
  */
 data class SongInfo(
     val id: Long = 0,
+    val uri: Uri = Uri.parse(""),
     val title: String = "",
     //val artistId: Long? = 0,
     val artistId: Long = 0,
@@ -43,7 +62,8 @@ data class SongInfo(
     val year: Int? = null,
     val cdTrackNum: Int? = null,
     val srcTrackNum: Int? = null,
-    //artwork, fileSize
+    val artwork: Uri? = null,
+    //fileSize
 )
 
 /**
@@ -64,24 +84,34 @@ fun Song.asExternalModel(): SongInfo =
     )
 
 /**
- * TODO: temporarily adding this in case there's a function where I need to use SongInfo
- *  instead of PlayerSong but retrofitting it to use PlayerSong would be a hassle
+ * Transform media3 MediaItem to SongInfo
  */
-fun PlayerSong.asExternalModel(): SongInfo =
+fun MediaItem.toSongInfo(): SongInfo =
     SongInfo(
-        id = id,
-        title = title,
-        artistId = artistId,
-        artistName = artistName,
-        albumId = albumId,
-        albumTitle = albumTitle,
-        trackNumber = trackNumber,
-        duration = duration,
+        id = this.mediaId.toLong(),
+        uri = this.mediaUri!!,
+        title = this.title.toString(),
+        artistName = this.artist.toString(),
+        albumTitle = this.album.toString(),
+        genreName = this.mediaMetadata.genre.toString(),
+        duration = Duration.ofMillis(this.duration!!.toLong()),
+        composerName = this.mediaMetadata.composer.toString(),
+        trackNumber = this.mediaMetadata.trackNumber,
+        //dateLastPlayed
+        //size
+        year = this.year,
+        cdTrackNum = this.mediaMetadata.discNumber,
+        //srcTrackNum
+        artwork = this.artworkUri,
     )
 
+/**
+ * Transform resolver's Audio model to SongInfo
+ */
 fun Audio.asExternalModel(): SongInfo =
     SongInfo(
         id = this.id,
+        uri = this.uri,
         title = this.title,
         artistId = this.artistId,
         artistName = this.artist,

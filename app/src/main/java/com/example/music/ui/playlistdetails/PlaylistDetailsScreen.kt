@@ -61,11 +61,9 @@ import com.example.music.R
 import com.example.music.designsys.theme.Keyline1
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewPlaylists
-import com.example.music.domain.testing.getPlaylistPlayerSongs
 import com.example.music.domain.testing.getPlaylistSongs
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
@@ -82,6 +80,8 @@ import com.example.music.util.quantityStringResource
  * ids and remaining extra info that was not in PlayerSong.
  *
  * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 /**
@@ -90,7 +90,6 @@ import com.example.music.util.quantityStringResource
 @Composable
 fun PlaylistDetailsScreen(
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //modifier: Modifier = Modifier,
@@ -108,10 +107,8 @@ fun PlaylistDetailsScreen(
             PlaylistDetailsScreen(
                 playlist = uiState.playlist,
                 songs = uiState.songs,
-                //pSongs = uiState.pSongs, //TODO: PlayerSong support
                 onQueueSong = viewModel::onQueueSong,
                 navigateToPlayer = navigateToPlayer,
-                //navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 modifier = Modifier.fillMaxSize(),
@@ -188,10 +185,8 @@ private fun PlaylistDetailsLoadingScreen(
 private fun PlaylistDetailsScreen(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
-    //pSongs: List<PlayerSong>, //TODO: PlayerSong support
     onQueueSong: (SongInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -235,7 +230,6 @@ private fun PlaylistDetailsScreen(
             PlaylistDetailsContent(
                 playlist = playlist,
                 songs = songs,
-                //pSongs = pSongs,//.toPersistentList(), //TODO: PlayerSong support
                 /*onQueueSong = {
                     coroutineScope.launch { //use the onQueueSong btn onClick to trigger snackbar
                         snackbarHostState.showSnackbar(snackBarText)
@@ -243,7 +237,6 @@ private fun PlaylistDetailsScreen(
                     onQueueSong(it)
                 },*/
                 navigateToPlayer = navigateToPlayer,
-                //navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
                 modifier = Modifier.padding(contentPadding)//.padding(horizontal = 8.dp)
             )
         }
@@ -307,10 +300,8 @@ private fun PlaylistDetailsTopAppBar(
 private fun PlaylistDetailsContent(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
-    //pSongs: List<PlayerSong>, //TODO: PlayerSong support
-    //onQueueSong: (PlayerSong) -> Unit,
+    //onQueueSong: (SongInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) { //determines content of details screen
     //logger.info { "Playlist Details Content function start" }
@@ -356,7 +347,7 @@ private fun PlaylistDetailsContent(
             Box(Modifier.padding(horizontal = 4.dp, vertical = 0.dp)) {
                 SongListItem(
                     //call the SongListItem function to display each one, include the data needed to display item in full,
-                    //and should likely share context from where this call being made incase specific data needs to be shown / not shown
+                    //and should likely share context from where this call being made in case specific data needs to be shown / not shown
                     song = song,
                     onClick = navigateToPlayer,
                     onMoreOptionsClick = {},
@@ -370,26 +361,6 @@ private fun PlaylistDetailsContent(
                 )
             }
         }
-
-        /**
-         * PLAYERSONG VERSION: using pSongs: List<PlayerSong>
-         */
-        /*items(pSongs) { song ->
-            //logger.info { "Playlist Details Content - songs layout for song ${song.id}" }
-            Box(Modifier.padding(horizontal = 4.dp, vertical = 0.dp)) {
-                SongListItem(
-                    song = song,
-                    onClick = navigateToPlayerSong, //TODO: FOUND, spot where conversion to PlayerSong would need to be extensive
-                    //onQueueSong = onQueueSong,
-                    modifier = Modifier.fillMaxWidth(),
-                    isListEditable = false,
-                    showArtistName = true,
-                    showAlbumImage = true,
-                    showAlbumTitle = true,
-                    showTrackNumber = true,
-                )
-            }
-        }*/
         //logger.info { "Playlist Details Content - lazy vertical grid end" }
     }
     //logger.info { "Playlist Details Content function end" }
@@ -702,16 +673,11 @@ fun PlaylistDetailsScreenPreview() {
             //songs = getPlaylistSongs(1),
 
             //give the goods
-            //playlist = PreviewPlaylists[2],
-            //songs = getPlaylistSongs(2),
-
-            //TODO: PlayerSong support
             playlist = PreviewPlaylists[2],
             songs = getPlaylistSongs(2),
 
             onQueueSong = {},
             navigateToPlayer = {},
-            //navigateToPlayerSong = { }, //TODO: PlayerSong support
             navigateToSearch = {},
             navigateBack = {},
         )

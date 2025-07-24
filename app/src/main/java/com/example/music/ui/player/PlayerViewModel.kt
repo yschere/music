@@ -1,26 +1,15 @@
 package com.example.music.ui.player
 
-import android.content.Context
-import android.net.Uri
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.source.MediaSource
-import com.example.music.data.repository.SongRepo
-import com.example.music.domain.usecases.GetSongDataUseCase
-import com.example.music.domain.player.SongPlayer
-import com.example.music.domain.player.SongPlayerState
-import com.example.music.domain.player.model.PlayerSong
+import com.example.music.data.repository.RepeatType
+import com.example.music.data.util.combine
+import com.example.music.domain.model.SongInfo
+//import com.example.music.domain.player.SongPlayer
+//import com.example.music.domain.player.SongPlayerState
 import com.example.music.domain.player.model.toMediaItem
-import com.example.music.domain.player.model.toMediaSource
 import com.example.music.service.SongController
-import com.example.music.service.SongControllerState
 import com.example.music.domain.usecases.GetSongDataV2
 import com.example.music.domain.usecases.GetThumbnailUseCase
 import com.example.music.ui.Screen
@@ -28,16 +17,38 @@ import com.example.music.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.music.util.logger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import java.time.Duration
 import javax.inject.Inject
 
+/** Changelog:
+ *
+ * 7/22-23/2025 - Revised to separate PlayerUiState from songControllerState
+ * Removed PlayerSong completely
+ */
+
 private const val TAG = "Player View Model"
 
 data class PlayerUiState(
-    val songControllerState: SongControllerState = SongControllerState()
+    //val songControllerState: SongControllerState = SongControllerState()
+    val isReady: Boolean = false,
+    val errorMessage: String? = null,
+    //val _currentSong: MediaItem,
+    val currentSong: SongInfo = SongInfo(),
+    val isPlaying: Boolean = false,
+    val isShuffled: Boolean = false,
+    val repeatState: RepeatType = RepeatType.OFF,
+    val timeElapsed: Duration = Duration.ZERO,
+    val hasNext: Boolean = false,
+    // put in there the variables that would be necessary for populating values to the view model
+    // make sure to remove as many dependencies from songController and its state as i can
 )
 
 /**
@@ -46,16 +57,11 @@ data class PlayerUiState(
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    //context: Context,
-    //songRepo: SongRepo,
-    val mediaPlayer: Player,
+    //val mediaPlayer: Player,
     //appPreferencesRepo: AppPreferencesRepo,
-    private val getSongDataV2: GetSongDataV2,
-    //private val getSongDataUseCase: GetSongDataUseCase,
+    getSongDataV2: GetSongDataV2,
     private val songController: SongController, //equivalent of musicController
     savedStateHandle: SavedStateHandle,
-
-    //ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     //@Inject
     //lateinit var mediaPlayer: Player
@@ -65,8 +71,9 @@ class PlayerViewModel @Inject constructor(
     private val _songId: String =
         savedStateHandle.get<String>(Screen.ARG_SONG_ID)!! //Uri.decode(savedStateHandle.get<String>(Screen.ARG_EPISODE_URI)!!)
     private val songId = _songId.toLong()
-    var uiState by mutableStateOf(PlayerUiState())
-        private set
+
+    private val getSongData = getSongDataV2(songId)
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     //private lateinit var notificationManager: MediaNotificationManager
     //protected lateinit var mediaSession: MediaSession
@@ -74,10 +81,17 @@ class PlayerViewModel @Inject constructor(
     //private val serviceScope = CoroutineScope( Dispatchers.Main + serviceJob)
     //private var isStarted = false
 
+    private val _state = MutableStateFlow(PlayerUiState())
+
+    private val refreshing = MutableStateFlow(false)
+
+    val state: StateFlow<PlayerUiState>
+        get() = _state
+
     init {
-        logger.info { "$TAG - init viewModelScope launch start" }
         logger.info { "$TAG - songID: $songId"}
         viewModelScope.launch {
+            logger.info { "$TAG - init viewModelScope launch start" }
             //TODO: using for comparison between SongToAlbum/SongInfo against PlayerSong for populating Player Screen
             //songRepo.getSongAndAlbumBySongId(songId).flatMapConcat { //original code: used to get SongToAlbum to convert to PlayerSong,
             //songPlayer.currentSong = it.toPlayerSong() //original code: used to set songPlayer.currentSong from SongToAlbum to PlayerSong
@@ -85,6 +99,30 @@ class PlayerViewModel @Inject constructor(
             //here would need to take in songId and correlate it to Audio in MediaStore, retrieve data and populate a MediaItem to be a MediaSource for MediaService
             // then populate queue and start play
 
+            combine(
+                refreshing,
+                getSongData,
+            ) {
+                refreshing,
+                songData, ->
+                logger.info { "$TAG - PlayerUiState call"}
+                logger.info { "$TAG - getSongID: ${songData.id}"}
+                logger.info { "$TAG - getSongTitle: ${songData.title}"}
+
+                songController.setMediaItem(songData)
+                logger.info { "$TAG - is SongController available: ${songController.currentSong?.mediaId}"}
+                logger.info { "$TAG - isReady?: ${!refreshing}" }
+
+                PlayerUiState(
+                    isReady = !refreshing,
+                    currentSong = songData,
+                    isPlaying = songController.getIsPlaying(),
+                    isShuffled = songController.getIsShuffled(),
+                    repeatState = songController.getRepeatState(),
+                    timeElapsed = songController.getTimeElapsed(),
+                    hasNext = songController.getHasNext()
+                )
+            /* // previous version of getting song data to set PlayerUiState and songController
             getSongDataV2(songId).flatMapConcat { item ->
                 //this needs to start the song controller with the id
                 // so it can set the player/mediaPlayer with the correct data to work on
@@ -94,17 +132,21 @@ class PlayerViewModel @Inject constructor(
                 // so need to setMediaItem to item
 
                 songController.setMediaItem(item)
-
-//                songController.addMediaItem(item)
-//                songController.currentSong = item.toMediaSource
-                songController.currentSong = item.toMediaItem()
+                songController.currentSong = item.toMediaItem
                 songController.playerState
-            }.map {
-                PlayerUiState(songControllerState = it)
-            }.collect{
-                uiState = it
             }
+            */
 
+            }.catch { throwable ->
+                emit(
+                    PlayerUiState(
+                        isReady = true,
+                        errorMessage = throwable.message
+                    )
+                )
+            }.collect{
+                _state.value = it
+            }
             /* // original version
             songRepo.getSongById(songId).flatMapConcat {
                 songPlayer.currentSong = getSongDataUseCase(it).first() //getSongDataUseCase returns Flow<PlayerSong>, so use single() to retrieve the PlayerSong
@@ -115,51 +157,26 @@ class PlayerViewModel @Inject constructor(
                 uiState = it
             }*/
         }
-
-        //preparePlayer: I assume this is now media3 sets up media player
-//        songController.preparePlayer()
-
-       // setupQueue()
+        refresh(force = false)
     }
 
-     //setupPlaylist: I assume this is how media3 instantiates queue list
-    private fun setupQueue() {
-/*
-        val videoItems: ArrayList<MediaSource> = arrayListOf()
-        songPlayer.queue.forEach {
+    fun refresh(force: Boolean = true) {
+        logger.info { "$TAG - Refresh call" }
+        viewModelScope.launch {
+            runCatching {
+                logger.info { "$TAG - refresh runCatching" }
+                refreshing.value = true
+            }.onFailure {
+                logger.info { "$it ::: runCatching, not sure what is failing here tho" }
+            } // TODO: look at result of runCatching and show any errors
 
-            val mediaMetaData = MediaMetadata.Builder()
-                .setArtworkUri(Uri.parse(it.teaserUrl))
-                .setTitle(it.title)
-                .setAlbumArtist(it.artistName)
-                .build()
-
-            val trackUri = Uri.parse(it.audioUrl)
-            val mediaItem = MediaItem.Builder()
-                .setUri(trackUri)
-                .setMediaId(it.id)
-                .setMediaMetadata(mediaMetaData)
-                .build()
-            val dataSourceFactory = DefaultDataSource.Factory(context)
-
-            val mediaSource =
-                ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaItem)
-
-            videoItems.add(
-                mediaSource
-            )
+            logger.info { "$TAG - refresh to be false -> sets screen to ready state" }
+            refreshing.value = false
         }
-*/
-//        onStart(context)
-
-        //mediaPlayer.playWhenReady = true
-//        mediaPlayer.setMediaSources(videoItems)
-        //mediaPlayer.prepare()
-        //songController.play()
     }
 
     fun onPlay() {
-        logger.info("$TAG - Hitting play on the now playing screen.")
+        logger.info { "$TAG - Hitting play on the now playing screen." }
         songController.play()
         //mediaPlayer.playWhenReady
         //mediaPlayer.play()
@@ -206,7 +223,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun onDestroy() {
-//        onClose()
+        //onClose()
         //mediaPlayer.release()
     }
 

@@ -57,8 +57,8 @@ import com.example.music.domain.testing.PreviewGenres
 import com.example.music.domain.testing.getSongsInGenre
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
-import com.example.music.domain.player.model.toPlayerSong
+
+
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
@@ -74,6 +74,8 @@ import com.example.music.util.quantityStringResource
  * ids and remaining extra info that was not in PlayerSong.
  *
  * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 /**
@@ -83,7 +85,6 @@ import com.example.music.util.quantityStringResource
 fun GenreDetailsScreen(
     //navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //modifier: Modifier = Modifier,
@@ -103,7 +104,6 @@ fun GenreDetailsScreen(
                 //onQueueSong = viewModel::onQueueSong,
                 //navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
-                //navigateToPlayerSong = navigateToPlayerSong,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 modifier = Modifier.fillMaxSize(),
@@ -159,11 +159,9 @@ fun GenreDetailsScreen(
     genre: GenreInfo,
     //albums: PersistentList<AlbumInfo>,
     songs: List<SongInfo>,
-    //pSongs: List<PlayerSong>,
-    //onQueueSong: (PlayerSong) -> Unit,
+    //onQueueSong: (SongInfo) -> Unit,
     //navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //showBackButton: Boolean,
@@ -203,7 +201,6 @@ fun GenreDetailsScreen(
                 genre = genre,
                 //albums = albums,
                 songs = songs,
-                //pSongs = pSongs,
                 /*onQueueSong = {
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(snackBarText)
@@ -212,7 +209,6 @@ fun GenreDetailsScreen(
                 },*/
                 //navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
-                //navigateToPlayerSong = navigateToPlayerSong,
                 modifier = Modifier.padding(contentPadding)
             )
         }
@@ -274,11 +270,9 @@ fun GenreDetailsContent(
     genre: GenreInfo,
     //albums: PersistentList<AlbumInfo>,
     songs: List<SongInfo>,
-    //pSongs: List<PlayerSong>,
-    //onQueueSong: (PlayerSong) -> Unit,
+    //onQueueSong: (SongInfo) -> Unit,
     //navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) {
 
@@ -346,13 +340,11 @@ fun GenreDetailsContent(
 
             // songs list
             items(songs) { song ->
-            //items(pSongs) { song ->
                 Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                     SongListItem(
                         song = song,
                         onClick = navigateToPlayer,
                         onMoreOptionsClick = {},
-                        //onClick = navigateToPlayerSong,
                         //onQueueSong = { },
                         isListEditable = false,
                         showArtistName = true,
@@ -536,16 +528,13 @@ fun GenreDetailsScreenPreview() {
             //Alternative
             //genre = PreviewGenres[0],
             //songs = getSongsInGenre(0),
-            //pSongs = getSongsInGenre(0).map { it.toPlayerSong() },
 
             //JPop
             genre = PreviewGenres[3],
             songs = getSongsInGenre(3),
-            //pSongs = getSongsInGenre(3).map { it.toPlayerSong() },
 
             //navigateToAlbumDetails = {},
             navigateToPlayer = {},
-            //navigateToPlayerSong = {},
             navigateToSearch = {},
             navigateBack = {},
         )

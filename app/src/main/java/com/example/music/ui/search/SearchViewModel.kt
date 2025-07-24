@@ -2,7 +2,7 @@ package com.example.music.ui.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.player.SongPlayer
+//import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.SearchQueryFilterV2
 import com.example.music.domain.usecases.SearchQueryV2
 import com.example.music.util.logger
@@ -19,6 +19,8 @@ import javax.inject.Inject
  *
  * 4/13/2025 - Finished revisions to view model to better support
  * SearchScreen.
+ *
+ * 7/22-23/2025 - Deleted SongPlayer from domain layer.
  */
 
 /** logger tag for this class */
@@ -27,7 +29,7 @@ private const val TAG = "Search View Model"
 @HiltViewModel
 class SearchQueryViewModel @Inject constructor(
     private val searchQueryV2: SearchQueryV2,
-    private val songPlayer: SongPlayer,
+    //private val songPlayer: SongPlayer,
 ) : ViewModel() {
 
     private val _searchFieldState: MutableStateFlow<SearchFieldState> =

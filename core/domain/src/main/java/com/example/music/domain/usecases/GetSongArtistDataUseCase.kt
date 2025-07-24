@@ -5,13 +5,17 @@ import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import com.example.music.domain.util.domainLogger
 import javax.inject.Inject
 
+/** Changelog:
+ *
+ * 7/22-23/2025 - Simplified return statement since SongInfo does not have nullable artistId
+ */
+
 /**
- * Use case to retrieve Flow[ArtistInfo] for given song [SongInfo]
+ * Use case to retrieve Flow of [ArtistInfo] for given song [SongInfo]
  * @property artistRepo [ArtistRepo] The repository for accessing Artist data
  * NOTE: Because the artistId for song can be null,
  * it's possible for ArtistInfo to return as null.
@@ -27,19 +31,14 @@ class GetSongArtistDataUseCase @Inject constructor(
     operator fun invoke(song: SongInfo): Flow<ArtistInfo> {
         domainLogger.info { "GetSongArtistDataUseCase start:\n" +
                 " song.id: ${song.id};\n" +
-                " song.artistId: ${song.artistId ?: "null"};"}
+                " song.artistId: ${song.artistId};"}
 
-        return if (song.artistId != null) {
-            artistRepo.getArtistWithExtraInfo(song.artistId).map {
-                domainLogger.info { "ArtistWithExtraInfo: \n" +
-                        " Artist: ${it.artist};\n" +
-                        " Artist songCount: ${it.songCount};\n" +
-                        " Artist albumCount: ${it.albumCount};"}
-                it.asExternalModel()
-            }
-        } else {
-            domainLogger.info { "ArtistInfo is empty" }
-            flowOf(ArtistInfo())
+        return artistRepo.getArtistWithExtraInfo(song.artistId).map {
+            domainLogger.info { "ArtistWithExtraInfo: \n" +
+                    " Artist: ${it.artist};\n" +
+                    " Artist songCount: ${it.songCount};\n" +
+                    " Artist albumCount: ${it.albumCount};"}
+            it.asExternalModel()
         }
     }
 }

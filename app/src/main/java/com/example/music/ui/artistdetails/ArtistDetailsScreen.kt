@@ -80,8 +80,8 @@ import com.example.music.domain.testing.getSongsByArtist
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
-import com.example.music.domain.player.model.toPlayerSong
+
+
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
@@ -108,6 +108,8 @@ import kotlinx.coroutines.CoroutineScope
  * ids and remaining extra info that was not in PlayerSong.
  *
  * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 /**
@@ -117,7 +119,6 @@ import kotlinx.coroutines.CoroutineScope
 fun ArtistDetailsScreen(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -141,7 +142,6 @@ fun ArtistDetailsScreen(
                 //onQueueSong = viewModel::onQueueSong,
                 navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
-                //navigateToPlayerSong = navigateToPlayerSong,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 showBackButton = showBackButton,
@@ -201,10 +201,9 @@ fun ArtistDetailsScreen(
     selectSong: SongInfo,
     selectAlbum: AlbumInfo,
     onArtistAction: (ArtistAction) -> Unit,
-    //onQueueSong: (PlayerSong) -> Unit,
+    //onQueueSong: (SongInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -332,7 +331,6 @@ fun ArtistDetailsScreen(
                 coroutineScope = coroutineScope,
                 navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
-                //navigateToPlayerSong = navigateToPlayerSong,
                 modifier = Modifier.padding(contentPadding)
             )*/
 
@@ -441,7 +439,6 @@ fun ArtistDetailsScreen(
 
                     // songs list
                     items(songs) { song ->
-                        //items(pSongs) { song ->
                         Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                             SongListItem(
                                 song = song,
@@ -666,11 +663,10 @@ fun ArtistDetailsContent(
     artist: ArtistInfo,
     albums: PersistentList<AlbumInfo>,
     songs: List<SongInfo>,
-    //onQueueSong: (PlayerSong) -> Unit,
+    //onQueueSong: (SongInfo) -> Unit,
     coroutineScope: CoroutineScope,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) {
     /*
@@ -755,7 +751,6 @@ fun ArtistDetailsContent(
 
             // songs list
             items(songs) { song ->
-            //items(pSongs) { song ->
                 Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                     SongListItem(
                         song = song,

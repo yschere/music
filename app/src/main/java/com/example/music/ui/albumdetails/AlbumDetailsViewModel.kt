@@ -7,9 +7,7 @@ import com.example.music.domain.usecases.GetAlbumDetailsUseCase
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.SongPlayer
-import com.example.music.domain.player.model.PlayerSong
-import com.example.music.domain.player.model.toPlayerSong
+//import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetAlbumDetailsV2
 import com.example.music.domain.util.Album
 import com.example.music.ui.Screen
@@ -35,6 +33,8 @@ private const val TAG = "Album Details View Model"
  * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
  * has been adjusted to support UI with the string values of the foreign key
  * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 7/22-23/2025 - Deleted SongPlayer from domain layer.
  */
 
 data class AlbumUiState (
@@ -46,11 +46,14 @@ data class AlbumUiState (
     val selectSong: SongInfo = SongInfo(),
 )
 
+/**
+ * ViewModel that handles the business logic and screen state of the Album Details screen
+ */
 @HiltViewModel
 class AlbumDetailsViewModel @Inject constructor(
     //getAlbumDetailsUseCase: GetAlbumDetailsUseCase,
     getAlbumDetailsV2: GetAlbumDetailsV2,
-    private val songPlayer: SongPlayer,
+    //private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -138,7 +141,7 @@ class AlbumDetailsViewModel @Inject constructor(
 
     private fun onQueueSong(song: SongInfo) {
         logger.info { "$TAG - onQueueSong - ${song.title}" }
-        songPlayer.addToQueue(song.toPlayerSong())
+        //songPlayer.addToQueue(song.toPlayerSong())
     }
 
     private fun onSongMoreOptionClick(song: SongInfo) {
@@ -148,12 +151,12 @@ class AlbumDetailsViewModel @Inject constructor(
 
     private fun onPlayAlbum(songs: List<SongInfo>) {
         logger.info { "$TAG - onPlayAlbum - ${songs.size}" }
-        songPlayer.addToQueue( songs.map { it.toPlayerSong() } )
+        //songPlayer.addToQueue( songs.map { it.toPlayerSong() } )
     }
 
     private fun onShuffleAlbum(songs: List<SongInfo>) {
         logger.info { "$TAG - onShuffleAlbum - ${songs.size}" }
-        songPlayer.shuffle( songs.map { it.toPlayerSong() } )
+        //songPlayer.shuffle( songs.map { it.toPlayerSong() } )
     }
 }
 

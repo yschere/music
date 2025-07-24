@@ -6,8 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.music.domain.usecases.GetComposerDetailsUseCase
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.SongPlayer
-import com.example.music.domain.player.model.PlayerSong
+//import com.example.music.domain.player.SongPlayer
 import com.example.music.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.example.music.util.logger
@@ -27,6 +26,8 @@ import javax.inject.Inject
  * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
  * has been adjusted to support UI with the string values of the foreign key
  * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 data class ComposerUiState (
@@ -34,13 +35,12 @@ data class ComposerUiState (
     val errorMessage: String? = null,
     val composer: ComposerInfo = ComposerInfo(),
     val songs: List<SongInfo> = emptyList(),
-    //val pSongs: List<PlayerSong> = emptyList(),
 )
 
 @HiltViewModel
 class ComposerDetailsViewModel @Inject constructor(
     getComposerDetailsUseCase: GetComposerDetailsUseCase,
-    private val songPlayer: SongPlayer,
+    //private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -70,14 +70,12 @@ class ComposerDetailsViewModel @Inject constructor(
                 logger.info { "Composer Details View Model - ComposerUiState call" }
                 logger.info { "Composer Details View Model - composerDetailsFilterResult ID: ${composerDetailsFilterResult.composer.id}" }
                 logger.info { "Composer Details View Model - composerDetailsFilterResult songs: ${composerDetailsFilterResult.songs.size}" }
-                //logger.info { "Composer Details View Model - composerDetailsFilterResult pSongs: ${composerDetailsFilterResult.pSongs.size}" }
                 logger.info { "Composer Details View Model - isReady?: ${!refreshing}" }
 
                 ComposerUiState(
                     isReady = !refreshing,
                     composer = composerDetailsFilterResult.composer,
                     songs = composerDetailsFilterResult.songs,
-                    //pSongs = composerDetailsFilterResult.pSongs
                 )
             }.catch { throwable ->
                 emit(

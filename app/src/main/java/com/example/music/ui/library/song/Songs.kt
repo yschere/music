@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.shared.LibrarySortSelectionBottomModal
@@ -46,6 +45,8 @@ import kotlinx.coroutines.CoroutineScope
  * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
  * has been adjusted to support UI with the string values of the foreign key
  * ids and remaining extra info that was not in PlayerSong.
+ *
+ * 7/22-23/2025 - Removed PlayerSong completely
  */
 
 /**

@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +48,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -70,14 +72,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.layout.DisplayFeature
 import com.example.music.R
+import com.example.music.data.repository.RepeatType
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.ImageBackgroundRadialGradientScrim
-import com.example.music.domain.testing.PreviewPlayerSongs
+import com.example.music.domain.model.SongInfo
+import com.example.music.domain.testing.PreviewSongs
 import com.example.music.service.SongControllerState
-import com.example.music.domain.player.model.PlayerSong
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.isCompact
@@ -86,7 +90,11 @@ import com.example.music.util.isMedium
 import kotlinx.coroutines.launch
 import java.time.Duration
 
-//might/likely need a current state for repeat and shuffle
+/** Changelog:
+ *
+ * 7/22-23/2025 - Revised uiState properties and referencing of uiState in PlayerScreen functions to use its
+ * properties instead. Removed PlayerSong completely
+ */
 
 /**
  * StateFUL version of player screen
@@ -103,10 +111,15 @@ fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
     //modifier: Modifier,
 ) {
-    val uiState = viewModel.uiState //original code: not sure why its the only uiState that doesn't have state.collectAsStateWithLifecycle()
-    //is it because of savedStateHandle? lets try it with playlistdetails
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+
     PlayerScreen(
-        uiState = uiState,
+        currentSong = uiState.currentSong,
+        isPlaying = uiState.isPlaying,
+        isShuffled = uiState.isShuffled,
+        repeatState = uiState.repeatState,
+        timeElapsed = uiState.timeElapsed,
+        hasNext = uiState.hasNext,
         windowSizeClass = windowSizeClass,
         displayFeatures = displayFeatures,
         navigateBack = navigateBack,
@@ -125,6 +138,34 @@ fun PlayerScreen(
             onRepeat = viewModel::onRepeat
         ),
     )
+    if (uiState.errorMessage != null) {
+        PlayerScreenError(onRetry = viewModel::refresh)
+    }
+}
+
+/**
+ * Error Screen
+ */
+@Composable
+private fun PlayerScreenError(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(modifier = modifier) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Text(
+                text = stringResource(id = R.string.an_error_has_occurred),
+                modifier = Modifier.padding(16.dp)
+            )
+            Button(onClick = onRetry) {
+                Text(text = stringResource(id = R.string.retry_label))
+            }
+        }
+    }
 }
 
 /**
@@ -132,7 +173,12 @@ fun PlayerScreen(
  */
 @Composable
 private fun PlayerScreen(
-    uiState: PlayerUiState,
+    currentSong: SongInfo,
+    isPlaying: Boolean,
+    isShuffled: Boolean,
+    repeatState: RepeatType,
+    timeElapsed: Duration,
+    hasNext: Boolean,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
     navigateBack: () -> Unit,
@@ -167,9 +213,14 @@ private fun PlayerScreen(
         // background function
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
     ) { contentPadding ->
-        if (uiState.songControllerState.currentSong != null) {
+        if (currentSong != null) { // keeping this explicit check for now, don't want to lose context for the FullScreenLoading function below
             PlayerContentWithBackground(
-                uiState = uiState,
+                currentSong = currentSong,
+                isPlaying = isPlaying,
+                isShuffled = isShuffled,
+                repeatState = repeatState,
+                timeElapsed = timeElapsed,
+                hasNext = hasNext,
                 windowSizeClass = windowSizeClass,
                 displayFeatures = displayFeatures,
                 navigateBack = navigateBack,
@@ -188,11 +239,23 @@ private fun PlayerScreen(
     }
 }
 
+//full screen circular progress - loading screen
+@Composable
+private fun FullScreenLoading(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.Center)
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
 //TODO: see if this can be used to adjust background based on album artwork
 // how to rework this to be on the song data
 @Composable
 private fun PlayerBackground(
-    song: PlayerSong?,
+    song: SongInfo,
     //album: Album?,
     modifier: Modifier,
 ) {
@@ -200,7 +263,7 @@ private fun PlayerBackground(
     //ImageBackgroundColorScrim(
     ImageBackgroundRadialGradientScrim(
         //url = song?.podcastImageUrl,
-        imageId = song?.artwork, //need to make this come from PlayerSong
+        imageId = song.title, //TODO needs to be artwork bitmap or uri
         //color = MaterialTheme.colorScheme.primaryContainer,
         colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),),
         //colors = listOf(MaterialTheme.colorScheme.onPrimaryContainer,MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.onTertiary),//blueDarkColorSet.primary, //TODO
@@ -211,7 +274,12 @@ private fun PlayerBackground(
 //combines player content with background
 @Composable
 fun PlayerContentWithBackground(
-    uiState: PlayerUiState,
+    currentSong: SongInfo,
+    isPlaying: Boolean,
+    isShuffled: Boolean,
+    repeatState: RepeatType,
+    timeElapsed: Duration,
+    hasNext: Boolean,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
     navigateBack: () -> Unit,
@@ -222,11 +290,16 @@ fun PlayerContentWithBackground(
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         PlayerBackground(
-            song = uiState.songControllerState.currentSong,
+            song = currentSong,
             modifier = Modifier.fillMaxSize()
         )
         PlayerContent(
-            uiState = uiState,
+            currentSong = currentSong,
+            isPlaying = isPlaying,
+            isShuffled = isShuffled,
+            repeatState = repeatState,
+            timeElapsed = timeElapsed,
+            hasNext = hasNext,
             windowSizeClass = windowSizeClass,
             displayFeatures = displayFeatures,
             navigateBack = navigateBack,
@@ -254,7 +327,12 @@ data class PlayerControlActions(
 //FOR NOW: use to just select player content regular
 @Composable
 fun PlayerContent(
-    uiState: PlayerUiState,
+    currentSong: SongInfo,
+    isPlaying: Boolean,
+    isShuffled: Boolean,
+    repeatState: RepeatType,
+    timeElapsed: Duration,
+    hasNext: Boolean,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
     navigateBack: () -> Unit,
@@ -282,7 +360,12 @@ fun PlayerContent(
         modifier = modifier.fillMaxSize()
     ) {
         PlayerContentRegular (
-            uiState = uiState,
+            currentSong = currentSong,
+            isPlaying = isPlaying,
+            isShuffled = isShuffled,
+            repeatState = repeatState,
+            timeElapsed = timeElapsed,
+            hasNext = hasNext,
             navigateBack = navigateBack,
             navigateToQueue = navigateToQueue,
             playerControlActions = playerControlActions,
@@ -296,14 +379,17 @@ fun PlayerContent(
 //FOR NOW: default to portrait view
 @Composable
 private fun PlayerContentRegular(
-    uiState: PlayerUiState,
+    currentSong: SongInfo,
+    isPlaying: Boolean,
+    isShuffled: Boolean,
+    repeatState: RepeatType,
+    timeElapsed: Duration,
+    hasNext: Boolean,
     navigateBack: () -> Unit, //call seekToPreviousMediaTime
     navigateToQueue: () -> Unit,
     playerControlActions: PlayerControlActions, // call from seek toNextMedium Item
     modifier: Modifier = Modifier
 ) {
-    val playerSong = uiState.songControllerState
-    val currentSong = playerSong.currentSong ?: return
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -316,7 +402,7 @@ private fun PlayerContentRegular(
             .padding(horizontal = 8.dp)
     ) {
         PlayerTopAppBar(
-            queue = uiState.songControllerState.queue,
+            //queue = uiState.songControllerState.queue,
             navigateBack = navigateBack,
             navigateToQueue = navigateToQueue,
         )
@@ -329,7 +415,7 @@ private fun PlayerContentRegular(
 
             Spacer(modifier = Modifier.weight(1f))
             PlayerImage(
-                albumImage = currentSong.title,//currentSong.artwork!!, //TODO: fix this when artwork fixed
+                albumImage = currentSong.title,//currentSong.artwork!!, //TODO: fix this when artwork fixed, needs to be bitmap or uri
                 modifier = Modifier.weight(10f)
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -342,16 +428,16 @@ private fun PlayerContentRegular(
                 modifier = Modifier.weight(10f)
             ) {
                 PlayerSlider(
-                    timeElapsed = playerSong.timeElapsed,
+                    timeElapsed = timeElapsed,
                     songDuration = currentSong.duration,
                     onSeekingStarted = playerControlActions.onSeekingStarted,
                     onSeekingFinished = playerControlActions.onSeekingFinished
                 )
                 PlayerButtons(
-                    hasNext = playerSong.queue.isNotEmpty(),
-                    isPlaying = playerSong.isPlaying,
-                    isShuffled = playerSong.isShuffled,//true, //TODO: fix this
-                    repeatState = playerSong.repeatState.name,//"on", //TODO: fix this
+                    hasNext = hasNext, // TODO should uiState have access to queue or should it be able to return a boolean here that viewmodel asks to songController?
+                    isPlaying = isPlaying,
+                    isShuffled = isShuffled,
+                    repeatState = repeatState.name,
                     onPlayPress = playerControlActions.onPlayPress,
                     onPausePress = playerControlActions.onPausePress,
                     onNext = playerControlActions.onNext,
@@ -369,7 +455,7 @@ private fun PlayerContentRegular(
 //no background, icons only, default top bar
 @Composable
 private fun PlayerTopAppBar(
-    queue: List<PlayerSong>,
+    //queue: List<SongInfo>, // queue is not currently in use here for navigation to QueueScreen, don't think it should be used for nav at all
     navigateBack: () -> Unit,
     navigateToQueue: () -> Unit
 ){
@@ -413,14 +499,13 @@ private fun PlayerTopAppBar(
 
 @Composable
 private fun SongLyricsSwitch(
-    song: PlayerSong,
+    song: SongInfo,
     modifier: Modifier = Modifier
 ) {
-    /*
+    /* TODO:
         check if song has lyrics
         if yes, show the lyrics btn as clickable
         else show nothing
-
         want this to exist as two buttons, Song on left, Lyrics on right
         want the lyrics button to be disabled if no lyrics found for song (or have X on the side?)
         default is to have song side enabled, but if lyrics side enabled, keep that enabled till song side tapped
@@ -525,7 +610,7 @@ private fun SongLyricsSwitch(
     }
 }
 
-//TODO: rework this to show album artwork
+//TODO: rework this to show album artwork from bitmap or uri
 @Composable
 private fun PlayerImage(
     albumImage: String,
@@ -585,7 +670,7 @@ fun Duration.formatString(): String {
     return "$minutes:$secondsLeft"
 }
 
-//TODO: rework this for songs if needed
+//TODO: rework this for song player if needed
 @Composable
 fun PlayerSlider( //removed private modifier to borrow this fun for BottomModals
     timeElapsed: Duration,
@@ -816,18 +901,6 @@ private fun PlayerButtons(
     }
 }
 
-//full screen circular progress - loading screen
-@Composable
-private fun FullScreenLoading(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
 //@Preview
 @Composable
 fun PlayerButtonsPreview() {
@@ -854,13 +927,12 @@ fun PlayerScreenPreview() {
     MusicTheme {
         BoxWithConstraints {
             PlayerScreen(
-                PlayerUiState(
-                    songControllerState = SongControllerState(
-                        currentSong = PreviewPlayerSongs[0],
-                        isPlaying = false,
-                        queue = PreviewPlayerSongs
-                    ),
-                ),
+                currentSong = PreviewSongs[0],
+                isPlaying = true,
+                isShuffled = true,
+                repeatState = RepeatType.ON,
+                timeElapsed = Duration.ZERO,
+                hasNext = true,
                 displayFeatures = emptyList(),
                 windowSizeClass = WindowSizeClass.compute(maxWidth.value, maxHeight.value),
                 navigateToHome = { },
