@@ -1,5 +1,6 @@
 package com.example.music.domain.usecases
 
+import android.util.Log
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
@@ -15,34 +16,29 @@ class FeaturedLibraryItemsV2 @Inject constructor(
     private val resolver: MediaRepo,
 ) {
     operator fun invoke(): Flow<FeaturedLibraryItemsFilterV2> {
-        domainLogger.info { "$TAG - using MediaStore - start" }
+        Log.i(TAG, "using MediaStore - start")
 
-        //val albumItems = resolver.getAllAlbums()
+        // albumItems should return albumRepo date created desc limit 5
         val albumItems = resolver.mostRecentAlbums(5)
-        domainLogger.info { "$TAG - album item == $albumItems" }
+        Log.i(TAG, "album item == $albumItems")
 
-        //val mediaItems = resolver.getAllSongs()
+        // mediaItems should return songRepo date created desc limit 10
         val mediaItems = resolver.mostRecentSongs(10)
-        domainLogger.info { "$TAG - media item == $mediaItems" }
-
-        // val recentPlaylistsFlow = playlistRepo date last played desc limit 5
-        // val recentSongsFlow == songRepo date created desc limit 10
+        Log.i(TAG, " media item == $mediaItems")
 
         return combine(
             mediaItems,
             albumItems
         ) { mediaIds, albumIds ->
-            domainLogger.info { mediaIds }
-            domainLogger.info { albumIds }
+            Log.i(TAG, mediaIds.toString())
+            Log.i(TAG, albumIds.toString())
             FeaturedLibraryItemsFilterV2(
                 recentAlbums = albumIds.map { albumId ->
-                    domainLogger.info { "AlbumID - PLEASE IS THERE SOMETHING IN HERE: $albumId" }
-//                    albumId.asExternalModel()
+                    Log.i(TAG, "AlbumID - $albumId")
                     resolver.getAlbum(albumId).asExternalModel()
                 },
                 recentlyAddedSongs = mediaIds.map { mediaId ->
-                    domainLogger.info { "SongID - PLEASE IS THERE SOMETHING IN HERE: $mediaId" }
-//                    mediaId.asExternalModel()
+                    Log.i(TAG, "SongID - $mediaId")
                     resolver.getAudio(mediaId).asExternalModel()
                 },
             )
