@@ -1,5 +1,6 @@
 package com.example.music.ui
 
+import android.util.Log
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -34,6 +35,8 @@ import com.example.music.util.logger
  * 7/22-23/2025 - Removed PlayerSong completely
  */
 
+private const val TAG = "Music App Navigation"
+
 /**
  * Composable function for Music App state control and navigation
  */
@@ -42,7 +45,8 @@ fun MusicApp(
     displayFeatures: List<DisplayFeature>,
     appState: MusicAppState = rememberMusicAppState()
 ) {
-    logger.info { "Music App - start" }
+
+    Log.i(TAG, "navigation composable start")
     val adaptiveInfo = currentWindowAdaptiveInfo()
     /*val sizeClassText =
         "${adaptiveInfo.windowSizeClass.windowWidthSizeClass}\n" +
