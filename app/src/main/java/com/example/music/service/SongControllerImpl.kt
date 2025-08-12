@@ -3,6 +3,7 @@ package com.example.music.service
 import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -109,7 +110,7 @@ class SongControllerImpl @Inject constructor(
                 // MediaController implements the Player interface, so it can be
                 // attached to the PlayerView UI component.
 
-                logger.info { "$TAG - SessionToken MediaController - ${mediaControllerFuture.get()}" }
+                Log.i(TAG, "SessionToken MediaController - ${mediaControllerFuture.get()}")
                 controllerListener()
             },
             MoreExecutors.directExecutor()
@@ -131,13 +132,13 @@ class SongControllerImpl @Inject constructor(
                 isShuffled,
 //                appPref,
             ) { currentSong, queue, isPlaying, timeElapsed, playerSpeed, repeatState, isShuffled ->
-                logger.info { "$TAG - Song Controller State launch: ${currentSong?.title} " +
+                Log.i(TAG, "Song Controller State launch: ${currentSong?.title} " +
                         "\n queue: ${queue.size}" +
                         "\n isPlaying: $isPlaying" +
                         "\n timeElapsed: $timeElapsed" +
-                        "\n playbackSpeed: $playerSpeed"
+                        "\n playbackSpeed: $playerSpeed" +
                         "\n repeatState: $repeatState" +
-                        "\n isShuffled: $isShuffled" }
+                        "\n isShuffled: $isShuffled" )
                 SongControllerState(
                     currentSong = currentSong,
                     queue = queue,
@@ -161,7 +162,7 @@ class SongControllerImpl @Inject constructor(
             override fun onEvents(player: Player, events: Player.Events) {
                 super.onEvents(player, events)
                 //when the logger is out here it is getting called every millisecond with the player data, still not filled with a duration but still with player state 1
-                //logger.info { "$TAG - Controller Listener player state: ${player.playbackState}; player details: ${player.currentMediaItem?.mediaId}; ${player.deviceInfo.playbackType};"}// ${player.duration}; " }
+                //Log.i(TAG, "Controller Listener player state: ${player.playbackState}; player details: ${player.currentMediaItem?.mediaId}; ${player.deviceInfo.playbackType};"}// ${player.duration}; " }
 
                 // --- Playback States
                 // STATE_IDLE = 1
@@ -178,7 +179,7 @@ class SongControllerImpl @Inject constructor(
                     //should player be updating song controller ... or should song controller be updating the player?
                     // because from here which one is actually populated?
                     // as of 5/3/2025, player is null and has nothing, so it would just overwrite song controller with null
-                    //logger.info { "$TAG - Controller Listener _player state update: ${player.currentMediaItem} \n ${player.duration} \n ${player.shuffleModeEnabled}" }
+                    //Log.i(TAG, "Controller Listener _player state update: ${player.currentMediaItem} \n ${player.duration} \n ${player.shuffleModeEnabled}" }
 //                    SongControllerState(
 //                        currentSong = player.currentMediaItem?.asExternalModel(),
 //                        queue = player.queue.map { it.asExternalModel() },
@@ -202,7 +203,7 @@ class SongControllerImpl @Inject constructor(
 
     override fun addMediaItem(item: SongInfo) {
         addToQueue(item)
-        logger.info { "$TAG - media item: ${item.id}" }
+        Log.i(TAG, "media item: ${item.id}")
         mediaController?.setMediaItem(item.toMediaItem)
     }
 
@@ -257,7 +258,7 @@ class SongControllerImpl @Inject constructor(
 
     override fun setMediaItem(item: SongInfo) {
 //        addToQueue(item)
-        logger.info { "$TAG - media item: ${item.id}" }
+        Log.i(TAG, "media item: ${item.id}")
         play(item)
     }
 
@@ -271,17 +272,17 @@ class SongControllerImpl @Inject constructor(
 
     override fun play() {
         //mediaPlayer.play()
-        logger.info { "$TAG - Entering the play() method. isPlaying is set to $isPlaying. Current song is ${_currentSong.value?.title}" }
+        Log.i(TAG, "Entering the play() method. isPlaying is set to $isPlaying. Current song is ${_currentSong.value?.title}")
 
         // Do nothing if already playing
         if (isPlaying.value) {
             return
         }
-        logger.info { "$TAG - Starting Song Controller Impl Play()" }
+        Log.i(TAG, "Starting Song Controller Impl Play()")
 
         val song = _currentSong.value ?: return
         val item = mediaController?.currentMediaItem
-        logger.info {"$TAG - Current media item is ${item?.title}"}
+        Log.i(TAG, "Current media item is ${item?.title}")
 
         // This is almost definitely in the wrong place.
         //play(currentSong!!.asExternalModel())
@@ -289,7 +290,7 @@ class SongControllerImpl @Inject constructor(
         //mediaController?.mediaItemCount
         timerJob = coroutineScope.launch {
             // Increment timer by a second
-            logger.info { "$TAG - Song Controller Impl Play() coroutine" }
+            Log.i(TAG, "Song Controller Impl Play() coroutine")
             while (isActive && timeElapsed.value < Duration.ofMillis(song.duration?:0)) {
                 delay(playerSpeed.toMillis())
                 timeElapsed.update { it + playerSpeed }
@@ -306,7 +307,7 @@ class SongControllerImpl @Inject constructor(
 
 
         if (mediaController?.isPlaying == true) {
-            logger.info { "$TAG - Song Controller Impl IS PLAYING" }
+            Log.i(TAG, "Song Controller Impl IS PLAYING")
             return
         }
 
@@ -331,7 +332,7 @@ class SongControllerImpl @Inject constructor(
     // that were in queue from "AddToQueue". so if the queue started from "Play" or "Shuffle"
     // it will get replaced with the new item(s) being played or shuffled
     override fun play(songInfos: List<SongInfo>) {
-        logger.error{"$TAG - In play(songInfos)"}
+        Log.e(TAG, "In play(songInfos)")
         if (isPlaying.value) {
             pause()
             mediaController?.pause()
@@ -391,8 +392,8 @@ class SongControllerImpl @Inject constructor(
 //        }
         val queue = songInfos.map{it.toMediaItem}
         mediaController?.setMediaItems(queue)
-        logger.error {"$TAG - Current queue has ${queue.size} items."}
-        logger.error {"$TAG - Current media controller state before apply is ${mediaController?.playbackState}."}
+        Log.e(TAG, "Current queue has ${queue.size} items.")
+        Log.e(TAG, "Current media controller state before apply is ${mediaController?.playbackState}.")
 
         mediaController?.apply {
             seekToDefaultPosition()
@@ -400,7 +401,7 @@ class SongControllerImpl @Inject constructor(
             prepare()
 //            play()
         }
-        logger.error {"$TAG - Current media controller state after apply is ${mediaController?.playbackState}."}
+        Log.e(TAG, "Current media controller state after apply is ${mediaController?.playbackState}.")
 
     }
 
@@ -449,7 +450,7 @@ class SongControllerImpl @Inject constructor(
         //val currentSongDuration = _currentSong.value?.duration ?: return
         //timeElapsed.update { duration.coerceIn(Duration.ZERO, currentSongDuration) }
         //play()
-        logger.info { "$TAG - In the controller's onSeekingFinished() function, presumably after a song has finished." }
+        Log.i(TAG, "In the controller's onSeekingFinished() function, presumably after a song has finished.")
 
         play()
     }
@@ -458,12 +459,12 @@ class SongControllerImpl @Inject constructor(
         isShuffled.value = !isShuffled.value
         if (isShuffled.value) { //aka shuffle turned on
             //TODO: change the queue to be randomized order
-            domainLogger.info { "$TAG - SHUFFLE QUEUE" }
+            Log.i(TAG, "SHUFFLE QUEUE")
             shuffleQueue()
         }
         else { //aka shuffle turned off
             //TODO: change the queue to be in normal order
-            domainLogger.info { "$TAG - UNDO QUEUE SHUFFLE" }
+            Log.i(TAG, "UNDO QUEUE SHUFFLE")
             //unShuffleQueue()
             // this can get real spicy to figure out how to achieve
             // if i want it to work the same way the play music one works, it would need to keep
@@ -488,18 +489,18 @@ class SongControllerImpl @Inject constructor(
             //TODO: figure out how the queue / player needs to change
             RepeatType.OFF -> {
                 repeatState.value = RepeatType.ON
-                domainLogger.info { "$TAG - REPEAT TYPE CHANGED TO ON" }
+                Log.i(TAG, "REPEAT TYPE CHANGED TO ON")
                 //in checking the queue, if the current song is the last song of the queue, set the onNext to play the first song
             }
             RepeatType.ON -> {
                 repeatState.value = RepeatType.ONE
-                domainLogger.info { "$TAG - REPEAT TYPE CHANGED TO ONE" }
+                Log.i(TAG, "REPEAT TYPE CHANGED TO ONE")
                 //want to keep queue as is, just include boolean logic to put onNext to play the song over
                 //use same boolean logic/value for onPrevious to restart song over
             }
             RepeatType.ONE -> {
                 repeatState.value = RepeatType.OFF
-                domainLogger.info { "$TAG - REPEAT TYPE CHANGED TO OFF" }
+                Log.i(TAG, "REPEAT TYPE CHANGED TO OFF")
                 //in checking the queue, if the current song is the last song of the queue, trigger the stop function to end the session/queue
             }
         }
@@ -514,7 +515,7 @@ class SongControllerImpl @Inject constructor(
     }
 
     override fun next() {
-        logger.info { "$TAG - In the controller's next() function, presumably after a song is skipped." }
+        Log.i(TAG, "In the controller's next() function, presumably after a song is skipped.")
         //val q = queue.value
         val q = mediaController?.queue
         if (q?.isEmpty() == true) {
