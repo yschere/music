@@ -125,12 +125,12 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
     @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
-        logger.info { "$TAG - WHERE YE ARE" }
+        Log.i(TAG, "onCreate: START")
 
         if (!this::mediaPlayer.isInitialized) {
             // this is to attempt to have mediaPlayer be initialized before it is required.
             // Because I've run into that error numerous times while trying to play an audio file in app
-            logger.info { "$TAG - MEDIA  PLAYER NOT INITIALIZED" }
+            Log.e(TAG, "MEDIA PLAYER NOT INITIALIZED")
             mediaPlayer.deviceInfo
         }
 
@@ -178,9 +178,9 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
             }
             // double check sort order
             // and if check misplaced, player
-            logger.info { "$TAG - Adding listener to a media player." }
+            Log.i(TAG, "Adding listener to a media player.")
             mediaPlayer.addListener(this@MediaService) //connects the MediaService's Player.Listener to mediaPlayer
-            logger.info { "$TAG - Added listener to a media player." }
+            Log.i(TAG, "Added listener to a media player.")
             sendBroadcast(NowPlaying.from(this@MediaService, mediaPlayer))
         }
         createNotificationChannel()
@@ -193,7 +193,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action = intent?.action
-        logger.info { "$TAG - onStartCommand: $action" }
+        Log.i(TAG, "onStartCommand: $action")
 
         if (action == null) {
             sendBroadcast(NowPlaying.from(this, mediaPlayer))
@@ -235,6 +235,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         mediaItem: MediaItem?,
         reason: Int
     ) {
+        Log.i(TAG, "onMediaItemTransition")
         scope.launch {
             // preferences[PREF_KEY_INDEX] = mediaPlayer.currentMediaItemIndex
             // save current index in preference?? seems like get current media item index
@@ -325,7 +326,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
                 do {
                     // get current playback position, set to preferences / datastore
                     //preferences[PREF_KEY_BOOKMARK] = mediaPlayer.currentPosition
-                    logger.info { "$TAG - Save playback position: ${mediaPlayer.currentPosition}" }
+                    Log.i(TAG, "Save playback position: ${mediaPlayer.currentPosition}")
                     if (scheduledPauseTimeMillis != UNINITIALIZED_SLEEP_TIME_MILLIS && scheduledPauseTimeMillis <= System.currentTimeMillis()) {
                         // Pause the player as the scheduled pause time has been reached.
                         mediaPlayer.pause()
