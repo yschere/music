@@ -1,6 +1,7 @@
 package com.example.music.domain.usecases
 
 import android.provider.MediaStore
+import android.util.Log
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.util.Genre
@@ -41,7 +42,7 @@ class GetLibraryGenresV2 @Inject constructor(
 
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<GenreInfo> {
         val genresList: List<Genre>
-        domainLogger.info { "$TAG - start - sortOption: $sortOption - isAscending: $isAscending" }
+        Log.i(TAG, "Start - sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
 
@@ -60,9 +61,9 @@ class GetLibraryGenresV2 @Inject constructor(
             }
         }
 
-        domainLogger.info { "********** Library Genres count: ${genresList.size} **********" }
+        Log.i(TAG, "********** Library Genres count: ${genresList.size} **********")
         return genresList.map { genre ->
-            domainLogger.info { "**** Genre: ${genre.id} + ${genre.name} ****" }
+        Log.i(TAG, "**** Genre: ${genre.id} + ${genre.name} ****")
             genre.asExternalModel()
         }
     }

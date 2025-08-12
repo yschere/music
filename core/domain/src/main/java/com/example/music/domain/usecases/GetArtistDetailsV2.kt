@@ -1,6 +1,7 @@
 package com.example.music.domain.usecases
 
 import android.provider.MediaStore
+import android.util.Log
 import com.example.music.data.repository.AppPreferences
 import com.example.music.data.repository.SongSortOrder
 import com.example.music.domain.model.ArtistDetailsFilterResult
@@ -30,7 +31,7 @@ class GetArtistDetailsV2 @Inject constructor(
     //private val getAppPref: GetAppPreferencesUseCase,
 ) {
     operator fun invoke(artistId: Long): Flow<ArtistDetailsFilterResult> {
-        domainLogger.info { "$TAG - start - ArtistID: $artistId" }
+        Log.i(TAG, "Start: ArtistID: $artistId")
         val artistItem: Flow<Artist> = resolver.getArtistFlow(artistId)
         val albumsList: Flow<List<Album>> = resolver.getAlbumsByArtistId(artistId)
 //        var order: SongSortOrder = SongSortOrder.TITLE
@@ -42,21 +43,25 @@ class GetArtistDetailsV2 @Inject constructor(
             artistItem,
             albumsList,
             artistItem.map {
-                domainLogger.info { "$TAG - make songs" }
-                resolver.getArtistAudios(it.id, order = MediaStore.Audio.Media.TITLE)//MediaStore.Audio.AudioColumns.TRACK)
+                Log.i(TAG, "Fetching songs from artist $artistId")
+                resolver.getArtistAudios(it.id, order = MediaStore.Audio.Media.TITLE)
             },
         ) { artist, albums, songs ->
-            domainLogger.info { "ARTIST: $artist --- \n" +
+            Log.i(TAG, "ARTIST: $artist --- \n" +
                 "Artist ID: ${artist.id} \n" +
-                "Artist Name: ${artist.name}" }
+                "Artist Name: ${artist.name}" +
+                "Number Songs: ${artist.numTracks} \n" +
+                "Number Albums: ${artist.numAlbums}"
+            )
 
             ArtistDetailsFilterResult(
                 artist = artist.asExternalModel(),
                 albums = albums.map {
+                    Log.i(TAG, "ALBUM: ${it.title}")
                     it.asExternalModel()
                 },
                 songs = songs.map {
-                    domainLogger.info { "SONGINFO - PLEASE IS THERE SOMETHING IN HERE: ${it.title}"}
+                    Log.i(TAG, "SONG: ${it.title}")
                     it.asExternalModel()
                 },
             )

@@ -1,6 +1,7 @@
 package com.example.music.domain.usecases
 
 import android.provider.MediaStore
+import android.util.Log
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.util.Audio
@@ -68,7 +69,7 @@ class GetLibrarySongsV2 @Inject constructor(
 
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<SongInfo> {
         val songsList: List<Audio>
-        domainLogger.info { "$TAG - start - sortOption: $sortOption - isAscending: $isAscending" }
+        Log.i(TAG, "Start - sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
 
@@ -108,9 +109,9 @@ class GetLibrarySongsV2 @Inject constructor(
             }
         }
 
-        domainLogger.info { "********** Library Songs count: ${songsList.size} **********" }
+        Log.i(TAG,"********** Library Songs count: ${songsList.size} **********")
         return songsList.map { song ->
-            domainLogger.info { "**** Song: ${song.id} + ${song.title} + ${song.artist} + ${song.album} ****" }
+            Log.i(TAG, "**** Song: ${song.id} + ${song.title} + ${song.artist} + ${song.album} ****")
             song.asExternalModel()
         }
     }

@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -196,13 +197,13 @@ data class Audio(
  * Transform Cursor to type Audio
  */
 private fun Cursor.toAudio(): Audio {
-    domainLogger.info {
+    Log.i(TAG,
         "Cursor to Audio: \n" +
-            "id: ${getLong(0)} \n" +
-            "title: ${getString(1)}\n" +
-            "path ${getString(3)}\n" +
-            "testing if id is same as audioId: ${getLong(0)==getLong(19)}"
-    }
+            "ID: ${getLong(0)} \n" +
+            "Title: ${getString(1)}\n" +
+            "File Path: ${getString(3)}\n" +
+            "Date Added: ${getLong(4)}"
+    )
     return Audio(
         id = getLong(0),
         title = getString(1) ?: MediaStore.UNKNOWN_STRING,
@@ -300,14 +301,14 @@ suspend fun ContentResolver.getAudios(
         offset = offset,
         limit = limit,
         transform = { c ->
-            domainLogger.info { "$TAG - Get Audios returned: ${c.count} rows + ${c.columnNames}" }
+            //Log.i(TAG, "Get Audios returned: ${c.count} rows + ${c.columnNames}" )
             val temp = List(c.count) {
                 c.moveToPosition(it)
                 c.toAudio()
             }
             c.close()
-            domainLogger.info {
-                "HOPEFULLY GETTING A VALUE HERE: \n" +
+            Log.i(TAG,
+                "AUDIO DATA: \n" +
                         "Audio count returned: ${temp.count()}" +
                         "ID: ${temp[0].id} \n" +
                         "Title: ${temp[0].title} \n" +
@@ -322,7 +323,7 @@ suspend fun ContentResolver.getAudios(
                         "File Path: ${temp[0].path} \n" +
                         "File Size: ${temp[0].size} \n" +
                         "Year: ${temp[0].year} \n"
-            }
+            )
             temp
         },
     )
@@ -349,7 +350,7 @@ private suspend inline fun ContentResolver.getBucketAudios(
         offset = offset,
         limit = limit,
         transform = { c ->
-            domainLogger.info { "$TAG - Get Bucket Audios returned: ${c.count}rows + ${c.columnNames}" }
+            Log.i(TAG, "Get Bucket Audios returned: ${c.count} rows + ${c.columnNames}" )
             val result = List(c.count) {
                 c.moveToPosition(it)
                 c.toAudio()
@@ -379,8 +380,8 @@ suspend fun ContentResolver.findAudio(id: Long): Audio =
         //if (!it.moveToFirst()) return@query2 null else it.toAudio()
         val temp = it.toAudio()
         it.close()
-        domainLogger.info {
-            "HOPEFULLY GETTING A VALUE HERE: \n" +
+        Log.i(TAG,
+            "AUDIO DATA: \n" +
                     "ID: ${temp.id} \n" +
                     "Title: ${temp.title} \n" +
                     "Artist: ${temp.artist} \n" +
@@ -394,7 +395,7 @@ suspend fun ContentResolver.findAudio(id: Long): Audio =
                     "File Path: ${temp.path} \n" +
                     "File Size: ${temp.size} \n" +
                     "Year: ${temp.year} \n"
-        }
+        )
         temp
     }
 
@@ -483,11 +484,11 @@ private const val DEFAULT_ARTIST_SELECT = "${MediaStore.Audio.Artists._ID} != nu
  * Transform Cursor to type Artist
  */
 private fun Cursor.toArtist(): Artist {
-    domainLogger.info {
+    Log.i(TAG,
         "Cursor to Artist: \n" +
-            "id: ${getLong(0)} \n" +
-            "name: ${getString(1) ?: MediaStore.UNKNOWN_STRING}"
-    }
+            "ID: ${getLong(0)}\n" +
+            "Name: ${getString(1) ?: MediaStore.UNKNOWN_STRING}"
+    )
     return Artist(
         id = getLong(0),
         name = getString(1) ?: MediaStore.UNKNOWN_STRING,
@@ -520,7 +521,7 @@ suspend fun ContentResolver.getArtists(
     offset = offset,
     limit = limit,
     transform = { c ->
-        domainLogger.info { "$TAG - Artist count returned: ${c.count} rows + ${c.columnNames}" }
+        Log.i(TAG, "Artist count returned: ${c.count} rows + ${c.columnNames}")
         List(c.count) {
             c.moveToPosition(it)
             c.toArtist()
@@ -542,7 +543,7 @@ suspend fun ContentResolver.getArtistAudios(
     val like = if (sQuery != null) " AND ${MediaStore.Audio.Media.TITLE} LIKE ?" else ""
     val selection = "${MediaStore.Audio.Media.ARTIST} == ?" + like
     val args = if (sQuery != null) arrayOf(name, "%$sQuery%") else arrayOf(name)
-    domainLogger.info { "$TAG - Get Artist Audios - selection: $selection + args: $args" }
+    Log.i(TAG, "Get Artist Audios - selection: $selection + args: $args")
     return getBucketAudios(selection, args, order, ascending, offset, limit)
 }
 
@@ -558,7 +559,7 @@ suspend fun ContentResolver.getArtistAudiosById(
 ): List<Audio> {
     val selection = "${MediaStore.Audio.Media.ARTIST_ID} == ?"
     val args = arrayOf("$id")
-    domainLogger.info { "$TAG - Get Artist Audios By ID - selection: $selection + args: $args" }
+    Log.i(TAG, "Get Artist Audios By ID - selection: $selection + args: $args")
     return getBucketAudios(selection, args, order, ascending, offset, limit)
 }
 
@@ -695,13 +696,12 @@ private val ALBUM_PROJECTION
  * Transform Cursor to type Album
  */
 private fun Cursor.toAlbum(): Album {
-    domainLogger.info {
+    Log.i(TAG,
         "Cursor to Album: \n" +
-            "id: ${getLong(0)} \n" +
-            "title: ${getString(1) ?: MediaStore.UNKNOWN_STRING} \n" +
-            "albumId: ${getLong(2)}\n" +
-            "testing if id is same as albumId: ${getLong(0) == getLong(2)}"
-    }
+            "ID: ${getLong(0)} \n" +
+            "Title: ${getString(1) ?: MediaStore.UNKNOWN_STRING}\n" +
+            "Artist: ${getString(3) ?: MediaStore.UNKNOWN_STRING}"
+    )
     return Album(
         id = getLong(0),
         title = getString(1) ?: MediaStore.UNKNOWN_STRING,
@@ -738,7 +738,7 @@ suspend fun ContentResolver.getAlbums(
         offset = offset,
         limit = limit,
         transform = { c ->
-            domainLogger.info { "$TAG - Album count returned: ${c.count}" }
+            Log.i(TAG, "Album count returned: ${c.count}")
             val temp = List(c.count) {
                 c.moveToPosition(it)
                 c.toAlbum()
@@ -798,8 +798,8 @@ suspend fun ContentResolver.findAlbum(id: Long): Album {
 //            c.toAlbum()
 //        }
     ) {
-        domainLogger.info { "Find Album cursor: $it \n" +
-                "${it.columnNames} and ${it.columnCount}" }
+        Log.i(TAG, "Find Album cursor: $it \n" +
+                "${it.columnNames} and ${it.columnCount}")
         it.moveToFirst()
         //if (!it.moveToFirst()) return@query2 null else it.toAlbum()
         val temp = it.toAlbum()
@@ -883,11 +883,11 @@ private val GENRE_PROJECTION
  * Transform Cursor to type Genre
  */
 private fun Cursor.toGenre(): Genre {
-    domainLogger.info {
+    Log.i(TAG,
         "Cursor to Genre: \n" +
-            "id: ${getLong(0)} \n" +
-            "name: ${getString(1) ?: MediaStore.UNKNOWN_STRING}"
-    }
+            "ID: ${getLong(0)} \n" +
+            "Name: ${getString(1) ?: MediaStore.UNKNOWN_STRING}"
+    )
     return Genre(
         id = getLong(0),
         name = getString(1) ?: MediaStore.UNKNOWN_STRING,

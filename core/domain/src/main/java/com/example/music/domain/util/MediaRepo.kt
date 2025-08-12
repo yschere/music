@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import android.util.Size
 import com.example.music.data.util.combine
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -193,7 +194,7 @@ class MediaRepo (
     fun getAudioFlow(id: Long) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                domainLogger.info { "$TAG - Flow Get Audio by ID: $id; observe MediaStore result: $it" }
+                Log.i(TAG, "Flow Get Audio by ID: $id; observe MediaStore result: $it")
                 resolver.findAudio(id)
             }
 
@@ -203,7 +204,7 @@ class MediaRepo (
      */
     suspend fun getAudios(ids: List<Long>) =
         ids.map { id ->
-            domainLogger.info { "$TAG - Get Audios by ID: $id" }
+            Log.i(TAG, "Get Audios by ID: $id")
             resolver.findAudio(id)
         }
 
@@ -215,7 +216,7 @@ class MediaRepo (
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
                 ids.map { id ->
-                    domainLogger.info { "$TAG - Flow Get Audios by ID: $id" }
+                    Log.i(TAG, "Flow Get Audios by ID: $id")
                     resolver.findAudio(id)
                 }
             }
@@ -291,7 +292,7 @@ class MediaRepo (
     fun getArtistFlow(artistId: Long) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                domainLogger.info { "$TAG - Get Artist by ID: $artistId" }
+                Log.i(TAG, "Get Artist by ID: $artistId")
                 resolver.findArtist(artistId)
             }
 
@@ -300,9 +301,9 @@ class MediaRepo (
      * @return [Artist]
      */
     suspend fun getArtistByAlbumId(albumId: Long): Artist {
-        domainLogger.info { "$TAG - Get Artist by Album ID: $albumId" }
+        Log.i(TAG, "Get Artist by Album ID: $albumId")
         val album = resolver.findAlbum(albumId)
-        domainLogger.info { "$TAG - Get Artist by AlbumArtistId: ${album.artistId}" }
+        Log.i(TAG, "Get Artist by AlbumArtistId: ${album.artistId}")
         return resolver.findArtist(album.artistId)
     }
 
@@ -313,9 +314,9 @@ class MediaRepo (
     fun getArtistByAlbumIdFlow(albumId: Long) =
         observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
             .map {
-                domainLogger.info { "$TAG - Flow Get Artist by Album ID: $albumId" }
+                Log.i(TAG, "Flow Get Artist by Album ID: $albumId")
                 val album = resolver.findAlbum(albumId)
-                domainLogger.info { "$TAG - Flow Get Artist by AlbumArtistId: ${album.artistId}" }
+                Log.i(TAG, "Flow Get Artist by AlbumArtistId: ${album.artistId}")
                 resolver.findArtist(album.artistId)
             }
 
@@ -447,7 +448,7 @@ class MediaRepo (
     fun getAlbumFlow(id: Long) =
         observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
             .map {
-                domainLogger.info { "$TAG - Get Album Flow by ID: $id" }
+                Log.i(TAG, "Get Album Flow by ID: $id")
                 resolver.findAlbum(id)
             }
 
@@ -512,7 +513,7 @@ class MediaRepo (
     fun getGenreById(id: Long) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                domainLogger.info { "$TAG - Get Genre by ID: $id" }
+                Log.i(TAG, "Get Genre by ID: $id")
                 resolver.findGenre(id)
             }
 

@@ -1,5 +1,6 @@
 package com.example.music.domain.usecases
 
+import android.util.Log
 import com.example.music.data.repository.ArtistRepo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
@@ -13,6 +14,8 @@ import javax.inject.Inject
  *
  * 7/22-23/2025 - Simplified return statement since SongInfo does not have nullable artistId
  */
+
+private const val TAG = "Get Song Artist Data Use Case"
 
 /**
  * Use case to retrieve Flow of [ArtistInfo] for given song [SongInfo]
@@ -29,15 +32,15 @@ class GetSongArtistDataUseCase @Inject constructor(
      * @param song [SongInfo] to return flow of [ArtistInfo]
      */
     operator fun invoke(song: SongInfo): Flow<ArtistInfo> {
-        domainLogger.info { "GetSongArtistDataUseCase start:\n" +
+        Log.i(TAG, "GetSongArtistDataUseCase start:\n" +
                 " song.id: ${song.id};\n" +
-                " song.artistId: ${song.artistId};"}
+                " song.artistId: ${song.artistId};")
 
         return artistRepo.getArtistWithExtraInfo(song.artistId).map {
-            domainLogger.info { "ArtistWithExtraInfo: \n" +
+            Log.i( TAG, "ArtistWithExtraInfo: \n" +
                     " Artist: ${it.artist};\n" +
                     " Artist songCount: ${it.songCount};\n" +
-                    " Artist albumCount: ${it.albumCount};"}
+                    " Artist albumCount: ${it.albumCount};")
             it.asExternalModel()
         }
     }

@@ -1,5 +1,6 @@
 package com.example.music.domain.usecases
 
+import android.util.Log
 import com.example.music.data.database.model.ComposerWithExtraInfo
 import com.example.music.data.repository.ComposerRepo
 import com.example.music.domain.model.ComposerInfo
@@ -8,6 +9,8 @@ import com.example.music.domain.util.domainLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+
+private const val TAG = "GetLibraryComposersUseCase"
 
 /**
  * Use case for retrieving library composers to populate Composers List in Library Screen.
@@ -23,7 +26,8 @@ class GetLibraryComposersUseCase @Inject constructor(
      */
     operator fun invoke(sortOption: String, isAscending: Boolean): Flow<List<ComposerInfo>> {
         val composersList: Flow<List<ComposerWithExtraInfo>>// = flowOf()
-        domainLogger.info { "Building Composer List:\n Sort Option: $sortOption, isAscending: $isAscending" }
+        Log.i(TAG, "Building Composer List:\n" +
+            "Sort Option: $sortOption, isAscending: $isAscending")
 
         //sortOption values changed to support enum values AppPreferences dataStore
         when (sortOption) {
@@ -48,7 +52,7 @@ class GetLibraryComposersUseCase @Inject constructor(
         }
 
         return composersList.map { items ->
-            domainLogger.info { "********** Library Composers count: ${items.size} **********" }
+            Log.i(TAG, "********** Library Composers count: ${items.size} **********")
             items.map { item ->
                 item.asExternalModel()
             }

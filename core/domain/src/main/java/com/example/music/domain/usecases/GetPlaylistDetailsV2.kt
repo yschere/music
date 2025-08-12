@@ -1,5 +1,6 @@
 package com.example.music.domain.usecases
 
+import android.util.Log
 import com.example.music.data.repository.PlaylistRepo
 import com.example.music.domain.model.PlaylistDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
@@ -31,22 +32,22 @@ class GetPlaylistDetailsV2 @Inject constructor(
      * @param playlistId [Long] to return flow of PlaylistDetailsFilterResult
      */
     operator fun invoke(playlistId: Long): Flow<PlaylistDetailsFilterResult> {
-        domainLogger.info { "$TAG - start - playlistId: $playlistId" }
+        Log.i(TAG, "Start - playlistId: $playlistId")
         val playlistFlow = playlistRepo.getPlaylistWithExtraInfo(playlistId)
 
-        domainLogger.info { "$TAG - Get Songs by Playlist ID" }
+        Log.i(TAG, "Get Songs by Playlist ID")
         val songIdsFlow = playlistRepo.getSongsByPlaylistId(playlistId) // when playlist has no songs, the id list returns a 0 instead of null
 
         return combine(
             playlistFlow,
             songIdsFlow,
         ) { playlist, songIds ->
-            domainLogger.info { "$TAG - playlist: ${playlist.playlist.name} + ${playlist.songCount} songs" }
-            domainLogger.info { "$TAG - playlist song IDs: $songIds" }
+            Log.i(TAG, "playlist: ${playlist.playlist.name} + ${playlist.songCount} songs")
+            Log.i(TAG, "playlist song IDs: $songIds")
 
             if (playlist.songCount > 0){
                 val songs = resolver.getAudios(songIds)
-                domainLogger.info { "$TAG - songs: ${songs.size}" }
+                Log.i(TAG, "songs: ${songs.size}")
                 PlaylistDetailsFilterResult(
                     playlist = playlist.asExternalModel(),
                     songs = songs.map { it.asExternalModel() }

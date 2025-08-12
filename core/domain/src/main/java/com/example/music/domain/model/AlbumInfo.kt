@@ -1,10 +1,13 @@
 package com.example.music.domain.model
 
+import android.util.Log
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.AlbumWithExtraInfo
 import com.example.music.domain.util.Album as AlbumV2
 import java.time.OffsetDateTime
 import com.example.music.domain.util.domainLogger
+
+private const val TAG = "AlbumInfo"
 
 /**
  * External data layer representation of an album.
@@ -35,7 +38,7 @@ data class AlbumInfo(
  * Transform Album table entry to AlbumInfo domain model
  */
 fun Album.asExternalModel(): AlbumInfo {
-    domainLogger.info { "Album to AlbumInfo external model constructor: \n ${this.id} + ${this.title} + ${this.albumArtistId}" }
+    Log.i(TAG, "Album to AlbumInfo external model constructor: \n ${this.id} + ${this.title} + ${this.albumArtistId}")
     return AlbumInfo(
         id = this.id,
         title = this.title,
@@ -51,7 +54,7 @@ fun Album.asExternalModel(): AlbumInfo {
  * Transform Album table entry with Extra Info (dateLastPlayed, songCount) to AlbumInfo domain model
  */
 fun AlbumWithExtraInfo.asExternalModel(): AlbumInfo {
-    domainLogger.info { "AlbumWithExtraInfo to AlbumInfo external model constructor: \n ${this.dateLastPlayed} + ${this.songCount} + ${this.album}" }
+    Log.i(TAG, "AlbumWithExtraInfo to AlbumInfo external model constructor: \n ${this.dateLastPlayed} + ${this.songCount} + ${this.album}")
     return this.album.asExternalModel().copy(
         albumArtistName = albumArtistName,
         dateLastPlayed = dateLastPlayed,
@@ -60,7 +63,7 @@ fun AlbumWithExtraInfo.asExternalModel(): AlbumInfo {
 }
 
 fun AlbumV2.asExternalModel(): AlbumInfo {
-    domainLogger.info { "AlbumV2 to AlbumInfo external model constructor: \n ${this.id} + ${this.title}" }
+    Log.i(TAG, "AlbumV2 to AlbumInfo external model constructor: \n ${this.id} + ${this.title}")
     return AlbumInfo(
         id = this.albumId,
         title = this.title,

@@ -1,5 +1,6 @@
 package com.example.music.domain.usecases
 
+import android.util.Log
 import com.example.music.data.repository.ComposerRepo
 import com.example.music.domain.model.ComposerDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
@@ -9,6 +10,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import com.example.music.domain.util.domainLogger
 import javax.inject.Inject
+
+private const val TAG = "GetComposerDetailsUseCase"
 
 /** Changelog:
  * 4/2/2025 - Removing SongInfo to PlayerSong conversion. PlayerSong is no longer
@@ -30,10 +33,10 @@ class GetComposerDetailsUseCase @Inject constructor(
      * @param composerId [Long] to return flow of ComposerDetailsFilterResult
      */
     operator fun invoke(composerId: Long): Flow<ComposerDetailsFilterResult> {
-        domainLogger.info { "Get Composer Details Use Case - start: ComposerID: $composerId" }
+        Log.i(TAG, "Start: ComposerID: $composerId")
         val composerFlow = composerRepo.getComposerWithExtraInfo(composerId)
 
-        domainLogger.info { "Get Composer Details Use Case - Get Songs by Composer ID" }
+        Log.i(TAG, "Fetching Songs by Composer ID")
         val songsFlow = composerRepo.getSongsByComposerId(composerId)
 
         return combine(
@@ -42,9 +45,16 @@ class GetComposerDetailsUseCase @Inject constructor(
         ) {
             composer,
             songs, ->
+            Log.i(TAG, "Fetched Composer: ${composer.composer}\n" +
+                "Composer song count: ${composer.songCount}")
             ComposerDetailsFilterResult(
                 composer.asExternalModel(),
-                songs.map{ it.asExternalModel() },
+                songs.map{
+                    Log.i(TAG, "Fetched song:" +
+                        "ID: ${it.id}\n" +
+                        "Title: ${it.title}")
+                    it.asExternalModel()
+                },
             )
         }
     }

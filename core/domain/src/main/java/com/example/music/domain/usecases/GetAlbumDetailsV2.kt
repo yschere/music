@@ -29,8 +29,12 @@ class GetAlbumDetailsV2 @Inject constructor(
 ) {
     operator fun invoke(albumId: Long): Flow<AlbumDetailsFilterResult> {
         Log.i(TAG, "Start: AlbumID: $albumId")
+
         val albumItem: Flow<Album> = resolver.getAlbumFlow(albumId)
+        Log.i(TAG, "album item == $albumItem")
+
         val artistItem: Flow<Artist> = resolver.getArtistByAlbumIdFlow(albumId)
+        Log.i(TAG, "artist item == $artistItem")
 
         return combine(
             albumItem,
