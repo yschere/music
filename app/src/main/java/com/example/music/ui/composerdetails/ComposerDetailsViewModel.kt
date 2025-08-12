@@ -1,5 +1,6 @@
 package com.example.music.ui.composerdetails
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +10,6 @@ import com.example.music.domain.model.SongInfo
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
-import com.example.music.util.logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "Composer Details View Model"
 
 /** ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
  * As of 2/10/2025, this version is in remote branch and working on
@@ -58,19 +60,19 @@ class ComposerDetailsViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "Composer Details View Model - composerId: $composerId" }
+        Log.i(TAG, "composerId: $composerId")
         viewModelScope.launch {
-            logger.info { "Composer Details View Model - init viewModelScope launch start" }
+            Log.i(TAG, "init viewModelScope launch start")
             combine(
                 refreshing,
                 getComposerDetailsData,
             ) {
                 refreshing,
                 composerDetailsFilterResult, ->
-                logger.info { "Composer Details View Model - ComposerUiState call" }
-                logger.info { "Composer Details View Model - composerDetailsFilterResult ID: ${composerDetailsFilterResult.composer.id}" }
-                logger.info { "Composer Details View Model - composerDetailsFilterResult songs: ${composerDetailsFilterResult.songs.size}" }
-                logger.info { "Composer Details View Model - isReady?: ${!refreshing}" }
+                Log.i(TAG, "ComposerUiState call")
+                Log.i(TAG, "composerDetailsFilterResult ID: ${composerDetailsFilterResult.composer.id}")
+                Log.i(TAG, "composerDetailsFilterResult songs: ${composerDetailsFilterResult.songs.size}")
+                Log.i(TAG, "isReady?: ${!refreshing}")
 
                 ComposerUiState(
                     isReady = !refreshing,

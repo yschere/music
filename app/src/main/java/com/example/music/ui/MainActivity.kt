@@ -39,7 +39,6 @@ import com.example.music.data.database.MusicDatabase
 import com.example.music.service.MediaService
 import com.example.music.ui.theme.scrimDark
 import com.example.music.ui.theme.scrimLight
-import com.example.music.util.logger
 //import com.example.music.service.MusicService
 import com.google.accompanist.adaptive.calculateDisplayFeatures
 import com.google.common.util.concurrent.ListenableFuture
@@ -105,7 +104,7 @@ class MainActivity : ComponentActivity() {
 //        controllerFuture =
 //            MediaController.Builder(this, sessionToken).buildAsync()
 //        controllerFuture.addListener({
-//            logger.info { "SessionToken MediaController - ${controllerFuture.get()}" }
+//            Log.i(TAG, "SessionToken MediaController - ${controllerFuture.get()}")
 //            // MediaController is available here with controllerFuture.get()
 //            // from What's next for AndroidX Media and ExoPlayer video:
 //            //playerView.player = controllerFuture.get()

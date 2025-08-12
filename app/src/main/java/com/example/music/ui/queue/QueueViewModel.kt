@@ -1,12 +1,14 @@
 package com.example.music.ui.queue
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
-import com.example.music.util.logger
 import kotlinx.coroutines.launch
+
+private const val TAG = "Queue View Model"
 
 /** Changelog:
  *
@@ -39,8 +41,8 @@ class QueueViewModel @Inject constructor(
 //        get() = _state
 
     init{
-        logger.info { "Queue View Model - viewModelScope launch start" }
         viewModelScope.launch {
+            Log.i(TAG, "viewModelScope launch start")
 
             /*
             combine(
@@ -63,12 +65,12 @@ class QueueViewModel @Inject constructor(
         }
 
         refresh(force = false)
-        logger.info { "Queue View Model - init end" }
+        Log.i(TAG, "init end")
     }
 
     fun refresh(force: Boolean = true) {
-        logger.info { "Queue View Model - refresh function start" }
-        logger.info { "Queue View Model - refreshing: ${refreshing.value}" }
+        Log.i(TAG, "refresh function start")
+        Log.i(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
                 refreshing.value = true

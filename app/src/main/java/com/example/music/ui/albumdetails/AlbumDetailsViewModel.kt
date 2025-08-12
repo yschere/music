@@ -1,5 +1,6 @@
 package com.example.music.ui.albumdetails
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +10,6 @@ import com.example.music.domain.model.SongInfo
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetAlbumDetailsV2
 import com.example.music.ui.Screen
-import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -69,9 +69,9 @@ class AlbumDetailsViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "$TAG - albumId: $albumId" }
+        Log.i(TAG,"albumId: $albumId")
         viewModelScope.launch {
-            logger.info { "$TAG - init viewModelScope launch start" }
+            Log.i(TAG, "init viewModelScope launch start")
             combine(
                 refreshing,
                 getAlbumDetailsData,
@@ -80,10 +80,10 @@ class AlbumDetailsViewModel @Inject constructor(
                 refreshing,
                 albumDetailsFilterResult,
                 selectSong ->
-                logger.info { "$TAG - AlbumUiState call" }
-                logger.info { "$TAG - albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}" }
-                logger.info { "$TAG - albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}" }
-                logger.info { "$TAG - isReady?: ${!refreshing}" }
+                Log.i(TAG, "AlbumUiState call")
+                Log.i(TAG, "albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}")
+                Log.i(TAG, "albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}")
+                Log.i(TAG, "isReady?: ${!refreshing}")
 
                 AlbumUiState(
                     isReady = !refreshing,
@@ -107,22 +107,22 @@ class AlbumDetailsViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        logger.info { "$TAG - Refresh call" }
+        Log.i(TAG, "Refresh call")
         viewModelScope.launch {
             runCatching {
-                logger.info { "$TAG - refresh runCatching" }
+                Log.i(TAG, "refresh runCatching")
                 refreshing.value = true
             }.onFailure {
-                logger.info { "$it ::: runCatching, not sure what is failing here tho" }
+                Log.i(TAG, "$it ::: runCatching, not sure what is failing here tho")
             } // TODO: look at result of runCatching and show any errors
 
-            logger.info { "$TAG - refresh to be false -> sets screen to ready state" }
+            Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
     }
 
     fun onAlbumAction(action: AlbumAction) {
-        logger.info { "$TAG - onAlbumAction - $action" }
+        Log.i(TAG, "onAlbumAction - $action")
         when (action) {
             is AlbumAction.QueueSong -> onQueueSong(action.song)
             //is AlbumAction.QueueSongs -> onQueueSongs(action.songs)
@@ -135,22 +135,22 @@ class AlbumDetailsViewModel @Inject constructor(
     }
 
     private fun onQueueSong(song: SongInfo) {
-        logger.info { "$TAG - onQueueSong - ${song.title}" }
+        Log.i(TAG, "onQueueSong - ${song.title}")
         //songPlayer.addToQueue(song.toPlayerSong())
     }
 
     private fun onSongMoreOptionClick(song: SongInfo) {
-        logger.info { "$TAG - onSongMoreOptionClick - ${song.title}" }
+        Log.i(TAG, "onSongMoreOptionClick - ${song.title}")
         selectedSong.value = song
     }
 
     private fun onPlayAlbum(songs: List<SongInfo>) {
-        logger.info { "$TAG - onPlayAlbum - ${songs.size}" }
+        Log.i(TAG, "onPlayAlbum - ${songs.size}")
         //songPlayer.addToQueue( songs.map { it.toPlayerSong() } )
     }
 
     private fun onShuffleAlbum(songs: List<SongInfo>) {
-        logger.info { "$TAG - onShuffleAlbum - ${songs.size}" }
+        Log.i(TAG, "onShuffleAlbum - ${songs.size}")
         //songPlayer.shuffle( songs.map { it.toPlayerSong() } )
     }
 }

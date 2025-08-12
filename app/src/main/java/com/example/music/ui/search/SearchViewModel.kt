@@ -1,11 +1,11 @@
 package com.example.music.ui.search
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.model.SearchQueryFilterV2
 import com.example.music.domain.usecases.SearchQueryV2
-import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,9 +48,9 @@ class SearchQueryViewModel @Inject constructor(
         get() = _queryText
 
     init {
-        logger.info { "$TAG - query string: ${queryText.value}" }
+        Log.i(TAG, "query string: ${queryText.value}")
         viewModelScope.launch {
-            logger.info { "$TAG - init viewModelScope launch start" }
+            Log.i(TAG, "init viewModelScope launch start")
             queryText.collectLatest { query ->
                 if (query.blankOrEmpty()) {
                     _state.update { SearchUiState.Idle }
@@ -106,21 +106,21 @@ class SearchQueryViewModel @Inject constructor(
     }
 
     fun sendQuery() {
-        logger.info { "$TAG - query string: ${queryText.value}" }
+        Log.i(TAG, "query string: ${queryText.value}")
         _state.update { SearchUiState.Loading }
         viewModelScope.launch {
             val results = searchQueryV2(queryText.value)
-            logger.info { "$TAG - search results: \n${results.songs.size} songs \n${results.artists.size} artists \n${results.albums.size} albums" }
+            Log.i(TAG, "search results: \n${results.songs.size} songs \n${results.artists.size} artists \n${results.albums.size} albums")
             if ( results.songs.isEmpty() &&
                 results.artists.isEmpty() &&
                 results.albums.isEmpty()
             ) {
                 _state.update { SearchUiState.NoResults }
-                logger.info { "ui state updated to: ${state.value}" }
+                Log.i(TAG, "ui state updated to: ${state.value}")
             }
             else {
                 _state.update { SearchUiState.SearchResultsFound(results = results) }
-                logger.info { "ui state updated to: ${state.value}" }
+                Log.i(TAG, "ui state updated to: ${state.value}")
             }
             resetFieldState()
         }

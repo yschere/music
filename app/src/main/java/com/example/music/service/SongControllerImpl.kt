@@ -22,7 +22,6 @@ import com.example.music.domain.player.model.title
 import com.example.music.domain.player.model.toMediaItem
 import com.example.music.ui.shared.mediaItems
 import com.example.music.ui.shared.queue
-import com.example.music.util.logger
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineDispatcher

@@ -1,5 +1,6 @@
 package com.example.music.ui.home
 
+import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.example.music.util.logger
 
 /** Changelog:
  *
@@ -90,7 +90,7 @@ class HomeViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "$TAG - viewModelScope launch start" }
+        Log.i(TAG, "viewModelScope launch start")
         viewModelScope.launch {
             // Holds the counts of songs, artists, albums, playlists in library for NavDrawer
             //val counts = getTotalCountsUseCase()
@@ -108,11 +108,11 @@ class HomeViewModel @Inject constructor(
                 //searchResult,
                 ->
 
-                logger.info { "$TAG - viewModelScope launch - combine start" }
-                logger.info { "$TAG - viewModelScope launch - combine - refreshing: $refreshing" }
-                //logger.info { "$TAG - viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}" }
-                logger.info { "$TAG - viewModelScope launch - combine - libraryItemsAlbums: ${libraryItems.recentAlbums.size}" }
-                logger.info { "$TAG - viewModelScope launch - combine - libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}" }
+                Log.i(TAG, "viewModelScope launch - combine start")
+                Log.i(TAG, "viewModelScope launch - combine - refreshing: $refreshing")
+                //Log.i(TAG, "viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}")
+                Log.i(TAG, "viewModelScope launch - combine - libraryItemsAlbums: ${libraryItems.recentAlbums.size}")
+                Log.i(TAG, "viewModelScope launch - combine - libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}")
 
                 HomeScreenUiState(
                     isLoading = refreshing,
@@ -134,12 +134,12 @@ class HomeViewModel @Inject constructor(
 
         refresh(force = false)
 
-        logger.info { "$TAG - init end" }
+        Log.i(TAG, "init end")
     }
 
     fun refresh(force: Boolean = true) {
-        logger.info { "$TAG - refresh function start" }
-        logger.info { "$TAG - refreshing: ${refreshing.value}" }
+        Log.i(TAG, "refresh function start")
+        Log.i(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
                 refreshing.value = true

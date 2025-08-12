@@ -132,7 +132,6 @@ dependencies {
     implementation(libs.androidx.datastore)
 
     // Logging
-    implementation(libs.kotlin.logging)
     implementation(libs.slf4j.log)
 
     //Media3 Controls

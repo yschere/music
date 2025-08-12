@@ -125,7 +125,6 @@ import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.fullWidthItem
-import com.example.music.util.logger
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope

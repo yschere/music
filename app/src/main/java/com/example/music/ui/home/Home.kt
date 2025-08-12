@@ -89,16 +89,14 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.MusicShapes
-import com.example.music.domain.usecases.FeaturedLibraryItemsFilterV2
+import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
-//import com.example.music.domain.testing.PreviewPlayerSongs
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
-
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
@@ -352,7 +350,6 @@ private fun HomeScreen(
     windowSizeClass: WindowSizeClass,
     isLoading: Boolean,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
-    //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
     totals: List<Int>,
     //searchResults: SearchQueryFilterV2,
     onHomeAction: (HomeAction) -> Unit,

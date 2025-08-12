@@ -1,5 +1,6 @@
 package com.example.music.ui.shared
 
+import android.util.Log
 import android.content.ContentResolver
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -18,7 +19,6 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.size.Scale
-import com.example.music.util.logger
 
 internal val Uri.isThirdPartyUri
     get() = scheme == ContentResolver.SCHEME_CONTENT && authority != MediaStore.AUTHORITY
@@ -176,8 +176,7 @@ inline fun <R> runCatching(tag: String, block: () -> R): R? {
     return try {
         block()
     } catch (e: Throwable) {
-//        Log.e(tag, "runCatching: ${e.message}")
-        logger.info { "$tag - runCatching: ${e.message}" }
+        Log.e(tag, "runCatching: ${e.message}", e)
         null
     }
 }

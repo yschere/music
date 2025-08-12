@@ -1,5 +1,6 @@
 package com.example.music.ui.library
 
+import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,7 +20,6 @@ import com.example.music.domain.usecases.GetLibraryArtistsV2
 import com.example.music.domain.usecases.GetLibraryGenresV2
 import com.example.music.domain.usecases.GetLibrarySongsV2
 import com.example.music.domain.usecases.GetTotalCountsV2
-import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -119,8 +119,8 @@ class LibraryViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "$TAG - viewModelScope launch start" }
         viewModelScope.launch {
+            Log.i(TAG, "viewModelScope launch start")
             val counts = getTotalCountsV2()
 
             // Combines the latest value from each of the flows, allowing us to generate a
@@ -185,10 +185,10 @@ class LibraryViewModel @Inject constructor(
                 //librarySongs,
                 ->
 
-                logger.info { "$TAG - LibraryScreenUiState:"}
-                logger.info { "$TAG - isLoading: $refreshing"}
-                logger.info { "$TAG - libraryCategories: $libraryCategories"}
-                logger.info { "$TAG - selectedLibraryCategory: $libraryCategory"}
+                Log.i(TAG, "LibraryScreenUiState:")
+                Log.i(TAG, "isLoading: $refreshing")
+                Log.i(TAG, "libraryCategories: $libraryCategories")
+                Log.i(TAG, "selectedLibraryCategory: $libraryCategory")
                 var libraryAlbums: List<AlbumInfo> = emptyList()
                 var libraryArtists: List<ArtistInfo> = emptyList()
                 //var libraryComposers: List<ComposerInfo> = emptyList()
@@ -239,7 +239,7 @@ class LibraryViewModel @Inject constructor(
                     showBottomModal = showBottomSheet,
                 )
             }.catch { throwable ->
-                logger.info { "$TAG - Error Caught: ${throwable.message}"}
+                Log.i(TAG, "Error Caught: ${throwable.message}")
                 emit(
                     LibraryScreenUiState(
                         isLoading = false,
@@ -255,17 +255,17 @@ class LibraryViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        logger.info { "$TAG - Refresh call" }
+        Log.i(TAG, "Refresh call")
         viewModelScope.launch {
             runCatching {
-                logger.info { "$TAG - Refresh runCatching" }
+                Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
                 //podcastsRepository.updatePodcasts(force)
             }.onFailure {
-                logger.info { "$it ::: runCatching, not sure what is failing here tho" }
+                Log.i(TAG, "$it ::: runCatching, not sure what is failing here tho")
             } // TODO: look at result of runCatching and show any errors
 
-            logger.info { "$TAG - refresh to be false -> sets screen to ready state" }
+            Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
     }

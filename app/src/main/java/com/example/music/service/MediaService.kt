@@ -39,7 +39,6 @@ import com.example.music.ui.player.NowPlaying
 import com.example.music.ui.shared.isThirdPartyUri
 import com.example.music.ui.shared.mediaItems
 import com.example.music.ui.shared.SessionResult
-import com.example.music.util.logger
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint

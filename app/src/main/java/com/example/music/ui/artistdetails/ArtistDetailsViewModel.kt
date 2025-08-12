@@ -1,5 +1,6 @@
 package com.example.music.ui.artistdetails
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +10,6 @@ import com.example.music.domain.model.SongInfo
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetArtistDetailsV2
 import com.example.music.ui.Screen
-import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -69,9 +69,9 @@ class ArtistDetailsViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "$TAG - artistId: $artistId" }
+        Log.i(TAG, "artistId: $artistId")
         viewModelScope.launch {
-            logger.info { "$TAG - init viewModelScope launch start" }
+            Log.i(TAG, "init viewModelScope launch start")
             combine(
                 refreshing,
                 getArtistDetailsData,
@@ -82,11 +82,11 @@ class ArtistDetailsViewModel @Inject constructor(
                 artistDetailsFilterResult,
                 selectSong,
                 selectAlbum ->
-                logger.info { "$TAG - ArtistUiState call" }
-                logger.info { "$TAG - artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}" }
-                logger.info { "$TAG - artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}" }
-                logger.info { "$TAG - artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}" }
-                logger.info { "$TAG - isReady?: ${!refreshing}" }
+                Log.i(TAG, "ArtistUiState call")
+                Log.i(TAG, "artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}")
+                Log.i(TAG, "artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}")
+                Log.i(TAG, "artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}")
+                Log.i(TAG, "isReady?: ${!refreshing}")
 
                 ArtistUiState(
                     isReady = !refreshing,
@@ -114,19 +114,19 @@ class ArtistDetailsViewModel @Inject constructor(
     fun refresh(force: Boolean = true) {
         viewModelScope.launch {
             runCatching {
-                logger.info { "$TAG - refresh runCatching" }
+                Log.i(TAG, "refresh runCatching")
                 refreshing.value = true
             }.onFailure {
-                logger.info { "$it ::: runCatching, not sure what is failing here tho" }
+                Log.i(TAG, "$it ::: runCatching, not sure what is failing here tho")
             } // TODO: look at result of runCatching and show any errors
 
-            logger.info { "$TAG - refresh to be false -> sets screen to ready state" }
+            Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
     }
 
     fun onArtistAction(action: ArtistAction) {
-        logger.info { "$TAG - onArtistAction - $action" }
+        Log.i(TAG, "onArtistAction - $action")
         when (action) {
             is ArtistAction.AlbumMoreOptionClicked -> onAlbumMoreOptionClicked(action.album)
             is ArtistAction.QueueSong -> onQueueSong(action.song)
@@ -135,17 +135,17 @@ class ArtistDetailsViewModel @Inject constructor(
     }
 
     private fun onAlbumMoreOptionClicked(album: AlbumInfo) {
-        logger.info { "$TAG - onAlbumMoreOptionClicked - ${album.title}" }
+        Log.i(TAG, "onAlbumMoreOptionClicked - ${album.title}")
         selectedAlbum.value = album
     }
 
     private fun onQueueSong(song: SongInfo) {
-        logger.info { "$TAG - onQueueSong - ${song.title}" }
+        Log.i(TAG, "onQueueSong - ${song.title}")
         //songPlayer.addToQueue(song)
     }
 
     private fun onSongMoreOptionClicked(song: SongInfo) {
-        logger.info { "$TAG - onSongMoreOptionClick - ${song.title}" }
+        Log.i(TAG, "onSongMoreOptionClick - ${song.title}")
         selectedSong.value = song
     }
 }

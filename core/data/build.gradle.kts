@@ -81,7 +81,6 @@ dependencies {
     implementation(libs.androidx.datastore) // preferences datastore support
 
     // Logging
-    implementation(libs.kotlin.logging)
     implementation(libs.slf4j.log)
 
     // Backwards Compatibility for older APIs to new App versions

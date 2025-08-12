@@ -1,5 +1,6 @@
 package com.example.music.ui.playlistdetails
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +10,6 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.ui.Screen
 import com.example.music.data.util.combine
 import com.example.music.domain.usecases.GetPlaylistDetailsV2
-import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val TAG = "Playlist Details View Model"
 
 /** Changelog:
  *
@@ -70,19 +72,19 @@ class PlaylistDetailsViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "Playlist Details View Model - playlistID: $playlistId"}
+        Log.i(TAG, "playlistID: $playlistId")
         viewModelScope.launch {
-            logger.info { "Playlist Details View Model - init viewModelScope launch start" }
+            Log.i(TAG, "init viewModelScope launch start")
             combine(
                 refreshing,
                 getPlaylistDetailsData,
             ) {
                 refreshing,
                 playlistDetailsFilterResult, ->
-                logger.info { "Playlist Details View Model - PlaylistUiState call" }
-                logger.info { "Playlist Details View Model - playlistDetailsFilterResult ID: ${playlistDetailsFilterResult.playlist.id}" }
-                logger.info { "Playlist Details View Model - playlistDetailsFilterResult songs: ${playlistDetailsFilterResult.songs.size}" }
-                logger.info { "Playlist Details View Model - isReady?: ${!refreshing}" }
+                Log.i(TAG, "PlaylistUiState call")
+                Log.i(TAG, "playlistDetailsFilterResult ID: ${playlistDetailsFilterResult.playlist.id}")
+                Log.i(TAG, "playlistDetailsFilterResult songs: ${playlistDetailsFilterResult.songs.size}")
+                Log.i(TAG, "isReady?: ${!refreshing}")
                 PlaylistUiState(
                     isReady = !refreshing,
                     playlist = playlistDetailsFilterResult.playlist,

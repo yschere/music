@@ -23,7 +23,6 @@ import com.example.music.ui.playlistdetails.PlaylistDetailsScreen
 import com.example.music.ui.queue.QueueScreen
 import com.example.music.ui.search.SearchScreen
 import com.example.music.ui.settings.SettingsScreen
-import com.example.music.util.logger
 
 /** Changelog:
  *

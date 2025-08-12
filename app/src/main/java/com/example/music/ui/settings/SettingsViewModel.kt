@@ -1,5 +1,6 @@
 package com.example.music.ui.settings
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music.data.repository.ShuffleType
@@ -10,8 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import com.example.music.util.logger
 import javax.inject.Inject
+
+private const val TAG = "Settings View Model"
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -32,8 +34,8 @@ class SettingsViewModel @Inject constructor(
         get() = _state
 
     init{
-        logger.info { "Settings View Model - viewModelScope launch start" }
         viewModelScope.launch {
+            Log.i(TAG, "viewModelScope launch start")
             val counts = getTotalCountsV2()
             combine(
                 refreshing,
@@ -44,8 +46,8 @@ class SettingsViewModel @Inject constructor(
                 shuffle,
                 theme, ->
 
-                logger.info { "Shuffle type set to: ${shuffle.name}" }
-                logger.info { "Theme mode set to: ${theme}" }
+                Log.i(TAG, "Shuffle type set to: ${shuffle.name}")
+                Log.i(TAG, "Theme mode set to: ${theme}")
                 SettingsUiState(
                     isLoading = refreshing,
                     selectedShuffleType = shuffle,
@@ -64,12 +66,12 @@ class SettingsViewModel @Inject constructor(
             }
         }
         refresh(force = false)
-        logger.info { "Settings View Model - init end" }
+        Log.i(TAG, "init end")
     }
 
     fun refresh(force: Boolean = true) {
-        logger.info { "Settings View Model - refresh function start" }
-        logger.info { "Settings View Model - refreshing: ${refreshing.value}" }
+        Log.i(TAG, "refresh function start")
+        Log.i(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
                 refreshing.value = true
@@ -90,23 +92,23 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun onShuffleTypeSelected(shuffleType: ShuffleType){
-        logger.info{ "Shuffle Type selected" }
+        Log.i(TAG, "Shuffle Type selected")
         selectedShuffleType.value = shuffleType
     }
 
     private fun onThemeModeSelected(themeMode: String){
-        logger.info{ "Theme Mode selected" }
+        Log.i(TAG, "Theme Mode selected")
         selectedThemeMode.value = themeMode
     }
 
     private fun onImportPlaylist(){
-        logger.info{ "Import Playlist clicked" }
+        Log.i(TAG, "Import Playlist clicked")
         //TODO: this will check a local device and search for files that describe playlists, and generate a playlist based on those files
         // could also show the list of found playlists to user, and allow them to select which ones to import
     }
 
     private fun onRefresh(){
-        logger.info{ "Refresh Library clicked" }
+        Log.i(TAG, "Refresh Library clicked")
         //TODO: this will check the database and compare if there are different values in the app versus in the database
         // how to check which is the source of truth?
     }

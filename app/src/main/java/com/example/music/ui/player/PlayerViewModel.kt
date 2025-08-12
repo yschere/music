@@ -16,7 +16,6 @@ import com.example.music.domain.usecases.GetThumbnailUseCase
 import com.example.music.ui.Screen
 //import com.example.music.util.MediaNotificationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import com.example.music.util.logger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

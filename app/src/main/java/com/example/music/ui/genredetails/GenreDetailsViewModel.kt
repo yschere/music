@@ -1,5 +1,6 @@
 package com.example.music.ui.genredetails
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,7 +9,6 @@ import com.example.music.domain.model.SongInfo
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetGenreDetailsV2
 import com.example.music.ui.Screen
-import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -63,20 +63,20 @@ class GenreDetailsViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "$TAG - genreId: $genreId" }
+        Log.i(TAG, "genreId: $genreId")
         viewModelScope.launch {
-            logger.info { "$TAG - init viewModelScope launch start" }
+            Log.i(TAG, "init viewModelScope launch start")
             combine(
                 refreshing,
                 getGenreDetailsData,
             ) {
                 refreshing,
                 genreDetailsFilterResult, ->
-                logger.info { "Genre Details View Model - GenreUiState call" }
-                logger.info { "Genre Details View Model - genreDetailsFilterResult ID: ${genreDetailsFilterResult.genre.id}" }
-                //logger.info { "Genre Details View Model - genreDetailsFilterResult albums: ${genreDetailsFilterResult.albums.size}" }
-                logger.info { "Genre Details View Model - genreDetailsFilterResult songs: ${genreDetailsFilterResult.songs.size}" }
-                logger.info { "Genre Details View Model - isReady?: ${!refreshing}" }
+                Log.i(TAG, "GenreUiState call")
+                Log.i(TAG, "genreDetailsFilterResult ID: ${genreDetailsFilterResult.genre.id}")
+                //Log.i(TAG, "genreDetailsFilterResult albums: ${genreDetailsFilterResult.albums.size}")
+                Log.i(TAG, "genreDetailsFilterResult songs: ${genreDetailsFilterResult.songs.size}")
+                Log.i(TAG, "isReady?: ${!refreshing}")
 
                 GenreUiState(
                     isReady = !refreshing,

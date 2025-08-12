@@ -13,7 +13,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.music.util.logger
 
 private const val TAG = "Music App State Controller"
 

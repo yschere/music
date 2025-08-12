@@ -1,6 +1,7 @@
 package com.example.music.ui.library
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -93,9 +94,10 @@ import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.isCompact
-import com.example.music.util.logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+
+private const val TAG = "Library Screen"
 
 /** Changelog:
  *
@@ -412,7 +414,7 @@ private fun LibraryContent(
     val groupedSongItems = librarySongs.groupBy { it.title.first() }
 
     groupedArtistItems.forEach { (letter, artist) ->
-        logger.info { "Output for groupedArtists Letter: $letter, artist: $artist" }
+        Log.i(TAG, "Output for groupedArtists Letter: $letter, artist: $artist")
     }
     //if artists, composers, genres, songs -> column fixed to 1 -> LazyVerticalGrid(columns = GridCells.Fixed(1), modifier = Modifier.padding(horizontal = 12.dp))
     //if playlists, albums -> column fixed, but to whatever the max amount of columns can be shown
