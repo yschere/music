@@ -9,6 +9,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import android.media.MediaPlayer
 import android.os.Build
+import android.util.Log
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -48,6 +49,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 private const val APP_PREFERENCES_NAME = "app_preferences"
+private const val TAG = "Main Activity"
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -69,6 +71,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.i(TAG, "onCreate start")
 
         BasicConfigurator.configure() //configures logging in project
 
@@ -78,7 +81,7 @@ class MainActivity : ComponentActivity() {
                 ActivityResultContracts.RequestPermission(),
                 ActivityResultCallback<Boolean> {
                     if (it) {
-                        logger.info { "media permission granted" }
+                        Log.i(TAG, "Media Permission Granted")
                     // get audio
                         //getMusic()
                     }
@@ -107,14 +110,13 @@ class MainActivity : ComponentActivity() {
 //            // from What's next for AndroidX Media and ExoPlayer video:
 //            //playerView.player = controllerFuture.get()
 //        }, MoreExecutors.directExecutor())
-        logger.info { "Main Activity - onCreate after sessionToken" }
+//        Log.i(TAG, "onCreate after sessionToken")
 
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.auto(Color.Transparent.toArgb(),Color.Transparent.toArgb()),//.auto(scrimLight, scrimDark),
             navigationBarStyle = SystemBarStyle.auto(scrimLight.toArgb(), scrimDark.toArgb())
         )
-        logger.info { "Main Activity - edge to edge enabled" }
-
+        Log.i(TAG, "edge to edge enabled")
 
         //TODO does it make sense to initialize mediaPlayer / songPlayer class here?
         // it would need to be created, but it would just start in idle state, maybe prepared state.
@@ -122,7 +124,7 @@ class MainActivity : ComponentActivity() {
         //val mediaPlayer: MediaPlayer = MediaPlayer.create(applicationContext, R.raw.Scar)
 
         setContent {
-            logger.info { "Main Activity - set content start" }
+            Log.i(TAG, "onCreate - setContent start")
             //now when the files are still being read in or the thread is not blocking the main activity,
             // can get the MusicApp going for real by calling MusicApp to get the main context and navigator going
             val displayFeatures = calculateDisplayFeatures(this)
@@ -134,6 +136,7 @@ class MainActivity : ComponentActivity() {
             mediaPlayer.prepare()
             mediaPlayer.playWhenReady*/
 
+            Log.i(TAG, "onCreate - setContent > MusicTheme setting MusicApp displayFeatures")
             MusicTheme {
                 MusicApp(
                     displayFeatures
@@ -146,7 +149,7 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
 //        MediaController.releaseFuture(controllerFuture)
-        android.util.Log.i("onStop", "STOPPED")
+        Log.i("onStop", "STOPPED")
         stopService(Intent(this, MediaService::class.java))
     }
 }
