@@ -10,7 +10,6 @@ import com.example.music.domain.player.model.duration
 import com.example.music.domain.player.model.mediaUri
 import com.example.music.domain.player.model.title
 import com.example.music.domain.player.model.year
-
 import com.example.music.domain.util.Audio
 import com.example.music.domain.util.uri
 import java.time.Duration

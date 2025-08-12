@@ -6,7 +6,6 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.util.Audio
 import com.example.music.domain.util.MediaRepo
-import com.example.music.domain.util.domainLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -17,56 +16,6 @@ private const val TAG = "Get Library Songs V2"
 class GetLibrarySongsV2 @Inject constructor(
     private val resolver: MediaRepo
 ) {
-    /*operator fun invoke( sortOption: String, isAscending: Boolean ): Flow<List<SongInfo>> {
-        val songsList: Flow<List<Audio>>
-        domainLogger.info { "$TAG - start - sortOption: $sortOption - isAscending: $isAscending" }
-
-        when (sortOption) {
-
-            "ARTIST" -> {
-                songsList = resolver.getAllSongsFlow(
-                    order = MediaRetriever.COLUMN_ARTIST_NAME,
-                    ascending = isAscending,
-                )
-            }
-
-            "ALBUM" -> {
-                songsList = resolver.getAllSongsFlow(
-                    order = MediaRetriever.COLUMN_ALBUM_TITLE,
-                    ascending = isAscending,
-                )
-            }
-
-            "DATE_ADDED" -> {
-                songsList = resolver.getAllSongsFlow(
-                    order = MediaRetriever.COLUMN_DATE_ADDED,
-                    ascending = isAscending,
-                )
-            }
-
-            "DATE_LAST_PLAYED" -> {
-                songsList = resolver.getAllSongsFlow(
-                    order = MediaRetriever.COLUMN_DATE_MODIFIED,
-                    ascending = isAscending,
-                )
-            }
-
-            else -> {
-                songsList = resolver.getAllSongsFlow(
-                    order = MediaRetriever.COLUMN_MEDIA_TITLE,
-                    ascending = isAscending,
-                )
-            }
-        }
-
-        return songsList.map { items ->
-            domainLogger.info { "********** Library Songs count: ${items.size} **********" }
-            items.map { song ->
-                domainLogger.info { "**** Song: ${song.id} + ${song.title} + ${song.artist} + ${song.album} ****" }
-                song.asExternalModel() }
-        }
-    }*/
-
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<SongInfo> {
         val songsList: List<Audio>
         Log.i(TAG, "Start - sortOption: $sortOption - isAscending: $isAscending")

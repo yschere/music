@@ -6,7 +6,6 @@ import com.example.music.domain.model.GenreDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.util.Genre
 import com.example.music.domain.util.MediaRepo
-import com.example.music.domain.util.domainLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map

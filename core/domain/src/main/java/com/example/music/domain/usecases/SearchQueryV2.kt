@@ -1,13 +1,9 @@
 package com.example.music.domain.usecases
 
 import android.util.Log
-import com.example.music.domain.model.AlbumInfo
-import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SearchQueryFilterV2
-import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.util.MediaRepo
-import com.example.music.domain.util.domainLogger
 import javax.inject.Inject
 
 /** Changelog:

@@ -4,7 +4,6 @@ import android.util.Log
 import com.example.music.data.database.model.Genre
 import com.example.music.data.database.model.GenreWithExtraInfo
 import com.example.music.domain.util.Genre as GenreV2
-import com.example.music.domain.util.domainLogger
 
 private const val TAG = "GenreInfo"
 

@@ -49,7 +49,6 @@ dependencies {
     ksp(libs.dagger.hilt.compiler)
 
     // Logging
-    implementation(libs.kotlin.logging)
     implementation(libs.slf4j.log)
 
     // Media3 Controls

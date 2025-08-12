@@ -8,7 +8,6 @@ import com.example.music.domain.model.asExternalModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import com.example.music.domain.util.domainLogger
 
 private const val TAG = "FeaturedLibraryItemsUseCase"
 

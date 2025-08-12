@@ -12,8 +12,6 @@ import com.example.music.data.repository.RepeatType
 import com.example.music.data.repository.ShuffleType
 import com.example.music.data.repository.SongSortOrder
 import kotlinx.coroutines.flow.Flow
-import com.example.music.domain.util.domainLogger
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 private const val TAG = "App Preferences Use Case"

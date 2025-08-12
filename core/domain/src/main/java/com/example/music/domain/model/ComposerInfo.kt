@@ -3,7 +3,6 @@ package com.example.music.domain.model
 import android.util.Log
 import com.example.music.data.database.model.Composer
 import com.example.music.data.database.model.ComposerWithExtraInfo
-import com.example.music.domain.util.domainLogger
 
 private const val TAG = "ComposerInfo"
 

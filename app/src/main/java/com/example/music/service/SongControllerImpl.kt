@@ -20,7 +20,6 @@ import com.example.music.domain.player.model.asLocalMediaItem
 import com.example.music.domain.player.model.duration
 import com.example.music.domain.player.model.title
 import com.example.music.domain.player.model.toMediaItem
-import com.example.music.domain.util.domainLogger
 import com.example.music.ui.shared.mediaItems
 import com.example.music.ui.shared.queue
 import com.example.music.util.logger

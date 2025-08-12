@@ -4,7 +4,6 @@ import android.util.Log
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.ArtistWithExtraInfo
 import com.example.music.domain.util.Artist as ArtistV2
-import com.example.music.domain.util.domainLogger
 
 private const val TAG = "ArtistInfo"
 

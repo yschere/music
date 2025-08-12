@@ -1,5 +1,6 @@
 package com.example.music.domain.usecases
 
+import android.util.Log
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.Song
@@ -9,7 +10,6 @@ import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.domainLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
@@ -39,10 +39,10 @@ class GetSongDataUseCase @Inject constructor(
 //     * @param song [Song] to return flow of PlayerSong(song, artist, album)
 //     */
 //    operator fun invoke(song: Song): Flow<SongInfo> {
-//        domainLogger.info { "GetSongDataUseCase - 1 song - start:\n" +
+//        Log.i("Get Song Data Use Case", "1 song - start:\n" +
 //                " song.id: ${song.id};\n" +
 //                " song.artistId: ${song.artistId ?: "null"};\n" +
-//                " song.albumId: ${song.albumId ?: "null"};"}
+//                " song.albumId: ${song.albumId ?: "null"};")
 //
 //        val albumFlow = song.albumId?.let { albumRepo.getAlbumById(it) } ?: flowOf<Album>()
 //        val artistFlow = song.artistId?.let { artistRepo.getArtistById(it) } ?: flowOf<Artist>()
@@ -55,9 +55,9 @@ class GetSongDataUseCase @Inject constructor(
 //            _song,
 //            album,
 //            artist, ->
-//            domainLogger.info { "Player Song Data for ${_song.id}:\n" +
+//            Log.i("Get Song Data Use Case", "Player Song Data for ${_song.id}:\n" +
 //                " Song Title: ${_song.title};\n Song Artist: ${artist.name};\n" +
-//                " Song Album: ${album.title};\n Song Duration: ${_song.duration};" }
+//                " Song Album: ${album.title};\n Song Duration: ${_song.duration};" )
 //            SongInfo(
 //                _song.id,
 //                _song.title,
@@ -78,8 +78,8 @@ class GetSongDataUseCase @Inject constructor(
 //     * @param songs [List] of type [Song] to return flow of List<PlayerSong(song, artist, album)>
 //     */
 //    operator fun invoke(songs: List<Song>): Flow<List<PlayerSong>> {
-//        domainLogger.info { "GetSongDataUseCase - multi songs - start:\n" +
-//                " songs size: ${songs.size}" }
+//        Log.i("Get Song Data Use Case", "multi songs - start:\n" +
+//                " songs size: ${songs.size}")
 //
 //        val songListFlow = flowOf(songs)
 //
@@ -104,10 +104,10 @@ class GetSongDataUseCase @Inject constructor(
 //            songList,
 //            albumList,
 //            artistList, ->
-//            domainLogger.info { "GetSongDataUseCase - return combine start\n" +
+//            Log.i("Get Song Data Use Case", "return combine start\n" +
 //                " songs size: ${songList.size};\n" +
 //                " albums size: ${albumList.size};\n" +
-//                " artists size: ${artistList.size};" }
+//                " artists size: ${artistList.size};" )
 //
 //            //using songList for each item, look up its corresponding album and artist by item.albumId and item.artistId
 //            songList.map { item ->

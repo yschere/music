@@ -5,7 +5,6 @@ import com.example.music.data.database.model.ComposerWithExtraInfo
 import com.example.music.data.repository.ComposerRepo
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.domainLogger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -31,12 +30,6 @@ class GetLibraryComposersUseCase @Inject constructor(
 
         //sortOption values changed to support enum values AppPreferences dataStore
         when (sortOption) {
-            /*"albumCount" -> {
-                composersList =
-                    if (isAscending) composerRepo.sortComposersByAlbumCountAsc() else composerRepo.sortComposersByAlbumCountDesc()
-                return composersList.map { item ->
-                    item.map { it.asExternalModel() } }
-            }*/
 
             "SONG_COUNT" -> { //"songCount" -> {
                 composersList =
