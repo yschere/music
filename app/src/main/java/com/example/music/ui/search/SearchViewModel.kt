@@ -3,7 +3,7 @@ package com.example.music.ui.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 //import com.example.music.domain.player.SongPlayer
-import com.example.music.domain.usecases.SearchQueryFilterV2
+import com.example.music.domain.model.SearchQueryFilterV2
 import com.example.music.domain.usecases.SearchQueryV2
 import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel

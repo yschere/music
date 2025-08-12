@@ -59,7 +59,7 @@ import com.example.music.R
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.usecases.SearchQueryFilterV2
+import com.example.music.domain.model.SearchQueryFilterV2
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemLightPreview

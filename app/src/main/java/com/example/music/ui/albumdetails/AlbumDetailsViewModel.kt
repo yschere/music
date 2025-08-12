@@ -3,13 +3,11 @@ package com.example.music.ui.albumdetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.usecases.GetAlbumDetailsUseCase
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetAlbumDetailsV2
-import com.example.music.domain.util.Album
 import com.example.music.ui.Screen
 import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +19,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.math.log
 
 private const val TAG = "Album Details View Model"
 
@@ -51,7 +48,6 @@ data class AlbumUiState (
  */
 @HiltViewModel
 class AlbumDetailsViewModel @Inject constructor(
-    //getAlbumDetailsUseCase: GetAlbumDetailsUseCase,
     getAlbumDetailsV2: GetAlbumDetailsV2,
     //private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,
@@ -60,7 +56,6 @@ class AlbumDetailsViewModel @Inject constructor(
     private val _albumId: String = savedStateHandle.get<String>(Screen.ARG_ALBUM_ID)!!
     private val albumId = _albumId.toLong()
 
-    //private val getAlbumDetailsData = getAlbumDetailsUseCase(albumId)
     private val getAlbumDetailsData = getAlbumDetailsV2(albumId)
             .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 

@@ -46,7 +46,6 @@ data class ArtistUiState (
 
 @HiltViewModel
 class ArtistDetailsViewModel @Inject constructor(
-    //getArtistDetailsUseCase: GetArtistDetailsUseCase,
     getArtistDetailsV2: GetArtistDetailsV2,
     //private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,

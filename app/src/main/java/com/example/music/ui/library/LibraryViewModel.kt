@@ -3,15 +3,9 @@ package com.example.music.ui.library
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.data.repository.AppPreferencesRepo
-import com.example.music.domain.usecases.GetLibraryAlbumsUseCase
-import com.example.music.domain.usecases.GetLibraryArtistsUseCase
 import com.example.music.domain.usecases.GetLibraryComposersUseCase
-import com.example.music.domain.usecases.GetLibraryGenresUseCase
 import com.example.music.domain.usecases.GetLibraryPlaylistsUseCase
-import com.example.music.domain.usecases.GetLibrarySongsUseCase
 import com.example.music.domain.usecases.GetAppPreferencesUseCase
-import com.example.music.domain.usecases.GetTotalCountsUseCase
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.ComposerInfo
@@ -19,9 +13,7 @@ import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 //import com.example.music.domain.player.SongPlayer
-
 import com.example.music.data.util.combine
-//
 import com.example.music.domain.usecases.GetLibraryAlbumsV2
 import com.example.music.domain.usecases.GetLibraryArtistsV2
 import com.example.music.domain.usecases.GetLibraryGenresV2
@@ -32,7 +24,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -51,11 +42,6 @@ private const val TAG = "Library View Model"
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-//    getLibrarySongsUseCase: GetLibrarySongsUseCase,
-//    getLibraryGenresUseCase: GetLibraryGenresUseCase,
-//    getLibraryArtistsUseCase: GetLibraryArtistsUseCase,
-//    getLibraryAlbumsUseCase: GetLibraryAlbumsUseCase,
-//    getTotalCountsUseCase: GetTotalCountsUseCase,
     getLibrarySongsV2: GetLibrarySongsV2,
     getLibraryPlaylistsUseCase: GetLibraryPlaylistsUseCase,
     getLibraryGenresV2: GetLibraryGenresV2,
@@ -63,7 +49,7 @@ class LibraryViewModel @Inject constructor(
     getLibraryArtistsV2: GetLibraryArtistsV2,
     getLibraryAlbumsV2: GetLibraryAlbumsV2,
     getTotalCountsV2: GetTotalCountsV2,
-    getAppPreferences: GetAppPreferencesUseCase, //checks AppPreferencesDataStore
+    getAppPreferences: GetAppPreferencesUseCase,
     //private val songPlayer: SongPlayer,
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
@@ -135,7 +121,6 @@ class LibraryViewModel @Inject constructor(
     init {
         logger.info { "$TAG - viewModelScope launch start" }
         viewModelScope.launch {
-            //val counts = getTotalCountsUseCase()
             val counts = getTotalCountsV2()
 
             // Combines the latest value from each of the flows, allowing us to generate a

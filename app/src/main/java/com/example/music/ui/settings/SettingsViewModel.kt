@@ -3,7 +3,7 @@ package com.example.music.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music.data.repository.ShuffleType
-import com.example.music.domain.usecases.GetTotalCountsUseCase
+import com.example.music.domain.usecases.GetTotalCountsV2
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +17,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     //need to be able to access CurrentPreferencesDataStore
     //need own set of ScreenActions that trigger like onClick
-    getTotalCountsUseCase: GetTotalCountsUseCase,
+    getTotalCountsV2: GetTotalCountsV2,
 ) : ViewModel() {
 
     private val selectedShuffleType = MutableStateFlow(ShuffleType.ONCE)
@@ -34,7 +34,7 @@ class SettingsViewModel @Inject constructor(
     init{
         logger.info { "Settings View Model - viewModelScope launch start" }
         viewModelScope.launch {
-            val counts = getTotalCountsUseCase()
+            val counts = getTotalCountsV2()
             combine(
                 refreshing,
                 selectedShuffleType,

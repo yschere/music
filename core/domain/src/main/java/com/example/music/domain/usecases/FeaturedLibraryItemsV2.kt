@@ -2,6 +2,7 @@ package com.example.music.domain.usecases
 
 import android.util.Log
 import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.util.MediaRepo
@@ -16,15 +17,15 @@ class FeaturedLibraryItemsV2 @Inject constructor(
     private val resolver: MediaRepo,
 ) {
     operator fun invoke(): Flow<FeaturedLibraryItemsFilterV2> {
-        Log.i(TAG, "using MediaStore - start")
+        Log.i(TAG, "Start fetching most recent albums and most recent songs")
 
         // albumItems should return albumRepo date created desc limit 5
         val albumItems = resolver.mostRecentAlbums(5)
-        Log.i(TAG, "album item == $albumItems")
+        Log.i(TAG, "album items == $albumItems")
 
         // mediaItems should return songRepo date created desc limit 10
         val mediaItems = resolver.mostRecentSongs(10)
-        Log.i(TAG, " media item == $mediaItems")
+        Log.i(TAG, " media items == $mediaItems")
 
         return combine(
             mediaItems,
@@ -45,8 +46,3 @@ class FeaturedLibraryItemsV2 @Inject constructor(
         }
     }
 }
-
-data class FeaturedLibraryItemsFilterV2 (
-    val recentAlbums: List<AlbumInfo> = emptyList(),
-    val recentlyAddedSongs: List<SongInfo> = emptyList()
-)

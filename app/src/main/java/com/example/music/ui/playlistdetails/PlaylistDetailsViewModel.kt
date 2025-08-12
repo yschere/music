@@ -3,14 +3,11 @@ package com.example.music.ui.playlistdetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.usecases.GetPlaylistDetailsUseCase
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 //import com.example.music.domain.player.SongPlayer
-
 import com.example.music.ui.Screen
 import com.example.music.data.util.combine
-//
 import com.example.music.domain.usecases.GetPlaylistDetailsV2
 import com.example.music.util.logger
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,7 +42,6 @@ data class PlaylistUiState(
 
 @HiltViewModel
 class PlaylistDetailsViewModel @Inject constructor(
-    getPlaylistDetailsUseCase: GetPlaylistDetailsUseCase,
     getPlaylistDetailsV2: GetPlaylistDetailsV2,
 //    private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle

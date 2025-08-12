@@ -3,28 +3,19 @@ package com.example.music.ui.home
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.usecases.FeaturedLibraryItemsUseCase
 import com.example.music.domain.usecases.FeaturedLibraryItemsV2
-import com.example.music.domain.usecases.FeaturedLibraryItemsFilterV2
-import com.example.music.domain.usecases.GetSongAlbumDataUseCase
-import com.example.music.domain.usecases.GetSongArtistDataUseCase
-import com.example.music.domain.usecases.GetTotalCountsUseCase
+import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.data.util.combine
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.usecases.GetThumbnailUseCase
 import com.example.music.domain.usecases.GetTotalCountsV2
-import com.example.music.domain.usecases.SearchQueryFilterV2
-import com.example.music.domain.usecases.SearchQueryV2
-import com.example.music.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -45,13 +36,9 @@ private const val TAG = "Home View Model"
 //this is where all the components to create the HomeScreen view are stored/collected
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-//    featuredLibraryItemsUseCase: FeaturedLibraryItemsUseCase,
     featuredLibraryItemsV2: FeaturedLibraryItemsV2,
-//    getTotalCountsUseCase: GetTotalCountsUseCase,
     getTotalCountsV2: GetTotalCountsV2,
-//    private val getArtistDataUseCase: GetSongArtistDataUseCase,
-//    private val getAlbumDataUseCase: GetSongAlbumDataUseCase,
-   // private val searchQueryV2: SearchQueryV2,
+    //private val searchQueryV2: SearchQueryV2,
     //private val songPlayer: SongPlayer
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
@@ -235,7 +222,6 @@ data class HomeScreenUiState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2 = FeaturedLibraryItemsFilterV2(),
-    //val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult = FeaturedLibraryItemsFilterResult(),
     val totals: List<Int> = emptyList(),
     //val searchResults: SearchQueryFilterV2 = SearchQueryFilterV2(),
 )

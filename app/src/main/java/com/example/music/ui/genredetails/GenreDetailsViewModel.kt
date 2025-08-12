@@ -3,7 +3,6 @@ package com.example.music.ui.genredetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.domain.usecases.GetGenreDetailsUseCase
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.SongInfo
 //import com.example.music.domain.player.SongPlayer
@@ -44,7 +43,6 @@ data class GenreUiState (
 
 @HiltViewModel
 class GenreDetailsViewModel @Inject constructor(
-    getGenreDetailsUseCase: GetGenreDetailsUseCase,
     getGenreDetailsV2: GetGenreDetailsV2,
     //private val songPlayer: SongPlayer,
     savedStateHandle: SavedStateHandle,
