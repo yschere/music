@@ -146,14 +146,14 @@ class MusicAppState(
         private set
 
     fun refreshOnline() {
-        Log.i(TAG, "Music App State - refreshOnline call")
+        Log.i(TAG, "refreshOnline call")
         isOnline = checkIfOnline()
     }
 
     fun navigateToHome(from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO HOME VIEW *****************\n\n")
+            Log.i(TAG, "***************** SWITCHING TO HOME VIEW *****************")
             navController.navigate(Screen.Home.createRoute())
         }
     }
@@ -161,7 +161,7 @@ class MusicAppState(
     fun navigateToLibrary(from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO LIBRARY VIEW *****************\n\n")
+            Log.i(TAG, "***************** SWITCHING TO LIBRARY VIEW *****************")
             navController.navigate(Screen.Library.createRoute())
         }
     }
@@ -169,7 +169,7 @@ class MusicAppState(
     fun navigateToPlayer(songId: Long, from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO PLAYER VIEW *****************\n\n")
+            Log.i(TAG, "***************** SWITCHING TO PLAYER VIEW *****************")
             navController.navigate(Screen.Player.createRoute(songId))
         }
     }
@@ -177,14 +177,14 @@ class MusicAppState(
     //DECIDED: this will be its own screen
     fun navigateToQueue(from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO QUEUE VIEW *****************")
+            Log.i(TAG, "***************** SWITCHING TO QUEUE VIEW *****************")
             navController.navigate(Screen.Queue.createRoute())
         }
     }
 
     fun navigateToSearch(from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO SEARCH VIEW *****************")
+            Log.i(TAG, "***************** SWITCHING TO SEARCH VIEW *****************")
             navController.navigate(Screen.Search.createRoute())
         }
     }
@@ -192,7 +192,7 @@ class MusicAppState(
     fun navigateToSettings(from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO SETTINGS VIEW *****************\n\n")
+            Log.i(TAG, "***************** SWITCHING TO SETTINGS VIEW *****************")
             navController.navigate(Screen.Settings.createRoute())
         }
     }
@@ -200,7 +200,7 @@ class MusicAppState(
     fun navigateToAlbumDetails(albumId: Long, from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO ALBUM DETAILS VIEW *****************")
+            Log.i(TAG, "***************** SWITCHING TO ALBUM DETAILS VIEW *****************")
             navController.navigate(Screen.AlbumDetails.createRoute(albumId))
         }
     }
@@ -208,7 +208,7 @@ class MusicAppState(
     fun navigateToArtistDetails(artistId: Long, from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO ARTIST DETAILS VIEW *****************")
+            Log.i(TAG, "***************** SWITCHING TO ARTIST DETAILS VIEW *****************")
             navController.navigate(Screen.ArtistDetails.createRoute(artistId))
         }
     }
@@ -216,7 +216,7 @@ class MusicAppState(
     fun navigateToComposerDetails(composerId: Long, from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO COMPOSER DETAILS VIEW *****************")
+            Log.i(TAG, "***************** SWITCHING TO COMPOSER DETAILS VIEW *****************")
             navController.navigate(Screen.ComposerDetails.createRoute(composerId))
         }
     }
@@ -224,7 +224,7 @@ class MusicAppState(
     fun navigateToGenreDetails(genreId: Long, from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO GENRE DETAILS VIEW *****************")
+            Log.i(TAG, "***************** SWITCHING TO GENRE DETAILS VIEW *****************")
             navController.navigate(Screen.GenreDetails.createRoute(genreId))
         }
     }
@@ -232,7 +232,7 @@ class MusicAppState(
     fun navigateToPlaylistDetails(playlistId: Long, from: NavBackStackEntry) {
         // In order to discard duplicated navigation events, we check the Lifecycle
         if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "\n\n\n\n\n***************** SWITCHING TO PLAYLIST DETAILS VIEW *****************")
+            Log.i(TAG, "***************** SWITCHING TO PLAYLIST DETAILS VIEW *****************")
             navController.navigate(Screen.PlaylistDetails.createRoute(playlistId))
         }
     }
@@ -247,7 +247,7 @@ class MusicAppState(
     } */
 
     fun navigateBack() {
-        Log.i(TAG, "\n\n\n***************** POPPING NAV STACK - BACK BTN PRESSED *****************\n\n\n")
+        Log.i(TAG, "***************** POPPING NAV STACK - BACK BTN PRESSED *****************")
         navController.popBackStack()
     }
 
