@@ -1,6 +1,7 @@
 package com.example.music.domain.usecases
 
 import android.provider.MediaStore
+import android.util.Log
 import com.example.music.domain.model.AlbumDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.util.Album
@@ -27,7 +28,7 @@ class GetAlbumDetailsV2 @Inject constructor(
     private val resolver: MediaRepo,
 ) {
     operator fun invoke(albumId: Long): Flow<AlbumDetailsFilterResult> {
-        domainLogger.info { "$TAG - start: AlbumID: $albumId" }
+        Log.i(TAG, "Start: AlbumID: $albumId")
         val albumItem: Flow<Album> = resolver.getAlbumFlow(albumId)
         val artistItem: Flow<Artist> = resolver.getArtistByAlbumIdFlow(albumId)
 
@@ -35,26 +36,26 @@ class GetAlbumDetailsV2 @Inject constructor(
             albumItem,
             artistItem,
             albumItem.map {
-                domainLogger.info { "$TAG - make songs" }
+                Log.i(TAG, "Fetching songs from album $albumId")
                 resolver.getAlbumAudios(it.albumId, order = MediaStore.Audio.Media.TRACK)
             }
         ) { album, artist, songs ->
-            domainLogger.info { "ALBUM: $album --- \n" +
+            Log.i(TAG, "ALBUM: $album --- \n" +
                 "Album ID: ${album.albumId} \n" +
                 "Album Title: ${album.title} \n" +
                 "Artist: ${album.artist} \n"
-            }
-            domainLogger.info { "ALBUM ARTIST: $artist --- \n" +
+                )
+            Log.i(TAG, "ALBUM ARTIST: $artist --- \n" +
                 "Artist ID: ${artist.id} \n" +
-                "Artist Name: ${artist.name} \n"
-                //"Number Songs: ${artist.numTracks} \n" +
-                //"Number Albums: ${artist.numAlbums}"
-            }
+                "Artist Name: ${artist.name} \n" +
+                "Number Songs: ${artist.numTracks} \n" +
+                "Number Albums: ${artist.numAlbums}"
+            )
             AlbumDetailsFilterResult(
                 album = album.asExternalModel(),
                 artist = artist.asExternalModel(),
                 songs = songs.map {
-                    domainLogger.info { "SONGINFO - PLEASE IS THERE SOMETHING IN HERE: ${it.title}"}
+                    Log.i(TAG, "SONG: ${it.title}")
                     it.asExternalModel()
                 },
             )
