@@ -375,7 +375,7 @@ class MediaRepo (
      **********************************************************************************************/
 
     /**
-     * returns most recent album ids. have this rewritten and repurposed in featuredLibraryItemsV2.albumItems
+     * returns most recently released albums
      */
     fun mostRecentAlbums(limit: Int) =
         observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
@@ -383,9 +383,9 @@ class MediaRepo (
                 resolver.query2(
                     MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
                     arrayOf(MediaStore.Audio.Albums.ALBUM_ID),
-                    order = MediaStore.Audio.Albums.ALBUM_ID,
+                    order = MediaStore.Audio.Albums.LAST_YEAR,
                     limit = limit,
-                    ascending = true,
+                    ascending = false,
                 ) { c ->
                     Array(c.count) {
                         c.moveToPosition(it)
