@@ -1,9 +1,7 @@
 package com.example.music.domain.usecases
 
 import android.util.Log
-import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
-import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.util.MediaRepo
 import javax.inject.Inject
@@ -24,21 +22,20 @@ class FeaturedLibraryItemsV2 @Inject constructor(
 
         // mediaItems should return songRepo date created desc limit 10
         val mediaItems = resolver.mostRecentSongs(10)
-        Log.i(TAG, " media items == $mediaItems")
+        Log.i(TAG, "media items == $mediaItems")
 
         return combine(
             mediaItems,
             albumItems
         ) { mediaIds, albumIds ->
-            Log.i(TAG, mediaIds.toString())
-            Log.i(TAG, albumIds.toString())
+            Log.i(TAG, "Building Featured Library from fetched IDs")
             FeaturedLibraryItemsFilterV2(
                 recentAlbums = albumIds.map { albumId ->
-                    Log.i(TAG, "AlbumID - $albumId")
+                    Log.i(TAG, "Fetch Album from AlbumID - $albumId")
                     resolver.getAlbum(albumId).asExternalModel()
                 },
                 recentlyAddedSongs = mediaIds.map { mediaId ->
-                    Log.i(TAG, "SongID - $mediaId")
+                    Log.i(TAG, "Fetch Song from SongID - $mediaId")
                     resolver.getAudio(mediaId).asExternalModel()
                 },
             )

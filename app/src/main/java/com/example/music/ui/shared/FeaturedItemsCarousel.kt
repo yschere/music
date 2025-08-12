@@ -40,7 +40,7 @@ import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 
-
+private const val TAG = "Featured Albums Carousel"
 private val FEATURED_ITEM_IMAGE_SIZE_DP = 160.dp
 
 /**
@@ -107,7 +107,7 @@ fun FeaturedPlaylistsCarousel(
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //logger.info { "Featured Playlist Item function start" }
+    //Log.i(TAG, "Featured Playlist Item function start")
     Column(modifier = modifier) {
         BoxWithConstraints(
             modifier = Modifier
@@ -125,7 +125,7 @@ fun FeaturedPlaylistsCarousel(
                 pageSize = PageSize.Fixed(FEATURED_ITEM_IMAGE_SIZE_DP)
             ) { page ->
                 val playlist = items[page]
-                //logger.info { "Horizontal Pager - playlists layout for playlist ${playlist.id}" }
+                //Log.i(TAG, "Horizontal Pager - playlists layout for playlist ${playlist.id}")
                 FeaturedCarouselItem(
                     itemImage = 1,//album.artwork!!,
                     itemTitle = playlist.name,
@@ -154,7 +154,7 @@ fun FeaturedCarouselItem(
     //onClick: () -> Unit, //pass in either Album or Playlist MoreOptionsModal action here
     modifier: Modifier = Modifier,
 ) {
-    //logger.info { "Featured Carousel Item function start" }
+    //Log.i(TAG, "Featured Carousel Item function start")
     Column(modifier) {
         Box(
             contentAlignment = Alignment.BottomStart,

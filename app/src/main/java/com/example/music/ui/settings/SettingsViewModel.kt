@@ -47,7 +47,7 @@ class SettingsViewModel @Inject constructor(
                 theme, ->
 
                 Log.i(TAG, "Shuffle type set to: ${shuffle.name}")
-                Log.i(TAG, "Theme mode set to: ${theme}")
+                Log.i(TAG, "Theme mode set to: $theme")
                 SettingsUiState(
                     isLoading = refreshing,
                     selectedShuffleType = shuffle,

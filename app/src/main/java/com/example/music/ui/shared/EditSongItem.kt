@@ -34,8 +34,6 @@ import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
-
-
 import com.example.music.ui.theme.MusicTheme
 
 /** Changelog:

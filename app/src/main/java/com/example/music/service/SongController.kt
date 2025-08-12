@@ -16,11 +16,11 @@ import java.time.Duration
 val DefaultPlaybackSpeed = Duration.ofSeconds(1)
 //TODO: see if there is way to confirm what type DefaultPlaybackSpeed is supposed to be
 
-data class SongControllerState( //equivalent of music playe's MusicControllerUiState
+data class SongControllerState(
     val currentSong: MediaItem? = null,
     val queue: List<MediaItem> = emptyList(),
     val playbackSpeed: Duration = DefaultPlaybackSpeed,
-    val isPlaying: Boolean = false, //tracks the current playing state, instead of having playing, paused, stopped like music playe's PlayerState
+    val isPlaying: Boolean = false, //tracks the current playing state
     val timeElapsed: Duration = Duration.ZERO,
     val isShuffled: Boolean = false,
     val repeatState: RepeatType = RepeatType.OFF,
@@ -31,7 +31,7 @@ data class SongControllerState( //equivalent of music playe's MusicControllerUiS
  * Interface definition for a song player defining high-level functions such as queuing
  * episodes, playing an episode, pausing, seeking, etc.
  */
-interface SongController { //equivalent of music playe's MusicController
+interface SongController {
 
     /**
      * A StateFlow that emits the [SongControllerState] as controls as invoked on this player.

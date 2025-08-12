@@ -23,7 +23,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.ui.theme.MusicTheme
@@ -41,7 +40,6 @@ import kotlinx.coroutines.launch
 fun NavDrawer(
     selectedLabel: String,
     totals: List<Int>,
-    //totals: List<Pair<String,Int>>,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
@@ -63,7 +61,6 @@ fun NavDrawer(
                     style = MaterialTheme.typography.displaySmall,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp)
                 )
-                //HorizontalDivider( color = Color.LightGray )
 
                 // Home Screen navigation item
                 NavigationDrawerItem(
@@ -81,7 +78,6 @@ fun NavDrawer(
                         }
                         navigateToHome()
                     },
-                    //onClick = navigateToHome,
                 )
 
                 // Library Screen navigation item
@@ -118,7 +114,6 @@ fun NavDrawer(
                         }
                         navigateToSettings()
                     },
-                    //onClick = navigateToSettings
                 )
 
                 HorizontalDivider(

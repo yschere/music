@@ -16,3 +16,4 @@ local.properties
 app/src/main/res/raw/*
 core/data/src/main/assets/musicSqlTesting.sql
 .kotlin/sessions/kotlin-compiler-*
+/app/src/main/java/com/example/music/ui/queue/
