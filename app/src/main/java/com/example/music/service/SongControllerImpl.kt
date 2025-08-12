@@ -312,10 +312,10 @@ class SongControllerImpl @Inject constructor(
 
 
 
-//        if (mediaController?.isPlaying == true)
-//            mediaController?.pause()
-//        else
-//            mediaController?.play()
+        if (mediaController?.isPlaying == true)
+            mediaController?.pause()
+        else
+            mediaController?.play()
     }
 
     // interesting implications part 2:
@@ -331,6 +331,7 @@ class SongControllerImpl @Inject constructor(
     // that were in queue from "AddToQueue". so if the queue started from "Play" or "Shuffle"
     // it will get replaced with the new item(s) being played or shuffled
     override fun play(songInfos: List<SongInfo>) {
+        logger.error{"$TAG - In play(songInfos)"}
         if (isPlaying.value) {
             pause()
             mediaController?.pause()
@@ -338,10 +339,10 @@ class SongControllerImpl @Inject constructor(
 
         // Keep the currently playing episode in the queue
 //        val playingSong = _currentSong.value
-        val playingSong = mediaController?.currentMediaItem
+        //val playingSong = mediaController?.currentMediaItem
 
 //        var previousList: List<SongInfo> = emptyList()
-        var previousList: List<MediaItem> = emptyList()
+        //var previousList: List<MediaItem> = emptyList()
 
 //        queue.update { queue ->
 //            songInfos.map { song ->
@@ -390,8 +391,8 @@ class SongControllerImpl @Inject constructor(
 //        }
         val queue = songInfos.map{it.toMediaItem}
         mediaController?.setMediaItems(queue)
-        logger.info {"$TAG - Current queue has ${queue.size} items."}
-        logger.info {"$TAG - Current media controller state before apply is ${mediaController?.playbackState}."}
+        logger.error {"$TAG - Current queue has ${queue.size} items."}
+        logger.error {"$TAG - Current media controller state before apply is ${mediaController?.playbackState}."}
 
         mediaController?.apply {
             seekToDefaultPosition()
@@ -399,7 +400,7 @@ class SongControllerImpl @Inject constructor(
             prepare()
 //            play()
         }
-        logger.info {"$TAG - Current media controller state after apply is ${mediaController?.playbackState}."}
+        logger.error {"$TAG - Current media controller state after apply is ${mediaController?.playbackState}."}
 
     }
 
@@ -586,7 +587,7 @@ class SongControllerImpl @Inject constructor(
     }
 
     override fun getIsPlaying() : Boolean {
-        return isPlaying.value
+        return mediaController?.isPlaying ?: false
     }
 
     override fun getIsShuffled() : Boolean {

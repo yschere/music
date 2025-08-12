@@ -1,5 +1,6 @@
 package com.example.music.ui.player
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import java.time.Duration
@@ -74,6 +76,7 @@ class PlayerViewModel @Inject constructor(
 
     private val getSongData = getSongDataV2(songId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+    private var currentSong: SongInfo? = null
 
     //private lateinit var notificationManager: MediaNotificationManager
     //protected lateinit var mediaSession: MediaSession
@@ -89,9 +92,9 @@ class PlayerViewModel @Inject constructor(
         get() = _state
 
     init {
-        logger.info { "$TAG - songID: $songId"}
+        Log.i(TAG, "songID: $songId")
         viewModelScope.launch {
-            logger.info { "$TAG - init viewModelScope launch start" }
+            Log.i(TAG, "init viewModelScope launch start")
             //TODO: using for comparison between SongToAlbum/SongInfo against PlayerSong for populating Player Screen
             //songRepo.getSongAndAlbumBySongId(songId).flatMapConcat { //original code: used to get SongToAlbum to convert to PlayerSong,
             //songPlayer.currentSong = it.toPlayerSong() //original code: used to set songPlayer.currentSong from SongToAlbum to PlayerSong
@@ -104,14 +107,16 @@ class PlayerViewModel @Inject constructor(
                 getSongData,
             ) {
                 refreshing,
-                songData, ->
-                logger.info { "$TAG - PlayerUiState call"}
-                logger.info { "$TAG - getSongID: ${songData.id}"}
-                logger.info { "$TAG - getSongTitle: ${songData.title}"}
+                songData,
+                 ->
+                Log.i(TAG, "PlayerUiState call")
+                Log.i(TAG, "getSongID: ${songData.id}")
+                Log.i(TAG, "getSongTitle: ${songData.title}")
 
+                currentSong = songData
                 songController.setMediaItem(songData)
-                logger.info { "$TAG - is SongController available: ${songController.currentSong?.mediaId}"}
-                logger.info { "$TAG - isReady?: ${!refreshing}" }
+                Log.i(TAG, "is SongController available: ${songController.currentSong?.mediaId}")
+                Log.i(TAG, "isReady?: ${!refreshing}")
 
                 PlayerUiState(
                     isReady = !refreshing,
@@ -122,20 +127,20 @@ class PlayerViewModel @Inject constructor(
                     timeElapsed = songController.getTimeElapsed(),
                     hasNext = songController.getHasNext()
                 )
-            /* // previous version of getting song data to set PlayerUiState and songController
-            getSongDataV2(songId).flatMapConcat { item ->
-                //this needs to start the song controller with the id
-                // so it can set the player/mediaPlayer with the correct data to work on
+                /* // previous version of getting song data to set PlayerUiState and songController
+                getSongDataV2(songId).flatMapConcat { item ->
+                    //this needs to start the song controller with the id
+                    // so it can set the player/mediaPlayer with the correct data to work on
 
-                //the actual logic here might not actually apply to here but more so to media session but just for now to see if the problem of player not playing anything might be here
-                // want to make sure that the controller can propagate the songId from PlayerScreen to mediaPlayer
-                // so need to setMediaItem to item
+                    //the actual logic here might not actually apply to here but more so to media session but just for now to see if the problem of player not playing anything might be here
+                    // want to make sure that the controller can propagate the songId from PlayerScreen to mediaPlayer
+                    // so need to setMediaItem to item
 
-                songController.setMediaItem(item)
-                songController.currentSong = item.toMediaItem
-                songController.playerState
-            }
-            */
+                    songController.setMediaItem(item)
+                    songController.currentSong = item.toMediaItem
+                    songController.playerState
+                }
+                */
 
             }.catch { throwable ->
                 emit(
@@ -161,23 +166,23 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        logger.info { "$TAG - Refresh call" }
+        Log.e(TAG, "Refresh call")
         viewModelScope.launch {
             runCatching {
-                logger.info { "$TAG - refresh runCatching" }
+                Log.e(TAG,"refresh runCatching")
                 refreshing.value = true
             }.onFailure {
-                logger.info { "$it ::: runCatching, not sure what is failing here tho" }
+                Log.e(TAG, "$it ::: runCatching, not sure what is failing here tho")
             } // TODO: look at result of runCatching and show any errors
 
-            logger.info { "$TAG - refresh to be false -> sets screen to ready state" }
+            Log.e(TAG,"refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
     }
 
     fun onPlay() {
-        logger.info { "$TAG - Hitting play on the now playing screen." }
-        songController.play()
+        Log.i(TAG,"Hitting play on the now playing screen.")
+        songController.play(currentSong!!)
         //mediaPlayer.playWhenReady
         //mediaPlayer.play()
     }
