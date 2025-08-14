@@ -337,7 +337,7 @@ fun AlbumInfo.setSubtitle(): String =
         quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
     else {
         this.albumArtistName + " • " +
-            quantityStringResource(R.plurals.songs, this.songCount, this.songCount) // TODO get albumArtistName in AlbumInfo
+            quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
     }
 
 @Composable
@@ -528,11 +528,11 @@ fun AlbumMoreOptionsBottomModal(
 
             // if album has album artist and not already on ArtistDetails screen
             if (album.albumArtistId != null && context != "ArtistDetails")
-                ActionOptionRow( Pair(Actions.GoToAlbumArtist) {} ) // TODO: navigateToArtistDetails(transform artistName to artist.Id) /* navigateToArtistDetails(albumArtistId) */
+                ActionOptionRow( Pair(Actions.GoToAlbumArtist) {} ) // { navigateToArtistDetails(albumArtistId) }
 
             // if in artistDetails, in library.Albums,
             if (context != "AlbumDetails")
-                ActionOptionRow( Pair(Actions.GoToAlbum) {} ) // TODO: navigateToAlbumDetails(albumId) //navigateToAlbumDetails(album)
+                ActionOptionRow( Pair(Actions.GoToAlbum) {} ) // { navigateToAlbumDetails(albumId) or navigateToAlbumDetails(album) }
 
             HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
@@ -620,7 +620,7 @@ fun ArtistMoreOptionsBottomModal(
             if (context != "ArtistDetails") {
                 ActionOptionRow(Pair(Actions.GoToArtist) {
                     navigateToArtistDetails(artist)
-                }) // TODO: navigateToArtistDetails(transform artistName to artist.Id)
+                }) // { navigateToArtistDetails(artist.id) }
                 HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
 
@@ -708,7 +708,7 @@ fun ComposerMoreOptionsBottomModal(
             if (context != "ComposerDetails") {
                 ActionOptionRow(Pair(Actions.GoToComposer) {
                     navigateToComposerDetails(composer)
-                }) // TODO: navigateToComposerDetails(transform composerName to composer.Id)
+                }) // { navigateToComposerDetails(composer.id) }
 
                 HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
@@ -797,7 +797,7 @@ fun GenreMoreOptionsBottomModal(
             if (context != "GenreDetails") {
                 ActionOptionRow(Pair(Actions.GoToGenre) {
                     navigateToGenreDetails(genre)
-                }) // TODO: navigateToGenreDetails(transform genreName to genre.Id)
+                }) // { navigateToGenreDetails(genre.id) }
                 HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
 
@@ -883,7 +883,7 @@ fun PlaylistMoreOptionsBottomModal(
             if (context != "PlaylistDetails") {
                 ActionOptionRow( Pair(Actions.GoToPlaylist) {
                     navigateToPlaylistDetails(playlist)
-                }) // TODO: navigateToPlaylistDetails(transform playlistName to playlist.Id)
+                }) // { navigateToPlaylistDetails(playlist.id) }
                 HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
 
@@ -940,7 +940,7 @@ fun QueueMoreOptionsBottomModal(
     scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
     properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     coroutineScope: CoroutineScope,
-    queue: String = "", // TODO: placeholder
+    queue: String = "", // placeholder
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
 

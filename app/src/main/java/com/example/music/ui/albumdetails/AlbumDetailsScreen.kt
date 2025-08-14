@@ -297,7 +297,7 @@ fun AlbumDetailsScreen(
                         }
                     },
                     actions = {
-                        // search btn //TODO: does this make more sense as a more options btn?
+                        // search btn
                         IconButton( onClick = navigateToSearch ) {
                             Icon(
                                 imageVector = Icons.Outlined.Search,
@@ -305,7 +305,7 @@ fun AlbumDetailsScreen(
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
-                        // more options btn //TODO: temporary placement till figure out if this should be part of header
+                        // more options btn // temporary placement till figure out if this should be part of header
                         IconButton(
                             onClick = {
                                 showBottomSheet = true
@@ -410,7 +410,7 @@ fun AlbumDetailsScreen(
                                     showSongMoreOptions = true
                                 },
                                 //onQueueSong = {},
-                                modifier = Modifier.fillMaxWidth(), //TODO: uncomment when this is changed to be thru PlayerSong
+                                modifier = Modifier.fillMaxWidth(),
                                 isListEditable = false,
                                 showAlbumImage = true,
                                 showArtistName = true,
@@ -427,8 +427,6 @@ fun AlbumDetailsScreen(
                         // moreOptionsIconClick: needs to pop open bottom modal
                             // actions: play, playNext, addToPlaylist, addToQueue, goToArtist, editSongTags, deleteFromLibrary, viewSongDetails
                     /*items(songs) { song ->
-
-
                         Box(modifier = modifier.padding(4.dp)) {
                             Surface(
                                 shape = MaterialTheme.shapes.large,
@@ -590,13 +588,13 @@ fun AlbumDetailsScreen(
                         song = selectSong,
                         context = "AlbumDetails",
                         //onQueueSong = { action ->
-                        //                    if (action is AlbumAction.QueueSong) {
-                        //                        coroutineScope.launch {
-                        //                            snackbarHostState.showSnackbar(snackBarText)
-                        //                        }
-                        //                    }
-                        //                    viewModel::onAlbumAction(action)
-                        //                },
+                        //    if (action is AlbumAction.QueueSong) {
+                        //        coroutineScope.launch {
+                        //            snackbarHostState.showSnackbar(snackBarText)
+                        //        }
+                        //    }
+                        //    viewModel::onAlbumAction(action)
+                        //},
                         navigateToPlayer = navigateToPlayer,
                     )
                 }
@@ -634,15 +632,15 @@ fun AlbumDetailsTopAppBar(
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
-        // search btn //TODO: does this make more sense as a more options btn?
-        IconButton(onClick = { /* TODO */ }) {
+        // search btn
+        IconButton(onClick = {  }) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = stringResource(R.string.icon_search),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
-        //more options btn //TODO: temporary placement till figure out if this should be part of header
+        //more options btn // temporary placement till figure out if this should be part of header
         IconButton(onClick = {}) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
@@ -733,7 +731,7 @@ fun AlbumDetailsContent(
                     onClick = navigateToPlayer,
                     onMoreOptionsClick = {},
                     //onQueueSong = {},
-                    modifier = Modifier.fillMaxWidth(), //TODO: uncomment when this is changed to be thru PlayerSong
+                    modifier = Modifier.fillMaxWidth(),
                     isListEditable = false,
                     showAlbumImage = true,
                     showArtistName = true,

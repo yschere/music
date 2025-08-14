@@ -263,7 +263,7 @@ fun ArtistDetailsScreen(
                         }
                     },
                     actions = {
-                        // search btn //TODO: does this make more sense as a more options btn?
+                        // search btn
                         IconButton( onClick = navigateToSearch ) {
                             Icon(
                                 imageVector = Icons.Outlined.Search,
@@ -271,7 +271,7 @@ fun ArtistDetailsScreen(
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
-                        // more options btn //TODO: temporary placement till figure out if this should be part of header
+                        // more options btn // temporary placement till figure out if this should be part of header
                         IconButton(
                             onClick = {
                                 showBottomSheet = true
@@ -389,7 +389,7 @@ fun ArtistDetailsScreen(
                                             showBottomSheet = true
                                             showAlbumMoreOptions = true
                                         },
-                                        // TODO: onClick = AlbumMoreOptionsBottomModal(album),
+                                        //onClick = AlbumMoreOptionsBottomModal(album),
                                         //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
                                         modifier = Modifier
                                             .fillMaxSize()
@@ -636,15 +636,15 @@ fun ArtistDetailsTopAppBar(
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
-        // search btn //TODO: does this make more sense as a more options btn?
-        IconButton(onClick = { /* TODO */ }) {
+        // search btn
+        IconButton(onClick = {  }) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = stringResource(R.string.icon_search),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
-        //more options btn //TODO: temporary placement till figure out if this should be part of header
+        //more options btn // temporary placement till figure out if this should be part of header
         IconButton(onClick = {}) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
@@ -775,7 +775,7 @@ fun ArtistDetailsHeaderItem(
     artist: ArtistInfo,
     modifier: Modifier = Modifier
 ) {
-    //TODO choose if want 1 image or multi image view for artist header
+    // FUTURE THOUGHT: choose if want 1 image or multi image view for artist header
     // and for the 1 image, should it be the 1st album, or an image for externally of the artist?
     BoxWithConstraints(
         modifier = modifier.padding(Keyline1)

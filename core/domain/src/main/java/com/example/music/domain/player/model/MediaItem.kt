@@ -94,20 +94,6 @@ private fun mediaSource(
     .build()
 
 /**
- * TODO what is this for?
- */
-fun MediaRoot(value: String): MediaItem =
-    MediaItem.Builder()
-        .setMediaId(value)
-        .setMediaMetadata(
-            Builder()
-                .setIsBrowsable(true)
-                .setIsPlayable(false)
-                .build()
-        )
-        .build()
-
-/**
  * Sets the text in the parameter to typeface bold
  */
 private fun Bold(value: CharSequence): CharSequence =
@@ -115,15 +101,13 @@ private fun Bold(value: CharSequence): CharSequence =
         setSpan(StyleSpan(Typeface.BOLD), 0, value.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
 
-// how do i want a MediaItem to be represented
-// what are the properties of a MediaItem
 /**
  * Transform media3 MediaItem to domain layer's MediaItem
  */
 val MediaItem.asLocalMediaItem
     get() = mediaSource(
         id = mediaId.toLong(),
-        uri = mediaUri!!,//Uri.parse("/storage/emulated/0/Music/Homestuck/Homestuck - Strife!/01 Stormspirit.mp3"),
+        uri = mediaUri!!,
         title = Bold(title ?: MediaStore.UNKNOWN_STRING),
         artist = artist ?: MediaStore.UNKNOWN_STRING,
         album = album ?: MediaStore.UNKNOWN_STRING,

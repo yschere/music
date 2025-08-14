@@ -243,7 +243,7 @@ fun GenreDetailsTopAppBar(
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
-        // search btn //TODO: does this make more sense as a more options btn?
+        // search btn
         IconButton( onClick = navigateToSearch ) {
             Icon(
                 imageVector = Icons.Outlined.Search,
@@ -251,7 +251,7 @@ fun GenreDetailsTopAppBar(
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
-        //more options btn //TODO: temporary placement till figure out if this should be part of header
+        //more options btn // temporary placement till figure out if this should be part of header
         IconButton(onClick = {}) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
@@ -364,7 +364,7 @@ fun GenreDetailsHeaderItem(
     genre: GenreInfo,
     modifier: Modifier = Modifier
 ) {
-    //TODO choose if want 1 image or multi image view for genre header
+    //FUTURE THOUGHT: choose if want 1 image or multi image view for genre header
     // and for the 1 image, should it be the 1st album, or an image for externally of the genre?
     BoxWithConstraints(
         modifier = modifier.padding(Keyline1)

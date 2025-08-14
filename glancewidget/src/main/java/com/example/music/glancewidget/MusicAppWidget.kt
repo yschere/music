@@ -313,7 +313,6 @@ private fun WidgetAsyncImage(
             contentDescription = contentDescription,
             contentScale = ContentScale.FillBounds,
             modifier = modifier.cornerRadius(12.dp)
-            // TODO: confirm radius with design
         )
     }*/
 }

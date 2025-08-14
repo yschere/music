@@ -75,7 +75,7 @@ import com.example.music.ui.tooling.SystemLightPreview
  * SearchBar is in the TopAppBar, and the contents of the screen
  * are the returned results of the search query.
  *
- * TODO: further update so that the returned list items are standardized
+ * FixMe: further update so that the returned list items are standardized
  *  to match the rest of the app's list item views
  */
 
@@ -156,7 +156,7 @@ fun SearchScreenReady(
 ) {
 //    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-//    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //TODO: update if need to
+//    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
     ScreenBackground(
         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)

@@ -21,7 +21,7 @@ import androidx.room.PrimaryKey
  * Artist data class is the internal representation for the artists database table.
  * @property id [Long] primary key for record. Serves as the reference point for foreign keys on artist_id and album_artist_id
  * @property name [String] artist name
- * TODO this used to contain a genre_id that would have been the foreign key for Genre, but
+ *  this used to contain a genre_id that would have been the foreign key for Genre, but
  *  was removed since it added a layer of complexity I could not properly account for. Need
  *  to return to this point if the need for a direct reference from artist to genre is necessary.
  */

@@ -107,7 +107,7 @@ fun EditSongTopAppBar(
         // would probably need a save btn and/or redo btn up here
 
         // more options button
-        IconButton(onClick = { /* TODO */ }) {
+        IconButton(onClick = {  }) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.icon_more),

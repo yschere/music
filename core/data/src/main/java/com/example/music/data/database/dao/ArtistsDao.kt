@@ -353,7 +353,7 @@ abstract class ArtistsDao : BaseDao<Artist> {
         limit: Int
     ): Flow<List<Artist>>*/
 
-    /* //TODO: not sure if sortArtistsInGenreBySongCountAsc is needed
+    /* //Question: not sure if sortArtistsInGenreBySongCountAsc is needed
     @Query(
         """
         SELECT artists.* FROM artists
@@ -373,7 +373,7 @@ abstract class ArtistsDao : BaseDao<Artist> {
         limit: Int
     ): Flow<List<Artist>> */
 
-    /* //TODO: not sure if sortArtistsInGenreBySongCountDesc is needed
+    /* //Question: not sure if sortArtistsInGenreBySongCountDesc is needed
     @Query(
         """
         SELECT artists.* FROM artists

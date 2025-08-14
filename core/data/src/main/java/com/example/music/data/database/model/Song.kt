@@ -71,7 +71,7 @@ import java.time.OffsetDateTime
  * @property dateModified [OffsetDateTime] the latest datetime when the song was modified
  * @property dateLastPlayed [OffsetDateTime] the latest datetime when the song was played within the app
  * @property duration [Duration] the length of play time of the song
- * TODO future properties to be supported: album_artwork or song_artwork.
+ * FUTURE properties to be supported: album_artwork or song_artwork.
  *  Consideration: song's also contain an album_artist value,
  *  but that is getting set as a property for albums instead
  */

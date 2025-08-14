@@ -279,7 +279,6 @@ private fun HomeScreenReady(
     navigateToPlayer: (SongInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val navigator = rememberSupportingPaneScaffoldNavigator<String>(
@@ -315,7 +314,7 @@ private fun HomeScreenReady(
                     modifier = Modifier.fillMaxSize()
                 )
             },
-            //TODO: when navigateTo___Details determined, need to update this. it's based on PodcastDetailsViewModel
+            //FixMe: when navigateTo___Details determined, need to update this. it's based on PodcastDetailsViewModel
             supportingPane = {
                 /*val playlistId = navigator.currentDestination?.content
                 if (!playlistId.isNullOrEmpty()) {
@@ -363,7 +362,7 @@ private fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     // Effect that changes the home category selection when there are no subscribed podcasts
-    //TODO: repurpose this for RecentPlaylists, so that if there's no recent playlists as featured playlists, have a defaulted view
+    //FixMe: repurpose this for RecentPlaylists, so that if there's no recent playlists as featured playlists, have a defaulted view
     LaunchedEffect(key1 = featuredLibraryItemsFilterResult.recentAlbums) {//featuredLibraryItemsFilterResult.recentPlaylists) {
         if (featuredLibraryItemsFilterResult.recentAlbums.isEmpty()) {//recentPlaylists.isEmpty()) {
             onHomeAction(HomeAction.EmptyLibraryView(PlaylistInfo()))
@@ -372,7 +371,7 @@ private fun HomeScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //TODO: update if need to
+    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //FixMe: update the snackBar selection to properly convey action taken
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     NavDrawer(
@@ -425,7 +424,6 @@ private fun HomeScreen(
                 HomeContent(
                     coroutineScope = coroutineScope,
                     featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
-                    //librarySongs = librarySongs, //TODO: PlayerSong support
                     modifier = modifier.padding(contentPadding), //this contentPadding comes from the Scaffold /*.statusBarsPadding()*/
                     onHomeAction = { action ->
                         if (action is HomeAction.QueueSong) {

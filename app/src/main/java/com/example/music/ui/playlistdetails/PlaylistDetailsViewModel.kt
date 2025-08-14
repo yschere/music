@@ -107,12 +107,17 @@ class PlaylistDetailsViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
+        Log.i(TAG, "Refresh call")
+        Log.i(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
+                Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
+            }.onFailure {
+                Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")
             }
-            // TODO: look at result of runCatching and show any errors
 
+            Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
     }
@@ -125,7 +130,7 @@ class PlaylistDetailsViewModel @Inject constructor(
 
 /**
  * ---------ORIGINAL VERSION: ViewModel that handles the business logic and screen state of the Playlist details screen.
- * TODO: currently using this screen and view model to compare SongInfo and PlayerSong and which one is better to use across screens that have SongListItem
+ * Note: currently using this screen and view model to compare SongInfo and PlayerSong and which one is better to use across screens that have SongListItem
  */
 /*
 sealed interface PlaylistUiState {

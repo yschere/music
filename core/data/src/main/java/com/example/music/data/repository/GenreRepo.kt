@@ -197,21 +197,6 @@ class GenreRepoImpl(
     //equivalent of categories episodesFromPodcastsInCategory
     override fun songsAndAlbumsInGenre(genreId: Long, limit: Int): Flow<List<SongToAlbum>> =
         songDao.getSongsAndAlbumsInGenreSortedByLastPlayed(genreId, limit)
-
-    override fun songsAndAlbumsInGenre(genreId: Long, limit: Int): Flow<List<SongToAlbum>> {
-        val flowAlbums = albumDao.sortAlbumsInGenreByTitleAsc(genreId, limit)
-        //flowAlbums.transform(suspend List<Album>())
-        val songs = combine(flowAlbums) { arrayAlbum ->
-            arrayAlbum.forEach { listAlbum ->
-                listAlbum.forEach {
-                    return@combine songDao.getSongsAndAlbumByAlbumId(it.id)
-                }
-            }
-        }
-        return songs.transform { List<SongToAlbum>(
-            songs.count(),
-            init = TODO()
-        ) }
      */
 
 }

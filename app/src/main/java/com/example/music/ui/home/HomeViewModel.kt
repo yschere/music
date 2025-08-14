@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** Changelog:
- *
  * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
  * has been adjusted to support UI with the string values of the foreign key
  * ids and remaining extra info that was not in PlayerSong.
@@ -138,20 +137,23 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        Log.i(TAG, "refresh function start")
+        Log.i(TAG, "Refresh call")
         Log.i(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
+                Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
+            }.onFailure {
+                Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")
             }
-            // TODO: look at result of runCatching and show any errors
 
+            Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
     }
 
-    //TODO: retro fit this for library
     fun onHomeAction(action: HomeAction) {
+        Log.i(TAG, "onHomeAction - $action")
         when (action) {
             //is HomeAction.ToggleNavMenu -> onNavigationViewMenu()
             is HomeAction.LibraryAlbumSelected -> onLibraryAlbumSelected(action.album)
@@ -194,8 +196,6 @@ class HomeViewModel @Inject constructor(
 //            //  and have that handle the result -> UI conversion?
 //        }
 //    }
-
-    // TODO create search query function for home search bar to call
 }
 
 /**
@@ -213,7 +213,6 @@ sealed interface HomeAction {
     data class LibraryAlbumSelected(val album: AlbumInfo) : HomeAction
     //data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
     data class QueueSong(val song: SongInfo) : HomeAction
-    // TODO create search query class ... would this make it so the query string needs to be part of homeViewModel? maybe not?
     //data class SendQuery(val query: String) : HomeAction
 }
 

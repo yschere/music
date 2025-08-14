@@ -70,14 +70,17 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        Log.i(TAG, "refresh function start")
+        Log.i(TAG, "Refresh call")
         Log.i(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
+                Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
+            }.onFailure {
+                Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")
             }
-            // TODO: look at result of runCatching and show any errors
 
+            Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
     }
@@ -101,16 +104,23 @@ class SettingsViewModel @Inject constructor(
         selectedThemeMode.value = themeMode
     }
 
+    /**
+     * Intent: this will scan the local device and search for files that describe playlists,
+     * and generate a playlist based on those files.
+     * FUTURE THOUGHT: instead of automatically attempting to load in the found playlists,
+     * provide the user with the list and allow them to choose the playlists to import.
+     */
     private fun onImportPlaylist(){
         Log.i(TAG, "Import Playlist clicked")
-        //TODO: this will check a local device and search for files that describe playlists, and generate a playlist based on those files
-        // could also show the list of found playlists to user, and allow them to select which ones to import
     }
 
+    /**
+     * Intent: this will scan the local device and composer if there are different values
+     * in the app versus in the database.
+     * Question: how to check which one is the source of truth?
+     */
     private fun onRefresh(){
         Log.i(TAG, "Refresh Library clicked")
-        //TODO: this will check the database and compare if there are different values in the app versus in the database
-        // how to check which is the source of truth?
     }
 
 }

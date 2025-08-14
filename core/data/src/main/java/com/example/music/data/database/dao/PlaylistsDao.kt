@@ -12,9 +12,6 @@ import kotlinx.coroutines.flow.Flow
  * 4/5/2025 - I adjusted the song_playlist_entries Table in preview_data.db to reference ids from
  * MediaStore. So want to adjust song_playlist_entries queries to just get the ids. Will use
  * ContentResolver to retrieve the referenced Audios elsewhere.
- *
- * TODO: This won't help with needing the
- *  date_last_played property, but not sure how to solve that yet.
  */
 
 /**
@@ -87,7 +84,6 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     )
     abstract fun getPlaylistWithExtraInfo(playlistId: Long): Flow<PlaylistWithExtraInfo>*/
 
-    // TODO: revised to not use songs table
     @Query(
         """
         SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
@@ -122,7 +118,6 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     )
     abstract fun sortPlaylistsByNameAsc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/
 
-    // TODO: revised to not use songs table
     @Query(
         """
         SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
@@ -158,7 +153,6 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     )
     abstract fun sortPlaylistsByNameDesc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/
 
-    // TODO: revised to not use songs table
     @Query(
         """
         SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
@@ -194,7 +188,6 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     )
     abstract fun sortPlaylistsByDateCreatedAsc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/
 
-    // TODO: revised to not use songs table
     @Query(
         """
         SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
@@ -230,7 +223,6 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     )
     abstract fun sortPlaylistsByDateCreatedDesc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/
 
-    // TODO: revised to not use songs table
     @Query(
         """
         SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
@@ -266,7 +258,6 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     )
     abstract fun sortPlaylistsByDateLastAccessedAsc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/
 
-    // TODO: revised to not use songs table
     @Query(
         """
         SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
@@ -303,7 +294,6 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
     abstract fun sortPlaylistsByDateLastAccessedDesc(limit: Int): Flow<List<PlaylistWithExtraInfo>>*/ //mostRecentPlaylists(limit: Int): Flow<List<Playlist>>
     // want this to be used for ... add to playlist i think? ie if adding a song to playlist and added a song previously, want that previous playlist to show up first
 
-    // TODO: revised to not use songs table
     @Query(
         """
         SELECT playlists.*, date_last_accessed AS date_last_played, COALESCE(song_count, 0) AS song_count FROM playlists
@@ -394,7 +384,6 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>*/
 
-    // TODO: revised to not use songs table
     @Transaction
     @Query(
         """
@@ -436,7 +425,6 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<PlaylistWithExtraInfo>>*/
 
-    // TODO: revised to not use songs table
     @Transaction
     @Query(
         """

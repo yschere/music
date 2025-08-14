@@ -70,7 +70,7 @@ class LibraryViewModel @Inject constructor(
     // Holds our currently selected category
     private val selectedLibraryCategory = MutableStateFlow(LibraryCategory.Playlists)
 
-    /*//TODO: set up with values that retrieve sortOptions from preferences data store
+    /*// setup with values that retrieve sortOptions from preferences data store
     private val sortedSongs = getLibrarySongsUseCase("title", true)
         //.stateIn(viewModelScope)//, SharingStarted.WhileSubscribed())
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
@@ -256,14 +256,15 @@ class LibraryViewModel @Inject constructor(
 
     fun refresh(force: Boolean = true) {
         Log.i(TAG, "Refresh call")
+        Log.i(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
                 Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
                 //podcastsRepository.updatePodcasts(force)
             }.onFailure {
-                Log.i(TAG, "$it ::: runCatching, not sure what is failing here tho")
-            } // TODO: look at result of runCatching and show any errors
+                Log.i(TAG, "$it ::: runCatching failed (not sure what this means)")
+            }
 
             Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false

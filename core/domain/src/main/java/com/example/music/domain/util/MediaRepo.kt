@@ -586,7 +586,7 @@ class MediaRepo (
     suspend fun update(track: Track): Boolean {
         val playlistsDb = playlistz
         // if the item is not in playlist return false
-        // FixMe: what happens if the user have changed/updated the uri of the item.
+        // Question: what happens if the user has changed/updated the uri of the item?
         if (!exists(track.playlistID, track.uri))
             return false
         val order = playlistsDb.lastPlayOrder(track.playlistID) ?: -1

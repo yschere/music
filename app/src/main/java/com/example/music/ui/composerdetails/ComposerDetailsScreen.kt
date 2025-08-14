@@ -238,7 +238,7 @@ fun ComposerDetailsTopAppBar(
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
-        // search btn //TODO: does this make more sense as a more options btn?
+        // search btn
         IconButton( onClick = navigateToSearch ) {
             Icon(
                 imageVector = Icons.Outlined.Search,
@@ -246,7 +246,7 @@ fun ComposerDetailsTopAppBar(
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
-        //more options btn //TODO: temporary placement till figure out if this should be part of header
+        //more options btn // temporary placement till figure out if this should be part of header
         IconButton(onClick = {}) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
@@ -266,7 +266,6 @@ fun ComposerDetailsContent(
     songs: List<SongInfo>,
     //onQueueSong: (SongInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
-    //navigateToPlayerSong: (PlayerSong) -> Unit, //TODO: PlayerSong support
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -332,7 +331,7 @@ fun ComposerDetailsHeaderItem(
     composer: ComposerInfo,
     modifier: Modifier = Modifier
 ) {
-    //TODO choose if want 1 image or multi image view for composer header
+    //FUTURE THOUGHT: choose if want 1 image or multi image view for composer header
     // and for the 1 image, should it be the 1st album, or an image for externally of the composer?
     BoxWithConstraints(
         modifier = modifier.padding(Keyline1)

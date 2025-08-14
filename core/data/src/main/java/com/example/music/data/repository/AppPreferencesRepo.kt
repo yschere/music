@@ -23,11 +23,13 @@ enum class RepeatType {
 enum class ShuffleType {
     ONCE, ON_LOOP
 }
-// TODO do these need to be renamed to match MS column names?
+
+//FUTURE THOUGHT: do these need to be renamed to match MS column names?
 enum class AlbumSortOrder {
-    TITLE, ALBUM_ARTIST, DATE_LAST_PLAYED, SONG_COUNT //maybe not date last played, could make it year if those columns FUCKING WORKED
+    TITLE, ALBUM_ARTIST, DATE_LAST_PLAYED, SONG_COUNT
 }
-// TODO do these need to be renamed to match MS column names?
+
+//FUTURE THOUGHT: do these need to be renamed to match MS column names?
 enum class ArtistSortOrder {
     NAME, ALBUM_COUNT, SONG_COUNT
 }
@@ -35,7 +37,8 @@ enum class ArtistSortOrder {
 enum class ComposerSortOrder {
     NAME, SONG_COUNT
 }
-// TODO do these need to be renamed to match MS column names?
+
+//FUTURE THOUGHT: do these need to be renamed to match MS column names?
 enum class GenreSortOrder {
     NAME, SONG_COUNT
 }
@@ -43,7 +46,8 @@ enum class GenreSortOrder {
 enum class PlaylistSortOrder {
     NAME, DATE_CREATED, DATE_LAST_ACCESSED, DATE_LAST_PLAYED, SONG_COUNT
 }
-// TODO do these need to be renamed to match MS column names?
+
+//FUTURE THOUGHT: do these need to be renamed to match MS column names?
 enum class SongSortOrder {
     TITLE, ARTIST, ALBUM, DATE_ADDED, LAST_PLAYED//, DURATION, FILE_SIZE
 }

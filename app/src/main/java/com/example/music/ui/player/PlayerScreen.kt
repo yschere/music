@@ -251,8 +251,6 @@ private fun FullScreenLoading(modifier: Modifier = Modifier) {
     }
 }
 
-//TODO: see if this can be used to adjust background based on album artwork
-// how to rework this to be on the song data
 @Composable
 private fun PlayerBackground(
     song: SongInfo,
@@ -263,10 +261,10 @@ private fun PlayerBackground(
     //ImageBackgroundColorScrim(
     ImageBackgroundRadialGradientScrim(
         //url = song?.podcastImageUrl,
-        imageId = song.title, //TODO needs to be artwork bitmap or uri
+        imageId = song.title, //FixMe: needs to be artwork bitmap or uri
         //color = MaterialTheme.colorScheme.primaryContainer,
         colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),),
-        //colors = listOf(MaterialTheme.colorScheme.onPrimaryContainer,MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.onTertiary),//blueDarkColorSet.primary, //TODO
+        //colors = listOf(MaterialTheme.colorScheme.onPrimaryContainer,MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.onTertiary),//blueDarkColorSet.primary,
         modifier = modifier,
     )
 }
@@ -415,7 +413,7 @@ private fun PlayerContentRegular(
 
             Spacer(modifier = Modifier.weight(1f))
             PlayerImage(
-                albumImage = currentSong.title,//currentSong.artwork!!, //TODO: fix this when artwork fixed, needs to be bitmap or uri
+                albumImage = currentSong.title,//currentSong.artwork!!, //FixMe: change this to bitmap or url when artwork fixed
                 modifier = Modifier.weight(10f)
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -434,7 +432,7 @@ private fun PlayerContentRegular(
                     onSeekingFinished = playerControlActions.onSeekingFinished
                 )
                 PlayerButtons(
-                    hasNext = hasNext, // TODO should uiState have access to queue or should it be able to return a boolean here that viewmodel asks to songController?
+                    hasNext = hasNext, // Question: should uiState have access to queue or should it be able to return a boolean here that viewmodel asks to songController?
                     isPlaying = isPlaying,
                     isShuffled = isShuffled,
                     repeatState = repeatState.name,
@@ -487,7 +485,7 @@ private fun PlayerTopAppBar(
         }
 
         // more options button
-        IconButton(onClick = { /* TODO */ }) {
+        IconButton(onClick = {  }) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.icon_more),
@@ -610,10 +608,9 @@ private fun SongLyricsSwitch(
     }
 }
 
-//TODO: rework this to show album artwork from bitmap or uri
 @Composable
 private fun PlayerImage(
-    albumImage: String,
+    albumImage: String, //FixMe: needs to be artwork bitmap or uri
     modifier: Modifier = Modifier
 ) {
     AlbumImage(
@@ -670,9 +667,9 @@ fun Duration.formatString(): String {
     return "$minutes:$secondsLeft"
 }
 
-//TODO: rework this for song player if needed
+// FUTURE THOUGHT: rework this for song player if needed
 @Composable
-fun PlayerSlider( //removed private modifier to borrow this fun for BottomModals
+fun PlayerSlider( //removed private modifier to borrow this func for BottomModals
     timeElapsed: Duration,
     songDuration: Duration?,
     onSeekingStarted: () -> Unit,
@@ -692,7 +689,7 @@ fun PlayerSlider( //removed private modifier to borrow this fun for BottomModals
                 // do i split the values to the opposite ends of the slider?
                 text = "${sliderValue.formatString()} • ${songDuration?.formatString()}",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, //TODO
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -720,7 +717,7 @@ fun PlayerSlider( //removed private modifier to borrow this fun for BottomModals
     }
 }
 
-//TODO: rework this for song player
+// FUTURE THOUGHT: rework this for song player
 @Composable
 private fun PlayerButtons(
     hasNext: Boolean,
@@ -749,7 +746,7 @@ private fun PlayerButtons(
                     if no previous song in queue, ends the queue/session
                     if repeat is on, check queue:
                         if no queue or repeat is one, restarts current song
-                        if no queue or repeat is all, plays last song in context of current song player TODO check if need shuffle logic here too
+                        if no queue or repeat is all, plays last song in context of current song player Question: is shuffle logic needed here too?
                 for next: if pressed, skips to next song
                     if has queue:
                         if repeat is on, play next song
@@ -787,11 +784,10 @@ private fun PlayerButtons(
                 imageVector = Icons.Filled.ShuffleOn,
                 contentDescription = stringResource(R.string.pb_shuffle_on),
                 contentScale = ContentScale.Inside,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer), //TODO
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = sideButtonsModifier
                     .clickable(enabled = true, onClick = onShuffle)
-                //.clickable(enabled = isPlaying, onClick = onPrevious)//TODO: change this to make it work for shuffle
-                //.alpha(if (isPlaying) 1f else 0.25f) //likely change opacity if playing
+                    //.alpha(if (isPlaying) 1f else 0.25f) //likely change opacity if playing
             )
         } else {
             //determined that the current state IS NOT shuffled (isShuffled is false)
@@ -799,7 +795,7 @@ private fun PlayerButtons(
                 imageVector = Icons.Filled.Shuffle,
                 contentDescription = stringResource(R.string.pb_shuffle_off),
                 contentScale = ContentScale.Inside,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer), //TODO
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = sideButtonsModifier
                     .clickable(enabled = true, onClick = onShuffle)
             )

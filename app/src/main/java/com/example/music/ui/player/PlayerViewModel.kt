@@ -94,7 +94,7 @@ class PlayerViewModel @Inject constructor(
         Log.i(TAG, "songID: $songId")
         viewModelScope.launch {
             Log.i(TAG, "init viewModelScope launch start")
-            //TODO: using for comparison between SongToAlbum/SongInfo against PlayerSong for populating Player Screen
+            //Note: using for comparison between SongToAlbum/SongInfo against PlayerSong for populating Player Screen
             //songRepo.getSongAndAlbumBySongId(songId).flatMapConcat { //original code: used to get SongToAlbum to convert to PlayerSong,
             //songPlayer.currentSong = it.toPlayerSong() //original code: used to set songPlayer.currentSong from SongToAlbum to PlayerSong
 
@@ -166,13 +166,14 @@ class PlayerViewModel @Inject constructor(
 
     fun refresh(force: Boolean = true) {
         Log.e(TAG, "Refresh call")
+        Log.i(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
-                Log.e(TAG,"refresh runCatching")
+                Log.e(TAG,"Refresh runCatching")
                 refreshing.value = true
             }.onFailure {
-                Log.e(TAG, "$it ::: runCatching, not sure what is failing here tho")
-            } // TODO: look at result of runCatching and show any errors
+                Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")
+            }
 
             Log.e(TAG,"refresh to be false -> sets screen to ready state")
             refreshing.value = false

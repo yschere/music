@@ -14,7 +14,7 @@ import java.time.Duration
  */
 
 val DefaultPlaybackSpeed = Duration.ofSeconds(1)
-//TODO: see if there is way to confirm what type DefaultPlaybackSpeed is supposed to be
+// FUTURE THOUGHT: see if there is way to confirm what type DefaultPlaybackSpeed is supposed to be
 
 data class SongControllerState(
     val currentSong: MediaItem? = null,

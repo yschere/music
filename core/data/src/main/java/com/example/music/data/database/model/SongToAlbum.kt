@@ -14,7 +14,7 @@ import androidx.room.Ignore
 import androidx.room.Relation
 import java.util.Objects
 
-//TODO: fix SongToAlbum so that it is actually either all columns of song and album, or is both objects as a whole
+//FixMe: fix SongToAlbum so that it is actually either all columns of song and album, or is both objects as a whole
 // in current state, will have a song object and an albumId. but this means that every time I've been using SongToAlbum,
 // I wanted it to be a combination of both song object and album object
 // High likelihood this isn't really even necessary since it just means i'm adding album_id as a column twice. So this should

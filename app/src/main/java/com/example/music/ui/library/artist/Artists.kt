@@ -303,9 +303,10 @@ private fun ArtistListItemRow(
             }
         }
 
-        IconButton( //more options button
+        // More Options button
+        IconButton(
             //modifier = Modifier.padding(0.dp),
-            onClick = { /* TODO */ }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
+            onClick = {  }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
         ) {
             Icon( //more options icon
                 imageVector = Icons.Default.MoreVert,
@@ -316,8 +317,9 @@ private fun ArtistListItemRow(
     }
 }
 
-//TODO: rename this so its more representative
-// stands for the initial letter of the item's name/title
+/**
+ * Composable for drawing the Artist Item Icon to contain the first initial of an artist's name
+ */
 @Composable
 private fun ArtistListItemIcon(
     artist: String,
@@ -325,7 +327,7 @@ private fun ArtistListItemIcon(
 ) {
     Box(modifier = modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
         Text(
-            text = artist[0].toString(), //TODO: FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songinfo, albumInfo)
+            text = artist[0].toString(),
             minLines = 1,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary,

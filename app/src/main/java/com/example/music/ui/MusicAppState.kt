@@ -117,7 +117,6 @@ sealed class Screen(val route: String) {
         edit song tags screen -> needs context of selected item
         item options screen -> needs context of selected item (access from moreOptionsbtn onClick -> show in bottomModal)
 
-
         need to figure out if popups are separate screen or context popup for:
         add to queue(?) DECIDED: own screen w/ own nav route
         multi-select(?) - undecided if it should be its own screen w/ route or if its some fragment? not sure how to access this since the full song list is within library context
@@ -125,7 +124,7 @@ sealed class Screen(val route: String) {
         edit playlist - tangentially same issue as add/multi-select
         delete playlist - want this to be a modal with an are you sure CtA/confirmation
         sort options DECIDED: bottom modal sheet
-        search
+        search DECIDED: own screen w/ own nav route
      */
 }
 
@@ -236,7 +235,7 @@ class MusicAppState(
         }
     }
 
-    /* //TODO: determine if this is the song data page or the song edit tags page
+    /* //FUTURE THOUGHT: determine if this is the song data page or the song edit tags page
     // I have a feeling in either case it will still have the same questions
     // as the AlbumsList and ArtistsList screens
     fun navigateToSongDetails(songId: Long, from: NavBackStackEntry) {

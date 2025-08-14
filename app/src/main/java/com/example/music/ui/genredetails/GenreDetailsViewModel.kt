@@ -100,12 +100,17 @@ class GenreDetailsViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
+        Log.i(TAG, "Refresh call")
+        Log.i(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
+                Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
+            }.onFailure {
+                Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")
             }
-            // TODO: look at result of runCatching and show any errors
 
+            Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
     }

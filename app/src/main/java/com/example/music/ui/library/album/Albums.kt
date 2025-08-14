@@ -220,7 +220,7 @@ private fun AlbumItemRow(
 
                 IconButton( // more options button
                     //modifier = Modifier.padding(0.dp),
-                    onClick = { /* TODO
+                    onClick = { /*
                         coroutineScope.launch {
                             AlbumMoreOptionsBottomModal(
                                 onDismissRequest = {},
@@ -264,7 +264,7 @@ private fun AlbumItemBoxFooter(
         //Spacer(Modifier.weight(1f))
 
         IconButton(
-            onClick = { /* TODO */ },
+            onClick = {  },
         ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,

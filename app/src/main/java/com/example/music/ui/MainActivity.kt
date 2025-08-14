@@ -117,7 +117,7 @@ class MainActivity : ComponentActivity() {
         )
         Log.i(TAG, "edge to edge enabled")
 
-        //TODO does it make sense to initialize mediaPlayer / songPlayer class here?
+        // FUTURE THOUGHT: does it make sense to initialize mediaPlayer / songPlayer class here?
         // it would need to be created, but it would just start in idle state, maybe prepared state.
         // no song given unless a play function is invoked
         //val mediaPlayer: MediaPlayer = MediaPlayer.create(applicationContext, R.raw.Scar)

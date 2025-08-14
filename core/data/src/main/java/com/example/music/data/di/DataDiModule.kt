@@ -65,7 +65,7 @@ object DataDiModule {
 //        .apply {
 //            if (BuildConfig.DEBUG) eventListenerFactory(LoggingEventListener.Factory())
 //        }
-//        .build() //TODO do i still need this if I do not want my app to rely on network calls?
+//        .build() // Question: do i still need this if I do not want my app to rely on network calls?
 
     @Provides
     @Singleton
@@ -75,7 +75,7 @@ object DataDiModule {
         Room.databaseBuilder(context, MusicDatabase::class.java, "music.db")
             // This is not recommended for normal apps, but the goal of this sample isn't to
             // showcase all of Room.
-            // TODO why is this not recommended for normal apps?
+            // Question: why is this not recommended for normal apps?
 
             .fallbackToDestructiveMigration()
             .createFromAsset("preview_data.db")
@@ -91,26 +91,6 @@ object DataDiModule {
         // Disable `Cache-Control` header support as some 'podcast' images disable disk caching.
         //.respectCacheHeaders(false)
         .build()*/
-
-    /* //original version of preferences data store
-    @Provides
-    @Singleton
-    fun providePreferencesDataStore(@ApplicationContext appContext: Context): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.create(
-            corruptionHandler = ReplaceFileCorruptionHandler(
-                produceNewData = { emptyPreferences() }
-            ),
-            migrations = listOf(
-                object : DataMigration<Preferences> {
-                    override suspend fun cleanUp() { TODO("Not yet implemented") }
-                    override suspend fun migrate(currentData: Preferences): Preferences { TODO("Not yet implemented") }
-                    override suspend fun shouldMigrate(currentData: Preferences): Boolean { TODO("Not yet implemented") }
-                },
-            ),
-            scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
-            produceFile = { appContext.preferencesDataStoreFile(CURRENT_PREFERENCES) }
-        )
-    }*/
 
     @Provides
     @Singleton

@@ -73,6 +73,8 @@ import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
+private const val TAG = "Playlist Details Screen"
+
 /** Changelog:
  *
  * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
@@ -95,7 +97,7 @@ fun PlaylistDetailsScreen(
     //modifier: Modifier = Modifier,
     viewModel: PlaylistDetailsViewModel = hiltViewModel(),
 ) {
-    //logger.info { "Playlist Details Screen - hilt view model function start" }
+    //Log.i(TAG, "Initial Screen Call - Start")
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
@@ -133,10 +135,8 @@ fun PlaylistDetailsScreen(
                 PlaylistDetailsScreen(
                     playlist = s.playlist,
                     songs = s.songs,
-                    pSongs = s.pSongs, //TODO: PlayerSong support
                     onQueueSong = viewModel::onQueueSong,
                     navigateToPlayer = navigateToPlayer,
-                    navigateToPlayerSong = navigateToPlayerSong, //TODO: PlayerSong support
                     navigateBack = navigateBack,
                     showBackButton = showBackButton,
                     modifier = modifier,
@@ -191,11 +191,11 @@ private fun PlaylistDetailsScreen(
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) { //base level screen data / coroutine setter / screen component(s) caller
-    //logger.info{ "Playlist Details Screen function start" }
+    //Log.i(TAG, "Draw Screen Start")
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //used to hold the little popup text that appears after an onClick event
+    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
     ScreenBackground(
         modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
@@ -282,7 +282,7 @@ private fun PlaylistDetailsTopAppBar(
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
-        //more options btn //TODO: temporary placement till figure out if this should be part of header
+        // more options btn // temporary placement till figure out if this should be part of header
         IconButton(onClick = {}) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
@@ -340,7 +340,7 @@ private fun PlaylistDetailsContent(
          */
         //items(songs, key = { it.id }) { song -> // for each song in list:
         items(songs) { song ->
-            //TODO: because playlists are capable of having multiple copies of
+            //Note: Because playlists are capable of having multiple copies of
             // the same song, its likely necessary going forward to change the
             // referencing of each song thru its playlist entry
             // for now, not using unique id, just outputting the list
@@ -444,7 +444,7 @@ private fun PlaylistDetailsHeaderItemButtons(
 
         // more options btn
         IconButton(
-            onClick = { /* TODO */ },
+            onClick = {  },
             modifier = Modifier.padding(start = 8.dp)
         ) {
             Icon(

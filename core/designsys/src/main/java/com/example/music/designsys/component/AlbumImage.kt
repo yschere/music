@@ -50,11 +50,6 @@ import com.example.music.designsys.theme.blueDarkSet
 import com.example.music.designsys.theme.blueLightSet
 //import android.media.ImageReader
 
-/**
- * TODO: rework to use songPlayerData or album artwork
- * how do i reference image from song/mp3 file
- * how do i store that
- */
 @Composable
 fun AlbumImage(
     albumImage: Int = 0,

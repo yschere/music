@@ -71,7 +71,7 @@ abstract class AlbumsDao : BaseDao<Album> {
      * If song_count is null, it will be replaced as 0.
      * @param albumId [Long] the album_id to match on
      */
-    @Transaction //TODO check how to use coalesce to set null to empty string, for if album_artist_name is null
+    @Transaction
     @Query(
         """
         SELECT albums.*, COALESCE(song_count, 0) AS song_count, date_last_played, COALESCE(artists.name,"") AS album_artist_name FROM albums 
@@ -406,8 +406,6 @@ abstract class AlbumsDao : BaseDao<Album> {
     )
     abstract fun searchAlbumsByTitle(query: String, limit: Int): Flow<List<AlbumWithExtraInfo>> //equivalent of PodcastsDao.searchPodcastByTitle
 
-    // TODO see if its better for this to return as Artist or as Int of just artists.id
-    //  want to know it'll be easier to make check for artist exists
     @Transaction
     @Query(
         """

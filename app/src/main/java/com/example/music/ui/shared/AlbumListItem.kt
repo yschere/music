@@ -192,7 +192,7 @@ private fun AlbumListItemRow(
 
         IconButton( //more options button
             //modifier = Modifier.padding(0.dp),
-            onClick = { /* TODO */ }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
+            onClick = {  }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
         ) {
             Icon( //more options icon
                 imageVector = Icons.Default.MoreVert,
@@ -234,7 +234,7 @@ private fun AlbumListItemFooter(
         }
         IconButton(//more options button
             modifier = Modifier.padding(vertical = 12.dp),
-            onClick = { /* TODO */ }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
+            onClick = {  }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
         ) {
             Icon( //more options icon
                 imageVector = Icons.Default.MoreVert,
@@ -245,7 +245,7 @@ private fun AlbumListItemFooter(
     }
 }
 
-//TODO: see if it would be better to use Card?
+// Question: see if it would be better to use Card?
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun AlbumListItemHeader(

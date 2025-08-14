@@ -39,7 +39,7 @@ import androidx.room.PrimaryKey
  * @property trackTotal [Int] the trackList total of album.
  * @property discNumber [Int] the disc number of album. Most albums are 1 disc, but in sets, this can be different.
  * @property discTotal [Int] the disc total of album. Most albums are 1 disc, but in sets, this can be different.
- * TODO future properties to be supported: artwork/album_artwork as a bitmap. Currently using
+ * FUTURE properties to be supported: artwork/album_artwork as a bitmap. Currently using
  *  artwork as a String, but intend to have it as a bitmap/image eventually
  */
 data class Album(
@@ -51,5 +51,5 @@ data class Album(
     @ColumnInfo(name = "disc_number") var discNumber: Int? = null,
     @ColumnInfo(name = "disc_total") var discTotal: Int? = null,
     @ColumnInfo(name = "artwork") var artwork: String? = null
-    //TODO: change to bitmap when able to read in file data
+    //FUTURE: change to bitmap when able to read in file data
 )

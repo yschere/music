@@ -108,13 +108,14 @@ class AlbumDetailsViewModel @Inject constructor(
 
     fun refresh(force: Boolean = true) {
         Log.i(TAG, "Refresh call")
+        Log.i(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
-                Log.i(TAG, "refresh runCatching")
+                Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
             }.onFailure {
-                Log.i(TAG, "$it ::: runCatching, not sure what is failing here tho")
-            } // TODO: look at result of runCatching and show any errors
+                Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")
+            }
 
             Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false

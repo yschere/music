@@ -82,7 +82,7 @@ suspend fun ContentResolver.query2(
                         args
                     )
                 // Add the selection string.
-                // TODO: Consider adding support for group by.
+                // Consider adding support for group by.
                 // Currently, using group by on Android 10results in errors,
                 // and the argument for group by is only supported on Android 11 and above.
                 putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection)

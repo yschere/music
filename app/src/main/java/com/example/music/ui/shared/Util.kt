@@ -20,13 +20,17 @@ import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.size.Scale
 
+/**
+ * referenced by MediaService -> onMediaItemTransition
+ */
 internal val Uri.isThirdPartyUri
     get() = scheme == ContentResolver.SCHEME_CONTENT && authority != MediaStore.AUTHORITY
 
 /**
  * returns the positions array from the [DefaultShuffleOrder]
  *
- * FixMe: Extracts array from player using reflection.
+ * referenced by Player.queue below
+ * Extracts array from player using reflection.
  */
 internal val Player.orders: IntArray
     @OptIn(UnstableApi::class)
@@ -43,6 +47,7 @@ internal val Player.orders: IntArray
 
 /**
  * Returns all the [MediaItem]s of [Player] in their natural order.
+ * referenced by MediaService -> onCreate and Player.queue below
  *
  * @return A list of [MediaItem]s in the player's natural order.
  */
@@ -55,7 +60,7 @@ inline val Player.mediaItems
  * The queue property represents the list of media items in the player's queue.
  * If shuffle mode is not enabled, the queue will contain the media items in their natural order.
  * If shuffle mode is enabled, the queue will contain the media items in the order specified by the 'orders' list.
- *
+ * referenced by SongController -> next and SongController -> shuffleQueue
  * @return The list of media items in the player's queue.
  */
 val Player.queue get() = if (!shuffleModeEnabled) mediaItems else orders.map(::getMediaItemAt)
@@ -72,6 +77,9 @@ val Player.queue get() = if (!shuffleModeEnabled) mediaItems else orders.map(::g
 //    }
 //}
 
+/**
+ * referenced by MediaService -> onCustomCommand
+ */
 internal inline fun SessionResult(code: Int, args: Bundle.() -> Unit) =
     SessionResult(code, Bundle().apply(args))
 

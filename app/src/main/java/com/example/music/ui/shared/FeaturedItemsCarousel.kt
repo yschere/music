@@ -80,7 +80,7 @@ fun FeaturedAlbumsCarousel(
                     itemTitle = album.title,
                     itemSize = album.songCount,
                     onMoreOptionsClick = { onMoreOptionsClick(album) },
-                    // TODO: onClick = AlbumMoreOptionsBottomModal(album),
+                    //onClick = AlbumMoreOptionsBottomModal(album),
                     //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
                     modifier = Modifier
                         .fillMaxSize()
@@ -132,7 +132,7 @@ fun FeaturedPlaylistsCarousel(
                     itemSize = playlist.songCount,
                     onMoreOptionsClick = {},
                     //onMoreOptionsClick = { onMoreOptionsClick(playlist) },
-                    // TODO: onClick = PlaylistMoreOptionsBottomModal(playlist),
+                    //onClick = PlaylistMoreOptionsBottomModal(playlist),
                     //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
                     modifier = Modifier
                         .fillMaxSize()
@@ -202,7 +202,7 @@ fun FeaturedCarouselItem(
 
             // more options btn
             IconButton(
-                onClick = { onMoreOptionsClick }, // TODO: MoreOptionsBottomModal
+                onClick = { onMoreOptionsClick },
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,

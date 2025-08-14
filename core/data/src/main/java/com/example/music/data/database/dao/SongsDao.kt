@@ -50,7 +50,7 @@ abstract class SongsDao : BaseDao<Song> {
     /**
      * Returns a flow of the combined song and album object [SongToAlbum] matching the specified song id
      * @param songId [Long] the record's id to match on
-     * TODO: update when SongToAlbum fixed
+     * FUTURE THOUGHT: update when SongToAlbum fixed
      */
     @Transaction
     @Query(
@@ -374,7 +374,7 @@ abstract class SongsDao : BaseDao<Song> {
      * Returns a flow of the combined list of songs to one album object [SongToAlbum] matching the specified album id,
      * sorted by the song's title attribute in ascending order
      * @param albumId [Long]
-     * TODO: update when SongToAlbum fixed
+     * FUTURE THOUGHT: update when SongToAlbum fixed
      */
     @Transaction
     @Query(
@@ -392,7 +392,7 @@ abstract class SongsDao : BaseDao<Song> {
     /**
      * Returns a flow of the combined list of songs to one album object [SongToAlbum] matching any albumId within albumIds,
      * @param albumIds [List] of type [Long]
-     * TODO: update when SongToAlbum fixed
+     * FUTURE THOUGHT: update when SongToAlbum fixed
      */
     @Transaction
     @Query(
@@ -667,7 +667,7 @@ abstract class SongsDao : BaseDao<Song> {
         genreId: Long,
         limit: Int = Integer.MAX_VALUE
     ): Flow<List<SongToAlbum>> */
-    //TODO: fix SongToAlbum so that it is actually either all columns of song and album,
+    // FUTURE THOUGHT: fix SongToAlbum so that it is actually either all columns of song and album,
     // or is both objects as a whole
 
     /**

@@ -24,11 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.domain.testing.getArtistData
-import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.SongInfo
-
-
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
@@ -171,10 +167,10 @@ private fun SongListItemRow(
         }
 
         //show the track number of the song
-        // TODO change this so it's not as pronounced, nor shifts over the rest of the row content
+        // FixMe: change this so it's not as pronounced, nor shifts over the rest of the row content
         if (showTrackNumber) {
             Text(
-                text = (song.trackNumber ?: 0).toString(), //TODO: FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songInfo, albumInfo)
+                text = (song.trackNumber ?: 0).toString(), //FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songInfo, albumInfo)
                 minLines = 1,
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelLarge,

@@ -45,7 +45,7 @@ fun ImageBackgroundColorScrim(
 
 @Composable
 fun ImageBackgroundRadialGradientScrim(
-    imageId: String?,
+    imageId: String?, //FixMe: this needs to be either bitmap or uri
     colors: List<Color>,
     modifier: Modifier = Modifier,
 ) {

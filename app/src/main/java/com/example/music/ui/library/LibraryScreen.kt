@@ -233,7 +233,7 @@ private fun LibraryScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //TODO: update if need to
+    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //FixMe: update the snackBar selection to properly convey action taken
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     //moved to using listState and visible within LibraryContent()
