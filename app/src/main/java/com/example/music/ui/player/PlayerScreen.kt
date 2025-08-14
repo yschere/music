@@ -107,7 +107,6 @@ fun PlayerScreen(
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     //navigateToSettings: () -> Unit,
-    navigateToQueue: () -> Unit,
     viewModel: PlayerViewModel = hiltViewModel(),
     //modifier: Modifier,
 ) {
@@ -125,7 +124,6 @@ fun PlayerScreen(
         navigateBack = navigateBack,
         navigateToHome = navigateToHome,
         navigateToLibrary = navigateToLibrary,
-        navigateToQueue = navigateToQueue, //when not added, is part of viewModel::onAddToQueue
         onStop = viewModel::onStop,
         playerControlActions = PlayerControlActions(
             onPlayPress = viewModel::onPlay,
@@ -184,7 +182,6 @@ private fun PlayerScreen(
     navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
-    navigateToQueue: () -> Unit,
     onStop: () -> Unit,
     playerControlActions: PlayerControlActions,
     modifier: Modifier = Modifier
@@ -228,7 +225,6 @@ private fun PlayerScreen(
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(snackBarText)
                     }
-                    navigateToQueue() //was onAddToQueue()
                 },
                 playerControlActions = playerControlActions,
                 contentPadding = contentPadding,
@@ -934,7 +930,6 @@ fun PlayerScreenPreview() {
                 navigateToHome = { },
                 navigateToLibrary = { },
                 navigateBack = { },
-                navigateToQueue = {},
                 onStop = {},
                 playerControlActions = PlayerControlActions(
                     onPlayPress = {},

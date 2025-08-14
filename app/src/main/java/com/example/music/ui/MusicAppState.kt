@@ -32,10 +32,6 @@ sealed class Screen(val route: String) {
         fun createRoute(songId: Long) = "player/$songId"
     }
 
-    object Queue : Screen("queue") {
-        fun createRoute() = "queue"
-    }
-
     object Search : Screen("search") {
         fun createRoute() = "search"
     }
@@ -169,14 +165,6 @@ class MusicAppState(
         if (from.lifecycleIsResumed()) {
             Log.i(TAG, "***************** SWITCHING TO PLAYER VIEW *****************")
             navController.navigate(Screen.Player.createRoute(songId))
-        }
-    }
-
-    //DECIDED: this will be its own screen
-    fun navigateToQueue(from: NavBackStackEntry) {
-        if (from.lifecycleIsResumed()) {
-            Log.i(TAG, "***************** SWITCHING TO QUEUE VIEW *****************")
-            navController.navigate(Screen.Queue.createRoute())
         }
     }
 

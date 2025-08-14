@@ -20,7 +20,6 @@ import com.example.music.ui.home.MainScreen
 import com.example.music.ui.library.LibraryScreen
 import com.example.music.ui.player.PlayerScreen
 import com.example.music.ui.playlistdetails.PlaylistDetailsScreen
-import com.example.music.ui.queue.QueueScreen
 import com.example.music.ui.search.SearchScreen
 import com.example.music.ui.settings.SettingsScreen
 
@@ -96,19 +95,6 @@ fun MusicApp(
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
                     //navigateToSettings = { appState.navigateToSettings(backStackEntry) },
-                    navigateToQueue = { appState.navigateToQueue(backStackEntry) } //navigation to queue list screen (not sure if this will stay as screen or pop up view)
-                )
-            }
-
-            //Queue list Screen Navigation Router
-            composable(Screen.Queue.route) { backStackEntry ->
-                QueueScreen(
-                    windowSizeClass = adaptiveInfo.windowSizeClass,
-                    displayFeatures = displayFeatures,
-                    navigateBack = appState::navigateBack,
-                    navigateToPlayer = { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
                 )
             }
 
