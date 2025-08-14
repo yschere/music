@@ -5,21 +5,28 @@ accompanist = "0.36.0"
 activityCompose = "1.9.3"
 #noinspection AndroidGradlePluginVersion
 agp = "8.7.2"
+#noinspection GradleDependency
 appcompat = "1.7.0"
 #noinspection GradleDependency
 axConstraintLayout = "1.1.0-alpha13"
 #noinspection GradleDependency
 axDataStore = "1.1.2"
 axHilt = "1.2.0"
+#noinspection GradleDependency
 axLifecycle = "2.8.7"
 #noinspection GradleDependency
 axNavigation = "2.8.3"
 axPalette = "1.0.0"
+#noinspection GradleDependency
 axTest = "1.6.1"
+#noinspection GradleDependency
 axTestExtJunit = "1.2.1"
+#noinspection GradleDependency
 axTestExtTruth = "1.6.0"
+#noinspection GradleDependency
 axTestRunner = "1.6.2"
 axTestUIAutomator = "2.3.0"
+#noinspection GradleDependency
 axWindow = "1.3.0"
 #noinspection GradleDependency
 coil = "2.6.0"
@@ -29,6 +36,7 @@ composeBom = "2024.12.01"
 #noinspection GradleDependency
 coreKtx = "1.13.1"
 coroutines = "1.9.0"
+#noinspection GradleDependency
 espressoCore = "3.6.1"
 glance = "1.1.1"
 hilt = "2.53.1"
@@ -42,7 +50,6 @@ hilt = "2.53.1"
 kotlin = "2.1.0"
 #kotlin200 = "2.0.0"
 #kotlin210 = "2.1.0"
-kotlin_logging = "7.0.3"
 slf4j = "2.0.16"
 kotlinx_immutable = "0.3.8"
 kotlinx-serialization-json = "1.7.3"
@@ -186,7 +193,6 @@ dagger-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref
 #horologist-roboscreenshots = { module = "com.google.android.horologist:horologist-roboscreenshots", version.ref = "horologist" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin_logging"}
 slf4j-log = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinx_immutable" }
