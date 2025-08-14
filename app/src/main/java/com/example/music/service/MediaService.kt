@@ -55,17 +55,17 @@ import javax.inject.Inject
 import kotlin.math.roundToLong
 
 private const val TAG = "Media Service"
-/* TODO: want this to be the service that controls media session that interacts with media player
- *  extend media3's session service
- *  need to define the list of interactions, functions, and/or components this will work with
- */
 
+/**
+ * Intent: This service will control media session(s) that interacts with media player.
+ *  It will extend media3's session service.
+ */
 @UnstableApi
 @AndroidEntryPoint
 class MediaService : MediaSessionService(), Callback, Player.Listener {
 
     /**
-     * The media session of this service, initially null so that it can "exist" before being accessed later.
+     * The media session of this service, it's initially null so that it can "exist" before being accessed later.
      * Used to have it be instantiated after mediaPlayer since it needs the Player object for builder creation.
      */
     private var mediaSession: MediaSession? = null
@@ -138,10 +138,11 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
             .setSessionActivity(activity)
             .build()
 
-        // TODO: would instantiate any lateinit vars here. like the appPreferencesRepo
+        // FUTURE THOUGHT: would instantiate any lateinit vars here. like the appPreferencesRepo
         //  or begin connection to preferences data store
 
         scope.launch{
+            Log.i(TAG, "onCreate: scope launch start")
             runCatching {
                 // creating the media service in this onCreate function should mean i would then need a mediaPlayer to be within its scope.
                 // so that mediaPlayer needs to be here
@@ -164,26 +165,35 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
 
                 //mediaPlayer.setMediaItems(items)
             }
-            mediaPlayer.shuffleModeEnabled = appPreferences.isShuffleEnabled()
-            mediaPlayer.repeatMode = appPreferences.getRepeatTypeAsInt()
             // want to get enabled / initial values from dataStore
                 // get repeat type
                 // get shuffle type
                 // check if there is an active queue and retrieve it
-            // rest media items from the playlist.getMembers
+            // get rest of media items from the playlist.getMembers
             // set media items to list items
+            Log.i(TAG, "Setting media player shuffle mode from AppPreferences DataStore")
+            mediaPlayer.shuffleModeEnabled = appPreferences.isShuffleEnabled()
+
+            Log.i(TAG, "Setting media player repeat mode from AppPreferences DataStore")
+            mediaPlayer.repeatMode = appPreferences.getRepeatTypeAsInt()
+
             if (mediaPlayer.mediaItems.isNotEmpty()) {
+                Log.i(TAG, "mediaPlayer's mediaItems is not empty -> setting media items to media player")
                 mediaPlayer.setMediaItems(mediaPlayer.mediaItems)
             }
-            // double check sort order
-            // and if check misplaced, player
+            // check sort order
+
             Log.i(TAG, "Adding listener to a media player.")
             mediaPlayer.addListener(this@MediaService) //connects the MediaService's Player.Listener to mediaPlayer
             Log.i(TAG, "Added listener to a media player.")
+
             sendBroadcast(NowPlaying.from(this@MediaService, mediaPlayer))
+
+            Log.i(TAG, "onCreate: scope launch end")
         }
         createNotificationChannel()
         showNotification()
+        Log.i(TAG, "onCreate: END")
     }
 
     private fun createNotificationChannel() {}
@@ -253,7 +263,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         super.onMediaItemTransition(mediaItem, reason)
     }
 
-    override fun onShuffleModeEnabledChanged(
+    /*override fun onShuffleModeEnabledChanged(
         shuffleModeEnabled: Boolean
     ) {
         scope.launch() {
@@ -262,18 +272,18 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         }
         //mediaSession.notifyChildrenChanged(ROOT_QUEUE, 0, null)
         //super.onShuffleModeEnabledChanged(shuffleModeEnabled)
-    }
+    }*/
 
-    override fun onRepeatModeChanged(
+    /*override fun onRepeatModeChanged(
         repeatMode: Int
     ) {
         scope.launch() {
             appPreferences.updateRepeatType(RepeatType.entries[repeatMode])
             // set the dataStore repeat type to repeatMode
         }
-    }
+    }*/
 
-    override fun onTimelineChanged(
+    /*override fun onTimelineChanged(
         timeline: Timeline,
         reason: Int
     ) {
@@ -292,7 +302,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
             //mediaSession.notifyChildrenChanged(ROOT_QUEUE, 0, null)
         }
         super.onTimelineChanged(timeline, reason)
-    }
+    }*/
 
     override fun onEvents(
         player: Player,
@@ -360,7 +370,6 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         controller: ControllerInfo
     ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
         // --- Need this because of error during initial play of a media item: UnsupportedOperationException: Make sure to implement MediaSession.Callback.onPlaybackResumption() if you add a media button receiver to your manifest or if you implement the recent media item contract with your MediaLibraryService.
-
         Log.i(TAG, "onPlaybackResumption: ")
         return Futures.immediateFuture(
             MediaSession.MediaItemsWithStartPosition(
@@ -369,7 +378,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
                 C.TIME_UNSET
             )
         )
-//        return super.onPlaybackResumption(mediaSession,controller)
+        //return super.onPlaybackResumption(mediaSession,controller)
     }
 
     override fun onConnect(
@@ -439,32 +448,32 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
                 )
             }
 
-//            ACTION_EQUALIZER_CONFIG -> {
-//                val extras = customCommand.customExtras
-//                if (!extras.isEmpty) {
-//                    val isEqualizerEnabled = customCommand.customExtras.getBoolean(EXTRA_EQUALIZER_ENABLED)
-//                    val properties = customCommand.customExtras.getString(EXTRA_EQUALIZER_PROPERTIES, null)
-//
-//                    scope.launch {
-//                        //preferences[PREF_KEY_EQUALIZER_PROPERTIES] = properties
-//                        //preferences[PREF_KEY_EQUALIZER_ENABLED] = isEqualizerEnabled
-//                    }
-//                    onAudioSessionIdChanged(-1)
-//                }
-//
-//                Futures.immediateFuture(
-//                    SessionResult(SessionResult.RESULT_SUCCESS) {
-//                        putBoolean(
-//                            EXTRA_EQUALIZER_ENABLED,
-//                            runBlocking { preferences[PREF_KEY_EQUALIZER_ENABLED], false }
-//                        )
-//                        putString(
-//                            EXTRA_EQUALIZER_PROPERTIES,
-//                            runBlocking { preferences[PREF_KEY_EQUALIZER_PROPERTIES], "" }
-//                        )
-//                    }
-//                )
-//            }
+            /*ACTION_EQUALIZER_CONFIG -> {
+                val extras = customCommand.customExtras
+                if (!extras.isEmpty) {
+                    val isEqualizerEnabled = customCommand.customExtras.getBoolean(EXTRA_EQUALIZER_ENABLED)
+                    val properties = customCommand.customExtras.getString(EXTRA_EQUALIZER_PROPERTIES, null)
+
+                    scope.launch {
+                        //preferences[PREF_KEY_EQUALIZER_PROPERTIES] = properties
+                        //preferences[PREF_KEY_EQUALIZER_ENABLED] = isEqualizerEnabled
+                    }
+                    onAudioSessionIdChanged(-1)
+                }
+
+                Futures.immediateFuture(
+                    SessionResult(SessionResult.RESULT_SUCCESS) {
+                        putBoolean(
+                            EXTRA_EQUALIZER_ENABLED,
+                            runBlocking { preferences[PREF_KEY_EQUALIZER_ENABLED], false }
+                        )
+                        putString(
+                            EXTRA_EQUALIZER_PROPERTIES,
+                            runBlocking { preferences[PREF_KEY_EQUALIZER_PROPERTIES], "" }
+                        )
+                    }
+                )
+            }*/
             else -> {
                 Futures.immediateFuture(SessionResult(SessionError.ERROR_UNKNOWN))
             }
@@ -500,34 +509,34 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         )
     }
 
-//    fun setMediaItem(uri: Uri) {
-//        val newItem = MediaItem.Builder()
-//            .setMediaId("$uri")
-//            .build()
-//
-//        mediaPlayer.setMediaItem(newItem)
-//        mediaPlayer.prepare()
-//        mediaPlayer.play()
-//    }
+    /*fun setMediaItem(uri: Uri) {
+        val newItem = MediaItem.Builder()
+            .setMediaId("$uri")
+            .build()
+
+        mediaPlayer.setMediaItem(newItem)
+        mediaPlayer.prepare()
+        mediaPlayer.play()
+    }*/
 
     override fun onTimeout(startId: Int) {
         super.onTimeout(startId)
     }
 
-//    override fun onPostConnect(session: MediaSession, controller: ControllerInfo) {
-//        super.onPostConnect(session, controller)
-//        return ConnectionResult.AcceptedResultBuilder(mediaSession)
-//            .setAvailableSessionCommands(available.build())
-//            .build()
-//    }
+    /*override fun onPostConnect(session: MediaSession, controller: ControllerInfo) {
+        super.onPostConnect(session, controller)
+        return ConnectionResult.AcceptedResultBuilder(mediaSession)
+            .setAvailableSessionCommands(available.build())
+            .build()
+    }*/
 
-//    override fun onMediaButtonEvent(
-//        session: MediaSession,
-//        controllerInfo: ControllerInfo,
-//        intent: Intent
-//    ): Boolean {
-//        return super.onMediaButtonEvent(session, controllerInfo, intent)
-//    }
+    /*override fun onMediaButtonEvent(
+        session: MediaSession,
+        controllerInfo: ControllerInfo,
+        intent: Intent
+    ): Boolean {
+        return super.onMediaButtonEvent(session, controllerInfo, intent)
+    }*/
 
     override fun getContentResolver(): ContentResolver {
         return super.getContentResolver()
@@ -544,11 +553,11 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
     companion object {
         private const val SAVE_POSITION_DELAY_MILLS = 5_000L // Delay in milliseconds for saving position.
 
-        val PLAYLIST_FAVORITES = "favorite" // The name of the global 'Favourite' playlist in [Playlists].
-        val PLAYLIST_RECENTS = "recents" // The name of the global 'Recent' playlist in [Playlists].
-        val PLAYLIST_QUEUE = "queue" // The name of the global 'Queue' playlist in [Playlists].
+        //val PLAYLIST_FAVORITES = "favorite" // The name of the global 'Favourite' playlist in [Playlists].
+        //val PLAYLIST_RECENTS = "recents" // The name of the global 'Recent' playlist in [Playlists].
+        //val PLAYLIST_QUEUE = "queue" // The name of the global 'Queue' playlist in [Playlists].
 
-        const val ROOT_QUEUE = "com.example.music.player" // The root identifier for the queue-related content served by this service.
+        //const val ROOT_QUEUE = "com.example.music.player" // The root identifier for the queue-related content served by this service.
             // Used as a key to access queue-related content in the application's data structure.
 
         private const val PREFIX = "com.example.music"
@@ -559,13 +568,13 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         const val ACTION_SCHEDULE_SLEEP_TIME = "$PREFIX.action.SCHEDULE_SLEEP_TIME" // Action string for scheduling sleep time.
         const val EXTRA_SCHEDULED_TIME_MILLS = "$PREFIX.extra.AUDIO_SESSION_ID" // Extra key for scheduled time in milliseconds.
         const val UNINITIALIZED_SLEEP_TIME_MILLIS = -1L // Constant for uninitialized sleep time in milliseconds.
-//        const val ACTION_EQUALIZER_CONFIG = "$PREFIX.extra.EQUALIZER" // Action string for equalizer configuration.
-//        const val EXTRA_EQUALIZER_ENABLED = "$PREFIX.extra.EXTRA_EQUALIZER_ENABLED" // Extra key for equalizer enabled state.
-//        const val EXTRA_EQUALIZER_PROPERTIES = "$PREFIX.extra.EXTRA_EQUALIZER_PROPERTIES" // Extra key for equalizer properties.
+        //const val ACTION_EQUALIZER_CONFIG = "$PREFIX.extra.EQUALIZER" // Action string for equalizer configuration.
+        //const val EXTRA_EQUALIZER_ENABLED = "$PREFIX.extra.EXTRA_EQUALIZER_ENABLED" // Extra key for equalizer enabled state.
+        //const val EXTRA_EQUALIZER_PROPERTIES = "$PREFIX.extra.EXTRA_EQUALIZER_PROPERTIES" // Extra key for equalizer properties.
 
         // app preference keys
-        private val APREF_KEY_SHUFFLE_TYPE = "_shuffle"
-        private val APREF_KEY_REPEAT_TYPE = "_repeat"
+        //private val APREF_KEY_SHUFFLE_TYPE = "_shuffle"
+        //private val APREF_KEY_REPEAT_TYPE = "_repeat"
         //private val PREF_KEY_SHUFFLE_MODE = "_shuffle"
         //private val PREF_KEY_REPEAT_MODE = "_repeat_mode"
         //private val PREF_KEY_INDEX = "_index" // saved current item's index ?? for onCreate
