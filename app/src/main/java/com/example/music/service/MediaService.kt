@@ -308,6 +308,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         player: Player,
         events: Player.Events
     ) {
+        Log.i(TAG, "onEvents")
         if (!events.containsAny(*UPDATE_EVENTS))
             return
         sendBroadcast(NowPlaying.from(this, player))
@@ -315,6 +316,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
     }
 
     override fun onPlayerError(error: PlaybackException) {
+        Log.e(TAG, "onPlayerError", error)
         //Toast.makeText(this, "Unplayable file", Toast.LENGTH_SHORT).show()
         // send toast of player error
         mediaPlayer.seekToNextMediaItem()
@@ -324,6 +326,9 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         isPlaying: Boolean,
         reason: Int
     ) {
+        Log.i(TAG, "onPlayWhenReadyChanged\n" +
+                "isPlaying: $isPlaying\n" +
+                "reason: $reason")
         super.onPlayWhenReadyChanged(isPlaying, reason)
 
         if (!isPlaying) {
@@ -366,11 +371,13 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
     }
 
     override fun onPlaybackResumption(
-        mediaSession: MediaSession,
+        session: MediaSession,
         controller: ControllerInfo
     ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
         // --- Need this because of error during initial play of a media item: UnsupportedOperationException: Make sure to implement MediaSession.Callback.onPlaybackResumption() if you add a media button receiver to your manifest or if you implement the recent media item contract with your MediaLibraryService.
-        Log.i(TAG, "onPlaybackResumption: ")
+        Log.i(TAG, "onPlaybackResumption:\n" +
+                "Media Session: ${session.id}\n" +
+                "Controller: ${controller.packageName}")
         return Futures.immediateFuture(
             MediaSession.MediaItemsWithStartPosition(
                 emptyList(),
@@ -385,6 +392,9 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         session: MediaSession,
         controller: ControllerInfo
     ): ConnectionResult {
+        Log.i(TAG, "onConnect:\n" +
+                "Media Session: ${session.id}\n" +
+                "Controller: ${controller.packageName}")
         // obtain available commands by creating the set
         val available = ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
 
@@ -426,9 +436,14 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         customCommand: SessionCommand,
         args: Bundle
     ): ListenableFuture<SessionResult> {
+        Log.i(TAG, "onCustomCommand:\n" +
+                "Media Session: ${session.id}\n" +
+                "Controller: ${controller.packageName}\n" +
+                "Custom Command: ${customCommand.customAction}")
         val action = customCommand.customAction
         return when (action) {
             ACTION_AUDIO_SESSION_ID -> {
+                Log.i(TAG, "onCustomCommand -> ACTION_AUDIO_SESSION_ID")
                 val audioSessionId = (mediaPlayer as ExoPlayer).audioSessionId
                 val result = SessionResult(SessionResult.RESULT_SUCCESS) {
                     putInt(EXTRA_AUDIO_SESSION_ID, audioSessionId)
@@ -437,6 +452,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
             }
 
             ACTION_SCHEDULE_SLEEP_TIME -> {
+                Log.i(TAG, "onCustomCommand -> ACTION_SCHEDULE_SLEEP_TIME")
                 val newTimeMillis = customCommand.customExtras.getLong(EXTRA_SCHEDULED_TIME_MILLS)
                 if (newTimeMillis != 0L)
                     scheduledPauseTimeMillis = newTimeMillis
@@ -475,6 +491,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
                 )
             }*/
             else -> {
+                Log.e(TAG, "onCustomCommand -> Unknown Error")
                 Futures.immediateFuture(SessionResult(SessionError.ERROR_UNKNOWN))
             }
         }
@@ -484,6 +501,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        Log.i(TAG, "onTaskRemoved")
         super.onTaskRemoved(rootIntent)
         mediaPlayer.playWhenReady = false
         /*if (runBlocking { preferences[PREF_KEY_CLOSE_WHEN_REMOVED, false] }) {
@@ -494,14 +512,20 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
     }
 
     override fun onSetMediaItems(
-        mediaSession: MediaSession,
+        session: MediaSession,
         controller: ControllerInfo,
         mediaItems: MutableList<MediaItem>,
         startIndex: Int,
         startPositionMs: Long
     ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+        Log.i(TAG, "onSetMediaItems:\n" +
+            "Media Session: ${session.id}\n" +
+            "Controller: ${controller.packageName}\n" +
+            "Media Items count: ${mediaItems.size}\n" +
+            "Starting Index: $startIndex\n" +
+            "Starting Position (in Ms): $startPositionMs")
         return super.onSetMediaItems(
-            mediaSession,
+            session,
             controller,
             mediaItems,
             startIndex,
