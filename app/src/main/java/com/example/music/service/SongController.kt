@@ -198,4 +198,6 @@ interface SongController {
     fun getTimeElapsed() : Duration
 
     fun getHasNext() : Boolean
+
+    fun isConnected() : Boolean
 }

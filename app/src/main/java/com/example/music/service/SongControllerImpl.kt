@@ -70,7 +70,7 @@ class SongControllerImpl @Inject constructor(
         get() = if (mediaControllerFuture.isDone) mediaControllerFuture.get() else null
 
     private val _playerState = MutableStateFlow(SongControllerState())
-//    private val _currentSong = MutableStateFlow<SongInfo?>(null)
+    //    private val _currentSong = MutableStateFlow<SongInfo?>(null)
     private val _currentSong = MutableStateFlow<MediaItem?>(null)
     private val queue = MutableStateFlow<List<MediaItem>>(emptyList())
     private val isPlaying = MutableStateFlow(false)
@@ -131,12 +131,12 @@ class SongControllerImpl @Inject constructor(
                 //appPref,
             ) { currentSong, queue, isPlaying, timeElapsed, playerSpeed, repeatState, isShuffled ->
                 Log.i(TAG, "Song Controller State launch: ${currentSong?.title} " +
-                    "\n queue: ${queue.size}" +
-                    "\n isPlaying: $isPlaying" +
-                    "\n timeElapsed: $timeElapsed" +
-                    "\n playbackSpeed: $playerSpeed" +
-                    "\n repeatState: $repeatState" +
-                    "\n isShuffled: $isShuffled" )
+                        "\n queue: ${queue.size}" +
+                        "\n isPlaying: $isPlaying" +
+                        "\n timeElapsed: $timeElapsed" +
+                        "\n playbackSpeed: $playerSpeed" +
+                        "\n repeatState: $repeatState" +
+                        "\n isShuffled: $isShuffled" )
                 SongControllerState(
                     currentSong = currentSong,
                     queue = queue,
@@ -173,19 +173,19 @@ class SongControllerImpl @Inject constructor(
                 //but then the loggger in here was only called on the actual play state change? or at least when the play button on PlayerScreen was clicked.
                 //why the difference? AND why is it that now the player screen itself doesn't change state at all, but the internal logs are still going as normal
 
-                    //should player be updating song controller ... or should song controller be updating the player?
-                    // because from here which one is actually populated?
-                    // as of 5/3/2025, player is null and has nothing, so it would just overwrite song controller with null
-                    //Log.i(TAG, "Controller Listener _player state update: ${player.currentMediaItem} \n ${player.duration} \n ${player.shuffleModeEnabled}")
-                    //SongControllerState(
-                        //currentSong = player.currentMediaItem?.asExternalModel(),
-                        //queue = player.queue.map { it.asExternalModel() },
-                        //isPlaying = player.isPlaying,
-                        //timeElapsed = Duration.ofMillis(player.duration),
-                        //playbackSpeed = playerSpeed,
-                        //repeatState = RepeatType.entries[player.repeatMode],
-                        //isShuffled = player.shuffleModeEnabled,
-                    //)
+                //should player be updating song controller ... or should song controller be updating the player?
+                // because from here which one is actually populated?
+                // as of 5/3/2025, player is null and has nothing, so it would just overwrite song controller with null
+                //Log.i(TAG, "Controller Listener _player state update: ${player.currentMediaItem} \n ${player.duration} \n ${player.shuffleModeEnabled}")
+                //SongControllerState(
+                //currentSong = player.currentMediaItem?.asExternalModel(),
+                //queue = player.queue.map { it.asExternalModel() },
+                //isPlaying = player.isPlaying,
+                //timeElapsed = Duration.ofMillis(player.duration),
+                //playbackSpeed = playerSpeed,
+                //repeatState = RepeatType.entries[player.repeatMode],
+                //isShuffled = player.shuffleModeEnabled,
+                //)
                 //}
                 //i think this sets the mediaControllerCallback player state vals in MusicPlayer, so i need to set the songcontrollerstate
             }
@@ -272,8 +272,8 @@ class SongControllerImpl @Inject constructor(
     override fun play() {
         //mediaPlayer.play()
         Log.d(TAG, "in play():\n" +
-            "isPlaying is set to ${isPlaying.value}.\n" +
-            "Current song is ${_currentSong.value?.title}")
+                "isPlaying is set to ${isPlaying.value}.\n" +
+                "Current song is ${_currentSong.value?.title}")
 
         // Do nothing if already playing
         if (isPlaying.value) {
@@ -510,10 +510,10 @@ class SongControllerImpl @Inject constructor(
 
     override fun shuffle(songInfos: List<SongInfo>) {
         // ground rules
-            // 1 if the songs here are the first items going into the queue, then the shuffled
-                // order here is the originating order, aka it is the queue's default track order. hitting unshuffle will keep this order intact, and hitting shuffle can change the order but the original needs to remain untouched
-            // 2 this does not change the shuffle type
-            // 3 this does not set isShuffle to true
+        // 1 if the songs here are the first items going into the queue, then the shuffled
+        // order here is the originating order, aka it is the queue's default track order. hitting unshuffle will keep this order intact, and hitting shuffle can change the order but the original needs to remain untouched
+        // 2 this does not change the shuffle type
+        // 3 this does not set isShuffle to true
         // NOW I'M CONFUSION
         // CAUSE HITTING SHUFFLE WHILE THERE WAS MULTIPLE ITEMS ADDED TO QUEUE
         // REMOVED THE ORIGINAL ITEM THAT STARTED THE QUEUE, KEPT THE ITEMS THAT WERE ADDED AFTER,
@@ -553,8 +553,9 @@ class SongControllerImpl @Inject constructor(
     override fun getHasNext(): Boolean {
         return mediaController?.hasNextMediaItem() ?: false
     }
-}
 
+    override fun isConnected(): Boolean = mediaController?.connectedToken != null
+}
 
 // Used to enable property delegation
 private operator fun <T> MutableStateFlow<T>.setValue(

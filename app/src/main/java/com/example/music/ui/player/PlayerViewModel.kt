@@ -98,7 +98,7 @@ class PlayerViewModel @Inject constructor(
                 currentSong = songData
                 songController.setMediaItem(songData)
                 //songController.play(songData)
-                Log.i(TAG, "is SongController available: ${songController.currentSong}")
+                Log.i(TAG, "is SongController available: ${songController.isConnected()}")
                 Log.i(TAG, "isReady?: ${!refreshing}")
 
                 PlayerUiState(
