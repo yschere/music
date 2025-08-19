@@ -5,7 +5,6 @@ import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.audiofx.Equalizer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -98,11 +97,6 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
     }
 
     /**
-     * Likely supposed to be an object that would hold the variables/data for an equalizer object in the app settings
-     */
-    private var equalizer: Equalizer? = null
-
-    /**
      * The Player object of the media session service.
      */
     @Inject
@@ -123,54 +117,28 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
 
     @OptIn(UnstableApi::class)
     override fun onCreate() {
-        super.onCreate()
         Log.i(TAG, "onCreate: START")
+        super.onCreate()
 
+        Log.i(TAG, "Checking if MediaPlayer exists")
         if (!this::mediaPlayer.isInitialized) {
             // this is to attempt to have mediaPlayer be initialized before it is required.
             // Because I've run into that error numerous times while trying to play an audio file in app
             Log.e(TAG, "MEDIA PLAYER NOT INITIALIZED")
             mediaPlayer.deviceInfo
+        } else {
+            Log.i(TAG, "MediaPlayer exists: ${mediaPlayer.availableCommands}")
         }
 
         // Moved mediaSession builder here so that it will be created as part of the creation of the service
+        Log.i(TAG, "Building Media Session")
         mediaSession = MediaSession.Builder(this, mediaPlayer)
             .setSessionActivity(activity)
             .build()
-
-        // FUTURE THOUGHT: would instantiate any lateinit vars here. like the appPreferencesRepo
-        //  or begin connection to preferences data store
+        Log.i(TAG, "Media Session created")
 
         scope.launch{
             Log.i(TAG, "onCreate: scope launch start")
-            runCatching {
-                // creating the media service in this onCreate function should mean i would then need a mediaPlayer to be within its scope.
-                // so that mediaPlayer needs to be here
-                // but I would think that mediaPlayer being created and usable above with mediaSession means that is does exist and is connected.
-                // so why do i also have songplayer here? is it separate from mediaPlayer? is it the domain version of mediaPlayer?
-
-
-                //SongPlayer
-                // is here where i build the connection to domain's songPlayer?
-                // or do i remove songPlayer in favor of setting up an
-                // actual controller to interface with mediaPlayer?
-
-                //begin building mediaPlayer's mediaItems into queue here?
-                //collect the preferences that set the queue play order
-
-                // need a way that either begins by pulling whatever was in queue before
-                // or begins by building an empty queue from scratch?
-                // or waits for a user input that generates the need for mediaItems to be attached
-                /*val items: List<MediaItem> = withContext(context = Dispatchers.IO) {  }*/
-
-                //mediaPlayer.setMediaItems(items)
-            }
-            // want to get enabled / initial values from dataStore
-                // get repeat type
-                // get shuffle type
-                // check if there is an active queue and retrieve it
-            // get rest of media items from the playlist.getMembers
-            // set media items to list items
             Log.i(TAG, "Setting media player shuffle mode from AppPreferences DataStore")
             mediaPlayer.shuffleModeEnabled = appPreferences.isShuffleEnabled()
 
@@ -181,30 +149,30 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
                 Log.i(TAG, "mediaPlayer's mediaItems is not empty -> setting media items to media player")
                 mediaPlayer.setMediaItems(mediaPlayer.mediaItems)
             }
-            // check sort order
 
+            // Connects the MediaService's Player.Listener to mediaPlayer
             Log.i(TAG, "Adding listener to a media player.")
-            mediaPlayer.addListener(this@MediaService) //connects the MediaService's Player.Listener to mediaPlayer
+            mediaPlayer.addListener(this@MediaService)
             Log.i(TAG, "Added listener to a media player.")
 
             sendBroadcast(NowPlaying.from(this@MediaService, mediaPlayer))
 
             Log.i(TAG, "onCreate: scope launch end")
         }
-        createNotificationChannel()
-        showNotification()
+
         Log.i(TAG, "onCreate: END")
     }
 
-    private fun createNotificationChannel() {}
-
-    private fun showNotification() {}
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.i(TAG, "onStartCommand: Start\n" +
+                "Intent action: ${intent?.action}\n" +
+                "Intent data: ${intent?.data}\n" +
+                "Flags: $flags\n" +
+                "Start ID: $startId")
         val action = intent?.action
-        Log.i(TAG, "onStartCommand: $action")
 
         if (action == null) {
+            Log.i(TAG, "onStartCommand: action is null -> sending broadcast NowPlaying")
             sendBroadcast(NowPlaying.from(this, mediaPlayer))
             return super.onStartCommand(intent, flags, startId)
         }
@@ -244,7 +212,9 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         mediaItem: MediaItem?,
         reason: Int
     ) {
-        Log.i(TAG, "onMediaItemTransition")
+        Log.i(TAG, "onMediaItemTransition:\n" +
+            "Media Item: $mediaItem\n" +
+            "Reason: $reason")
         scope.launch {
             // preferences[PREF_KEY_INDEX] = mediaPlayer.currentMediaItemIndex
             // save current index in preference?? seems like get current media item index
@@ -308,15 +278,15 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         player: Player,
         events: Player.Events
     ) {
-        Log.i(TAG, "onEvents")
+        Log.i(TAG, "onEvents: ${events.size()}")
         if (!events.containsAny(*UPDATE_EVENTS))
             return
         sendBroadcast(NowPlaying.from(this, player))
-        //super.onEvents(player, events)
+        super.onEvents(player, events)
     }
 
     override fun onPlayerError(error: PlaybackException) {
-        Log.e(TAG, "onPlayerError", error)
+        Log.e(TAG, "onPlayerError: ${error.errorCode}", error)
         //Toast.makeText(this, "Unplayable file", Toast.LENGTH_SHORT).show()
         // send toast of player error
         mediaPlayer.seekToNextMediaItem()
@@ -401,34 +371,11 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         // adds the commands that can be set
         available.add(SessionCommand(ACTION_AUDIO_SESSION_ID, Bundle.EMPTY))
         available.add(SessionCommand(ACTION_SCHEDULE_SLEEP_TIME, Bundle.EMPTY))
-        //available.add(SessionCommand(ACTION_EQUALIZER_CONFIG, Bundle.EMPTY))
 
         return ConnectionResult.AcceptedResultBuilder(session)
             .setAvailableSessionCommands(available.build())
             .build()
     }
-
-    /*override fun onAudioSessionIdChanged(audioSessionId: Int) {
-        if (audioSessionId != -1)
-            super.onAudioSessionIdChanged(audioSessionId)
-
-        if (equalizer == null || audioSessionId != -1) {
-            equalizer?.release()
-            equalizer = kotlin.runCatching {
-                Equalizer(0, (mediaPlayer as ExoPlayer).audioSessionId)
-            }.getOrNull()
-        }
-
-        scope.launch {
-            equalizer?.enabled = preferences[PREK_KEY_EQUALIZER_ENABLED, false]
-
-            val properties = preferences[PREF_KEY_EQUALIZER_PROPERTIES, ""]
-
-            if (properties.isNotBlank()) {
-                equalizer?.properties = Settings(properties)
-            }
-        }
-    }*/
 
     override fun onCustomCommand(
         session: MediaSession,
@@ -464,32 +411,6 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
                 )
             }
 
-            /*ACTION_EQUALIZER_CONFIG -> {
-                val extras = customCommand.customExtras
-                if (!extras.isEmpty) {
-                    val isEqualizerEnabled = customCommand.customExtras.getBoolean(EXTRA_EQUALIZER_ENABLED)
-                    val properties = customCommand.customExtras.getString(EXTRA_EQUALIZER_PROPERTIES, null)
-
-                    scope.launch {
-                        //preferences[PREF_KEY_EQUALIZER_PROPERTIES] = properties
-                        //preferences[PREF_KEY_EQUALIZER_ENABLED] = isEqualizerEnabled
-                    }
-                    onAudioSessionIdChanged(-1)
-                }
-
-                Futures.immediateFuture(
-                    SessionResult(SessionResult.RESULT_SUCCESS) {
-                        putBoolean(
-                            EXTRA_EQUALIZER_ENABLED,
-                            runBlocking { preferences[PREF_KEY_EQUALIZER_ENABLED], false }
-                        )
-                        putString(
-                            EXTRA_EQUALIZER_PROPERTIES,
-                            runBlocking { preferences[PREF_KEY_EQUALIZER_PROPERTIES], "" }
-                        )
-                    }
-                )
-            }*/
             else -> {
                 Log.e(TAG, "onCustomCommand -> Unknown Error")
                 Futures.immediateFuture(SessionResult(SessionError.ERROR_UNKNOWN))
@@ -569,7 +490,6 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
     override fun onDestroy() {
         mediaPlayer.release()
         mediaSession?.release()
-        //equalizer?.release()
         scope.cancel()
         super.onDestroy()
     }
@@ -592,9 +512,6 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         const val ACTION_SCHEDULE_SLEEP_TIME = "$PREFIX.action.SCHEDULE_SLEEP_TIME" // Action string for scheduling sleep time.
         const val EXTRA_SCHEDULED_TIME_MILLS = "$PREFIX.extra.AUDIO_SESSION_ID" // Extra key for scheduled time in milliseconds.
         const val UNINITIALIZED_SLEEP_TIME_MILLIS = -1L // Constant for uninitialized sleep time in milliseconds.
-        //const val ACTION_EQUALIZER_CONFIG = "$PREFIX.extra.EQUALIZER" // Action string for equalizer configuration.
-        //const val EXTRA_EQUALIZER_ENABLED = "$PREFIX.extra.EXTRA_EQUALIZER_ENABLED" // Extra key for equalizer enabled state.
-        //const val EXTRA_EQUALIZER_PROPERTIES = "$PREFIX.extra.EXTRA_EQUALIZER_PROPERTIES" // Extra key for equalizer properties.
 
         // app preference keys
         //private val APREF_KEY_SHUFFLE_TYPE = "_shuffle"
@@ -604,8 +521,6 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         //private val PREF_KEY_INDEX = "_index" // saved current item's index ?? for onCreate
         //private val PREF_KEY_BOOKMARK = "_bookmark" // this is the saved, current position?? for onCreate
         //private val PREF_KEY_RECENT_PLAYLIST_LIMIT = "_max_recent_size" // saved limit for recent playlist size
-        //private val PREF_KEY_EQUALIZER_ENABLED = "_equalizer_enabled" //
-        //private val PREF_KEY_EQUALIZER_PROPERTIES = "_equalizer_properties" //
         //private val PREF_KEY_CLOSE_WHEN_REMOVED = "_stop_playback_when_removed" //
         //private val PREF_KEY_ORDERS = "_orders" //
 
@@ -613,13 +528,16 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
 
         val UPDATE_EVENTS = intArrayOf(
             Player.EVENT_TIMELINE_CHANGED,
-            Player.EVENT_PLAYBACK_STATE_CHANGED,
-            Player.EVENT_REPEAT_MODE_CHANGED,
-            Player.EVENT_IS_PLAYING_CHANGED,
+            Player.EVENT_MEDIA_ITEM_TRANSITION,
+            Player.EVENT_TRACKS_CHANGED,
             Player.EVENT_IS_LOADING_CHANGED,
-            Player.EVENT_PLAYBACK_PARAMETERS_CHANGED,
+            Player.EVENT_PLAYBACK_STATE_CHANGED,
+            Player.EVENT_IS_PLAYING_CHANGED,
+            Player.EVENT_REPEAT_MODE_CHANGED,
             Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
-            Player.EVENT_MEDIA_ITEM_TRANSITION
+            Player.EVENT_PLAYBACK_PARAMETERS_CHANGED,
+            Player.EVENT_MEDIA_METADATA_CHANGED,
+            Player.EVENT_PLAYLIST_METADATA_CHANGED,
         )
     }
 }
