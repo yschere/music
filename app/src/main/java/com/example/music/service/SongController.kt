@@ -18,7 +18,6 @@ val DefaultPlaybackSpeed = Duration.ofSeconds(1)
 
 data class SongControllerState(
     val currentSong: MediaItem? = null,
-    val queue: List<MediaItem> = emptyList(),
     val playbackSpeed: Duration = DefaultPlaybackSpeed,
     val isPlaying: Boolean = false, //tracks the current playing state
     val timeElapsed: Duration = Duration.ZERO,
@@ -58,16 +57,45 @@ interface SongController {
 
     fun addMediaItems(items: List<SongInfo>)
 
-    fun addToQueue(songInfo: SongInfo) //might be equivalent of addMediaItems(songs: List<Song>)
+    /**
+     * Add song to end of queue
+     */
+    fun addToQueue(songInfo: SongInfo)
 
+    /**
+     * Add multiple songs to end of queue
+     */
     fun addToQueue(songInfos: List<SongInfo>)
 
+    /**
+     * Add song to beginning of queue. This is for "PlayNext" to both place the song after the
+     * current song regardless if the queue is shuffled or not, it will be the next song. So when
+     * the queue is unshuffled, it will be set after the placement of where the current song is.
+     * Which means this implementation would need to know the placement of the current song to be
+     * able to iterate on.
+     */
     fun addToQueueNext(songInfo: SongInfo)
 
+    /**
+     * Add multiple songs to beginning of queue. Similar to [addToQueueNext] it's "PlayNext" but
+     * on a list of songs. So when shuffled is on, does it shuffle the incoming list? or place them
+     * next in its original order. survey says yes, place the new songs in order.
+     */
     fun addToQueueNext(songInfos: List<SongInfo>)
 
+    /**
+     * Clear the current queue and set it with provided item
+     */
     fun setMediaItem(item: SongInfo)
 
+    /**
+     * Clear the current queue and set it with provided items
+     */
+    fun setMediaItems(items: List<SongInfo>)
+
+    /**
+     * Prepare the media player
+     */
     fun preparePlayer()
 
     /**
@@ -76,17 +104,24 @@ interface SongController {
     fun removeAllFromQueue()
 
     /**
-     * Plays the current song
+     * Get the player to play. Effectively this should be the one that affects the
+     * isPlaying state as well as confirms the currentMediaItem within the mediaController.
      */
     fun play()
 
     /**
-     * Plays the specified song
+     * Plays a specified song.
+     * Note: If the given songInfo is from an item that is already within the queue,
+     * it should play that item.
      */
-    fun play(songInfo: SongInfo) //might be closest equivalent of play(mediaItemIndex: Int)
+    fun play(songInfo: SongInfo)
 
     /**
-     * Plays the specified list of songs
+     * Plays a specified list of songs.
+     * Note: Similar to [play] for a list of songs, if it is invoked with Play or PlayNext,
+     * it will remove the original context that began the queue, but keep the items that were in
+     * queue from "AddToQueue". So if the queue started from "Play" or "Shuffle", it will get
+     * replaced with the new item(s) being played or shuffled.
      */
     fun play(songInfos: List<SongInfo>)
 
@@ -103,13 +138,13 @@ interface SongController {
     /**
      * Plays another song in the queue (if available)
      */
-    fun next() //equivalent of skipToNextSong
+    fun next()
 
     /**
      * Plays the previous song in the queue (if available). Or if an song is currently
      * playing this will start the song from the beginning
      */
-    fun previous() //equivalent of skipToPreviousSong
+    fun previous()
 
     /**
      * Advances a currently played song by a given time interval specified in [duration].
@@ -129,11 +164,17 @@ interface SongController {
     /**
      * Seeks to a given time interval specified in [duration].
      */
-    fun onSeekingFinished(duration: Duration) //might be equivalent of seekTo(position: Long)
+    fun onSeekingFinished(duration: Duration)
 
-    fun onShuffle() //use this to control the shuffle functionality
+    /**
+     * Use to change the shuffle mode
+     */
+    fun onShuffle()
 
-    fun onRepeat() //use this to control the repeat functionality
+    /**
+     * Use to change the repeat mode
+     */
+    fun onRepeat()
 
     /**
      * Increases the speed of Player playback by a given time specified in [Duration].
@@ -156,4 +197,6 @@ interface SongController {
     fun getTimeElapsed() : Duration
 
     fun getHasNext() : Boolean
+
+    fun isConnected() : Boolean
 }

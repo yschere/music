@@ -7,23 +7,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.music.data.repository.RepeatType
 import com.example.music.data.util.combine
 import com.example.music.domain.model.SongInfo
-//import com.example.music.domain.player.SongPlayer
-//import com.example.music.domain.player.SongPlayerState
-import com.example.music.domain.player.model.toMediaItem
 import com.example.music.service.SongController
 import com.example.music.domain.usecases.GetSongDataV2
-import com.example.music.domain.usecases.GetThumbnailUseCase
 import com.example.music.ui.Screen
-//import com.example.music.util.MediaNotificationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import java.time.Duration
@@ -61,11 +53,9 @@ class PlayerViewModel @Inject constructor(
     //val mediaPlayer: Player,
     //appPreferencesRepo: AppPreferencesRepo,
     getSongDataV2: GetSongDataV2,
-    private val songController: SongController, //equivalent of musicController
+    private val songController: SongController,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    //@Inject
-    //lateinit var mediaPlayer: Player
 
     // songId should always be present in the PlayerViewModel.
     // If that's not the case, fail crashing the app!
@@ -76,12 +66,6 @@ class PlayerViewModel @Inject constructor(
     private val getSongData = getSongDataV2(songId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
     private var currentSong: SongInfo? = null
-
-    //private lateinit var notificationManager: MediaNotificationManager
-    //protected lateinit var mediaSession: MediaSession
-    //private val serviceJob = SupervisorJob()
-    //private val serviceScope = CoroutineScope( Dispatchers.Main + serviceJob)
-    //private var isStarted = false
 
     private val _state = MutableStateFlow(PlayerUiState())
 
@@ -106,15 +90,15 @@ class PlayerViewModel @Inject constructor(
                 getSongData,
             ) {
                 refreshing,
-                songData,
-                 ->
+                songData, ->
                 Log.i(TAG, "PlayerUiState call")
                 Log.i(TAG, "getSongID: ${songData.id}")
                 Log.i(TAG, "getSongTitle: ${songData.title}")
 
                 currentSong = songData
                 songController.setMediaItem(songData)
-                Log.i(TAG, "is SongController available: ${songController.currentSong?.mediaId}")
+                //songController.play(songData)
+                Log.i(TAG, "is SongController available: ${songController.isConnected()}")
                 Log.i(TAG, "isReady?: ${!refreshing}")
 
                 PlayerUiState(
@@ -162,11 +146,12 @@ class PlayerViewModel @Inject constructor(
             }*/
         }
         refresh(force = false)
+        playWhenReady()
     }
 
     fun refresh(force: Boolean = true) {
         Log.e(TAG, "Refresh call")
-        Log.i(TAG, "refreshing: ${refreshing.value}")
+        Log.e(TAG, "refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
                 Log.e(TAG,"Refresh runCatching")
@@ -180,36 +165,47 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Intent: to autoplay the loaded song when the screen is loaded and the songController has the selected song queued
+     */
+    fun playWhenReady() {
+        songController.preparePlayer()
+        //songController.play(currentSong!!)
+    }
+
     fun onPlay() {
-        Log.i(TAG,"Hitting play on the now playing screen.")
+        Log.i(TAG,"Hitting play on Player Screen.")
         songController.play(currentSong!!)
-        //mediaPlayer.playWhenReady
         //mediaPlayer.play()
     }
 
     fun onPause() {
+        Log.i(TAG, "Hitting pause on Player Screen")
         songController.pause()
         //mediaPlayer.pause()
     }
 
     fun onStop() {
+        Log.i(TAG, "Stop the Player Screen")
         songController.stop()
         //mediaPlayer.stop()
     }
 
     fun onPrevious() {
+        Log.i(TAG, "Hitting previous button on Player Screen")
         songController.previous()
         //mediaPlayer.seekToPrevious()
     }
 
     fun onNext() {
+        Log.i(TAG, "Hitting next button on Player Screen")
         songController.next()
         //mediaPlayer.seekToNextMediaItem()
     }
 
     fun onSeekingStarted() {
         songController.onSeekingStarted()
-//        mediaPlayer.seekToDefaultPosition()
+        //mediaPlayer.seekToDefaultPosition()
     }
 
     fun onSeekingFinished(duration: Duration) {
@@ -218,13 +214,19 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun onShuffle() {
+        Log.i(TAG, "Hitting shuffle button on Player Screen")
         songController.onShuffle()
         //mediaPlayer.shuffleModeEnabled
     }
 
     fun onRepeat() {
+        Log.i(TAG, "Hitting repeat button on Player Screen")
         songController.onRepeat()
         //mediaPlayer.repeatMode
+    }
+
+    fun setCurrSong(song: SongInfo) {
+        currentSong = song
     }
 
     fun onDestroy() {
@@ -232,9 +234,4 @@ class PlayerViewModel @Inject constructor(
         //mediaPlayer.release()
     }
 
-//    fun onAddToQueue() {
-//        uiState.songPlayerState.currentSong?.let {
-//            songPlayer.addToQueue(it)
-//        }
-//    }
 }
