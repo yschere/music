@@ -2,12 +2,9 @@ package com.example.music.service
 
 import android.content.ComponentName
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -15,16 +12,11 @@ import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.data.repository.RepeatType
 import com.example.music.data.util.combine
 import com.example.music.domain.model.SongInfo
-import com.example.music.service.SongController
-import com.example.music.service.SongControllerState
-import com.example.music.domain.player.model.asLocalMediaItem
 import com.example.music.domain.player.model.duration
 import com.example.music.domain.player.model.title
 import com.example.music.domain.player.model.toMediaItem
-import com.example.music.ui.shared.mediaItems
 import com.example.music.ui.shared.queue
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -33,7 +25,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
