@@ -1,6 +1,7 @@
 package com.example.music.di
 
 import android.content.Context
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -20,6 +21,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Singleton
 
+private const val TAG = "UI-DI-Module"
 @Module
 @InstallIn(SingletonComponent::class)
 object UiDiModule {
@@ -47,5 +49,8 @@ object UiDiModule {
     fun provideSongController(
         @ApplicationContext context: Context,
         @Dispatcher(MusicDispatchers.Main) mainDispatcher: CoroutineDispatcher
-    ): SongController = SongControllerImpl(context, mainDispatcher)
+    ): SongController {
+        Log.i(TAG, "Providing SongController")
+        return SongControllerImpl(context, mainDispatcher)
+    }
 }
