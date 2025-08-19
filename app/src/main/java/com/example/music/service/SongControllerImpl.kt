@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -56,17 +57,25 @@ import kotlin.reflect.KProperty
 private const val TAG = "SongControllerImpl"
 private const val RAND_SEED = 1 // seed for shuffle randomizer
 
+@OptIn(UnstableApi::class)
+private fun Context.mediaController(listener: MediaController.Listener) : ListenableFuture<MediaController> {
+    Log.i(TAG, "calling Context.mediaController Builder")
+    return MediaController.Builder(this, SessionToken(this, ComponentName(this, MediaService::class.java)))
+        .setListener(listener)
+        .buildAsync()
+}
+
 @UnstableApi
 class SongControllerImpl @Inject constructor(
     context: Context,
     mainDispatcher: CoroutineDispatcher
-) : SongController {
+) : SongController, MediaController.Listener {
 
     //@Inject
     //lateinit var appPreferences: AppPreferencesRepo
 
     // The Media Controller that will interact with MediaService
-    private var mediaControllerFuture: ListenableFuture<MediaController>
+    private var mediaControllerFuture: ListenableFuture<MediaController> = context.mediaController(this)
     private val mediaController: MediaController?
         get() = if (mediaControllerFuture.isDone) mediaControllerFuture.get() else null
 
@@ -98,19 +107,6 @@ class SongControllerImpl @Inject constructor(
 
     init {
         Log.i(TAG, "SongController init start")
-        val sessionToken = SessionToken(context, ComponentName(context, MediaService::class.java))
-        mediaControllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
-        mediaControllerFuture.addListener(
-            {
-                // Call controllerFuture.get() to retrieve the MediaController.
-                // MediaController implements the Player interface, so it can be
-                // attached to the PlayerView UI component.
-
-                Log.i(TAG, "SessionToken MediaController - ${mediaControllerFuture.get()}")
-                controllerListener()
-            },
-            MoreExecutors.directExecutor()
-        )
 
         coroutineScope.launch {
             Log.i(TAG, "SongController coroutine start")
@@ -155,14 +151,6 @@ class SongControllerImpl @Inject constructor(
                 _playerState.value = it
             }
         }
-    }
-
-    private fun controllerListener() {
-        mediaController?.addListener(object : Player.Listener {
-            override fun onEvents(player: Player, events: Player.Events) {
-                super.onEvents(player, events)
-            }
-        })
     }
 
     override var playerSpeed: Duration = _playerSpeed.value
