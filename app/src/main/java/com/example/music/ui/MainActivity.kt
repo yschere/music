@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.media3.common.util.UnstableApi
 import com.example.music.data.database.MusicDatabase
 import com.example.music.service.MediaService
+import com.example.music.service.SongController
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.theme.scrimDark
 import com.example.music.ui.theme.scrimLight
@@ -35,6 +36,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var musicDatabase: MusicDatabase
+
+    @Inject
+    lateinit var songController: SongController
 
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,6 +73,9 @@ class MainActivity : ComponentActivity() {
             }
             Log.i(TAG, "Android 10+ 'Read Media Audio' Permission Granted")
         }
+
+        Log.i(TAG, "Starting Media Service")
+        startService(Intent(this@MainActivity, MediaService::class.java))
 
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.auto(Color.Transparent.toArgb(),Color.Transparent.toArgb()),//.auto(scrimLight, scrimDark),
