@@ -54,7 +54,7 @@ import kotlin.reflect.KProperty
  */
 
 private const val TAG = "SongControllerImpl"
-private const val RandSeed = 1 // seed for shuffle randomizer
+private const val RAND_SEED = 1 // seed for shuffle randomizer
 
 @UnstableApi
 class SongControllerImpl @Inject constructor(
@@ -501,10 +501,8 @@ class SongControllerImpl @Inject constructor(
 //            it.shuffled(Random(RandSeed))
 //        }
         val temp = mediaController?.queue
-        temp?.shuffled( Random(RandSeed) )?.let {
-            mediaController?.setMediaItems(
-                it
-            )
+        temp?.shuffled( Random(RAND_SEED) )?.let {
+            mediaController?.setMediaItems( it )
         }
     }
 
@@ -530,7 +528,7 @@ class SongControllerImpl @Inject constructor(
         mediaController?.setMediaItems(
             songInfos.map {
                 it.toMediaItem
-            }.shuffled( Random(RandSeed) )
+            }.shuffled( Random(RAND_SEED) )
         )
     }
 
