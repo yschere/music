@@ -62,17 +62,17 @@ class SongControllerImpl @Inject constructor(
     mainDispatcher: CoroutineDispatcher
 ) : SongController {
 
-//    @Inject
-//    lateinit var appPreferences: AppPreferencesRepo
+    //@Inject
+    //lateinit var appPreferences: AppPreferencesRepo
 
+    // The Media Controller that will interact with MediaService
     private var mediaControllerFuture: ListenableFuture<MediaController>
     private val mediaController: MediaController?
         get() = if (mediaControllerFuture.isDone) mediaControllerFuture.get() else null
 
     private val _playerState = MutableStateFlow(SongControllerState())
-    //    private val _currentSong = MutableStateFlow<SongInfo?>(null)
+    //private val _currentSong = MutableStateFlow<SongInfo?>(null)
     private val _currentSong = MutableStateFlow<MediaItem?>(null)
-    private val queue = MutableStateFlow<List<MediaItem>>(emptyList())
     private val isPlaying = MutableStateFlow(false)
     private val isShuffled = MutableStateFlow(false)
     private val repeatState = MutableStateFlow(RepeatType.OFF)
@@ -96,7 +96,6 @@ class SongControllerImpl @Inject constructor(
         ) -> Unit
     )? = null*/
 
-    //private val appPref = appPreferences.appPreferencesFlow
     init {
         Log.i(TAG, "SongController init start")
         val sessionToken = SessionToken(context, ComponentName(context, MediaService::class.java))
@@ -122,24 +121,28 @@ class SongControllerImpl @Inject constructor(
             combine(
                 //collects flow to generate SongPlayer's State
                 _currentSong,
-                queue,
                 isPlaying,
                 timeElapsed,
                 _playerSpeed,
                 repeatState,
                 isShuffled,
                 //appPref,
-            ) { currentSong, queue, isPlaying, timeElapsed, playerSpeed, repeatState, isShuffled ->
+            ) {
+                currentSong,
+                isPlaying,
+                timeElapsed,
+                playerSpeed,
+                repeatState,
+                isShuffled,
+                ->
                 Log.i(TAG, "Song Controller State launch: ${currentSong?.title} " +
-                        "\n queue: ${queue.size}" +
-                        "\n isPlaying: $isPlaying" +
-                        "\n timeElapsed: $timeElapsed" +
-                        "\n playbackSpeed: $playerSpeed" +
-                        "\n repeatState: $repeatState" +
-                        "\n isShuffled: $isShuffled" )
+                    "\n isPlaying: $isPlaying" +
+                    "\n timeElapsed: $timeElapsed" +
+                    "\n playbackSpeed: $playerSpeed" +
+                    "\n repeatState: $repeatState" +
+                    "\n isShuffled: $isShuffled" )
                 SongControllerState(
                     currentSong = currentSong,
-                    queue = queue,
                     isPlaying = isPlaying,
                     timeElapsed = timeElapsed,
                     playbackSpeed = playerSpeed,
@@ -158,36 +161,6 @@ class SongControllerImpl @Inject constructor(
         mediaController?.addListener(object : Player.Listener {
             override fun onEvents(player: Player, events: Player.Events) {
                 super.onEvents(player, events)
-                //when the logger is out here it is getting called every millisecond with the player data, still not filled with a duration but still with player state 1
-                //Log.i(TAG, "Controller Listener player state: ${player.playbackState}; player details: ${player.currentMediaItem?.mediaId}; ${player.deviceInfo.playbackType};"}// ${player.duration}; " }
-
-                // --- Playback States
-                // STATE_IDLE = 1
-                // STATE_BUFFERING = 2
-                // STATE_READY = 3
-                // STATE_ENDED = 4
-                //duration is only available if playback state is in ready
-
-                // playerState.update used to set the songController state and all the properties along with it
-                //_playerState.update {
-                //but then the loggger in here was only called on the actual play state change? or at least when the play button on PlayerScreen was clicked.
-                //why the difference? AND why is it that now the player screen itself doesn't change state at all, but the internal logs are still going as normal
-
-                //should player be updating song controller ... or should song controller be updating the player?
-                // because from here which one is actually populated?
-                // as of 5/3/2025, player is null and has nothing, so it would just overwrite song controller with null
-                //Log.i(TAG, "Controller Listener _player state update: ${player.currentMediaItem} \n ${player.duration} \n ${player.shuffleModeEnabled}")
-                //SongControllerState(
-                //currentSong = player.currentMediaItem?.asExternalModel(),
-                //queue = player.queue.map { it.asExternalModel() },
-                //isPlaying = player.isPlaying,
-                //timeElapsed = Duration.ofMillis(player.duration),
-                //playbackSpeed = playerSpeed,
-                //repeatState = RepeatType.entries[player.repeatMode],
-                //isShuffled = player.shuffleModeEnabled,
-                //)
-                //}
-                //i think this sets the mediaControllerCallback player state vals in MusicPlayer, so i need to set the songcontrollerstate
             }
         })
     }
@@ -416,13 +389,13 @@ class SongControllerImpl @Inject constructor(
             // if i want it to work the same way the play music one works, it would need to keep
             // the add to history intact, so that switching would just go from one to the other
             // and hitting shuffle would just throw out a new shuffle order, no need to save it
-            // but to keep the unshuffled order ... would it take a temporary playlist queue?
+            // but to keep the un-shuffled order ... would it take a temporary playlist queue?
             // and it would just have the songs' track number intrinsically?
             // because i dunno about keeping a history as a side thing ...
             // actually, if the queue can be manually reordered, then yeah it would be much better
             // to just directly give the songs in queue their list order
-            // new concern: in play music, trying to reorder a song while unshuffled did not keep
-            // that move after the queue was shuffled, then unshuffled. it returned to its original
+            // new concern: in play music, trying to reorder a song while un-shuffled did not keep
+            // that move after the queue was shuffled, then un-shuffled. it returned to its original
             // placement when it was first added to the queue. maybe it really does use a history ...
             // or keeps the original placement and reordering uses a temporary shift
         }
@@ -509,7 +482,7 @@ class SongControllerImpl @Inject constructor(
     override fun shuffle(songInfos: List<SongInfo>) {
         // ground rules
         // 1 if the songs here are the first items going into the queue, then the shuffled
-        // order here is the originating order, aka it is the queue's default track order. hitting unshuffle will keep this order intact, and hitting shuffle can change the order but the original needs to remain untouched
+        // order here is the originating order, aka it is the queue's default track order. hitting un-shuffle will keep this order intact, and hitting shuffle can change the order but the original needs to remain untouched
         // 2 this does not change the shuffle type
         // 3 this does not set isShuffle to true
         // NOW I'M CONFUSION

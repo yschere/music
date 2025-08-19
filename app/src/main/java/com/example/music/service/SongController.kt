@@ -18,7 +18,6 @@ val DefaultPlaybackSpeed = Duration.ofSeconds(1)
 
 data class SongControllerState(
     val currentSong: MediaItem? = null,
-    val queue: List<MediaItem> = emptyList(),
     val playbackSpeed: Duration = DefaultPlaybackSpeed,
     val isPlaying: Boolean = false, //tracks the current playing state
     val timeElapsed: Duration = Duration.ZERO,
