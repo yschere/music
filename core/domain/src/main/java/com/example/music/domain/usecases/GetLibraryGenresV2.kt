@@ -4,8 +4,8 @@ import android.provider.MediaStore
 import android.util.Log
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.Genre
-import com.example.music.domain.util.MediaRepo
+import com.example.music.data.mediaresolver.model.Genre
+import com.example.music.data.mediaresolver.MediaRepo
 import javax.inject.Inject
 
 private const val TAG = "Get Library Genres V2"

@@ -4,9 +4,9 @@ import android.provider.MediaStore
 import android.util.Log
 import com.example.music.domain.model.AlbumDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.Album
-import com.example.music.domain.util.Artist
-import com.example.music.domain.util.MediaRepo
+import com.example.music.data.mediaresolver.model.Album
+import com.example.music.data.mediaresolver.model.Artist
+import com.example.music.data.mediaresolver.MediaRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map

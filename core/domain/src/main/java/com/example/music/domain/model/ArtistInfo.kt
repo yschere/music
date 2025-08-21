@@ -3,7 +3,7 @@ package com.example.music.domain.model
 import android.util.Log
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.ArtistWithExtraInfo
-import com.example.music.domain.util.Artist as ArtistV2
+import com.example.music.data.mediaresolver.model.Artist as ArtistV2
 
 private const val TAG = "ArtistInfo"
 

@@ -4,10 +4,8 @@ import android.provider.MediaStore
 import android.util.Log
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.Audio
-import com.example.music.domain.util.MediaRepo
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import com.example.music.data.mediaresolver.model.Audio
+import com.example.music.data.mediaresolver.MediaRepo
 import javax.inject.Inject
 
 /** logger info for this class */

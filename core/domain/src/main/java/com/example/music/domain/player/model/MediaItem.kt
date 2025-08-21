@@ -9,13 +9,12 @@ import android.text.Spanned
 import android.text.style.StyleSpan
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MediaMetadata.Builder
 import androidx.media3.common.util.UnstableApi
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.util.Audio
-import com.example.music.domain.util.albumUri
-import com.example.music.domain.util.uri
+import com.example.music.data.mediaresolver.model.Audio
+import com.example.music.data.mediaresolver.model.albumUri
+import com.example.music.data.mediaresolver.model.uri
 
 /** Changelog:
  *

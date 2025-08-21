@@ -3,7 +3,7 @@ package com.example.music.domain.usecases
 import android.util.Log
 import com.example.music.domain.model.SearchQueryFilterV2
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.MediaRepo
+import com.example.music.data.mediaresolver.MediaRepo
 import javax.inject.Inject
 
 /** Changelog:

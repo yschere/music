@@ -4,8 +4,8 @@ import android.provider.MediaStore
 import android.util.Log
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.Album
-import com.example.music.domain.util.MediaRepo
+import com.example.music.data.mediaresolver.model.Album
+import com.example.music.data.mediaresolver.MediaRepo
 import javax.inject.Inject
 
 private const val TAG = "Get Library Albums V2"

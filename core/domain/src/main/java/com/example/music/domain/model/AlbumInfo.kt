@@ -3,7 +3,7 @@ package com.example.music.domain.model
 import android.util.Log
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.AlbumWithExtraInfo
-import com.example.music.domain.util.Album as AlbumV2
+import com.example.music.data.mediaresolver.model.Album as AlbumV2
 import java.time.OffsetDateTime
 
 private const val TAG = "AlbumInfo"
