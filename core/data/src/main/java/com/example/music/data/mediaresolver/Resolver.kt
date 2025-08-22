@@ -227,7 +227,7 @@ suspend fun ContentResolver.getAudios(
         transform = { c ->
             val s = when (sQuery) {
                 null -> "-no filter given-"
-                else -> "-filtered for $sQuery-"
+                else -> "on '$sQuery'"
             }
             Log.i(TAG, "Get Audios Search $s:\n" +
                 "Audio(s) count returned: ${c.count}\n" +
@@ -444,7 +444,7 @@ suspend fun ContentResolver.getArtists(
     transform = { c ->
         val s = when (sQuery) {
             null -> "-no filter given-"
-            else -> "-filtered for $sQuery-"
+            else -> "on '$sQuery'"
         }
         Log.i(TAG, "Get Artists Search $s:\n" +
             "Artist(s) count returned: ${c.count}\n" +
@@ -650,7 +650,7 @@ suspend fun ContentResolver.getAlbums(
     transform = { c ->
         val s = when (sQuery) {
             null -> "-no filter given-"
-            else -> "-filtered for $sQuery-"
+            else -> "on '$sQuery'"
         }
         Log.i(TAG, "Get Albums Search $s:\n" +
             "Album(s) count returned: ${c.count}\n" +
@@ -831,7 +831,7 @@ suspend fun ContentResolver.getGenres(
     transform = { c ->
         val s = when (sQuery) {
             null -> "-no filter given-"
-            else -> "-filtered for $sQuery-"
+            else -> "on '$sQuery'"
         }
         Log.i(TAG, "Get Genres Search $s:\n" +
             "Genre(s) count returned: ${c.count}\n" +
