@@ -8,10 +8,10 @@ import androidx.compose.runtime.Stable
 import androidx.media3.common.MediaItem
 import com.example.music.data.mediaresolver.MediaRepo.Companion.toAlbumArtUri
 
-private const val TAG = "ContentResolver Audio Model"
+private const val TAG = "MediaResolver Audio Model"
 
 /**
- * Domain model Audio for Resolver
+ * Data model Audio for Resolver
  */
 @Stable
 data class Audio(

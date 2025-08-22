@@ -5,10 +5,10 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.runtime.Stable
 
-private const val TAG = "ContentResolver Genre Model"
+private const val TAG = "MediaResolver Genre Model"
 
 /**
- * Domain model Genre for Resolver
+ * Data model Genre for Resolver
  */
 @Stable
 data class Genre(
