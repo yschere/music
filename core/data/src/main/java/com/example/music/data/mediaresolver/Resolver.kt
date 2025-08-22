@@ -442,9 +442,9 @@ suspend fun ContentResolver.getArtists(
 ): List<Artist> = queryExt(
     uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
     projection = ARTIST_PROJECTION,
-    selection = DEFAULT_ARTIST_SELECTION +
-        if (sQuery != null) " AND ${MediaStore.Audio.Artists.ARTIST} LIKE ?"
-        else "",
+    selection =
+        if (sQuery != null) "${MediaStore.Audio.Artists.ARTIST} LIKE ?"
+        else DUMMY_SELECTION,
     args =
         if (sQuery != null) arrayOf("%$sQuery%")
         else null,
@@ -650,9 +650,9 @@ suspend fun ContentResolver.getAlbums(
 ): List<Album> = queryExt(
     uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
     projection = ALBUM_PROJECTION,
-    selection = DEFAULT_ALBUM_SELECTION +
+    selection =
         if (sQuery != null) " AND ${MediaStore.Audio.Albums.ALBUM} LIKE ?"
-        else "",
+        else DUMMY_SELECTION,
     args =
         if (sQuery != null) arrayOf("%$sQuery%")
         else null,
@@ -834,9 +834,9 @@ suspend fun ContentResolver.getGenres(
 ): List<Genre> = queryExt(
     uri = MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI,
     projection = GENRE_PROJECTION,
-    selection = DEFAULT_GENRE_SELECTION +
-        if (sQuery != null) " AND ${MediaStore.Audio.Genres.NAME} LIKE ?"
-        else "",
+    selection =
+        if (sQuery != null) "${MediaStore.Audio.Genres.NAME} LIKE ?"
+        else DUMMY_SELECTION,
     args =
         if (sQuery != null) arrayOf("%$sQuery%")
         else null,
