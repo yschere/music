@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.compose.runtime.Stable
 import com.example.music.data.mediaresolver.MediaRepo.Companion.toAlbumArtUri
 
-private const val TAG = "MediaResolver Album Model"
+private const val TAG = "MediaResolver Album"
 
 /**
  * Data model Album for Resolver

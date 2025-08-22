@@ -5,7 +5,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.runtime.Stable
 
-private const val TAG = "MediaResolver Artist Model"
+private const val TAG = "MediaResolver Artist"
 
 /**
  * Data model Artist for Resolver
