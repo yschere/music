@@ -1,4 +1,4 @@
-package com.example.music.domain.util
+package com.example.music.data.mediaresolver
 
 import android.content.ContentResolver
 import android.content.ContentUris
@@ -8,6 +8,10 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
 import android.util.Size
+import com.example.music.data.mediaresolver.model.Album
+import com.example.music.data.mediaresolver.model.Artist
+import com.example.music.data.mediaresolver.model.Audio
+import com.example.music.data.mediaresolver.model.Genre
 import com.example.music.data.util.combine
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -18,14 +22,23 @@ private const val TAG = "MediaRepo"
 private fun toAudioTrackUri(id: Long) =
     ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
 
+/**
+ * Class that serves as a repository for the data layer to provide the ability to request and
+ * retrieve data from the ContentResolver.
+ */
 class MediaRepo (
     @ApplicationContext context: Context
 ) {
+    /***********************************************************************************************
+     *
+     * **********  MEDIA REPOSITORY BASE PROPERTIES AND METHODS SECTION ***********
+     *
+     **********************************************************************************************/
+
+    // Object by which MediaRepo accesses media data
     private val resolver: ContentResolver = context.contentResolver
 
     companion object {
-//        private const val ALBUM_ART_URI: String = "content://media/external/audio/albumart"
-//        fun toAlbumArtUri(id: Long): Uri = ContentUris.withAppendedId(Uri.parse(ALBUM_ART_URI), id)
         val EXTERNAL_CONTENT_URI = MediaStore.Files.getContentUri("external")
         private val ALBUM_ART_URI: Uri = Uri.parse("content://media/external/audio/albumart")
         fun toAlbumArtUri(id: Long): Uri = ContentUris.withAppendedId(ALBUM_ART_URI, id)
@@ -57,7 +70,6 @@ class MediaRepo (
             null,
             null)
         if (songCursor != null && songCursor.moveToFirst()) {
-            //counts.add(Pair("SONG", songCursor.count))
             counts.add(songCursor.count)
         }
 
@@ -68,7 +80,6 @@ class MediaRepo (
             null,
             null)
         if (artistCursor != null && artistCursor.moveToFirst()) {
-            //counts.add(Pair("ARTIST", artistCursor.count))
             counts.add(artistCursor.count)
         }
 
@@ -79,7 +90,6 @@ class MediaRepo (
             null,
             null)
         if (albumCursor != null && albumCursor.moveToFirst()) {
-            //counts.add(Pair("ALBUM", albumCursor.count))
             counts.add(albumCursor.count)
         }
 
@@ -90,7 +100,6 @@ class MediaRepo (
             null,
             null)
         if (genreCursor != null && genreCursor.moveToFirst()) {
-            //counts.add(Pair("GENRE", genreCursor.count))
             counts.add(genreCursor.count - 1) // this is to remove the 'null' row that genre counts
         }
 
@@ -115,15 +124,15 @@ class MediaRepo (
      **********************************************************************************************/
 
     /**
-     * Get most recently added songs from MediaStore
-     * @return [Flow] of [List] of [Audio]
+     * Get ids of the most recently added songs from MediaStore
+     * @return [Flow] of [List] of [Long]
      */
-    fun mostRecentSongs(limit: Int) =
+    fun mostRecentSongsIds(limit: Int) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                resolver.query2(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    arrayOf(MediaStore.Audio.Media._ID),
+                resolver.queryExt(
+                    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    projection = arrayOf(MediaStore.Audio.Media._ID),
                     order = MediaStore.Audio.AudioColumns.DATE_ADDED,
                     limit = limit,
                     ascending = false,
@@ -139,46 +148,32 @@ class MediaRepo (
      * Get all audios
      * @return [List] of [Audio]
      */
-    suspend fun getAllSongs(
+    suspend fun getAllAudios(
         order: String,
         ascending: Boolean
-    ): List<Audio> = resolver.query2(
-        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-        arrayOf(MediaStore.Audio.Media._ID),
-        order = order,
-        ascending = ascending,
-    ) { c ->
-        Array(c.count) {
-            c.moveToPosition(it)
-            c.getLong(0)
-        }.map { id ->
-            getAudio(id)
-        }
+    ): List<Audio> {
+        Log.i(TAG, "Get All Audios")
+        return resolver.getAudios(
+            order = order,
+            ascending = ascending
+        )
     }
 
     /**
      * Get all audios
      * @return [Flow] of [List] of [Audio]
      */
-    fun getAllSongsFlow(
+    fun getAllAudiosFlow(
         order: String,
         ascending: Boolean
     ): Flow<List<Audio>> =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                resolver.query2(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    arrayOf(MediaStore.Audio.Media._ID),
+                Log.i(TAG, "Flow Get All Audios: observe MediaStore result: $it")
+                resolver.getAudios(
                     order = order,
-                    ascending = ascending,
-                ) { c ->
-                    Array(c.count) {
-                        c.moveToPosition(it)
-                        c.getLong(0)
-                    }.map { id ->
-                        getAudio(id)
-                    }
-                }
+                    ascending = ascending
+                )
             }
 
     /**
@@ -243,25 +238,33 @@ class MediaRepo (
      * Get all artists
      * @return [List] of [Artist]
      */
-    suspend fun getAllArtists( order: String, ascending: Boolean ) =
-        findArtists(
+    suspend fun getAllArtists(
+        order: String,
+        ascending: Boolean
+    ): List<Artist> {
+        Log.i(TAG, "Get All Artists")
+        return resolver.getArtists(
             order = order,
             ascending = ascending,
         )
+    }
 
     /**
      * Get all artists
      * @return [Flow] of [List] of [Artist]
      */
-    fun getAllArtistsFlow( order: String, ascending: Boolean ) =
+    fun getAllArtistsFlow(
+        order: String,
+        ascending: Boolean
+    ): Flow<List<Artist>> =
         observe(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI)
             .map {
-                findArtists(
+                Log.i(TAG, "Flow Get All Artists: observe Media Store result: $it")
+                resolver.getArtists(
                     order = order,
                     ascending = ascending,
                 )
             }
-
     /**
      * Search for artist, with query for user input
      * @param query string for filtering based on user input
@@ -272,7 +275,7 @@ class MediaRepo (
         order: String = MediaStore.Audio.Artists.ARTIST,
         ascending: Boolean = true,
         limit: Int = Integer.MAX_VALUE,
-    ) = resolver.getArtists(
+    ): List<Artist> = resolver.getArtists(
         sQuery = query,
         order = order,
         ascending = ascending,
@@ -283,24 +286,29 @@ class MediaRepo (
      * Search for Artist based on id
      * @return [Artist]
      */
-    suspend fun getArtist(id: Long) = resolver.findArtist(id)
+    suspend fun getArtist(
+        id: Long
+    ): Artist = resolver.findArtist(id)
 
     /**
      * Search for Artist based on id
      * @return [Flow] of [Artist]
      */
-    fun getArtistFlow(artistId: Long) =
-        observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
-            .map {
-                Log.i(TAG, "Get Artist by ID: $artistId")
-                resolver.findArtist(artistId)
-            }
+    fun getArtistFlow(
+        artistId: Long
+    ): Flow<Artist> = observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
+        .map {
+            Log.i(TAG, "Flow Get Artist by ID: $artistId")
+            resolver.findArtist(artistId)
+        }
 
     /**
      * Search for Artist based on an Album Id
      * @return [Artist]
      */
-    suspend fun getArtistByAlbumId(albumId: Long): Artist {
+    suspend fun getArtistByAlbumId(
+        albumId: Long
+    ): Artist {
         Log.i(TAG, "Get Artist by Album ID: $albumId")
         val album = resolver.findAlbum(albumId)
         Log.i(TAG, "Get Artist by AlbumArtistId: ${album.artistId}")
@@ -311,36 +319,42 @@ class MediaRepo (
      * Search for Artist based on an Album Id
      * @return [Flow] of [Artist]
      */
-    fun getArtistByAlbumIdFlow(albumId: Long) =
-        observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
-            .map {
-                Log.i(TAG, "Flow Get Artist by Album ID: $albumId")
-                val album = resolver.findAlbum(albumId)
-                Log.i(TAG, "Flow Get Artist by AlbumArtistId: ${album.artistId}")
-                resolver.findArtist(album.artistId)
-            }
+    fun getArtistByAlbumIdFlow(
+        albumId: Long
+    ): Flow<Artist> = observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
+        .map {
+            Log.i(TAG, "Flow Get Artist by Album ID: $albumId")
+            val album = resolver.findAlbum(albumId)
+            Log.i(TAG, "Flow Get Artist by AlbumArtistId: ${album.artistId}")
+            resolver.findArtist(album.artistId)
+        }
 
+    /**
+     * Search for Albums by an Artist based on an Artist Id
+     * @return [Flow] of [List] of [Album]
+     */
     fun getAlbumsByArtistId(
         artistId: Long,
         sortOrder: String = MediaStore.Audio.Albums.ALBUM,
         ascending: Boolean = true,
-    ) = observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
+    ): Flow<List<Album>> = observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
         .map {
-            resolver.query2(
+            resolver.queryExt(
                 uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
                 projection = arrayOf(MediaStore.Audio.Albums.ALBUM_ID),
                 selection = "${MediaStore.Audio.Albums.ARTIST_ID} == ?",
                 args = arrayOf("$artistId"),
                 order = sortOrder,
                 ascending = ascending,
-            ) { c ->
-                Array(c.count) {
-                    c.moveToPosition(it)
-                    c.getLong(0)
-                }.map { id ->
-                    getAlbum(id)
+                transform = { c ->
+                    Array(c.count) {
+                        c.moveToPosition(it)
+                        c.getLong(0)
+                    }.map { id ->
+                        getAlbum(id)
+                    }
                 }
-            }
+            )
         }
 
     /**
@@ -376,23 +390,25 @@ class MediaRepo (
      **********************************************************************************************/
 
     /**
-     * returns most recently released albums
+     * returns the ids of the most recently released albums
+     * @return [Flow] of [List] of [Long]
      */
-    fun mostRecentAlbums(limit: Int) =
+    fun mostRecentAlbumsIds(limit: Int) =
         observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
             .map {
-                resolver.query2(
-                    MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                    arrayOf(MediaStore.Audio.Albums.ALBUM_ID),
+                resolver.queryExt(
+                    uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                    projection = arrayOf(MediaStore.Audio.Albums.ALBUM_ID),
                     order = MediaStore.Audio.Albums.LAST_YEAR,
                     limit = limit,
                     ascending = false,
-                ) { c ->
-                    Array(c.count) {
-                        c.moveToPosition(it)
-                        c.getLong(0)
+                    transform = { c ->
+                        Array(c.count) {
+                            c.moveToPosition(it)
+                            c.getLong(0)
+                        }
                     }
-                }
+                )
             }
 
     /**
@@ -448,7 +464,7 @@ class MediaRepo (
     fun getAlbumFlow(id: Long) =
         observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
             .map {
-                Log.i(TAG, "Get Album Flow by ID: $id")
+                Log.i(TAG, "Flow Get Album by ID: $id")
                 resolver.findAlbum(id)
             }
 
@@ -488,7 +504,7 @@ class MediaRepo (
      * get all genres
      * @return [List] of [Genre]
      */
-    suspend fun getAllGenres( order: String, ascending: Boolean ) =
+    suspend fun getAllGenres(order: String, ascending: Boolean) =
         findGenres(
             order = order,
             ascending = ascending
@@ -498,7 +514,7 @@ class MediaRepo (
      * get all genres
      * @return [Flow] of [List] of [Genre]
      */
-    fun getAllGenresFlow( order: String, ascending: Boolean ) =
+    fun getAllGenresFlow(order: String, ascending: Boolean) =
         observe(MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI)
             .map {
                 findGenres(
@@ -508,12 +524,19 @@ class MediaRepo (
             }
 
     /**
-     * Get Genre By id
+     * Search for Genre based on id
+     * @return [Genre]
      */
-    fun getGenreById(id: Long) =
+    suspend fun getGenre(id: Long) = resolver.findGenre(id)
+
+    /**
+     * Search for Genre based on id
+     * @return [Flow] of [Genre]
+     */
+    fun getGenreFlow(id: Long) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                Log.i(TAG, "Get Genre by ID: $id")
+                Log.i(TAG, "Flow Get Genre by ID: $id")
                 resolver.findGenre(id)
             }
 
@@ -541,7 +564,7 @@ class MediaRepo (
     ) = resolver.getGenreAudios(name, query, order, ascending, offset, limit)
 
     /**
-     * Get Audios based on Genre name
+     * Get Audios based on Genre id
      * @return [List] of [Audio]
      */
     suspend fun getGenreAudios(
@@ -550,7 +573,7 @@ class MediaRepo (
         ascending: Boolean = true,
         offset: Int = 0,
         limit: Int = Integer.MAX_VALUE,
-    ) = resolver.getGenreAudios(id, order, ascending, offset, limit)
+    ) = resolver.getGenreAudiosById(id, order, ascending, offset, limit)
 
     //would likely get playlists here as well
     // and be able to get playlist's songs here too, ie "playlist members" or "playlist tracks"

@@ -25,6 +25,7 @@ import com.example.music.data.repository.ArtistRepoImpl
 import com.example.music.data.repository.ComposerRepo
 import com.example.music.data.repository.ComposerRepoImpl
 import com.example.music.data.repository.GenreRepoImpl
+import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.repository.PlaylistRepoImpl
 import com.example.music.data.repository.SongRepoImpl
 import com.example.music.data.repository.PlaylistRepo
@@ -223,4 +224,10 @@ object DataDiModule {
     ): SongRepo = SongRepoImpl(
         songDao = songDao
     )
+
+    @Provides
+    @Singleton
+    fun provideMediaRepo(
+        @ApplicationContext appContext: Context,
+    ) = MediaRepo(appContext)
 }

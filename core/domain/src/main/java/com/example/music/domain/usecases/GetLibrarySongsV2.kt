@@ -4,17 +4,15 @@ import android.provider.MediaStore
 import android.util.Log
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.Audio
-import com.example.music.domain.util.MediaRepo
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import com.example.music.data.mediaresolver.model.Audio
+import com.example.music.data.mediaresolver.MediaRepo
 import javax.inject.Inject
 
 /** logger info for this class */
 private const val TAG = "Get Library Songs V2"
 
 class GetLibrarySongsV2 @Inject constructor(
-    private val resolver: MediaRepo
+    private val mediaRepo: MediaRepo
 ) {
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<SongInfo> {
         val songsList: List<Audio>
@@ -23,35 +21,35 @@ class GetLibrarySongsV2 @Inject constructor(
         when (sortOption) {
 
             "ARTIST" -> {
-                songsList = resolver.getAllSongs(
+                songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.ARTIST,
                     ascending = isAscending,
                 )
             }
 
             "ALBUM" -> {
-                songsList = resolver.getAllSongs(
+                songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.ALBUM,
                     ascending = isAscending,
                 )
             }
 
             "DATE_ADDED" -> {
-                songsList = resolver.getAllSongs(
+                songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.DATE_ADDED,
                     ascending = isAscending,
                 )
             }
 
             "DATE_LAST_PLAYED" -> {
-                songsList = resolver.getAllSongs(
+                songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.DATE_MODIFIED,
                     ascending = isAscending,
                 )
             }
 
             else -> {
-                songsList = resolver.getAllSongs(
+                songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.TITLE,
                     ascending = isAscending,
                 )

@@ -2,13 +2,11 @@ package com.example.music.domain.usecases
 
 import android.provider.MediaStore
 import android.util.Log
-import com.example.music.data.repository.AppPreferences
-import com.example.music.data.repository.SongSortOrder
 import com.example.music.domain.model.ArtistDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.Album
-import com.example.music.domain.util.Artist
-import com.example.music.domain.util.MediaRepo
+import com.example.music.data.mediaresolver.model.Album
+import com.example.music.data.mediaresolver.model.Artist
+import com.example.music.data.mediaresolver.MediaRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -26,13 +24,13 @@ import javax.inject.Inject
 private const val TAG = "Get Artist Details V2"
 
 class GetArtistDetailsV2 @Inject constructor(
-    private val resolver: MediaRepo,
+    private val mediaRepo: MediaRepo,
     //private val getAppPref: GetAppPreferencesUseCase,
 ) {
     operator fun invoke(artistId: Long): Flow<ArtistDetailsFilterResult> {
         Log.i(TAG, "Start: ArtistID: $artistId")
-        val artistItem: Flow<Artist> = resolver.getArtistFlow(artistId)
-        val albumsList: Flow<List<Album>> = resolver.getAlbumsByArtistId(artistId)
+        val artistItem: Flow<Artist> = mediaRepo.getArtistFlow(artistId)
+        val albumsList: Flow<List<Album>> = mediaRepo.getAlbumsByArtistId(artistId)
 //        var order: SongSortOrder = SongSortOrder.TITLE
 //        val songSortFlow = getAppPref().map { pref ->
 //            order = pref.songSortOrder
@@ -43,7 +41,7 @@ class GetArtistDetailsV2 @Inject constructor(
             albumsList,
             artistItem.map {
                 Log.i(TAG, "Fetching songs from artist $artistId")
-                resolver.getArtistAudios(it.id, order = MediaStore.Audio.Media.TITLE)
+                mediaRepo.getArtistAudios(it.id, order = MediaStore.Audio.Media.TITLE)
             },
         ) { artist, albums, songs ->
             Log.i(TAG, "ARTIST: $artist --- \n" +

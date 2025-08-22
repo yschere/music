@@ -4,8 +4,8 @@ import android.provider.MediaStore
 import android.util.Log
 import com.example.music.domain.model.GenreDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.Genre
-import com.example.music.domain.util.MediaRepo
+import com.example.music.data.mediaresolver.model.Genre
+import com.example.music.data.mediaresolver.MediaRepo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -23,19 +23,19 @@ import javax.inject.Inject
 private const val TAG = "Get Genre Details V2"
 
 class GetGenreDetailsV2 @Inject constructor(
-    private val resolver: MediaRepo
+    private val mediaRepo: MediaRepo
 ) {
     operator fun invoke(genreId: Long): Flow<GenreDetailsFilterResult> {
         Log.i(TAG, "Start: GenreId: $genreId")
-        val genreItem: Flow<Genre> = resolver.getGenreById(genreId)
+        val genreItem: Flow<Genre> = mediaRepo.getGenreFlow(genreId)
 
-        //val songsFlow = resolver.getSongsForGenre(genre.name)
+        //val songsFlow = mediaRepo.getSongsForGenre(genre.name)
 
         return combine(
             genreItem,
             genreItem.map {
                 Log.i(TAG, "Fetching songs from genre $genreId")
-                resolver.getGenreAudios(it.id, order = MediaStore.Audio.AudioColumns.TITLE)
+                mediaRepo.getGenreAudios(it.id, order = MediaStore.Audio.AudioColumns.TITLE)
             }
         ) { genre, songs ->
             Log.i(TAG, "GENRE: $genre --- \n" +

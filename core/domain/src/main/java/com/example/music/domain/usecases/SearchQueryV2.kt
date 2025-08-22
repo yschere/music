@@ -3,7 +3,7 @@ package com.example.music.domain.usecases
 import android.util.Log
 import com.example.music.domain.model.SearchQueryFilterV2
 import com.example.music.domain.model.asExternalModel
-import com.example.music.domain.util.MediaRepo
+import com.example.music.data.mediaresolver.MediaRepo
 import javax.inject.Inject
 
 /** Changelog:
@@ -21,7 +21,7 @@ private const val TAG = "Search Query V2"
  * for any title or name that is similar to the provided query string.
  */
 class SearchQueryV2 @Inject constructor(
-    private val resolver: MediaRepo,
+    private val mediaRepo: MediaRepo,
 ) {
     //not sure yet if this needs to be suspend or return flowOf
     // forgot that the 'find' functions are suspend functions
@@ -31,21 +31,21 @@ class SearchQueryV2 @Inject constructor(
         //want this to trigger the find functions in MediaRepo for audio, artist, album
         // TBD if genre or composer or playlists should be included
 
-        val audios = resolver.findAudios(
+        val audios = mediaRepo.findAudios(
             query = query,
             limit = 20,
         ).map { audio ->
             audio.asExternalModel()
         }
 
-        val artists = resolver.findArtists(
+        val artists = mediaRepo.findArtists(
             query = query,
             limit = 20,
         ).map { artist ->
             artist.asExternalModel()
         }
 
-        val albums = resolver.findAlbums(
+        val albums = mediaRepo.findAlbums(
             query = query,
             limit = 20,
         ).map { album ->
