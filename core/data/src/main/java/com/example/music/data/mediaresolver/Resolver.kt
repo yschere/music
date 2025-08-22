@@ -225,27 +225,21 @@ suspend fun ContentResolver.getAudios(
         offset = offset,
         limit = limit,
         transform = { c ->
+            val s = when (sQuery) {
+                null -> "-no filter given-"
+                else -> "-filtered for $sQuery-"
+            }
+            Log.i(TAG, "Get Audios Search $s:\n" +
+                "Audio(s) count returned: ${c.count}\n" +
+                "Audio column names: ${c.columnNames}"
+            )
+            if (c.count == 0) return emptyList()
+
             val result = List(c.count) {
                 c.moveToPosition(it)
                 c.toAudio()
             }
             c.close()
-            Log.i(TAG, "search query ${sQuery?:""} - AUDIO DATA: \n" +
-                "Audio count returned: ${result.count()}\n" +
-                "ID: ${result[0].id} \n" +
-                "Title: ${result[0].title} \n" +
-                "Artist: ${result[0].artist} \n" +
-                "Album: ${result[0].album} \n" +
-                "Genre: ${result[0].genre} \n" +
-                "CD TrackNumber: ${result[0].cdTrackNumber} \n" +
-                "Date Added: ${result[0].dateAdded} \n" +
-                "Date Modified: ${result[0].dateModified} \n" +
-                "Disc Number: ${result[0].discNumber} \n" +
-                "Src TrackNumber: ${result[0].srcTrackNumber} \n" +
-                "File Path: ${result[0].path} \n" +
-                "File Size: ${result[0].size} \n" +
-                "Year: ${result[0].year} \n"
-            )
             result
         },
     )
@@ -271,29 +265,18 @@ private suspend inline fun ContentResolver.getBucketAudios(
         ascending = ascending,
         offset = offset,
         limit = limit,
-        transform = { c ->
-            Log.i(TAG, "Get Bucket Audios returned: ${c.count} rows + ${c.columnNames}" )
+        transform = {  c ->
+            Log.i(TAG, "Get Bucket Audios Search on selection $selection:\n" +
+                "Audio(s) count returned: ${c.count}\n" +
+                "Audio column names: ${c.columnNames}"
+            )
+            if (c.count == 0) return emptyList()
+
             val result = List(c.count) {
                 c.moveToPosition(it)
                 c.toAudio()
             }
             c.close()
-            Log.i(TAG, "AUDIO DATA: \n" +
-                "Audio count returned: ${result.count()}\n" +
-                "ID: ${result[0].id} \n" +
-                "Title: ${result[0].title} \n" +
-                "Artist: ${result[0].artist} \n" +
-                "Album: ${result[0].album} \n" +
-                "Genre: ${result[0].genre} \n" +
-                "CD TrackNumber: ${result[0].cdTrackNumber} \n" +
-                "Date Added: ${result[0].dateAdded} \n" +
-                "Date Modified: ${result[0].dateModified} \n" +
-                "Disc Number: ${result[0].discNumber} \n" +
-                "Src TrackNumber: ${result[0].srcTrackNumber} \n" +
-                "File Path: ${result[0].path} \n" +
-                "File Size: ${result[0].size} \n" +
-                "Year: ${result[0].year} \n"
-            )
             result
         }
     )
@@ -314,7 +297,7 @@ suspend fun ContentResolver.findAudio(id: Long): Audio =
             c.moveToFirst()
             val result = c.toAudio()
             c.close()
-            Log.i(TAG, "findAudio via audioId $id - AUDIO DATA: \n" +
+            Log.i(TAG, "Find Audio Search via audioId $id - AUDIO DATA: \n" +
                 "ID: ${result.id} \n" +
                 "Title: ${result.title} \n" +
                 "Artist: ${result.artist} \n" +
@@ -349,20 +332,20 @@ suspend fun ContentResolver.findAudio(path: String): Audio =
             c.moveToFirst()
             val result = c.toAudio()
             c.close()
-            Log.i(TAG, "findAudio via filepath $path - AUDIO DATA: \n" +
-                    "ID: ${result.id} \n" +
-                    "Title: ${result.title} \n" +
-                    "Artist: ${result.artist} \n" +
-                    "Album: ${result.album} \n" +
-                    "Genre: ${result.genre} \n" +
-                    "CD TrackNumber: ${result.cdTrackNumber} \n" +
-                    "Date Added: ${result.dateAdded} \n" +
-                    "Date Modified: ${result.dateModified} \n" +
-                    "Disc Number: ${result.discNumber} \n" +
-                    "Src TrackNumber: ${result.srcTrackNumber} \n" +
-                    "File Path: ${result.path} \n" +
-                    "File Size: ${result.size} \n" +
-                    "Year: ${result.year} \n"
+            Log.i(TAG, "Find Audio Search via filepath $path - AUDIO DATA: \n" +
+                "ID: ${result.id} \n" +
+                "Title: ${result.title} \n" +
+                "Artist: ${result.artist} \n" +
+                "Album: ${result.album} \n" +
+                "Genre: ${result.genre} \n" +
+                "CD TrackNumber: ${result.cdTrackNumber} \n" +
+                "Date Added: ${result.dateAdded} \n" +
+                "Date Modified: ${result.dateModified} \n" +
+                "Disc Number: ${result.discNumber} \n" +
+                "Src TrackNumber: ${result.srcTrackNumber} \n" +
+                "File Path: ${result.path} \n" +
+                "File Size: ${result.size} \n" +
+                "Year: ${result.year}"
             )
             result
         },
@@ -382,7 +365,7 @@ suspend fun ContentResolver.findAudio(uri: Uri): Audio =
             c.moveToFirst()
             val result = c.toAudio()
             c.close()
-            Log.i(TAG, "findAudio via uri $uri - AUDIO DATA: \n" +
+            Log.i(TAG, "Find Audio search via uri $uri - AUDIO DATA: \n" +
                 "ID: ${result.id} \n" +
                 "Title: ${result.title} \n" +
                 "Artist: ${result.artist} \n" +
@@ -395,7 +378,7 @@ suspend fun ContentResolver.findAudio(uri: Uri): Audio =
                 "Src TrackNumber: ${result.srcTrackNumber} \n" +
                 "File Path: ${result.path} \n" +
                 "File Size: ${result.size} \n" +
-                "Year: ${result.year} \n"
+                "Year: ${result.year}"
             )
             result
         },
@@ -459,19 +442,21 @@ suspend fun ContentResolver.getArtists(
     offset = offset,
     limit = limit,
     transform = { c ->
+        val s = when (sQuery) {
+            null -> "-no filter given-"
+            else -> "-filtered for $sQuery-"
+        }
+        Log.i(TAG, "Get Artists Search $s:\n" +
+            "Artist(s) count returned: ${c.count}\n" +
+            "Artist column names: ${c.columnNames}"
+        )
+        if (c.count == 0) return emptyList()
+
         val result = List(c.count) {
             c.moveToPosition(it)
             c.toArtist()
         }
         c.close()
-        Log.i(TAG, "search query ${sQuery?:""} - ARTIST DATA: \n" +
-            "Artist count returned: ${result.count()}\n" +
-            "ID: ${result[0].id} \n" +
-            "Name: ${result[0].name} \n" +
-            "Default Sort Order: ${result[0].sort} \n" +
-            "Album count: ${result[0].numAlbums} \n" +
-            "Track count: ${result[0].numTracks}"
-        )
         result
     },
 )
@@ -487,11 +472,11 @@ suspend fun ContentResolver.getArtistAudios(
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
 ): List<Audio> {
-    val like = 
+    val like =
         if (sQuery != null) " AND ${MediaStore.Audio.Media.TITLE} LIKE ?" 
         else ""
     val selection = "${MediaStore.Audio.Media.ARTIST} == ?" + like
-    val args = 
+    val args =
         if (sQuery != null) arrayOf(name, "%$sQuery%") 
         else arrayOf(name)
     Log.i(TAG, "Get Artist Audios - selection: $selection + args: $args")
@@ -529,10 +514,9 @@ suspend fun ContentResolver.findArtist(name: String): Artist = queryExt(
         c.moveToFirst()
         val result = c.toArtist()
         c.close()
-        Log.i(TAG, "Find Artist via Name $name - ARTIST DATA: \n" +
+        Log.i(TAG, "Find Artist Search via name $name - ARTIST DATA: \n" +
             "ID: ${result.id} \n" +
             "Name: ${result.name} \n" +
-            "Default Sort Order: ${result.sort} \n" +
             "Album count: ${result.numAlbums} \n" +
             "Track count: ${result.numTracks}"
         )
@@ -555,10 +539,9 @@ suspend fun ContentResolver.findArtist(id: Long): Artist = queryExt(
         c.moveToFirst()
         val result = c.toArtist()
         c.close()
-        Log.i(TAG, "findArtist via artistId $id - ARTIST DATA: \n" +
+        Log.i(TAG, "Find Artist Search via artistId $id - ARTIST DATA: \n" +
             "ID: ${result.id} \n" +
             "Name: ${result.name} \n" +
-            "Default Sort Order: ${result.sort} \n" +
             "Album count: ${result.numAlbums} \n" +
             "Track count: ${result.numTracks}"
         )
@@ -581,10 +564,9 @@ suspend fun ContentResolver.findArtistByAlbumId(albumId: Long): Artist = queryEx
         c.moveToFirst()
         val result = c.toArtist()
         c.close()
-        Log.i(TAG, "findArtist via albumId $albumId - ARTIST DATA: \n" +
+        Log.i(TAG, "Find Artist Search via albumId $albumId - ARTIST DATA: \n" +
             "ID: ${result.id} \n" +
             "Name: ${result.name} \n" +
-            "Default Sort Order: ${result.sort} \n" +
             "Album count: ${result.numAlbums} \n" +
             "Track count: ${result.numTracks}"
         )
@@ -656,7 +638,7 @@ suspend fun ContentResolver.getAlbums(
     uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
     projection = ALBUM_PROJECTION,
     selection =
-        if (sQuery != null) " AND ${MediaStore.Audio.Albums.ALBUM} LIKE ?"
+        if (sQuery != null) "${MediaStore.Audio.Albums.ALBUM} LIKE ?"
         else DEFAULT_MEDIA_SELECTION,
     args =
         if (sQuery != null) arrayOf("%$sQuery%")
@@ -666,21 +648,21 @@ suspend fun ContentResolver.getAlbums(
     offset = offset,
     limit = limit,
     transform = { c ->
+        val s = when (sQuery) {
+            null -> "-no filter given-"
+            else -> "-filtered for $sQuery-"
+        }
+        Log.i(TAG, "Get Albums Search $s:\n" +
+            "Album(s) count returned: ${c.count}\n" +
+            "Album column names: ${c.columnNames}"
+        )
+        if (c.count == 0) return emptyList()
+
         val result = List(c.count) {
             c.moveToPosition(it)
             c.toAlbum()
         }
         c.close()
-        Log.i(TAG, "search query ${sQuery?:""} - ALBUM DATA: \n" +
-            "Album count returned: ${result.count()}\n" +
-            "ID: ${result[0].id} \n" +
-            "Title: ${result[0].title} \n" +
-            "ArtistId: ${result[0].artistId} \n" +
-            "Artist Name: ${result[0].artist} \n" +
-            "Year: ${result[0].lastYear} \n" +
-            "Track count: ${result[0].numTracks} \n" +
-            "Default Sort Order: ${result[0].sort}"
-        )
         result
     },
 )
@@ -738,14 +720,13 @@ suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
         c.moveToFirst()
         val result = c.toAlbum()
         c.close()
-        Log.i(TAG, "findAlbum via albumId $id - ALBUM DATA: \n" +
+        Log.i(TAG, "Find Album Search via albumId $id - ALBUM DATA: \n" +
             "ID: ${result.id} \n" +
             "Title: ${result.title} \n" +
             "ArtistId: ${result.artistId} \n" +
             "Artist Name: ${result.artist} \n" +
             "Year: ${result.lastYear} \n" +
-            "Track count: ${result.numTracks} \n" +
-            "Default Sort Order: ${result.sort}"
+            "Track count: ${result.numTracks}"
         )
         result
     },
@@ -766,14 +747,13 @@ suspend fun ContentResolver.findAlbum(title: String): Album = queryExt(
         c.moveToFirst()
         val result = c.toAlbum()
         c.close()
-        Log.i(TAG, "findAlbum via title $title - ALBUM DATA: \n" +
+        Log.i(TAG, "Find Album Search via title $title - ALBUM DATA: \n" +
             "ID: ${result.id} \n" +
             "Title: ${result.title} \n" +
             "ArtistId: ${result.artistId} \n" +
             "Artist Name: ${result.artist} \n" +
             "Year: ${result.lastYear} \n" +
-            "Track count: ${result.numTracks} \n" +
-            "Default Sort Order: ${result.sort}"
+            "Track count: ${result.numTracks}"
         )
         result
     },
@@ -849,6 +829,16 @@ suspend fun ContentResolver.getGenres(
     offset = offset,
     limit = limit,
     transform = { c ->
+        val s = when (sQuery) {
+            null -> "-no filter given-"
+            else -> "-filtered for $sQuery-"
+        }
+        Log.i(TAG, "Get Genres Search $s:\n" +
+            "Genre(s) count returned: ${c.count}\n" +
+            "Genre column names: ${c.columnNames}"
+        )
+        if (c.count == 0) return emptyList()
+
         val result = List(c.count) {
             c.moveToPosition(it)
             c.toGenre(
@@ -858,11 +848,6 @@ suspend fun ContentResolver.getGenres(
             )
         }
         c.close()
-        Log.i(TAG, "search query ${sQuery?:""} - GENRE DATA:\n" +
-            "Genre count returned: ${result.count()}\n" +
-            "ID: ${result[0].id}\n" +
-            "Name: ${result[0].name}\n"
-        )
         result
     },
 )
@@ -916,9 +901,7 @@ suspend fun ContentResolver.getGenreAudios(
     val like =
         if (sQuery != null) " AND ${MediaStore.Audio.Media.TITLE} LIKE ?"
         else ""
-
     val selection = DEFAULT_AUDIO_SELECTION + " AND ${MediaStore.Audio.Media._ID} IN ($audioIds)" + like
-
     val args =
         if (sQuery != null) arrayOf("%$sQuery%")
         else null
