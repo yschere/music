@@ -883,8 +883,8 @@ suspend fun ContentResolver.getGenreAudios(
 
     // calculate the audio ids with the genre id, and it into a String
     val audioIds = queryExt(
-        MediaStore.Audio.Genres.Members.getContentUri("external", genreId),
-        arrayOf(MediaStore.Audio.Genres.Members.AUDIO_ID),
+        uri = MediaStore.Audio.Genres.Members.getContentUri("external", genreId),
+        projection = arrayOf(MediaStore.Audio.Genres.Members.AUDIO_ID),
     ) { c ->
         if (c.count == 0) return emptyList()
         val buffer = StringBuilder()
@@ -930,19 +930,17 @@ suspend fun ContentResolver.getGenreAudiosById(
  * Find genre via genre id
  * @return [Genre]
  */
-suspend fun ContentResolver.findGenre(id: Long): Genre {
-    return queryExt(
-        MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI,
-        GENRE_PROJECTION,
-        "${MediaStore.Audio.Genres._ID} == ?",
-        arrayOf("$id"),
-        limit = 1,
-    ) {
-        it.moveToFirst()
-        val temp = it.toGenre()
-        it.close()
-        temp
-    }
+suspend fun ContentResolver.findGenre(id: Long): Genre = queryExt(
+    uri = MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI,
+    projection = GENRE_PROJECTION,
+    selection = "${MediaStore.Audio.Genres._ID} == ?",
+    args = arrayOf("$id"),
+    limit = 1,
+) {
+    it.moveToFirst()
+    val result = it.toGenre()
+    it.close()
+    result
 }
 
 /**
@@ -963,16 +961,14 @@ suspend fun ContentResolver.findGenre(id: Long): Genre {
     return Genre(id, gen.name, count)
 }*/
 
-suspend fun ContentResolver.getGenreAudioCount(id: Long): Int {
-    return queryExt(
-        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-        arrayOf(MediaStore.Audio.Media._ID),
-        "${MediaStore.Audio.Media.GENRE_ID} == ?",
-        arrayOf("$id"),
-    ) {
-        it.moveToFirst()
-        it.count
-    }
+suspend fun ContentResolver.getGenreAudioCount(id: Long): Int = queryExt(
+    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+    projection = arrayOf(MediaStore.Audio.Media._ID),
+    selection = "${MediaStore.Audio.Media.GENRE_ID} == ?",
+    args = arrayOf("$id"),
+) {
+    it.moveToFirst()
+    it.count
 }
 
 /**
