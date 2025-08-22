@@ -27,7 +27,7 @@ class GetGenreDetailsV2 @Inject constructor(
 ) {
     operator fun invoke(genreId: Long): Flow<GenreDetailsFilterResult> {
         Log.i(TAG, "Start: GenreId: $genreId")
-        val genreItem: Flow<Genre> = mediaRepo.getGenreById(genreId)
+        val genreItem: Flow<Genre> = mediaRepo.getGenreFlow(genreId)
 
         //val songsFlow = mediaRepo.getSongsForGenre(genre.name)
 

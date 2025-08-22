@@ -29,6 +29,12 @@ private fun toAudioTrackUri(id: Long) =
 class MediaRepo (
     @ApplicationContext context: Context
 ) {
+    /***********************************************************************************************
+     *
+     * **********  MEDIA REPOSITORY BASE PROPERTIES AND METHODS SECTION ***********
+     *
+     **********************************************************************************************/
+
     // Object by which MediaRepo accesses media data
     private val resolver: ContentResolver = context.contentResolver
 
@@ -124,7 +130,7 @@ class MediaRepo (
     fun mostRecentSongsIds(limit: Int) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                resolver.query2(
+                resolver.queryExt(
                     uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                     projection = arrayOf(MediaStore.Audio.Media._ID),
                     order = MediaStore.Audio.AudioColumns.DATE_ADDED,
@@ -139,49 +145,36 @@ class MediaRepo (
             }
 
     /**
-     * Get ids of all audios
-     * @return [List] of [Long]
+     * Get all audios
+     * @return [List] of [Audio]
      */
-    suspend fun getAllSongs(
+    suspend fun getAllAudios(
         order: String,
         ascending: Boolean
-    ): List<Audio> = resolver.query2(
-        uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-        projection = arrayOf(MediaStore.Audio.Media._ID),
-        order = order,
-        ascending = ascending,
-    ) { c ->
-        Array(c.count) {
-            c.moveToPosition(it)
-            c.getLong(0)
-        }.map { id ->
-            getAudio(id)
-        }
+    ): List<Audio> {
+        Log.i(TAG, "Get All Audios")
+        return resolver.getAudios(
+            order = order,
+            ascending = ascending
+        )
     }
 
+
     /**
-     * Get ids of all audios
-     * @return [Flow] of [List] of [Long]
+     * Get all audios
+     * @return [Flow] of [List] of [Audio]
      */
-    fun getAllSongsFlow(
+    fun getAllAudiosFlow(
         order: String,
         ascending: Boolean
     ): Flow<List<Audio>> =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                resolver.query2(
-                    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    projection = arrayOf(MediaStore.Audio.Media._ID),
+                Log.i(TAG, "Flow Get All Audios: observe MediaStore result: $it")
+                resolver.getAudios(
                     order = order,
-                    ascending = ascending,
-                ) { c ->
-                    Array(c.count) {
-                        c.moveToPosition(it)
-                        c.getLong(0)
-                    }.map { id ->
-                        getAudio(id)
-                    }
-                }
+                    ascending = ascending
+                )
             }
 
     /**
@@ -246,7 +239,7 @@ class MediaRepo (
      * Get all artists
      * @return [List] of [Artist]
      */
-    suspend fun getAllArtists( order: String, ascending: Boolean ) =
+    suspend fun getAllArtists(order: String, ascending: Boolean) =
         findArtists(
             order = order,
             ascending = ascending,
@@ -256,7 +249,7 @@ class MediaRepo (
      * Get all artists
      * @return [Flow] of [List] of [Artist]
      */
-    fun getAllArtistsFlow( order: String, ascending: Boolean ) =
+    fun getAllArtistsFlow(order: String, ascending: Boolean) =
         observe(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI)
             .map {
                 findArtists(
@@ -323,13 +316,17 @@ class MediaRepo (
                 resolver.findArtist(album.artistId)
             }
 
+    /**
+     * Search for Albums by an Artist based on an Artist Id
+     * @return [Flow] of [List] of [Album]
+     */
     fun getAlbumsByArtistId(
         artistId: Long,
         sortOrder: String = MediaStore.Audio.Albums.ALBUM,
         ascending: Boolean = true,
     ) = observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
         .map {
-            resolver.query2(
+            resolver.queryExt(
                 uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
                 projection = arrayOf(MediaStore.Audio.Albums.ALBUM_ID),
                 selection = "${MediaStore.Audio.Albums.ARTIST_ID} == ?",
@@ -385,7 +382,7 @@ class MediaRepo (
     fun mostRecentAlbumsIds(limit: Int) =
         observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
             .map {
-                resolver.query2(
+                resolver.queryExt(
                     uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
                     projection = arrayOf(MediaStore.Audio.Albums.ALBUM_ID),
                     order = MediaStore.Audio.Albums.LAST_YEAR,
@@ -492,7 +489,7 @@ class MediaRepo (
      * get all genres
      * @return [List] of [Genre]
      */
-    suspend fun getAllGenres( order: String, ascending: Boolean ) =
+    suspend fun getAllGenres(order: String, ascending: Boolean) =
         findGenres(
             order = order,
             ascending = ascending
@@ -502,7 +499,7 @@ class MediaRepo (
      * get all genres
      * @return [Flow] of [List] of [Genre]
      */
-    fun getAllGenresFlow( order: String, ascending: Boolean ) =
+    fun getAllGenresFlow(order: String, ascending: Boolean) =
         observe(MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI)
             .map {
                 findGenres(
@@ -512,12 +509,19 @@ class MediaRepo (
             }
 
     /**
-     * Get Genre By id
+     * Search for Genre based on id
+     * @return [Genre]
      */
-    fun getGenreById(id: Long) =
+    suspend fun getGenre(id: Long) = resolver.findGenre(id)
+
+    /**
+     * Search for Genre based on id
+     * @return [Flow] of [Genre]
+     */
+    fun getGenreFlow(id: Long) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                Log.i(TAG, "Get Genre by ID: $id")
+                Log.i(TAG, "Flow Get Genre by ID: $id")
                 resolver.findGenre(id)
             }
 

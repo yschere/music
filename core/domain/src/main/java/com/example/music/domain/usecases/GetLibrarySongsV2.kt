@@ -1,5 +1,3 @@
-//Get Library Songs V2 pre
-
 package com.example.music.domain.usecases
 
 import android.provider.MediaStore
@@ -23,35 +21,35 @@ class GetLibrarySongsV2 @Inject constructor(
         when (sortOption) {
 
             "ARTIST" -> {
-                songsList = mediaRepo.getAllSongs(
+                songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.ARTIST,
                     ascending = isAscending,
                 )
             }
 
             "ALBUM" -> {
-                songsList = mediaRepo.getAllSongs(
+                songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.ALBUM,
                     ascending = isAscending,
                 )
             }
 
             "DATE_ADDED" -> {
-                songsList = mediaRepo.getAllSongs(
+                songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.DATE_ADDED,
                     ascending = isAscending,
                 )
             }
 
             "DATE_LAST_PLAYED" -> {
-                songsList = mediaRepo.getAllSongs(
+                songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.DATE_MODIFIED,
                     ascending = isAscending,
                 )
             }
 
             else -> {
-                songsList = mediaRepo.getAllSongs(
+                songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.TITLE,
                     ascending = isAscending,
                 )
