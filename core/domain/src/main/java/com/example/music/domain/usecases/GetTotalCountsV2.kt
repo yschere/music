@@ -6,7 +6,7 @@ import javax.inject.Inject
 
 private const val TAG = "Get Total Counts V2"
 class GetTotalCountsV2 @Inject constructor(
-    private val resolver: MediaRepo,
+    private val mediaRepo: MediaRepo,
 ) {
     operator fun invoke(): List<Int> {
         Log.i(TAG,"Start")
@@ -15,6 +15,6 @@ class GetTotalCountsV2 @Inject constructor(
         // get count of albums
         // get count of genres
         // use this as excuse to explore media store tables
-        return resolver.inspectMediaStore().toList()
+        return mediaRepo.inspectMediaStore().toList()
     }
 }

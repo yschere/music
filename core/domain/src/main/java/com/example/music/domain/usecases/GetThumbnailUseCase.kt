@@ -8,11 +8,11 @@ import com.example.music.data.mediaresolver.MediaRepo.Companion.toAlbumArtUri
 import javax.inject.Inject
 
 class GetThumbnailUseCase @Inject constructor(
-    private val resolver: MediaRepo
+    private val mediaRepo: MediaRepo
 ) {
     @OptIn(UnstableApi::class)
     operator fun invoke(songId: Long): Bitmap {
-        return resolver.loadThumb(toAlbumArtUri(songId))
+        return mediaRepo.loadThumb(toAlbumArtUri(songId))
     }
 }
 

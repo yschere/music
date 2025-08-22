@@ -23,19 +23,19 @@ import javax.inject.Inject
 private const val TAG = "Get Genre Details V2"
 
 class GetGenreDetailsV2 @Inject constructor(
-    private val resolver: MediaRepo
+    private val mediaRepo: MediaRepo
 ) {
     operator fun invoke(genreId: Long): Flow<GenreDetailsFilterResult> {
         Log.i(TAG, "Start: GenreId: $genreId")
-        val genreItem: Flow<Genre> = resolver.getGenreById(genreId)
+        val genreItem: Flow<Genre> = mediaRepo.getGenreById(genreId)
 
-        //val songsFlow = resolver.getSongsForGenre(genre.name)
+        //val songsFlow = mediaRepo.getSongsForGenre(genre.name)
 
         return combine(
             genreItem,
             genreItem.map {
                 Log.i(TAG, "Fetching songs from genre $genreId")
-                resolver.getGenreAudios(it.id, order = MediaStore.Audio.AudioColumns.TITLE)
+                mediaRepo.getGenreAudios(it.id, order = MediaStore.Audio.AudioColumns.TITLE)
             }
         ) { genre, songs ->
             Log.i(TAG, "GENRE: $genre --- \n" +

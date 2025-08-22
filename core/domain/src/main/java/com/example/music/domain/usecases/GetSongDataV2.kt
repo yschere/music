@@ -17,14 +17,14 @@ import javax.inject.Inject
 private const val TAG = "Get Song Data V2"
 
 class GetSongDataV2 @Inject constructor(
-    private val resolver: MediaRepo
+    private val mediaRepo: MediaRepo
 ) {
     // use to build SongInfo from an Audio id
     operator fun invoke(songId: Long): Flow<SongInfo> {
         Log.i(TAG, "Fetching Data for single song - start\n" +
                 "songId: $songId")
 
-        return resolver.getAudioFlow(songId)
+        return mediaRepo.getAudioFlow(songId)
             .map {
                 Log.i(TAG, "Found file data for song $songId\n" +
                         "Title: ${it.title}\n" +
@@ -38,7 +38,7 @@ class GetSongDataV2 @Inject constructor(
     operator fun invoke(songIds: List<Long>): Flow<List<SongInfo>> {
         Log.i(TAG, "Fetching data for multiple songs - start\n" +
                 "songs size: ${songIds.size}")
-        return resolver.getAudiosFlow(songIds)
+        return mediaRepo.getAudiosFlow(songIds)
             .map { songList ->
                 Log.i(TAG, "Found file data for multiple songs --- ")
                 songList.map { song ->

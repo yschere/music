@@ -24,15 +24,15 @@ import javax.inject.Inject
 private const val TAG = "Get Album Details V2"
 
 class GetAlbumDetailsV2 @Inject constructor(
-    private val resolver: MediaRepo,
+    private val mediaRepo: MediaRepo,
 ) {
     operator fun invoke(albumId: Long): Flow<AlbumDetailsFilterResult> {
         Log.i(TAG, "Start: AlbumID: $albumId")
 
-        val albumItem: Flow<Album> = resolver.getAlbumFlow(albumId)
+        val albumItem: Flow<Album> = mediaRepo.getAlbumFlow(albumId)
         Log.i(TAG, "album item == $albumItem")
 
-        val artistItem: Flow<Artist> = resolver.getArtistByAlbumIdFlow(albumId)
+        val artistItem: Flow<Artist> = mediaRepo.getArtistByAlbumIdFlow(albumId)
         Log.i(TAG, "artist item == $artistItem")
 
         return combine(
@@ -40,7 +40,7 @@ class GetAlbumDetailsV2 @Inject constructor(
             artistItem,
             albumItem.map {
                 Log.i(TAG, "Fetching songs from album $albumId")
-                resolver.getAlbumAudios(it.albumId, order = MediaStore.Audio.Media.TRACK)
+                mediaRepo.getAlbumAudios(it.albumId, order = MediaStore.Audio.Media.TRACK)
             }
         ) { album, artist, songs ->
             Log.i(TAG, "ALBUM: $album --- \n" +

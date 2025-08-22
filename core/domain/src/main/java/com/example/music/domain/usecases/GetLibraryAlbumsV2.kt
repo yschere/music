@@ -11,7 +11,7 @@ import javax.inject.Inject
 private const val TAG = "Get Library Albums V2"
 
 class GetLibraryAlbumsV2 @Inject constructor(
-    private val resolver: MediaRepo
+    private val mediaRepo: MediaRepo
 ) {
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<AlbumInfo> {
         val albumsList: List<Album>
@@ -19,28 +19,28 @@ class GetLibraryAlbumsV2 @Inject constructor(
 
         when (sortOption) {
             "ARTIST" -> {
-                albumsList = resolver.getAllAlbums(
+                albumsList = mediaRepo.getAllAlbums(
                     order = MediaStore.Audio.Albums.ARTIST,
                     ascending = isAscending
                 )
             }
 
             "YEAR" -> {
-                albumsList = resolver.getAllAlbums(
+                albumsList = mediaRepo.getAllAlbums(
                     order = MediaStore.Audio.Albums.LAST_YEAR,
                     ascending = isAscending
                 )
             }
 
             "SONG_COUNT" -> {
-                albumsList = resolver.getAllAlbums(
+                albumsList = mediaRepo.getAllAlbums(
                     order = MediaStore.Audio.Albums.NUMBER_OF_SONGS,
                     ascending = isAscending
                 )
             }
 
             else -> {
-                albumsList = resolver.getAllAlbums(
+                albumsList = mediaRepo.getAllAlbums(
                     order = MediaStore.Audio.Albums.ALBUM,
                     ascending = isAscending
                 )

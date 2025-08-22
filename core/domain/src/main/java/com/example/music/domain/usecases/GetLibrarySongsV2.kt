@@ -1,3 +1,5 @@
+//Get Library Songs V2 pre
+
 package com.example.music.domain.usecases
 
 import android.provider.MediaStore
@@ -12,7 +14,7 @@ import javax.inject.Inject
 private const val TAG = "Get Library Songs V2"
 
 class GetLibrarySongsV2 @Inject constructor(
-    private val resolver: MediaRepo
+    private val mediaRepo: MediaRepo
 ) {
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<SongInfo> {
         val songsList: List<Audio>
@@ -21,35 +23,35 @@ class GetLibrarySongsV2 @Inject constructor(
         when (sortOption) {
 
             "ARTIST" -> {
-                songsList = resolver.getAllSongs(
+                songsList = mediaRepo.getAllSongs(
                     order = MediaStore.Audio.Media.ARTIST,
                     ascending = isAscending,
                 )
             }
 
             "ALBUM" -> {
-                songsList = resolver.getAllSongs(
+                songsList = mediaRepo.getAllSongs(
                     order = MediaStore.Audio.Media.ALBUM,
                     ascending = isAscending,
                 )
             }
 
             "DATE_ADDED" -> {
-                songsList = resolver.getAllSongs(
+                songsList = mediaRepo.getAllSongs(
                     order = MediaStore.Audio.Media.DATE_ADDED,
                     ascending = isAscending,
                 )
             }
 
             "DATE_LAST_PLAYED" -> {
-                songsList = resolver.getAllSongs(
+                songsList = mediaRepo.getAllSongs(
                     order = MediaStore.Audio.Media.DATE_MODIFIED,
                     ascending = isAscending,
                 )
             }
 
             else -> {
-                songsList = resolver.getAllSongs(
+                songsList = mediaRepo.getAllSongs(
                     order = MediaStore.Audio.Media.TITLE,
                     ascending = isAscending,
                 )

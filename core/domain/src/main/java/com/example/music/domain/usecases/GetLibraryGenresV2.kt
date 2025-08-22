@@ -11,7 +11,7 @@ import javax.inject.Inject
 private const val TAG = "Get Library Genres V2"
 
 class GetLibraryGenresV2 @Inject constructor(
-    private val resolver: MediaRepo
+    private val mediaRepo: MediaRepo
 ) {
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<GenreInfo> {
         val genresList: List<Genre>
@@ -19,14 +19,14 @@ class GetLibraryGenresV2 @Inject constructor(
 
         when (sortOption) {
             "SONG_COUNT" -> {
-                genresList = resolver.getAllGenres(
+                genresList = mediaRepo.getAllGenres(
                     order = MediaStore.Audio.Genres._ID,
                     ascending = isAscending
                 )
             }
 
             else -> {
-                genresList = resolver.getAllGenres(
+                genresList = mediaRepo.getAllGenres(
                     order = MediaStore.Audio.Genres.NAME,
                     ascending = isAscending
                 )

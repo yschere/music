@@ -11,17 +11,17 @@ import kotlinx.coroutines.flow.combine
 private const val TAG = "FeaturedLibraryItemsV2"
 
 class FeaturedLibraryItemsV2 @Inject constructor(
-    private val resolver: MediaRepo,
+    private val mediaRepo: MediaRepo,
 ) {
     operator fun invoke(): Flow<FeaturedLibraryItemsFilterV2> {
         Log.i(TAG, "Start fetching most recent albums and most recent songs")
 
         // albumItems should return albumRepo date created desc limit 5
-        val albumIdsFlow = resolver.mostRecentAlbumsIds(5)
+        val albumIdsFlow = mediaRepo.mostRecentAlbumsIds(5)
         Log.i(TAG, "album items == $albumIdsFlow")
 
         // mediaItems should return songRepo date created desc limit 10
-        val mediaIdsFlow = resolver.mostRecentSongsIds(10)
+        val mediaIdsFlow = mediaRepo.mostRecentSongsIds(10)
         Log.i(TAG, "media items == $mediaIdsFlow")
 
         return combine(
@@ -32,11 +32,11 @@ class FeaturedLibraryItemsV2 @Inject constructor(
             FeaturedLibraryItemsFilterV2(
                 recentAlbums = albumIds.map { albumId ->
                     Log.i(TAG, "Fetch Album from AlbumID - $albumId")
-                    resolver.getAlbum(albumId).asExternalModel()
+                    mediaRepo.getAlbum(albumId).asExternalModel()
                 },
                 recentlyAddedSongs = mediaIds.map { mediaId ->
                     Log.i(TAG, "Fetch Song from SongID - $mediaId")
-                    resolver.getAudio(mediaId).asExternalModel()
+                    mediaRepo.getAudio(mediaId).asExternalModel()
                 },
             )
         }

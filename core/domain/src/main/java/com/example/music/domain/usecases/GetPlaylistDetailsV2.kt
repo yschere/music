@@ -24,7 +24,7 @@ private const val TAG = "Get Playlist Details V2"
  */
 class GetPlaylistDetailsV2 @Inject constructor(
     private val playlistRepo: PlaylistRepo,
-    private val resolver: MediaRepo,
+    private val mediaRepo: MediaRepo,
 ) {
     /**
      * Invoke with playlistId to retrieve PlaylistDetailsFilterResult data
@@ -45,7 +45,7 @@ class GetPlaylistDetailsV2 @Inject constructor(
             Log.i(TAG, "playlist song IDs: $songIds")
 
             if (playlist.songCount > 0){
-                val songs = resolver.getAudios(songIds)
+                val songs = mediaRepo.getAudios(songIds)
                 Log.i(TAG, "songs: ${songs.size}")
                 PlaylistDetailsFilterResult(
                     playlist = playlist.asExternalModel(),
