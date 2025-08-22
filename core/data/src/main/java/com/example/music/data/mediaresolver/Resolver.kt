@@ -96,7 +96,7 @@ suspend fun ContentResolver.queryExt(
 }
 
 /**
- * Transformer for extendsion query to Content Resolver's query from Cursor to type T. 
+ * Transformer for extension query to Content Resolver's query from Cursor to type T.
  * Calls queryExt(), then executes the lambda expression from transform to return the query result
  * as type T. Used to transform Cursor to the data models defined in mediaresolver/model.
  */
