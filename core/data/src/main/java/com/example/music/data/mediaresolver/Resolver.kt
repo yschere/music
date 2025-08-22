@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
 
 private const val TAG = "Resolver"
-private const val DUMMY_SELECTION = "${MediaStore.Audio.Media._ID} != 0"
+private const val DEFAULT_MEDIA_SELECTION = "${MediaStore.Audio.Media._ID} != 0"
 
 
 /***********************************************************************************************
@@ -42,7 +42,7 @@ private const val DUMMY_SELECTION = "${MediaStore.Audio.Media._ID} != 0"
 suspend fun ContentResolver.queryExt(
     uri: Uri,
     projection: Array<String>? = null,
-    selection: String = DUMMY_SELECTION,
+    selection: String = DEFAULT_MEDIA_SELECTION,
     args: Array<String>? = null,
     order: String = MediaStore.MediaColumns._ID,
     ascending: Boolean = true,
@@ -103,7 +103,7 @@ suspend fun ContentResolver.queryExt(
 internal suspend inline fun <T> ContentResolver.queryExt(
     uri: Uri,
     projection: Array<String>? = null,
-    selection: String = DUMMY_SELECTION,
+    selection: String = DEFAULT_MEDIA_SELECTION,
     args: Array<String>? = null,
     order: String = MediaStore.MediaColumns._ID,
     ascending: Boolean = true,
@@ -186,7 +186,14 @@ private val AUDIO_PROJECTION
         MediaStore.MediaColumns.CD_TRACK_NUMBER, // 22
     )
 
+/**
+ * Default query select column for media store audio table
+ */
 private const val DEFAULT_AUDIO_SELECTION = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
+
+/**
+ * Default query order column for media store audio table
+ */
 private const val DEFAULT_AUDIO_ORDER = MediaStore.Audio.Media.TITLE
 
 /**
@@ -425,9 +432,8 @@ private val ARTIST_PROJECTION
     )
 
 /**
- * default query selection for media store albums
+ * Default query order column for media store artist table
  */
-private const val DEFAULT_ARTIST_SELECTION = "${MediaStore.Audio.Artists._ID} != null"
 private const val DEFAULT_ARTIST_ORDER = MediaStore.Audio.Artists.ARTIST
 
 /**
@@ -444,7 +450,7 @@ suspend fun ContentResolver.getArtists(
     projection = ARTIST_PROJECTION,
     selection =
         if (sQuery != null) "${MediaStore.Audio.Artists.ARTIST} LIKE ?"
-        else DUMMY_SELECTION,
+        else DEFAULT_MEDIA_SELECTION,
     args =
         if (sQuery != null) arrayOf("%$sQuery%")
         else null,
@@ -633,9 +639,8 @@ private val ALBUM_PROJECTION
     )
 
 /**
- * default query selection for media store albums
+ * Default query order column for media store album table
  */
-private const val DEFAULT_ALBUM_SELECTION = "${MediaStore.Audio.Albums.ALBUM_ID} != null"
 private const val DEFAULT_ALBUM_ORDER = MediaStore.Audio.Albums.ALBUM
 
 /**
@@ -652,7 +657,7 @@ suspend fun ContentResolver.getAlbums(
     projection = ALBUM_PROJECTION,
     selection =
         if (sQuery != null) " AND ${MediaStore.Audio.Albums.ALBUM} LIKE ?"
-        else DUMMY_SELECTION,
+        else DEFAULT_MEDIA_SELECTION,
     args =
         if (sQuery != null) arrayOf("%$sQuery%")
         else null,
@@ -817,9 +822,8 @@ private val GENRE_PROJECTION
     )
 
 /**
- * default query selection for media store albums
+ * Default query order column for media store genre table
  */
-private const val DEFAULT_GENRE_SELECTION = "${MediaStore.Audio.Genres._ID} != null"
 private const val DEFAULT_GENRE_ORDER = MediaStore.Audio.Genres.NAME
 
 /**
@@ -836,7 +840,7 @@ suspend fun ContentResolver.getGenres(
     projection = GENRE_PROJECTION,
     selection =
         if (sQuery != null) "${MediaStore.Audio.Genres.NAME} LIKE ?"
-        else DUMMY_SELECTION,
+        else DEFAULT_MEDIA_SELECTION,
     args =
         if (sQuery != null) arrayOf("%$sQuery%")
         else null,
