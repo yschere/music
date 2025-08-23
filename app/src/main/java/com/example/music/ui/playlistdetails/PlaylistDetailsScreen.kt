@@ -477,7 +477,7 @@ private fun PlaylistDetailsHeader(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 AlbumImage(
-                    albumImage = Uri.parse(""),
+                    albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
                     contentDescription = playlist.name,
                     modifier = modifier
                         .size(imageSize)

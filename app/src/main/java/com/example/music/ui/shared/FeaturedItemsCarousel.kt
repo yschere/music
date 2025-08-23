@@ -129,7 +129,7 @@ fun FeaturedPlaylistsCarousel(
                 //Log.i(TAG, "Horizontal Pager - playlists layout for playlist ${playlist.id}")
                 FeaturedCarouselItem(
                     itemTitle = playlist.name,
-                    itemImage = Uri.parse(""),//album.artwork!!,
+                    itemImage = Uri.parse(""), // FixMe: needs Playlist Image generation
                     itemSize = playlist.songCount,
                     onMoreOptionsClick = {},
                     //onMoreOptionsClick = { onMoreOptionsClick(playlist) },

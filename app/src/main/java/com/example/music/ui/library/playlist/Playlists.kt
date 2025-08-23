@@ -285,7 +285,7 @@ private fun PlaylistItemRow(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             ) {
                 AlbumImage(
-                    albumImage = Uri.parse(""),//albumImageId,
+                    albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
                     contentDescription = playlist.name,
                     modifier = modifier
                         .size(56.dp)
@@ -377,7 +377,7 @@ private fun PlaylistItemBoxHeader(
         contentAlignment = Alignment.BottomStart
     ){
         AlbumImage(
-            albumImage = Uri.parse(""),//albumImageId,
+            albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
             contentDescription = playlist.name,
             modifier = modifier
                 .size(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
@@ -420,7 +420,7 @@ private fun TopPlaylistRowItem(
                 .align(Alignment.CenterHorizontally)
         ) {
             AlbumImage(
-                albumImage = Uri.parse(""),//albumImageId,
+                albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
                 contentDescription = playlistName,
                 modifier = Modifier
                     .fillMaxSize()
