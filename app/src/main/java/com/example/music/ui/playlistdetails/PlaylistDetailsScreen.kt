@@ -1,5 +1,6 @@
 package com.example.music.ui.playlistdetails
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -58,6 +59,7 @@ import androidx.compose.ui.unit.min
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
+import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.Keyline1
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewPlaylists
@@ -474,10 +476,10 @@ private fun PlaylistDetailsHeader(
                 verticalAlignment = Alignment.CenterVertically,// or Bottom
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Image(
-                    painter = painterResource(R.drawable.bpicon),
-                    contentDescription = null,
-                    modifier = Modifier
+                AlbumImage(
+                    albumImage = Uri.parse(""),
+                    contentDescription = playlist.name,
+                    modifier = modifier
                         .size(imageSize)
                         .clip(MaterialTheme.shapes.large)
                 )

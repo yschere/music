@@ -1,5 +1,6 @@
 package com.example.music.ui.library.playlist
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -284,12 +285,12 @@ private fun PlaylistItemRow(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             ) {
                 AlbumImage(
+                    albumImage = Uri.parse(""),//albumImageId,
+                    contentDescription = playlist.name,
                     modifier = modifier
                         .size(56.dp)
                         //.fillMaxSize()
                         .clip(MaterialTheme.shapes.medium),
-                    albumImage = 2,//albumImageId,
-                    contentDescription = playlist.name
                 )
 
                 Column(modifier.weight(1f)){
@@ -376,11 +377,11 @@ private fun PlaylistItemBoxHeader(
         contentAlignment = Alignment.BottomStart
     ){
         AlbumImage(
+            albumImage = Uri.parse(""),//albumImageId,
+            contentDescription = playlist.name,
             modifier = modifier
                 .size(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
                 .clip(MaterialTheme.shapes.medium),
-            albumImage = 2,//albumImageId,
-            contentDescription = playlist.name
         )
 
         Text(
@@ -419,11 +420,11 @@ private fun TopPlaylistRowItem(
                 .align(Alignment.CenterHorizontally)
         ) {
             AlbumImage(
+                albumImage = Uri.parse(""),//albumImageId,
+                contentDescription = playlistName,
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(MaterialTheme.shapes.medium),
-                albumImage = 2,//albumImageId,
-                contentDescription = playlistName
             )
         }
 
@@ -477,13 +478,6 @@ fun PlaylistMoreOptionsBottomModal(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                AlbumImage(
-                    albumImage = 1,
-                    contentDescription = playlist.name,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(56.dp)
-                        .clip(MaterialTheme.shapes.small)
-                )
                 Column(Modifier.padding(8.dp)) {
                     Text(
                         text = playlist.name,
