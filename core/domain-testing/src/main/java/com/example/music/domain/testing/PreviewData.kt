@@ -1,5 +1,6 @@
 package com.example.music.domain.testing
 
+import android.net.Uri
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.ComposerInfo
@@ -482,7 +483,7 @@ val PreviewAlbums = listOf(
         albumArtistId = 113,
         albumArtistName = "LM.C",
         year = 2007,
-        artwork = "",
+        artworkUri = Uri.parse(""),
         dateLastPlayed = OffsetDateTime.of(
             2020, 6, 2, 9,
             27, 0, 0, ZoneOffset.of("-0800")
@@ -503,7 +504,7 @@ val PreviewAlbums = listOf(
         ),
         trackTotal = 5,
         discTotal = 1,
-        artwork = "",
+        artworkUri = Uri.parse(""),
         songCount = 1,
     ),
     AlbumInfo(
@@ -515,7 +516,7 @@ val PreviewAlbums = listOf(
         dateLastPlayed = null,
         trackTotal = 3,
         discTotal = 1,
-        artwork = "",
+        artworkUri = Uri.parse(""),
         songCount = 3,
     ),
     AlbumInfo(
@@ -527,7 +528,7 @@ val PreviewAlbums = listOf(
         dateLastPlayed = null,
         trackTotal = 11,
         discTotal = 1,
-        artwork = "",
+        artworkUri = Uri.parse(""),
         songCount = 1,
     ),
     AlbumInfo(
@@ -539,7 +540,7 @@ val PreviewAlbums = listOf(
         dateLastPlayed = null,
         trackTotal = 10,
         discTotal = 1,
-        artwork = "",
+        artworkUri = Uri.parse(""),
         songCount = 1,
     ),
     AlbumInfo(
@@ -551,7 +552,7 @@ val PreviewAlbums = listOf(
         dateLastPlayed = null,
         trackTotal = 14,
         discTotal = 1,
-        artwork = "",
+        artworkUri = Uri.parse(""),
         songCount = 1,
     ),
     AlbumInfo(
@@ -566,7 +567,7 @@ val PreviewAlbums = listOf(
         ),
         trackTotal = 9,
         discTotal = 1,
-        artwork = "",
+        artworkUri = Uri.parse(""),
         songCount = 1,
     ),
     AlbumInfo(
@@ -581,7 +582,7 @@ val PreviewAlbums = listOf(
         year = 2024,
         trackTotal = 1,
         discTotal = 1,
-        artwork = "",
+        artworkUri = Uri.parse(""),
         songCount = 1,
     ),
     AlbumInfo(
@@ -596,7 +597,7 @@ val PreviewAlbums = listOf(
         ),
         trackTotal = 1,
         discTotal = 1,
-        artwork = "",
+        artworkUri = Uri.parse(""),
         songCount = 1,
     ),
     AlbumInfo(
@@ -611,7 +612,7 @@ val PreviewAlbums = listOf(
         ),
         trackTotal = 1,
         discTotal = 2,
-        artwork = "",
+        artworkUri = Uri.parse(""),
         songCount = 1,
     ),
 )
