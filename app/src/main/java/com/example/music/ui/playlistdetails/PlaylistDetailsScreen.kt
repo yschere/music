@@ -479,7 +479,7 @@ private fun PlaylistDetailsHeader(
                 AlbumImage(
                     albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
                     contentDescription = playlist.name,
-                    modifier = modifier
+                    modifier = Modifier
                         .size(imageSize)
                         .clip(MaterialTheme.shapes.large)
                 )
