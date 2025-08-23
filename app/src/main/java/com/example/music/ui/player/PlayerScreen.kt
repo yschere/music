@@ -1,5 +1,6 @@
 package com.example.music.ui.player
 
+import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.EaseOutExpo
 import androidx.compose.animation.core.tween
@@ -409,7 +410,7 @@ private fun PlayerContentRegular(
 
             Spacer(modifier = Modifier.weight(1f))
             PlayerImage(
-                albumImage = currentSong.title,//currentSong.artwork!!, //FixMe: change this to bitmap or url when artwork fixed
+                albumImage = currentSong.artworkUri,//currentSong.artwork!!, //FixMe: change this to bitmap or url when artwork fixed
                 modifier = Modifier.weight(10f)
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -606,11 +607,11 @@ private fun SongLyricsSwitch(
 
 @Composable
 private fun PlayerImage(
-    albumImage: String, //FixMe: needs to be artwork bitmap or uri
+    albumImage: Uri, //FixMe: needs to be artwork bitmap or uri
     modifier: Modifier = Modifier
 ) {
     AlbumImage(
-        //albumImage = albumImage,
+        albumImage = albumImage,
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = modifier

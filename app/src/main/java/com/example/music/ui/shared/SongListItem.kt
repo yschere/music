@@ -1,5 +1,6 @@
 package com.example.music.ui.shared
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -181,7 +182,7 @@ private fun SongListItemRow(
         // Check if album image needs to be shown
         if (showAlbumImage) {
             SongListItemImage(
-                albumImage = song.albumTitle,
+                artworkUri = song.artworkUri,
                 modifier = Modifier
                     .size(56.dp)
                     .clip(MaterialTheme.shapes.small)
@@ -264,12 +265,13 @@ private fun SongListItemImage(
 
 @Composable
 private fun SongListItemImage(
-    albumImage: String,
+    artworkUri: Uri,
     modifier: Modifier = Modifier
 ) {
     AlbumImage(
         //albumImage = album.artwork!!,
         //albumImage = R.drawable.bpicon,
+        albumImage = artworkUri,
         contentDescription = null,
         modifier = modifier,
     )
