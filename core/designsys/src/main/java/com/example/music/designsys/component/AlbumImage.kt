@@ -16,6 +16,7 @@
 
 package com.example.music.designsys.component
 
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -74,6 +75,66 @@ fun AlbumImage(
     val imageLoader = rememberAsyncImagePainter(
         model = ImageRequest.Builder(LocalContext.current)
             .data(albumImage)
+            .crossfade(true)
+            .build(),
+        contentScale = contentScale,
+        onState = { state -> imagePainterState = state }
+    )
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        when (imagePainterState) {
+            is AsyncImagePainter.State.Loading,
+            is AsyncImagePainter.State.Error -> {
+                Image(
+                    painter = painterResource(id = R.drawable.img_empty),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+            }
+            else -> {
+                Box(
+                    modifier = Modifier
+                        .background(placeholderBrush)
+                        .fillMaxSize()
+                )
+            }
+        }
+
+        Image(
+            //painter = painterResource(R.drawable.bpicon2),
+            //painter = painterResource(albumImage), //trying to use drawable from res folder
+            painter = imageLoader, //uses coil imageLoader
+            contentDescription = contentDescription,
+            contentScale = contentScale,
+            modifier = modifier.size(24.dp),
+        )
+    }
+}
+
+@Composable
+fun AlbumImageBm(
+    albumImage: Bitmap?,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Crop,
+    placeholderBrush: Brush = thumbnailPlaceholderDefaultBrush(),
+) {
+    if (LocalInspectionMode.current) {
+        Box(modifier = modifier.background(MaterialTheme.colorScheme.primary))
+        return
+    }
+
+    var imagePainterState by remember {
+        mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty)
+    }
+
+    val imageLoader = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(albumImage?: R.drawable.bpicon2)
             .crossfade(true)
             .build(),
         contentScale = contentScale,
