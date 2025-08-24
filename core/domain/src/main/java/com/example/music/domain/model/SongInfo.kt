@@ -1,5 +1,6 @@
 package com.example.music.domain.model
 
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.media3.common.MediaItem
 import com.example.music.data.database.model.Song
@@ -63,6 +64,7 @@ data class SongInfo(
     val cdTrackNum: Int? = null,
     val srcTrackNum: Int? = null,
     val artworkUri: Uri = Uri.parse(""),
+    val artworkBitmap: Bitmap? = null,
     //fileSize
 )
 
