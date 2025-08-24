@@ -113,7 +113,13 @@ class MediaRepo (
      * Returns the bitmap of a thumbnail from a given uri. This is an alternative to loading
      * album art by loading the thumbnail directly associated with an audio file.
      */
-    fun loadThumbnail(uri: Uri): Bitmap = resolver.loadThumbnail(uri, Size(640, 480), null)
+    fun loadThumbnail(uri: Uri): Bitmap? =
+        try {
+            resolver.loadThumbnail(uri, Size(640, 480), null)
+        } catch (e: Exception) {
+            Log.i(TAG, "ContentResolver error caught: $e", e)
+            null
+        }
 
 
     /***********************************************************************************************
