@@ -1,5 +1,6 @@
 package com.example.music.ui.library.album
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -187,12 +188,12 @@ private fun AlbumItemRow(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             ) {
                 AlbumImage(
+                    albumImage = album.artworkUri,//albumImageId,
+                    contentDescription = album.title,
                     modifier = modifier
                         .size(56.dp)
                         //.fillMaxSize()
                         .clip(MaterialTheme.shapes.medium),
-                    albumImage = 2,//albumImageId,
-                    contentDescription = album.title
                 )
 
                 Column(modifier.weight(1f)){
@@ -284,11 +285,11 @@ private fun AlbumItemBoxHeader(
         contentAlignment = Alignment.BottomStart
     ){
         AlbumImage(
+            albumImage = album.artworkUri,//albumImageId,
+            contentDescription = album.title,
             modifier = modifier
                 .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
                 .clip(MaterialTheme.shapes.medium),
-            albumImage = 2,//albumImageId,
-            contentDescription = album.title
         )
 
         Text(
@@ -312,7 +313,7 @@ private fun AlbumItemBoxHeader(
 @Composable
 private fun TopAlbumRowItem(
     albumName: String,
-    //albumImageId: String,
+    albumImage: Uri,
     //isFollowed: Boolean,
     modifier: Modifier = Modifier,
     //onToggleFollowClicked: () -> Unit,
@@ -327,11 +328,11 @@ private fun TopAlbumRowItem(
                 .align(Alignment.CenterHorizontally)
         ) {
             AlbumImage(
+                albumImage = albumImage,
+                contentDescription = albumName,
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(MaterialTheme.shapes.medium),
-                albumImage = 2,//albumImageId,
-                contentDescription = albumName
             )
         }
 

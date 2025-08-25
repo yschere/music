@@ -1,5 +1,7 @@
 package com.example.music.ui.player
 
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.EaseOutExpo
 import androidx.compose.animation.core.tween
@@ -60,7 +62,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -78,6 +83,7 @@ import androidx.window.layout.DisplayFeature
 import com.example.music.R
 import com.example.music.data.repository.RepeatType
 import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.component.AlbumImageBm
 import com.example.music.designsys.component.ImageBackgroundRadialGradientScrim
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
@@ -408,8 +414,8 @@ private fun PlayerContentRegular(
             SongLyricsSwitch(currentSong, modifier = Modifier.weight(0.1f))
 
             Spacer(modifier = Modifier.weight(1f))
-            PlayerImage(
-                albumImage = currentSong.title,//currentSong.artwork!!, //FixMe: change this to bitmap or url when artwork fixed
+            PlayerImageBm(
+                albumImage = currentSong.artworkBitmap,//currentSong.artMap ?: ,//currentSong.artwork!!, //FixMe: change this to bitmap or url when artwork fixed
                 modifier = Modifier.weight(10f)
             )
             Spacer(modifier = Modifier.height(32.dp))
@@ -606,11 +612,27 @@ private fun SongLyricsSwitch(
 
 @Composable
 private fun PlayerImage(
-    albumImage: String, //FixMe: needs to be artwork bitmap or uri
+    albumImage: Uri, //FixMe: needs to be artwork bitmap or uri
     modifier: Modifier = Modifier
 ) {
     AlbumImage(
-        //albumImage = albumImage,
+        albumImage = albumImage,
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = modifier
+            .sizeIn(maxWidth = 500.dp, maxHeight = 500.dp)
+            .aspectRatio(1f)
+            .clip(MaterialTheme.shapes.medium)
+    )
+}
+
+@Composable
+private fun PlayerImageBm(
+    albumImage: Bitmap?, //FixMe: needs to be artwork bitmap or uri
+    modifier: Modifier = Modifier
+) {
+    AlbumImageBm(
+        albumImage = albumImage,
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = modifier

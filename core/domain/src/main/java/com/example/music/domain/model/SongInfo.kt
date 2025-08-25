@@ -1,5 +1,6 @@
 package com.example.music.domain.model
 
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.media3.common.MediaItem
 import com.example.music.data.database.model.Song
@@ -11,6 +12,7 @@ import com.example.music.domain.player.model.mediaUri
 import com.example.music.domain.player.model.title
 import com.example.music.domain.player.model.year
 import com.example.music.data.mediaresolver.model.Audio
+import com.example.music.data.mediaresolver.model.artworkUri
 import com.example.music.data.mediaresolver.model.uri
 import java.time.Duration
 import java.time.OffsetDateTime
@@ -61,7 +63,8 @@ data class SongInfo(
     val year: Int? = null,
     val cdTrackNum: Int? = null,
     val srcTrackNum: Int? = null,
-    val artwork: Uri? = null,
+    val artworkUri: Uri = Uri.parse(""),
+    val artworkBitmap: Bitmap? = null,
     //fileSize
 )
 
@@ -101,7 +104,7 @@ fun MediaItem.toSongInfo(): SongInfo =
         year = this.year,
         cdTrackNum = this.mediaMetadata.discNumber,
         //srcTrackNum
-        artwork = this.artworkUri,
+        artworkUri = this.artworkUri ?: Uri.parse(""),
     )
 
 /**
@@ -123,4 +126,5 @@ fun Audio.asExternalModel(): SongInfo =
         dateLastPlayed = OffsetDateTime.now(),
         //dateLastPlayed = this.dateModified,
         year = this.year,
+        artworkUri = this.artworkUri,
     )

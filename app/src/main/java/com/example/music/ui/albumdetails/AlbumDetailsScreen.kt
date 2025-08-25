@@ -792,20 +792,20 @@ fun AlbumDetailsHeader(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                /*AlbumImage(
+                AlbumImage(
+                    albumImage = album.artworkUri,
+                    contentDescription = album.title,
                     modifier = Modifier
                         .size(imageSize)
                         .clip(MaterialTheme.shapes.large),
-                    albumImage = 1,
-                    contentDescription = album.title
-                )*/
-                Image(
-                    painter = painterResource(R.drawable.bpicon),
+                )
+                /*Image(
+                    painter = album.artworkUri,
                     contentDescription = album.title,
                     modifier = Modifier
                         .size(imageSize)
                         .clip(MaterialTheme.shapes.large)
-                )
+                )*/
                 Column(
                     modifier = Modifier.padding(start = 16.dp)
                 ) {
@@ -1105,7 +1105,7 @@ fun AlbumDetailsSongListItem(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
                 AlbumImage(
-                    albumImage = 1,
+                    albumImage = song.artworkUri,
                     contentDescription = song.title,
                     modifier = Modifier
                         .size(56.dp)

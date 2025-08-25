@@ -1,5 +1,6 @@
 package com.example.music.ui.shared
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -76,8 +77,8 @@ fun FeaturedAlbumsCarousel(
             ) { page ->
                 val album = items[page]
                 FeaturedCarouselItem(
-                    itemImage = 1,//album.artwork!!,
                     itemTitle = album.title,
+                    itemImage = album.artworkUri,//album.artwork!!,
                     itemSize = album.songCount,
                     onMoreOptionsClick = { onMoreOptionsClick(album) },
                     //onClick = AlbumMoreOptionsBottomModal(album),
@@ -127,8 +128,8 @@ fun FeaturedPlaylistsCarousel(
                 val playlist = items[page]
                 //Log.i(TAG, "Horizontal Pager - playlists layout for playlist ${playlist.id}")
                 FeaturedCarouselItem(
-                    itemImage = 1,//album.artwork!!,
                     itemTitle = playlist.name,
+                    itemImage = Uri.parse(""), // FixMe: needs Playlist Image generation
                     itemSize = playlist.songCount,
                     onMoreOptionsClick = {},
                     //onMoreOptionsClick = { onMoreOptionsClick(playlist) },
@@ -148,7 +149,7 @@ fun FeaturedPlaylistsCarousel(
 @Composable
 fun FeaturedCarouselItem(
     itemTitle: String = "",
-    itemImage: Int = 0,
+    itemImage: Uri,
     itemSize: Int = 0,
     onMoreOptionsClick: (Any) -> Unit,
     //onClick: () -> Unit, //pass in either Album or Playlist MoreOptionsModal action here
@@ -219,8 +220,8 @@ fun FeaturedCarouselItem(
 private fun PreviewCard() {
     MusicTheme {
         FeaturedCarouselItem(
-            itemImage = PreviewAlbums[0].songCount,//album.artwork!!,
             itemTitle = PreviewAlbums[0].title,
+            itemImage = Uri.parse(""),//album.artwork!!,
             onMoreOptionsClick = {},
             //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
             modifier = Modifier

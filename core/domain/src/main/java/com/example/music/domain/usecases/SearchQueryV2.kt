@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.music.domain.model.SearchQueryFilterV2
 import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.MediaRepo
+import com.example.music.data.mediaresolver.model.uri
 import javax.inject.Inject
 
 /** Changelog:
@@ -35,7 +36,7 @@ class SearchQueryV2 @Inject constructor(
             query = query,
             limit = 20,
         ).map { audio ->
-            audio.asExternalModel()
+            audio.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
         }
 
         val artists = mediaRepo.findArtists(

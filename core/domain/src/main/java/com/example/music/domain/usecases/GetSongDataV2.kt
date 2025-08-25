@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.MediaRepo
+import com.example.music.data.mediaresolver.model.uri
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -31,6 +32,7 @@ class GetSongDataV2 @Inject constructor(
                         "Artist: ${it.artist}\n" +
                         "Album: ${it.album}")
                 it.asExternalModel()
+                    .copy(artworkBitmap = mediaRepo.loadThumbnail(it.uri))
             }
     }
 
@@ -44,6 +46,7 @@ class GetSongDataV2 @Inject constructor(
                 songList.map { song ->
                     Log.i(TAG, "Song: ${song.id} - ${song.title}")
                     song.asExternalModel()
+                        .copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
                 }
             }
     }

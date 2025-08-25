@@ -700,7 +700,7 @@ private fun HomeSongListItemRow(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
         AlbumImage(
-            albumImage = 1,
+            albumImage = song.artworkUri,
             contentDescription = song.title,
             modifier = Modifier
                 .size(56.dp)

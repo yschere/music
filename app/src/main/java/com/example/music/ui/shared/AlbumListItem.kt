@@ -305,6 +305,7 @@ private fun AlbumListItemImage(
     AlbumImage(
         //albumImage = album.artwork!!,
         //albumImage = R.drawable.bpicon,
+        albumImage = album.artworkUri,
         contentDescription = null,
         modifier = modifier,
     )

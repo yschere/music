@@ -1,5 +1,6 @@
 package com.example.music.ui.shared
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -174,10 +175,10 @@ fun MoreOptionModalHeader(
         // either item image or item first initial
         when (item) {
             is SongInfo -> {
-                HeaderImage(2, item.title) //fake hardcoded artwork value
+                HeaderImage(item.artworkUri, item.title)
             }
             is PlaylistInfo -> {
-                HeaderImage(1, item.name) //fake hardcoded artwork value
+                HeaderInitial(item.name)
             }
             is GenreInfo -> {
                 HeaderInitial(item.name)
@@ -189,7 +190,7 @@ fun MoreOptionModalHeader(
                 HeaderInitial(item.name)
             }
             is AlbumInfo -> {
-                HeaderImage(3, item.title) //fake hardcoded artwork value
+                HeaderImage(item.artworkUri, item.title)
             }
         }
 
@@ -263,11 +264,11 @@ fun MoreOptionModalHeader(
 // used for SongInfo, PlayerSong, AlbumInfo (maybe should also be fore PlaylistInfo)
 @Composable
 fun HeaderImage(
-    artwork: Int,
+    artworkUri: Uri,
     contentDescription: String = "",
 ) {
     AlbumImage(
-        albumImage = artwork, //when this is working, it should be the artwork
+        albumImage = artworkUri, //when this is working, it should be the artwork
         contentDescription = contentDescription, //song.artwork or song.title when this is working
         contentScale = ContentScale.Crop,
         modifier = Modifier
@@ -1583,7 +1584,7 @@ fun BottomSheetPlayer(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 8.dp)
             ) {
-                HeaderImage(1, song.title)
+                HeaderImage(song.artworkUri, song.title)
                 Column(Modifier.padding(8.dp).weight(1f)) {
                     Text(
                         text = song.title,
@@ -1695,7 +1696,7 @@ fun BottomSheetFullPlayer(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 4.dp)
                 ) {
-                    HeaderImage(1, song.title)
+                    HeaderImage(song.artworkUri, song.title)
                     Column(Modifier.padding(8.dp).weight(1f)) {
                         Text(
                             text = song.title,

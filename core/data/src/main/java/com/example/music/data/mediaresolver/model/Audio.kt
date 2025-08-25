@@ -104,7 +104,7 @@ val Audio.key
  *
  * @return the content URI for the album art image of this audio file's album
  */
-val Audio.albumUri
+val Audio.artworkUri
     get() = toAlbumArtUri(albumId)
 
 

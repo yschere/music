@@ -50,5 +50,5 @@ fun Cursor.toAlbum(): Album {
  *
  * @return the content URI for the album art image of this album
  */
-val Album.uri
+val Album.artworkUri
     get() = toAlbumArtUri(id)

@@ -380,7 +380,7 @@ fun ArtistDetailsScreen(
                                 ) { page ->
                                     val album = albums[page]
                                     FeaturedCarouselItem(
-                                        itemImage = 1,//album.artwork!!,
+                                        itemImage = album.artworkUri,//album.artwork!!,
                                         itemTitle = album.title,
                                         itemSize = album.songCount,
                                         onMoreOptionsClick = {
