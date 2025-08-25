@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.MediaRepo
+import com.example.music.data.mediaresolver.model.uri
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -36,7 +37,8 @@ class FeaturedLibraryItemsV2 @Inject constructor(
                 },
                 recentlyAddedSongs = mediaIds.map { mediaId ->
                     Log.i(TAG, "Fetch Song from SongID - $mediaId")
-                    mediaRepo.getAudio(mediaId).asExternalModel()
+                    val audio = mediaRepo.getAudio(mediaId)
+                    audio.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
                 },
             )
         }

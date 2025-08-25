@@ -1,8 +1,10 @@
 package com.example.music.domain.model
 
+import android.net.Uri
 import android.util.Log
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.AlbumWithExtraInfo
+import com.example.music.data.mediaresolver.model.artworkUri
 import com.example.music.data.mediaresolver.model.Album as AlbumV2
 import java.time.OffsetDateTime
 
@@ -15,7 +17,7 @@ private const val TAG = "AlbumInfo"
  * @property id [Long] The album's unique ID
  * @property title [String] The title of the album
  * @property albumArtistId [Long] The unique ID for the album's artist, foreign key to the artists table
- * @property artwork [String] The descriptor for the album's artwork
+ * @property artworkUri [Uri] The content uri to access the album's artwork
  * @property dateLastPlayed [OffsetDateTime] The datetime when a song within the album was last played,
  * currently set regardless of context where song was played
  * @property songCount [Int] The amount of songs in the album
@@ -28,7 +30,7 @@ data class AlbumInfo(
     val year: Int? = null,
     val trackTotal: Int? = null,
     val discTotal: Int? = null,
-    val artwork: String? = null,
+    val artworkUri: Uri = Uri.parse(""),
     val dateLastPlayed: OffsetDateTime? = null,
     val songCount: Int = 0,
 )
@@ -45,7 +47,7 @@ fun Album.asExternalModel(): AlbumInfo {
         year = this.year,
         trackTotal = this.trackTotal,
         discTotal = this.discTotal,
-        artwork = this.artwork
+        artworkUri = Uri.parse(this.artwork)
     )
 }
 
@@ -73,5 +75,6 @@ fun AlbumV2.asExternalModel(): AlbumInfo {
         //dateLastPlayed = OffsetDateTime.now(),
         songCount = this.numTracks, //not sure if this is numTracks or need to set this value in a different way
         //not sure how to set discTotal nor artwork . might need to figure that out within MediaRetriever
+        artworkUri = this.artworkUri,
     )
 }

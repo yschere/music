@@ -1,5 +1,7 @@
 package com.example.music.ui.shared
 
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.component.AlbumImageBm
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.theme.MusicTheme
@@ -181,7 +184,9 @@ private fun SongListItemRow(
         // Check if album image needs to be shown
         if (showAlbumImage) {
             SongListItemImage(
-                albumImage = song.albumTitle,
+                artworkUri = song.artworkUri,
+            //SongListItemImageBm(
+                //artworkBitmap = song.artworkBitmap,
                 modifier = Modifier
                     .size(56.dp)
                     .clip(MaterialTheme.shapes.small)
@@ -249,27 +254,25 @@ private fun SongListItemRow(
     }
 }
 
-/*@Composable
+@Composable
 private fun SongListItemImage(
-    album: AlbumInfo,
+    artworkUri: Uri,
     modifier: Modifier = Modifier
 ) {
     AlbumImage(
-        //albumImage = album.artwork!!,
-        //albumImage = R.drawable.bpicon,
+        albumImage = artworkUri,
         contentDescription = null,
         modifier = modifier,
     )
-}*/
+}
 
 @Composable
-private fun SongListItemImage(
-    albumImage: String,
+private fun SongListItemImageBm(
+    artworkBitmap: Bitmap?,
     modifier: Modifier = Modifier
 ) {
-    AlbumImage(
-        //albumImage = album.artwork!!,
-        //albumImage = R.drawable.bpicon,
+    AlbumImageBm(
+        albumImage = artworkBitmap,
         contentDescription = null,
         modifier = modifier,
     )

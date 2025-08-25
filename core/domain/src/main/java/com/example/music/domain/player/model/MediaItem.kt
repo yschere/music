@@ -13,7 +13,7 @@ import androidx.media3.common.MediaMetadata.Builder
 import androidx.media3.common.util.UnstableApi
 import com.example.music.domain.model.SongInfo
 import com.example.music.data.mediaresolver.model.Audio
-import com.example.music.data.mediaresolver.model.albumUri
+import com.example.music.data.mediaresolver.model.artworkUri
 import com.example.music.data.mediaresolver.model.uri
 
 /** Changelog:
@@ -70,7 +70,7 @@ private fun mediaSource(
     albumArtist: CharSequence,
     year: Int,
     duration: Long,
-    artwork: Uri? = null,
+    artworkUri: Uri? = null,
     mimeType: String? = null,
 ) = MediaItem.Builder()
     .setMediaId(id.toString())
@@ -83,7 +83,7 @@ private fun mediaSource(
             .setTitle(title)
             .setArtist(artist)
             .setExtras(Bundle().apply { putString(MEDIA_ITEM_EXTRA_MIME_TYPE, mimeType) })
-            .setArtworkUri(artwork)
+            .setArtworkUri(artworkUri)
             .setAlbumTitle(album)
             .setAlbumArtist(albumArtist)
             .setReleaseYear(year)
@@ -113,7 +113,7 @@ val MediaItem.asLocalMediaItem
         albumArtist = albumArtist ?: MediaStore.UNKNOWN_STRING,
         year = year ?: 0,
         duration = duration ?: 0,
-        artwork = artworkUri,
+        artworkUri = artworkUri,
         mimeType = mimeType
     )
 
@@ -130,7 +130,7 @@ val SongInfo.toMediaItem
         albumArtist = artistName,
         year = year ?: 0,
         duration = duration.toMillis(),
-        artwork = artwork,
+        artworkUri = artworkUri,
         mimeType = null,
     )
 
@@ -149,7 +149,7 @@ val Audio.toMediaItem
         albumArtist = albumArtist,
         year = year,
         duration = duration.toLong(),
-        artwork = albumUri,
+        artworkUri = artworkUri,
         mimeType = mimeType,
     )
 
@@ -157,9 +157,9 @@ val Audio.toMediaItem
  * Creates a playable [MediaItem]
  * @see mediaSource
  */
+@OptIn(UnstableApi::class)
 @JvmInline
 value class MediaFile internal constructor(internal val value: MediaItem) {
-    @OptIn(UnstableApi::class)
     constructor(
         uri: Uri,
         title: String,
@@ -168,7 +168,7 @@ value class MediaFile internal constructor(internal val value: MediaItem) {
         albumArtist: String,
         year: Int,
         duration: Long,
-        artwork: Uri? = null,
+        artworkUri: Uri? = null,
         mimeType: String? = null,
     ) : this(
         MediaItem.Builder()
@@ -177,7 +177,7 @@ value class MediaFile internal constructor(internal val value: MediaItem) {
             .setRequestMetadata(MediaItem.RequestMetadata.Builder().setMediaUri(uri).build())
             .setMediaMetadata(
                 Builder()
-                    .setArtworkUri(artwork)
+                    .setArtworkUri(artworkUri)
                     .setTitle(title)
                     .setArtist(artist)
                     .setAlbumTitle(album)

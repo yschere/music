@@ -19,9 +19,6 @@ import kotlinx.coroutines.flow.map
 
 private const val TAG = "MediaRepo"
 
-private fun toAudioTrackUri(id: Long) =
-    ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
-
 /**
  * Class that serves as a repository for the data layer to provide the ability to request and
  * retrieve data from the ContentResolver.
@@ -35,11 +32,12 @@ class MediaRepo (
      *
      **********************************************************************************************/
 
-    // Object by which MediaRepo accesses media data
+    /**
+     * Object by which MediaRepo accesses media data
+     */
     private val resolver: ContentResolver = context.contentResolver
 
     companion object {
-        val EXTERNAL_CONTENT_URI = MediaStore.Files.getContentUri("external")
         private val ALBUM_ART_URI: Uri = Uri.parse("content://media/external/audio/albumart")
         fun toAlbumArtUri(id: Long): Uri = ContentUris.withAppendedId(ALBUM_ART_URI, id)
     }
@@ -112,9 +110,16 @@ class MediaRepo (
     }
 
     /**
-     * Return the bitmap of a thumbnail from a given uri
+     * Returns the bitmap of a thumbnail from a given uri. This is an alternative to loading
+     * album art by loading the thumbnail directly associated with an audio file.
      */
-    fun loadThumb(uri: Uri): Bitmap = resolver.loadThumbnail(uri, Size(640, 480), null)
+    fun loadThumbnail(uri: Uri): Bitmap? =
+        try {
+            resolver.loadThumbnail(uri, Size(640, 480), null)
+        } catch (e: Exception) {
+            Log.i(TAG, "ContentResolver error caught: $e", e)
+            null
+        }
 
 
     /***********************************************************************************************
