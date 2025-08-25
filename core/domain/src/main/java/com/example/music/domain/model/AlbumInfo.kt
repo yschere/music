@@ -4,7 +4,7 @@ import android.net.Uri
 import android.util.Log
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.AlbumWithExtraInfo
-import com.example.music.data.mediaresolver.model.uri
+import com.example.music.data.mediaresolver.model.artworkUri
 import com.example.music.data.mediaresolver.model.Album as AlbumV2
 import java.time.OffsetDateTime
 
@@ -75,6 +75,6 @@ fun AlbumV2.asExternalModel(): AlbumInfo {
         //dateLastPlayed = OffsetDateTime.now(),
         songCount = this.numTracks, //not sure if this is numTracks or need to set this value in a different way
         //not sure how to set discTotal nor artwork . might need to figure that out within MediaRetriever
-        artworkUri = this.uri,
+        artworkUri = this.artworkUri,
     )
 }
