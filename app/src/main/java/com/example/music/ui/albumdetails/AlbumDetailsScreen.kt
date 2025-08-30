@@ -1,5 +1,6 @@
 package com.example.music.ui.albumdetails
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring.StiffnessMediumLow
 import androidx.compose.animation.core.animateFloatAsState
@@ -147,12 +148,15 @@ import kotlinx.coroutines.launch
  * 7/22-23/2025 - Removed PlayerSong completely
  */
 
+private const val TAG = "Album Details Screen"
+
 /**
  * Stateful version of Album Details Screen
  */
 @Composable
 fun AlbumDetailsScreen(
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     //navigateToArtist: (ArtistInfo) -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
@@ -174,6 +178,7 @@ fun AlbumDetailsScreen(
                 selectSong = uiState.selectSong,
                 onAlbumAction = viewModel::onAlbumAction,
                 navigateToPlayer = navigateToPlayer,
+                navigateToPlayerV2 = navigateToPlayerV2,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 showBackButton = showBackButton,
@@ -234,6 +239,7 @@ fun AlbumDetailsScreen(
     //onQueueSong: (SongInfo) -> Unit,
     onAlbumAction: (AlbumAction) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -381,9 +387,11 @@ fun AlbumDetailsScreen(
                         SongCountAndSortSelectButtons(
                             songs = songs,
                             onSelectClick = {
+                                Log.i(TAG, "Multi Select btn clicked")
                                 // open song selection screen
                             },
                             onSortClick = {
+                                Log.i(TAG, "Song Sort btn clicked")
                                 showBottomSheet = true
                                 showSortSheet = true
                             }
@@ -392,8 +400,16 @@ fun AlbumDetailsScreen(
 
                     fullWidthItem {
                         PlayShuffleButtons(
-                            onPlayClick = { onAlbumAction(AlbumAction.PlayAlbum(songs)) /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
-                            onShuffleClick = { onAlbumAction(AlbumAction.ShuffleAlbum(songs)) /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                            onPlayClick = {
+                                Log.i(TAG, "Play Album btn clicked")
+                                onAlbumAction(AlbumAction.PlayAlbum(songs))
+                                navigateToPlayerV2()
+                            },
+                            onShuffleClick = {
+                                Log.i(TAG, "Shuffle Album btn clicked")
+                                onAlbumAction(AlbumAction.ShuffleAlbum(songs))
+                                //navigateToPlayer(songs[1])
+                            },
                         )
                     }
 
@@ -401,10 +417,13 @@ fun AlbumDetailsScreen(
                     items(songs) { song -> // for each song in list:
                         SongListItem(
                                 song = song,
-                                onClick = { navigateToPlayer(song) },
-                                //onMoreOptionsClick = { song, context = "AlbumDetails", content = "SongInfo" }
-                                //or
+                                onClick = {
+                                    Log.i(TAG, "Song clicked: ${song.title}")
+                                    onAlbumAction(AlbumAction.SongClicked(song))
+                                    navigateToPlayerV2()
+                                },
                                 onMoreOptionsClick = {
+                                    Log.i(TAG, "Song More Option clicked: ${song.title}")
                                     onAlbumAction(AlbumAction.SongMoreOptionClicked(song))
                                     showBottomSheet = true
                                     showSongMoreOptions = true
@@ -532,6 +551,7 @@ fun AlbumDetailsScreen(
                     IconButton(
                         onClick = {
                             coroutineScope.launch {
+                                Log.i(TAG, "Scroll to Top btn clicked")
                                 listState.animateScrollToItem(0)
                             }
                         },
@@ -1211,6 +1231,7 @@ fun AlbumDetailsScreenPreview() {
 //            songs = getSongsInAlbum(307),
 
             navigateToPlayer = {},
+            navigateToPlayerV2 = {},
             navigateToSearch = {},
             navigateBack = {},
             showBackButton = true,

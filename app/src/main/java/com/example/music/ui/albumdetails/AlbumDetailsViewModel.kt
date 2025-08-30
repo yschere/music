@@ -4,11 +4,12 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-//import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetAlbumDetailsV2
+import com.example.music.service.SongController
 import com.example.music.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,10 +47,11 @@ data class AlbumUiState (
 /**
  * ViewModel that handles the business logic and screen state of the Album Details screen
  */
+@UnstableApi
 @HiltViewModel
 class AlbumDetailsViewModel @Inject constructor(
     getAlbumDetailsV2: GetAlbumDetailsV2,
-    //private val songPlayer: SongPlayer,
+    private val songController: SongController,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -83,6 +85,7 @@ class AlbumDetailsViewModel @Inject constructor(
                 Log.i(TAG, "AlbumUiState call")
                 Log.i(TAG, "albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}")
                 Log.i(TAG, "albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}")
+                Log.i(TAG, "is SongController available: ${songController.isConnected()}")
                 Log.i(TAG, "isReady?: ${!refreshing}")
 
                 AlbumUiState(
@@ -132,11 +135,13 @@ class AlbumDetailsViewModel @Inject constructor(
             is AlbumAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
             is AlbumAction.ShuffleAlbum -> onShuffleAlbum(action.songs)
             is AlbumAction.PlayAlbum -> onPlayAlbum(action.songs)
+            is AlbumAction.SongClicked -> onSongClicked(action.song)
         }
     }
 
     private fun onQueueSong(song: SongInfo) {
         Log.i(TAG, "onQueueSong - ${song.title}")
+        songController.addToQueue(song)
         //songPlayer.addToQueue(song.toPlayerSong())
     }
 
@@ -147,12 +152,20 @@ class AlbumDetailsViewModel @Inject constructor(
 
     private fun onPlayAlbum(songs: List<SongInfo>) {
         Log.i(TAG, "onPlayAlbum - ${songs.size}")
+        songController.setMediaItems(songs)
         //songPlayer.addToQueue( songs.map { it.toPlayerSong() } )
     }
 
     private fun onShuffleAlbum(songs: List<SongInfo>) {
         Log.i(TAG, "onShuffleAlbum - ${songs.size}")
+        songController.removeAllFromQueue()
+        songController.shuffle(songs)
         //songPlayer.shuffle( songs.map { it.toPlayerSong() } )
+    }
+
+    private fun onSongClicked(song: SongInfo) {
+        Log.i(TAG, "onSongClicked - ${song.title}")
+        songController.setMediaItem(song)
     }
 }
 
@@ -161,6 +174,7 @@ sealed interface AlbumAction {
     data class SongMoreOptionClicked(val song: SongInfo) : AlbumAction
     data class PlayAlbum(val songs: List<SongInfo>) : AlbumAction
     data class ShuffleAlbum(val songs: List<SongInfo>) : AlbumAction
+    data class SongClicked(val song: SongInfo) : AlbumAction
 }
 
 /**
