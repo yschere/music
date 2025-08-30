@@ -98,6 +98,18 @@ fun MusicApp(
                 )
             }
 
+            //Player Screen Navigation Router
+            composable(Screen.PlayerV2.route) { backStackEntry ->
+                PlayerScreen(
+                    windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
+                    displayFeatures = displayFeatures, //used to determine physical properties of display device to accommodate view accordingly
+                    navigateBack = appState::navigateBack, //navigation back button
+                    navigateToHome = { appState.navigateToHome(backStackEntry) },
+                    navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
+                    //navigateToSettings = { appState.navigateToSettings(backStackEntry) },
+                )
+            }
+
             //Library Screen Navigation Router
             composable(Screen.Library.route) { backStackEntry ->
                 LibraryScreen(
@@ -154,6 +166,10 @@ fun MusicApp(
                     // want ability to navigate to song player when song selected to play -- dependent on song list being on screen
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
+                    },
+
+                    navigateToPlayerV2 = {
+                        appState.navigateToPlayerV2(backStackEntry)
                     },
 
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
