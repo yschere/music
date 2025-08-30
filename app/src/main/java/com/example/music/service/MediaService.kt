@@ -134,6 +134,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         Log.i(TAG, "Building Media Session")
         mediaSession = MediaSession.Builder(this, mediaPlayer)
             .setSessionActivity(activity)
+            .setCallback(this)
             .build()
         Log.i(TAG, "Media Session created")
 
@@ -151,9 +152,9 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
             }
 
             // Connects the MediaService's Player.Listener to mediaPlayer
-            Log.i(TAG, "Adding listener to a media player.")
+            Log.i(TAG, "Adding @MediaService listener to a media player.")
             mediaPlayer.addListener(this@MediaService)
-            Log.i(TAG, "Added listener to a media player.")
+            Log.i(TAG, "Added @MediaService listener to a media player.")
 
             sendBroadcast(NowPlaying.from(this@MediaService, mediaPlayer))
 
