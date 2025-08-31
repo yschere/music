@@ -150,61 +150,61 @@ class SongControllerImpl @Inject constructor(
 
     override var currentSong: MediaItem? by _currentSong
 
-    override fun addMediaItem(item: SongInfo) {
-        Log.i(TAG, "Add Media Item: ${item.id}")
-        addToQueue(item)
-        mediaController?.setMediaItem(item.toMediaItem)
+    override fun addMediaItem(song: SongInfo) {
+        Log.i(TAG, "Add Media Item: ${song.id}")
+        addToQueue(song)
+        mediaController?.setMediaItem(song.toMediaItem)
     }
 
-    override fun addMediaItems(items: List<SongInfo>) {
-        Log.i(TAG, "Add Media Items: ${items.size}")
-        addToQueue(items)
+    override fun addMediaItems(songs: List<SongInfo>) {
+        Log.i(TAG, "Add Media Items: ${songs.size}")
+        addToQueue(songs)
         mediaController?.setMediaItems(
-            items.map {
+            songs.map {
                 it.toMediaItem
             }
         )
     }
 
-    override fun addToQueue(songInfo: SongInfo) {
+    override fun addToQueue(song: SongInfo) {
         Log.i(TAG, "Add To Queue - 1 song")
-        mediaController?.addMediaItem(songInfo.toMediaItem)
+        mediaController?.addMediaItem(song.toMediaItem)
     }
 
-    override fun addToQueue(songInfos: List<SongInfo>) {
+    override fun addToQueue(songs: List<SongInfo>) {
         Log.i(TAG, "Add To Queue - multiple songs")
         mediaController?.addMediaItems(
-            songInfos.map {
+            songs.map {
                 it.toMediaItem
             }
         )
     }
 
-    override fun addToQueueNext(songInfo: SongInfo) {
+    override fun addToQueueNext(song: SongInfo) {
         Log.i(TAG, "Add to Queue Next - 1 song:\n" +
-                "Song ID: ${songInfo.id}; Song Title: ${songInfo.title}")
-        mediaController?.addMediaItem(1,songInfo.toMediaItem)
+                "Song ID: ${song.id}; Song Title: ${song.title}")
+        mediaController?.addMediaItem(1,song.toMediaItem)
     }
 
-    override fun addToQueueNext(songInfos: List<SongInfo>) {
-        Log.i(TAG, "Add to Queue Next - multiple songs: ${songInfos.size}")
-        mediaController?.addMediaItems(1,songInfos.map {
+    override fun addToQueueNext(songs: List<SongInfo>) {
+        Log.i(TAG, "Add to Queue Next - multiple songs: ${songs.size}")
+        mediaController?.addMediaItems(1,songs.map {
             Log.i(TAG, "Song ID: ${it.id}; Song Title: ${it.title}")
             it.toMediaItem
         })
     }
 
-    override fun setMediaItem(item: SongInfo) {
+    override fun setMediaItem(song: SongInfo) {
         //addToQueue(item)
-        Log.i(TAG, "Set Media Item: ${item.id}")
-        //mediaController?.setMediaItem(item.toMediaItem) //want this to be the only thing this function does
-        play(item) //currently this is the only way playing a song actually works
+        Log.i(TAG, "Set Media Item: ${song.id}")
+        //mediaController?.setMediaItem(song.toMediaItem) //want this to be the only thing this function does
+        play(song) //currently this is the only way playing a song actually works
     }
 
-    override fun setMediaItems(items: List<SongInfo>) {
-        Log.i(TAG, "Set Media Items: ${items.size}")
+    override fun setMediaItems(songs: List<SongInfo>) {
+        Log.i(TAG, "Set Media Items: ${songs.size}")
         mediaController?.setMediaItems(
-            items.map {
+            songs.map {
                 Log.i(TAG, "Song ID: ${it.id}; Song Title: ${it.title}")
                 it.toMediaItem
             }
@@ -267,19 +267,19 @@ class SongControllerImpl @Inject constructor(
         }
     }
 
-    override fun play(songInfo: SongInfo) {
+    override fun play(song: SongInfo) {
         Log.d(TAG, "In play(SongInfo)")
-        play(listOf(songInfo))
+        play(listOf(song))
     }
 
-    override fun play(songInfos: List<SongInfo>) {
+    override fun play(songs: List<SongInfo>) {
         Log.d(TAG, "In play(List<SongInfo>)")
         if (isPlaying.value) {
             pause()
             mediaController?.pause()
         }
 
-        val queue = songInfos.map{it.toMediaItem}
+        val queue = songs.map{it.toMediaItem}
         mediaController?.setMediaItems(queue)
         Log.e(TAG, "Current queue has ${queue.size} items.")
         Log.e(TAG, "Current media controller state before apply is ${mediaController?.playbackState}.")
@@ -458,7 +458,7 @@ class SongControllerImpl @Inject constructor(
         }
     }
 
-    override fun shuffle(songInfos: List<SongInfo>) {
+    override fun shuffle(songs: List<SongInfo>) {
         // ground rules
         // 1 if the songs here are the first items going into the queue, then the shuffled
         // order here is the originating order, aka it is the queue's default track order. hitting un-shuffle will keep this order intact, and hitting shuffle can change the order but the original needs to remain untouched
@@ -473,12 +473,12 @@ class SongControllerImpl @Inject constructor(
         // AND IT WILL BE AT THE TOP OF THE QUEUE, REMOVING THE ORIGINAL CONTEXT BUT KEEPING THE ITEMS THAT WERE
         // "ADD TO QUEUE"
 //        queue.update {
-//            songInfos.shuffled(Random(RandSeed))
+//            songs.shuffled(Random(RandSeed))
 //        }
         removeAllFromQueue()
 
         mediaController?.setMediaItems(
-            songInfos.map {
+            songs.map {
                 it.toMediaItem
             }.shuffled( Random(RAND_SEED) )
         )

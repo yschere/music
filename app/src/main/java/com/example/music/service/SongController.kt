@@ -13,7 +13,7 @@ import java.time.Duration
  * Removed PlayerSong completely
  */
 
-val DefaultPlaybackSpeed = Duration.ofSeconds(1)
+val DefaultPlaybackSpeed: Duration = Duration.ofSeconds(1)
 // FUTURE THOUGHT: see if there is way to confirm what type DefaultPlaybackSpeed is supposed to be
 
 data class SongControllerState(
@@ -53,19 +53,19 @@ interface SongController {
     //val mediaPlayer: MediaPlayer?
         //get() = null
 
-    fun addMediaItem(item: SongInfo)
+    fun addMediaItem(song: SongInfo)
 
-    fun addMediaItems(items: List<SongInfo>)
+    fun addMediaItems(songs: List<SongInfo>)
 
     /**
      * Add song to end of queue
      */
-    fun addToQueue(songInfo: SongInfo)
+    fun addToQueue(song: SongInfo)
 
     /**
      * Add multiple songs to end of queue
      */
-    fun addToQueue(songInfos: List<SongInfo>)
+    fun addToQueue(songs: List<SongInfo>)
 
     /**
      * Add song to beginning of queue. This is for "PlayNext" to both place the song after the
@@ -74,24 +74,24 @@ interface SongController {
      * Which means this implementation would need to know the placement of the current song to be
      * able to iterate on.
      */
-    fun addToQueueNext(songInfo: SongInfo)
+    fun addToQueueNext(song: SongInfo)
 
     /**
      * Add multiple songs to beginning of queue. Similar to [addToQueueNext] it's "PlayNext" but
      * on a list of songs. So when shuffled is on, does it shuffle the incoming list? or place them
      * next in its original order. survey says yes, place the new songs in order.
      */
-    fun addToQueueNext(songInfos: List<SongInfo>)
+    fun addToQueueNext(songs: List<SongInfo>)
 
     /**
      * Clear the current queue and set it with provided item
      */
-    fun setMediaItem(item: SongInfo)
+    fun setMediaItem(song: SongInfo)
 
     /**
      * Clear the current queue and set it with provided items
      */
-    fun setMediaItems(items: List<SongInfo>)
+    fun setMediaItems(songs: List<SongInfo>)
 
     /**
      * Prepare the media player
@@ -114,7 +114,7 @@ interface SongController {
      * Note: If the given songInfo is from an item that is already within the queue,
      * it should play that item.
      */
-    fun play(songInfo: SongInfo)
+    fun play(song: SongInfo)
 
     /**
      * Plays a specified list of songs.
@@ -123,7 +123,7 @@ interface SongController {
      * queue from "AddToQueue". So if the queue started from "Play" or "Shuffle", it will get
      * replaced with the new item(s) being played or shuffled.
      */
-    fun play(songInfos: List<SongInfo>)
+    fun play(songs: List<SongInfo>)
 
     /**
      * Pauses the currently played song
@@ -186,7 +186,7 @@ interface SongController {
      */
     fun decreaseSpeed(speed: Duration = Duration.ofMillis(500))
 
-    fun shuffle(songInfos: List<SongInfo>)
+    fun shuffle(songs: List<SongInfo>)
 
     fun getIsPlaying() : Boolean
 
