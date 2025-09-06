@@ -32,6 +32,10 @@ sealed class Screen(val route: String) {
         fun createRoute(songId: Long) = "player/$songId"
     }
 
+    object PlayerV2 : Screen( "player2") {
+        fun createRoute() = "player2"
+    }
+
     object Search : Screen("search") {
         fun createRoute() = "search"
     }
@@ -165,6 +169,14 @@ class MusicAppState(
         if (from.lifecycleIsResumed()) {
             Log.i(TAG, "***************** SWITCHING TO PLAYER VIEW *****************")
             navController.navigate(Screen.Player.createRoute(songId))
+        }
+    }
+
+    fun navigateToPlayerV2(from: NavBackStackEntry) {
+        // In order to discard duplicated navigation events, we check the Lifecycle
+        if (from.lifecycleIsResumed()) {
+            Log.i(TAG, "***************** SWITCHING TO PLAYER V2 VIEW *****************")
+            navController.navigate(Screen.PlayerV2.createRoute())
         }
     }
 

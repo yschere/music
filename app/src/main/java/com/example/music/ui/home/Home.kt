@@ -218,6 +218,7 @@ fun MainScreen(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -231,6 +232,7 @@ fun MainScreen(
             navigateToPlaylistDetails = navigateToPlaylistDetails,
             navigateToLibrary = navigateToLibrary,
             navigateToPlayer = navigateToPlayer,
+            navigateToPlayerV2 = navigateToPlayerV2,
             navigateToSearch = navigateToSearch,
             navigateToSettings = navigateToSettings,
             viewModel = viewModel,
@@ -277,6 +279,7 @@ private fun HomeScreenReady(
     navigateToSettings: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
@@ -309,6 +312,7 @@ private fun HomeScreenReady(
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToLibrary = navigateToLibrary,
                     navigateToPlayer = navigateToPlayer,
+                    navigateToPlayerV2 = navigateToPlayerV2,
                     navigateToSettings = navigateToSettings,
                     navigateToSearch = navigateToSearch,
                     modifier = Modifier.fillMaxSize()
@@ -359,6 +363,7 @@ private fun HomeScreen(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Effect that changes the home category selection when there are no subscribed podcasts
@@ -437,6 +442,7 @@ private fun HomeScreen(
                     navigateToAlbumDetails = navigateToAlbumDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToPlayer = navigateToPlayer,
+                    navigateToPlayerV2 = navigateToPlayerV2
                 )
             }
         }
@@ -498,6 +504,7 @@ private fun HomeContent(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit
 ) {
     // Main Content on Home screen
     //logger.info { "Home Content function start" }
@@ -529,6 +536,7 @@ private fun HomeContent(
         navigateToAlbumDetails = navigateToAlbumDetails,
         navigateToPlaylistDetails = navigateToPlaylistDetails,
         navigateToPlayer = navigateToPlayer,
+        navigateToPlayerV2 = navigateToPlayerV2
     )
 
     if(showBottomSheet) {
@@ -554,6 +562,7 @@ private fun HomeContentGrid(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
 ) {
     //logger.info { "Home Content Grid function start" }
     LazyVerticalGrid(
@@ -647,7 +656,10 @@ private fun HomeContentGrid(
                 Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                     HomeSongListItem(
                         song = song,
-                        onClick = navigateToPlayer,
+                        onClick = {
+                            onHomeAction(HomeAction.SongClicked(song))
+                            navigateToPlayerV2()
+                        },
                         //onQueueSong = { },
                         onMoreOptionsClick = { onMoreOptionsClick(song) },
                         modifier = Modifier.fillMaxWidth(),
@@ -811,6 +823,7 @@ private fun PreviewHome() {
             navigateToAlbumDetails = {},
             navigateToPlaylistDetails = {},
             navigateToPlayer = {},
+            navigateToPlayerV2 = {},
         )
     }
 }

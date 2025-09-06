@@ -27,21 +27,27 @@ private const val TAG = "UI-DI-Module"
 object UiDiModule {
     @Singleton
     @Provides
-    fun provideAudioAttributes() = AudioAttributes.Builder()
-        .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-        .setUsage(C.USAGE_MEDIA)
-        .build()
+    fun provideAudioAttributes(): AudioAttributes {
+        Log.i(TAG, "Providing Audio Attributes")
+        return AudioAttributes.Builder()
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+            .setUsage(C.USAGE_MEDIA)
+            .build()
+    }
 
     @OptIn(UnstableApi::class)
     @Provides
     fun providePlayer(
         @ApplicationContext context: Context,
         audioAttributes: AudioAttributes,
-    ): Player = ExoPlayer.Builder(context, DefaultMediaSourceFactory(context))
-        .setAudioAttributes(audioAttributes, true)
-        .setWakeMode(C.WAKE_MODE_LOCAL)
-        .setHandleAudioBecomingNoisy(true)
-        .build()
+    ): Player {
+        Log.i(TAG, "Providing Player")
+        return ExoPlayer.Builder(context, DefaultMediaSourceFactory(context))
+            .setAudioAttributes(audioAttributes, true)
+            .setWakeMode(C.WAKE_MODE_LOCAL)
+            .setHandleAudioBecomingNoisy(true)
+            .build()
+    }
 
     @OptIn(UnstableApi::class)
     @Provides

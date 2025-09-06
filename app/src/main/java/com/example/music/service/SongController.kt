@@ -1,8 +1,10 @@
 package com.example.music.service
 
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import com.example.music.data.repository.RepeatType
 import com.example.music.domain.model.SongInfo
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.Duration
 
@@ -13,85 +15,111 @@ import java.time.Duration
  * Removed PlayerSong completely
  */
 
-val DefaultPlaybackSpeed = Duration.ofSeconds(1)
-// FUTURE THOUGHT: see if there is way to confirm what type DefaultPlaybackSpeed is supposed to be
+val DefaultPlaybackSpeed: Duration = Duration.ofSeconds(1)
 
-data class SongControllerState(
+/*data class SongControllerState(
     val currentSong: MediaItem? = null,
-    val playbackSpeed: Duration = DefaultPlaybackSpeed,
+    //val playbackSpeed: Duration = DefaultPlaybackSpeed,
     val isPlaying: Boolean = false, //tracks the current playing state
     val timeElapsed: Duration = Duration.ZERO,
-    val isShuffled: Boolean = false,
-    val repeatState: RepeatType = RepeatType.OFF,
+    //val isShuffled: Boolean = false,
+    //val repeatState: RepeatType = RepeatType.OFF,
+    val hasNext: Boolean = false,
     //val shuffleType: ShuffleType = ShuffleType.ONCE,
-)
+)*/
 
 /**
- * Interface definition for a song player defining high-level functions such as queuing
- * episodes, playing an episode, pausing, seeking, etc.
+ * Interface wrapper for a Media Controller to define high-level functions for
+ * interacting with MediaService and a media3 Player.
  */
 interface SongController {
 
     /**
-     * A StateFlow that emits the [SongControllerState] as controls as invoked on this player.
+     * The current playing song.
      */
-    val playerState: StateFlow<SongControllerState>
+    val currentSong: MediaItem?
 
     /**
-     * Gets the current episode playing, or to be played, by this player.
+     * Current playback position from MediaController
      */
-    var currentSong: MediaItem?
+    val position: Long
+
+    /**
+     * The playback length for the current playing song.
+     */
+    val duration: Long
+
+    /**
+     * If the Player is playing a song.
+     */
+    val isPlaying: Boolean
+
+    /**
+     * A MediaController setting to say that the Player has permission to play when
+     * when it is done buffering/loading.
+     */
+    val playWhenReady: Boolean
+
+    /**
+     * If there is a song queued to play after the current song.
+     */
+    val hasNext: Boolean
+
+    /**
+     * A reflection of the events occurring in Player
+     */
+    val events: Flow<Player.Events?>
+
+    /**
+     * A reflection of the loaded state for SongController
+     */
+    val loaded: Flow<Boolean>
 
     /**
      * The speed of which the player increments
      */
-    var playerSpeed: Duration
+    //var playerSpeed: Duration
 
     /**
-     * The object for providing mediaPlayer functionality to song player
+     * The media3 Player object that provides Player functionality to SongController
      */
-    //val mediaPlayer: MediaPlayer?
-        //get() = null
-
-    fun addMediaItem(item: SongInfo)
-
-    fun addMediaItems(items: List<SongInfo>)
+    val player: Player?
 
     /**
      * Add song to end of queue
      */
-    fun addToQueue(songInfo: SongInfo)
+    fun addToQueue(song: SongInfo)
 
     /**
      * Add multiple songs to end of queue
      */
-    fun addToQueue(songInfos: List<SongInfo>)
+    fun addToQueue(songs: List<SongInfo>)
 
     /**
      * Add song to beginning of queue. This is for "PlayNext" to both place the song after the
      * current song regardless if the queue is shuffled or not, it will be the next song. So when
-     * the queue is unshuffled, it will be set after the placement of where the current song is.
+     * the queue is un-shuffled, it will be set after the placement of where the current song is.
      * Which means this implementation would need to know the placement of the current song to be
      * able to iterate on.
      */
-    fun addToQueueNext(songInfo: SongInfo)
+    fun addToQueueNext(song: SongInfo)
 
     /**
      * Add multiple songs to beginning of queue. Similar to [addToQueueNext] it's "PlayNext" but
      * on a list of songs. So when shuffled is on, does it shuffle the incoming list? or place them
      * next in its original order. survey says yes, place the new songs in order.
      */
-    fun addToQueueNext(songInfos: List<SongInfo>)
+    fun addToQueueNext(songs: List<SongInfo>)
 
     /**
      * Clear the current queue and set it with provided item
      */
-    fun setMediaItem(item: SongInfo)
+    fun setMediaItem(song: SongInfo)
 
     /**
      * Clear the current queue and set it with provided items
      */
-    fun setMediaItems(items: List<SongInfo>)
+    fun setMediaItems(songs: List<SongInfo>)
 
     /**
      * Prepare the media player
@@ -101,7 +129,7 @@ interface SongController {
     /**
     * Flushes the queue
     */
-    fun removeAllFromQueue()
+    fun clearQueue()
 
     /**
      * Get the player to play. Effectively this should be the one that affects the
@@ -109,12 +137,14 @@ interface SongController {
      */
     fun play()
 
+    fun play(playWhenReady: Boolean)
+
     /**
      * Plays a specified song.
      * Note: If the given songInfo is from an item that is already within the queue,
      * it should play that item.
      */
-    fun play(songInfo: SongInfo)
+    fun play(song: SongInfo)
 
     /**
      * Plays a specified list of songs.
@@ -123,20 +153,25 @@ interface SongController {
      * queue from "AddToQueue". So if the queue started from "Play" or "Shuffle", it will get
      * replaced with the new item(s) being played or shuffled.
      */
-    fun play(songInfos: List<SongInfo>)
+    fun play(songs: List<SongInfo>)
 
     /**
-     * Pauses the currently played song
+     * Pauses the currently playing song
      */
     fun pause()
 
     /**
-     * Stops the currently played song
+     * Stops the currently playing song
      */
     fun stop()
 
     /**
-     * Plays another song in the queue (if available)
+     * Sets the current playback to a given time specified in [Long].
+     */
+    fun seekTo(position: Long)
+
+    /**
+     * Plays the next song in the queue (if available)
      */
     fun next()
 
@@ -145,26 +180,6 @@ interface SongController {
      * playing this will start the song from the beginning
      */
     fun previous()
-
-    /**
-     * Advances a currently played song by a given time interval specified in [duration].
-     */
-    fun advanceBy(duration: Duration)
-
-    /**
-     * Rewinds a currently played song by a given time interval specified in [duration].
-     */
-    fun rewindBy(duration: Duration)
-
-    /**
-     * Signal that user started seeking.
-     */
-    fun onSeekingStarted()
-
-    /**
-     * Seeks to a given time interval specified in [duration].
-     */
-    fun onSeekingFinished(duration: Duration)
 
     /**
      * Use to change the shuffle mode
@@ -179,24 +194,14 @@ interface SongController {
     /**
      * Increases the speed of Player playback by a given time specified in [Duration].
      */
-    fun increaseSpeed(speed: Duration = Duration.ofMillis(500))
+    //fun increaseSpeed(speed: Duration = Duration.ofMillis(500))
 
     /**
      * Decreases the speed of Player playback by a given time specified in [Duration].
      */
-    fun decreaseSpeed(speed: Duration = Duration.ofMillis(500))
+    //fun decreaseSpeed(speed: Duration = Duration.ofMillis(500))
 
-    fun shuffle(songInfos: List<SongInfo>)
-
-    fun getIsPlaying() : Boolean
-
-    fun getIsShuffled() : Boolean
-
-    fun getRepeatState() : RepeatType
-
-    fun getTimeElapsed() : Duration
-
-    fun getHasNext() : Boolean
+    fun shuffle(songs: List<SongInfo>)
 
     fun isConnected() : Boolean
 }
