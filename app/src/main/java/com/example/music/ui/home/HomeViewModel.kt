@@ -12,6 +12,8 @@ import com.example.music.domain.model.PlaylistInfo
 import com.example.music.data.util.combine
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.usecases.GetTotalCountsV2
+import com.example.music.service.SongController
+import com.example.music.ui.albumdetails.AlbumAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,7 +40,7 @@ class HomeViewModel @Inject constructor(
     featuredLibraryItemsV2: FeaturedLibraryItemsV2,
     getTotalCountsV2: GetTotalCountsV2,
     //private val searchQueryV2: SearchQueryV2,
-    //private val songPlayer: SongPlayer
+    private val songController: SongController
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
         objects: FeaturedLibraryItemsFilterResult, which contains
@@ -155,17 +157,18 @@ class HomeViewModel @Inject constructor(
     fun onHomeAction(action: HomeAction) {
         Log.i(TAG, "onHomeAction - $action")
         when (action) {
-            //is HomeAction.ToggleNavMenu -> onNavigationViewMenu()
+            is HomeAction.EmptyLibraryView -> onEmptyPlaylistView()
             is HomeAction.LibraryAlbumSelected -> onLibraryAlbumSelected(action.album)
             //is HomeAction.LibraryPlaylistSelected -> onLibraryPlaylistSelected(action.playlist)
-            is HomeAction.EmptyLibraryView -> onEmptyPlaylistView()
             is HomeAction.QueueSong -> onQueueSong(action.song)
             //is HomeAction.SendQuery -> onQuerySearch(action.query)
+            is HomeAction.SongClicked -> onSongClicked(action.song)
+            is HomeAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
         }
     }
 
-    private fun onMoreOptionsBtnClicked(item: Any) {
-
+    private fun onEmptyPlaylistView() {
+        //featuredPlaylists = null
     }
 
     private fun onMoreBtnClicked(item: Any) {
@@ -175,27 +178,25 @@ class HomeViewModel @Inject constructor(
     //private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
         //selectedLibraryPlaylist.value = playlist
     //}
+
     private fun onLibraryAlbumSelected(album: AlbumInfo) {
         selectedLibraryAlbum.value = album
     }
 
-    private fun onEmptyPlaylistView() {
-        //featuredPlaylists = null
-    }
-
     private fun onQueueSong(song: SongInfo) {
-        //songPlayer.addToQueue(song)
+        Log.i(TAG, "onQueueSong -> ${song.title}")
+        songController.addToQueue(song)
     }
 
-//    private fun onQuerySearch(query: String) {
-//        logger.info { query }
-//        viewModelScope.launch {
-//            searchResults.value = searchQueryV2(query)
-//            // now that I have the songs, artists, albums ... how do i get them onto the UI?
-//            //  or is this a case where I should have created a different 'screen' or 'activity' or 'fragment'
-//            //  and have that handle the result -> UI conversion?
-//        }
-//    }
+    private fun onSongClicked(song: SongInfo) {
+        Log.i(TAG, "onSongClicked -> ${song.title}")
+        songController.play(song)
+    }
+
+    private fun onSongMoreOptionClick(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
+        // open bottom sheet for song more options
+    }
 }
 
 /**
@@ -213,7 +214,8 @@ sealed interface HomeAction {
     data class LibraryAlbumSelected(val album: AlbumInfo) : HomeAction
     //data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
     data class QueueSong(val song: SongInfo) : HomeAction
-    //data class SendQuery(val query: String) : HomeAction
+    data class SongClicked(val song: SongInfo) : HomeAction
+    data class SongMoreOptionClicked(val song: SongInfo) : HomeAction
 }
 
 @Immutable
@@ -222,5 +224,4 @@ data class HomeScreenUiState(
     val errorMessage: String? = null,
     val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2 = FeaturedLibraryItemsFilterV2(),
     val totals: List<Int> = emptyList(),
-    //val searchResults: SearchQueryFilterV2 = SearchQueryFilterV2(),
 )

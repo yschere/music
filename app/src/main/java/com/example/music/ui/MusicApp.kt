@@ -64,24 +64,18 @@ fun MusicApp(
                     // seems like that could be the case because the navigator in HomeScreenReady gets set to rememberSupportingPaneScaffoldNavigator with scaffoldDirective that starts the calculation process for the features and bounds
 
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
-
-                    //would it make sense to include all the variations of navigable screens that could come from here?
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
-
                     navigateToAlbumDetails = { album ->
                         appState.navigateToAlbumDetails(album.id, backStackEntry)
                     },
-
                     navigateToPlaylistDetails = { playlist ->
                         appState.navigateToPlaylistDetails(playlist.id, backStackEntry)
                     },
-
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
-
+                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
                     navigateToSettings = { appState.navigateToSettings(backStackEntry) },
-
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) }
                 )
             }
@@ -159,19 +153,11 @@ fun MusicApp(
             composable(Screen.AlbumDetails.route) { backStackEntry ->
                 AlbumDetailsScreen(
                     //windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
-
-                    // want ability to return to previous screen
                     navigateBack = appState::navigateBack,
-
-                    // want ability to navigate to song player when song selected to play -- dependent on song list being on screen
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
-
-                    navigateToPlayerV2 = {
-                        appState.navigateToPlayerV2(backStackEntry)
-                    },
-
+                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
 
                     //dependent on context, ie if showing in pane or as own screen
@@ -184,20 +170,13 @@ fun MusicApp(
                 ArtistDetailsScreen(
                     //keeping for now in case window class size becomes relevant
                     //windowSizeClass = adaptiveInfo.windowSizeClass,
-
-                    // want ability to return to previous screen
                     navigateBack = appState::navigateBack,
-
-                    // want ability to navigate to selected album details
                     navigateToAlbumDetails = { album ->
                         appState.navigateToAlbumDetails(album.id, backStackEntry)
                     },
-
-                    // want ability to navigate to song player when song selected to play -- dependent on song list being on screen
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
-
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
 
                     //dependent on context, ie if showing in pane or as own screen
@@ -211,14 +190,10 @@ fun MusicApp(
                     //keeping for now in case window class size becomes relevant
                     //windowSizeClass = adaptiveInfo.windowSizeClass,
 
-                    // want ability to return to previous screen
                     navigateBack = appState::navigateBack,
-
-                    // want ability to navigate to song player when song selected to play -- dependent on song list being on screen
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
-
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
@@ -229,19 +204,10 @@ fun MusicApp(
                     //keeping for now in case window class size becomes relevant
                     //windowSizeClass = adaptiveInfo.windowSizeClass,
 
-                    // want ability to return to previous screen
                     navigateBack = appState::navigateBack,
-
-                    // want ability to navigate to selected album details
-                    //navigateToAlbumDetails = { album ->
-                        //appState.navigateToAlbumDetails(album.id, backStackEntry)
-                    //},
-
-                    // want ability to navigate to song player when song selected to play -- dependent on song list being on screen
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
-
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
@@ -252,14 +218,10 @@ fun MusicApp(
                     //keeping for now in case window class size becomes relevant
                     //windowSizeClass = adaptiveInfo.windowSizeClass,
 
-                    // want ability to return to previous screen
                     navigateBack = appState::navigateBack,
-
-                    // want ability to navigate to song player when song selected to play -- dependent on song list being on screen
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
-
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
