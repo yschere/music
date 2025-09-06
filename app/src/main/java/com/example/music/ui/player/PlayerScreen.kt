@@ -2,6 +2,7 @@ package com.example.music.ui.player
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.EaseOutExpo
 import androidx.compose.animation.core.tween
@@ -54,12 +55,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
@@ -86,8 +90,8 @@ import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
 import com.example.music.designsys.component.ImageBackgroundRadialGradientScrim
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.model.toSongInfo
 import com.example.music.domain.testing.PreviewSongs
-import com.example.music.service.SongControllerState
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.isCompact
@@ -95,6 +99,9 @@ import com.example.music.util.isExpanded
 import com.example.music.util.isMedium
 import kotlinx.coroutines.launch
 import java.time.Duration
+import kotlin.math.roundToLong
+
+private const val TAG = "Player Screen"
 
 /** Changelog:
  *
@@ -112,19 +119,18 @@ fun PlayerScreen(
     navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
-    //navigateToSettings: () -> Unit,
     viewModel: PlayerViewModel = hiltViewModel(),
     //modifier: Modifier,
 ) {
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     PlayerScreen(
-        currentSong = uiState.currentSong,
-        isPlaying = uiState.isPlaying,
-        isShuffled = uiState.isShuffled,
-        repeatState = uiState.repeatState,
-        timeElapsed = uiState.timeElapsed,
-        hasNext = uiState.hasNext,
+        currentSong = viewModel.currentSong,
+        isPlaying = viewModel.isPlaying,
+        isShuffled = false, //FixMe: update when isShuffled is fixed,
+        repeatState = RepeatType.ON, //FixMe: update when repeatState is fixed,
+        progress = viewModel.progress,
+        timeElapsed = viewModel.position,
+        hasNext = viewModel.hasNext,
         windowSizeClass = windowSizeClass,
         displayFeatures = displayFeatures,
         navigateBack = navigateBack,
@@ -136,16 +142,27 @@ fun PlayerScreen(
             onPausePress = viewModel::onPause,
             onNext = viewModel::onNext,
             onPrevious = viewModel::onPrevious,
-            onSeekingStarted = viewModel::onSeekingStarted,
-            onSeekingFinished = viewModel::onSeekingFinished,
+            onSeek = viewModel::onSeek,
             onShuffle = viewModel::onShuffle,
             onRepeat = viewModel::onRepeat
         ),
     )
-    if (uiState.errorMessage != null) {
+    //if (uiState.errorMessage != null) {
+    /*if (state.errorMessage != null) { //this is changed with PlayerUiStateV2 being state
         PlayerScreenError(onRetry = viewModel::refresh)
-    }
+    }*/
 }
+
+//wrapper for default class of possible control actions
+data class PlayerControlActions(
+    val onPlayPress: () -> Unit,
+    val onPausePress: () -> Unit,
+    val onNext: () -> Unit,
+    val onPrevious: () -> Unit,
+    val onSeek: (Long) -> Unit,
+    val onShuffle: () -> Unit,
+    val onRepeat: () -> Unit
+)
 
 /**
  * Error Screen
@@ -181,7 +198,8 @@ private fun PlayerScreen(
     isPlaying: Boolean,
     isShuffled: Boolean,
     repeatState: RepeatType,
-    timeElapsed: Duration,
+    progress: Float,
+    timeElapsed: Long,
     hasNext: Boolean,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
@@ -222,6 +240,7 @@ private fun PlayerScreen(
                 isPlaying = isPlaying,
                 isShuffled = isShuffled,
                 repeatState = repeatState,
+                progress = progress,
                 timeElapsed = timeElapsed,
                 hasNext = hasNext,
                 windowSizeClass = windowSizeClass,
@@ -278,7 +297,8 @@ fun PlayerContentWithBackground(
     isPlaying: Boolean,
     isShuffled: Boolean,
     repeatState: RepeatType,
-    timeElapsed: Duration,
+    progress: Float,
+    timeElapsed: Long,
     hasNext: Boolean,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
@@ -298,6 +318,7 @@ fun PlayerContentWithBackground(
             isPlaying = isPlaying,
             isShuffled = isShuffled,
             repeatState = repeatState,
+            progress = progress,
             timeElapsed = timeElapsed,
             hasNext = hasNext,
             windowSizeClass = windowSizeClass,
@@ -310,18 +331,6 @@ fun PlayerContentWithBackground(
     }
 }
 
-//wrapper for default class of possible control actions
-data class PlayerControlActions(
-    val onPlayPress: () -> Unit,
-    val onPausePress: () -> Unit,
-    val onNext: () -> Unit,
-    val onPrevious: () -> Unit,
-    val onSeekingStarted: () -> Unit,
-    val onSeekingFinished: (newElapsed: Duration) -> Unit,
-    val onShuffle: () -> Unit,
-    val onRepeat: () -> Unit
-)
-
 //og version used to determine app view based on window sizing
 //can use to switch app view between landscape and portrait
 //FOR NOW: use to just select player content regular
@@ -331,7 +340,8 @@ fun PlayerContent(
     isPlaying: Boolean,
     isShuffled: Boolean,
     repeatState: RepeatType,
-    timeElapsed: Duration,
+    progress: Float,
+    timeElapsed: Long,
     hasNext: Boolean,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
@@ -364,6 +374,7 @@ fun PlayerContent(
             isPlaying = isPlaying,
             isShuffled = isShuffled,
             repeatState = repeatState,
+            progress = progress,
             timeElapsed = timeElapsed,
             hasNext = hasNext,
             navigateBack = navigateBack,
@@ -383,7 +394,8 @@ private fun PlayerContentRegular(
     isPlaying: Boolean,
     isShuffled: Boolean,
     repeatState: RepeatType,
-    timeElapsed: Duration,
+    progress: Float,
+    timeElapsed: Long,
     hasNext: Boolean,
     navigateBack: () -> Unit, //call seekToPreviousMediaTime
     navigateToQueue: () -> Unit,
@@ -428,10 +440,10 @@ private fun PlayerContentRegular(
                 modifier = Modifier.weight(10f)
             ) {
                 PlayerSlider(
+                    progress = progress,
                     timeElapsed = timeElapsed,
                     songDuration = currentSong.duration,
-                    onSeekingStarted = playerControlActions.onSeekingStarted,
-                    onSeekingFinished = playerControlActions.onSeekingFinished
+                    onSeek = playerControlActions.onSeek,
                 )
                 PlayerButtons(
                     hasNext = hasNext, // Question: should uiState have access to queue or should it be able to return a boolean here that viewmodel asks to songController?
@@ -685,52 +697,47 @@ fun Duration.formatString(): String {
     return "$minutes:$secondsLeft"
 }
 
-// FUTURE THOUGHT: rework this for song player if needed
 @Composable
 fun PlayerSlider( //removed private modifier to borrow this func for BottomModals
-    timeElapsed: Duration,
+    progress: Float,
+    timeElapsed: Long,
     songDuration: Duration?,
-    onSeekingStarted: () -> Unit,
-    onSeekingFinished: (newElapsed: Duration) -> Unit,
+    onSeek: (Long) -> Unit
 ) {
     Column(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
-        var sliderValue by remember(timeElapsed) { mutableStateOf(timeElapsed) }
-        val maxRange = (songDuration?.toSeconds() ?: 0).toFloat()
+        var newElapsed: Long by remember { mutableLongStateOf(timeElapsed) }
 
         Row(Modifier.fillMaxWidth()) {
             Text(
-                //do i have this move along with the thumb?
-                // do i split the values to the opposite ends of the slider?
-                text = "${sliderValue.formatString()} • ${songDuration?.formatString()}",
+                text = "${Duration.ofMillis(timeElapsed).formatString()} • ${songDuration?.formatString()}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         Slider(
-            value = sliderValue.seconds.toFloat(),
-            valueRange = 0f..maxRange,
+            value = progress,
+            valueRange = 0f..1f,
             onValueChange = {
-                onSeekingStarted()
-                sliderValue = Duration.ofSeconds(it.toLong())
+                //taking the float progress, times the duration, then round to Long to get newElapsed
+                newElapsed = (it.times(songDuration!!.toMillis()).roundToLong())
+                Log.i(TAG, "in PlayerSlider -> onValueChange ->\n" +
+                        "newElapsed: $newElapsed")
             },
-            onValueChangeFinished = { onSeekingFinished(sliderValue) },
+            onValueChangeFinished = {
+                Log.i(TAG, "in PlayerSlider -> onValueChangeFinished ->\n" +
+                        "newElapsed: $newElapsed")
+                onSeek(newElapsed)
+            },
             colors = SliderDefaults.colors(
                 thumbColor = MaterialTheme.colorScheme.onPrimary,
                 activeTrackColor = MaterialTheme.colorScheme.secondary,
                 inactiveTrackColor = MaterialTheme.colorScheme.primary,
             ),
-            /*interactionSource = /*MutableInteractionSource = */remember { MutableInteractionSource() },
-            thumb = {
-                SliderDefaults.Thumb( //androidx.compose.material3.SliderDefaults
-                    interactionSource = interactionSource,
-                    thumbSize = DpSize(40.dp,40.dp)
-                )
-            }*/
         )
     }
 }
@@ -751,7 +758,6 @@ private fun PlayerButtons(
     modifier: Modifier = Modifier,
     playerButtonSize: Dp = 72.dp,
     sideButtonSize: Dp = 48.dp,
-    //need a state saver to handle button interactions
 ) {
 
     /*
@@ -827,8 +833,6 @@ private fun PlayerButtons(
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
             modifier = sideButtonsModifier
                 .clickable(enabled = true, onClick = onPrevious)
-                //.clickable(enabled = isPlaying, onClick = onPrevious)
-                //.alpha(if (isPlaying) 1f else 0.25f)
         )
 
         if (isPlaying) {
@@ -868,9 +872,8 @@ private fun PlayerButtons(
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
             modifier = sideButtonsModifier
-                .clickable(enabled = true, onClick = onNext)
-                //.clickable(enabled = hasNext, onClick = onNext)
-                //.alpha(if (hasNext) 1f else 0.25f)
+                .clickable(enabled = hasNext, onClick = onNext)
+                .alpha(if (hasNext) 1f else 0.25f)
         )
 
         //repeat button
@@ -882,9 +885,7 @@ private fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                     modifier = sideButtonsModifier
-                        .clickable(enabled = true, onClick = onRepeat)
-                    //TODO: create action for repeat queue change
-                    //onAdvanceBy(Duration.ofSeconds(10))
+                        .clickable(enabled = true, onClick = onRepeat) //TODO: create action for repeat queue change
                 )
             }
             "ON" -> {
@@ -894,9 +895,7 @@ private fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                     modifier = sideButtonsModifier
-                        .clickable(enabled = true, onClick = onRepeat)
-                    //TODO: create action for repeat queue change
-                    //onAdvanceBy(Duration.ofSeconds(10))
+                        .clickable(enabled = true, onClick = onRepeat) //TODO: create action for repeat queue change
                 )
             }
             "ONE" -> {
@@ -906,9 +905,7 @@ private fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                     modifier = sideButtonsModifier
-                        .clickable(enabled = true, onClick = onRepeat)
-                    //TODO: create action for repeat queue change
-                    //onAdvanceBy(Duration.ofSeconds(10))
+                        .clickable(enabled = true, onClick = onRepeat) //TODO: create action for repeat queue change
                 )
             }
         }
@@ -921,7 +918,7 @@ fun PlayerButtonsPreview() {
     MusicTheme {
         PlayerButtons(
             hasNext = false,
-            isPlaying = true, //would show pause btn because song is in play
+            isPlaying = true,
             isShuffled = false,
             repeatState = "one",
             onPlayPress = {},
@@ -945,7 +942,8 @@ fun PlayerScreenPreview() {
                 isPlaying = true,
                 isShuffled = true,
                 repeatState = RepeatType.ON,
-                timeElapsed = Duration.ZERO,
+                progress = 0f,
+                timeElapsed = 0L,
                 hasNext = true,
                 displayFeatures = emptyList(),
                 windowSizeClass = WindowSizeClass.compute(maxWidth.value, maxHeight.value),
@@ -958,8 +956,7 @@ fun PlayerScreenPreview() {
                     onPausePress = {},
                     onShuffle = {},
                     onRepeat = {},
-                    onSeekingStarted = {},
-                    onSeekingFinished = {},
+                    onSeek = {},
                     onNext = {},
                     onPrevious = {},
                 )

@@ -77,6 +77,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -1748,10 +1749,10 @@ fun BottomSheetFullPlayer(
 
                 //slider row
                 PlayerSlider(
-                    timeElapsed = Duration.ZERO,
+                    progress = 0f,
+                    timeElapsed = 0L,
                     songDuration = song.duration,
-                    onSeekingStarted = {},
-                    onSeekingFinished = {},
+                    onSeek = {},
                 )
             }
         }
@@ -1821,9 +1822,8 @@ fun BottomSheetPlayerButtons(
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
             modifier = sideButtonsModifier
-                .clickable(enabled = true, onClick = onNext)
-                //.clickable(enabled = hasNext, onClick = onNext)
-                //.alpha(if (hasNext) 1f else 0.25f)
+                .clickable(enabled = hasNext, onClick = onNext)
+                .alpha(if (hasNext) 1f else 0.25f)
         )
     }
 }
