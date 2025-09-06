@@ -128,10 +128,10 @@ class AlbumDetailsViewModel @Inject constructor(
     fun onAlbumAction(action: AlbumAction) {
         Log.i(TAG, "onAlbumAction - $action")
         when (action) {
+            //is AlbumAction.AddSongToPlaylist -> onAddToPlaylist(action.song)
+            //is AlbumAction.AddAlbumToPlaylist -> onAddToPlaylist(action.songs)
             is AlbumAction.QueueSong -> onQueueSong(action.song)
-            //is AlbumAction.QueueSongs -> onQueueSongs(action.songs)
-            //is AlbumAction.AddSongToPlaylist -> onAddToPlaylist(action.song) //QueueAlbum?
-            //is AlbumAction.AddAlbumToPlaylist -> onAddToPlaylist(action.songs) //AddToPlaylist?
+            is AlbumAction.QueueSongs -> onQueueSongs(action.songs)
             is AlbumAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
             is AlbumAction.ShuffleAlbum -> onShuffleAlbum(action.songs)
             is AlbumAction.PlayAlbum -> onPlayAlbum(action.songs)
@@ -140,41 +140,43 @@ class AlbumDetailsViewModel @Inject constructor(
     }
 
     private fun onQueueSong(song: SongInfo) {
-        Log.i(TAG, "onQueueSong - ${song.title}")
+        Log.i(TAG, "onQueueSong -> ${song.title}")
         songController.addToQueue(song)
-        //songPlayer.addToQueue(song.toPlayerSong())
     }
 
-    private fun onSongMoreOptionClick(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick - ${song.title}")
-        selectedSong.value = song
+    private fun onQueueSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongs -> ${songs.size}")
+        songController.addToQueue(songs)
     }
 
     private fun onPlayAlbum(songs: List<SongInfo>) {
-        Log.i(TAG, "onPlayAlbum - ${songs.size}")
-        songController.setMediaItems(songs)
-        //songPlayer.addToQueue( songs.map { it.toPlayerSong() } )
+        Log.i(TAG, "onPlayAlbum -> ${songs.size}")
+        songController.play(songs)
     }
 
     private fun onShuffleAlbum(songs: List<SongInfo>) {
-        Log.i(TAG, "onShuffleAlbum - ${songs.size}")
-        songController.removeAllFromQueue()
+        Log.i(TAG, "onShuffleAlbum -> ${songs.size}")
         songController.shuffle(songs)
-        //songPlayer.shuffle( songs.map { it.toPlayerSong() } )
     }
 
     private fun onSongClicked(song: SongInfo) {
-        Log.i(TAG, "onSongClicked - ${song.title}")
-        songController.setMediaItem(song)
+        Log.i(TAG, "onSongClicked -> ${song.title}")
+        songController.play(song)
+    }
+
+    private fun onSongMoreOptionClick(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
+        selectedSong.value = song
     }
 }
 
 sealed interface AlbumAction {
     data class QueueSong(val song: SongInfo) : AlbumAction
-    data class SongMoreOptionClicked(val song: SongInfo) : AlbumAction
+    data class QueueSongs(val songs: List<SongInfo>) : AlbumAction
     data class PlayAlbum(val songs: List<SongInfo>) : AlbumAction
     data class ShuffleAlbum(val songs: List<SongInfo>) : AlbumAction
     data class SongClicked(val song: SongInfo) : AlbumAction
+    data class SongMoreOptionClicked(val song: SongInfo) : AlbumAction
 }
 
 /**

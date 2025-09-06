@@ -100,6 +100,7 @@ import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.min
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.util.UnstableApi
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.Keyline1
@@ -153,6 +154,7 @@ private const val TAG = "Album Details Screen"
 /**
  * Stateful version of Album Details Screen
  */
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun AlbumDetailsScreen(
     navigateToPlayer: (SongInfo) -> Unit,
