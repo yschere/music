@@ -119,6 +119,7 @@ import kotlinx.coroutines.CoroutineScope
 fun ArtistDetailsScreen(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -142,6 +143,7 @@ fun ArtistDetailsScreen(
                 //onQueueSong = viewModel::onQueueSong,
                 navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
+                navigateToPlayerV2 = navigateToPlayerV2,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 showBackButton = showBackButton,
@@ -204,6 +206,7 @@ fun ArtistDetailsScreen(
     //onQueueSong: (SongInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -974,6 +977,7 @@ fun ArtistDetailsScreenPreview() {
 
             navigateToAlbumDetails = {},
             navigateToPlayer = {},
+            navigateToPlayerV2 = {},
             navigateToSearch = {},
             navigateBack = {},
             showBackButton = true,

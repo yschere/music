@@ -131,6 +131,7 @@ fun MusicApp(
                     navigateToPlayer =  { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
+                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
                 )
             }
 
@@ -145,6 +146,7 @@ fun MusicApp(
                     navigateToPlayer =  { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
+                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
                     navigateToSettings = { appState.navigateToSettings(backStackEntry) },
                 )
             }
@@ -177,6 +179,7 @@ fun MusicApp(
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
+                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
 
                     //dependent on context, ie if showing in pane or as own screen
@@ -194,6 +197,7 @@ fun MusicApp(
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
+                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
@@ -208,6 +212,7 @@ fun MusicApp(
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
+                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
@@ -222,6 +227,7 @@ fun MusicApp(
                     navigateToPlayer = { song ->
                         appState.navigateToPlayer(song.id, backStackEntry)
                     },
+                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
@@ -229,15 +235,15 @@ fun MusicApp(
             composable(Screen.Search.route) { backStackEntry ->
                 SearchScreen(
                     navigateBack = appState::navigateBack,
-                    navigateToPlayer = { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
                     navigateToAlbumDetails = { album ->
                         appState.navigateToAlbumDetails(album.id, backStackEntry)
                     },
                     navigateToArtistDetails = { artist ->
                         appState.navigateToArtistDetails(artist.id, backStackEntry)
+                    },navigateToPlayer = { song ->
+                        appState.navigateToPlayer(song.id, backStackEntry)
                     },
+                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
                 )
             }
         }

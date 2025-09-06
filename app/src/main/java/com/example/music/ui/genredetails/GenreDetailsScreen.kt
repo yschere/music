@@ -85,6 +85,7 @@ import com.example.music.util.quantityStringResource
 fun GenreDetailsScreen(
     //navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //modifier: Modifier = Modifier,
@@ -104,6 +105,7 @@ fun GenreDetailsScreen(
                 //onQueueSong = viewModel::onQueueSong,
                 //navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
+                navigateToPlayerV2 = navigateToPlayerV2,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 modifier = Modifier.fillMaxSize(),
@@ -162,6 +164,7 @@ fun GenreDetailsScreen(
     //onQueueSong: (SongInfo) -> Unit,
     //navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //showBackButton: Boolean,
@@ -535,6 +538,7 @@ fun GenreDetailsScreenPreview() {
 
             //navigateToAlbumDetails = {},
             navigateToPlayer = {},
+            navigateToPlayerV2 = {},
             navigateToSearch = {},
             navigateBack = {},
         )

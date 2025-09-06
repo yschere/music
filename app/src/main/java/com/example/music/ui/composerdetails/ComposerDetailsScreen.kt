@@ -85,6 +85,7 @@ import com.example.music.util.quantityStringResource
 @Composable
 fun ComposerDetailsScreen(
     navigateToPlayer: (SongInfo) -> Unit = {},
+    navigateToPlayerV2: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit = {},
     //showBackButton: Boolean,
@@ -104,6 +105,7 @@ fun ComposerDetailsScreen(
                 songs = uiState.songs,
                 //onQueueSong = viewModel::onQueueSong,
                 navigateToPlayer = navigateToPlayer,
+                navigateToPlayerV2 = navigateToPlayerV2,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 //showBackButton = showBackButton,
@@ -158,6 +160,7 @@ fun ComposerDetailsScreen(
     songs: List<SongInfo>,
     //onQueueSong: (SongInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //showBackButton: Boolean,
@@ -502,6 +505,7 @@ fun ComposerDetailsScreenPreview() {
             songs = getSongsByComposer(PreviewComposers[1].id),
 
             navigateToPlayer = {},
+            navigateToPlayerV2 = {},
             navigateToSearch = {},
             navigateBack = {},
         )

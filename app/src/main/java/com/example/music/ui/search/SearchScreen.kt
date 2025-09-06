@@ -86,6 +86,7 @@ import com.example.music.ui.tooling.SystemLightPreview
 fun SearchScreen(
     navigateBack: () -> Unit = {},
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     viewModel: SearchQueryViewModel = hiltViewModel(),
