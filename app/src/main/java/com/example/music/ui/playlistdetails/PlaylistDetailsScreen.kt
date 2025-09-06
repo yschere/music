@@ -1,6 +1,7 @@
 package com.example.music.ui.playlistdetails
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -93,7 +94,7 @@ private const val TAG = "Playlist Details Screen"
  */
 @Composable
 fun PlaylistDetailsScreen(
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //modifier: Modifier = Modifier,
@@ -111,7 +112,7 @@ fun PlaylistDetailsScreen(
             PlaylistDetailsScreen(
                 playlist = uiState.playlist,
                 songs = uiState.songs,
-                onQueueSong = viewModel::onQueueSong,
+                onPlaylistAction = viewModel::onPlaylistAction,
                 navigateToPlayer = navigateToPlayer,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
@@ -152,7 +153,10 @@ fun PlaylistDetailsScreen(
  * Error Screen
  */
 @Composable
-private fun PlaylistDetailsError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+private fun PlaylistDetailsError(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -187,8 +191,8 @@ private fun PlaylistDetailsLoadingScreen(
 private fun PlaylistDetailsScreen(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
-    onQueueSong: (SongInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    onPlaylistAction: (PlaylistAction) -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -238,6 +242,7 @@ private fun PlaylistDetailsScreen(
                     }
                     onQueueSong(it)
                 },*/
+                onPlaylistAction = onPlaylistAction,
                 navigateToPlayer = navigateToPlayer,
                 modifier = Modifier.padding(contentPadding)//.padding(horizontal = 8.dp)
             )
@@ -302,8 +307,8 @@ private fun PlaylistDetailsTopAppBar(
 private fun PlaylistDetailsContent(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
-    //onQueueSong: (SongInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    onPlaylistAction: (PlaylistAction) -> Unit,
+    navigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier
 ) { //determines content of details screen
     //logger.info { "Playlist Details Content function start" }
@@ -325,13 +330,36 @@ private fun PlaylistDetailsContent(
         // section 2: songs list
         fullWidthItem {
             if (songs.isEmpty()) {
-                PlaylistDetailsEmptyList(onClick = {})
+                PlaylistDetailsEmptyList(
+                    onClick = {
+                        Log.i(TAG, "Add to Empty Playlist btn clicked")
+                    }
+                )
             } else {
                 Column {
-                    SongCountAndAddSortSelectButtons( songs = songs, onAddClick = {}, onSelectClick = {}, onSortClick = {} )
+                    SongCountAndAddSortSelectButtons(
+                        songs = songs,
+                        onAddClick = {
+                            Log.i(TAG, "Add to Playlist btn clicked")
+                        },
+                        onSelectClick = {
+                            Log.i(TAG, "Multi-Select btn clicked")
+                        },
+                        onSortClick = {
+                            Log.i(TAG, "Song Sort btn clicked")
+                        }
+                    )
                     PlayShuffleButtons(
-                        onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
-                        onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                        onPlayClick = {
+                            Log.i(TAG, "Play Playlist btn clicked")
+                            onPlaylistAction(PlaylistAction.PlaySongs(songs))
+                            navigateToPlayer()
+                        },
+                        onShuffleClick = {
+                            Log.i(TAG, "Shuffle Playlist btn clicked")
+                            onPlaylistAction(PlaylistAction.ShuffleSongs(songs))
+                            navigateToPlayer()
+                        },
                     )
                 }
             }
@@ -351,7 +379,11 @@ private fun PlaylistDetailsContent(
                     //call the SongListItem function to display each one, include the data needed to display item in full,
                     //and should likely share context from where this call being made in case specific data needs to be shown / not shown
                     song = song,
-                    onClick = navigateToPlayer,
+                    onClick = {
+                        Log.i(TAG, "Song clicked ${song.title}")
+                        onPlaylistAction(PlaylistAction.PlaySong(song))
+                        navigateToPlayer()
+                    },
                     onMoreOptionsClick = {},
                     //onQueueSong = onQueueSong,
                     modifier = Modifier.fillMaxWidth(),
@@ -678,7 +710,7 @@ fun PlaylistDetailsScreenPreview() {
             playlist = PreviewPlaylists[2],
             songs = getPlaylistSongs(2),
 
-            onQueueSong = {},
+            onPlaylistAction = {},
             navigateToPlayer = {},
             navigateToSearch = {},
             navigateBack = {},

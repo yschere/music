@@ -1,5 +1,6 @@
 package com.example.music.ui.artistdetails
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -112,13 +113,15 @@ import kotlinx.coroutines.CoroutineScope
  * 7/22-23/2025 - Removed PlayerSong completely
  */
 
+private const val TAG = "Artist Details Screen"
+
 /**
  * Stateful version of Artist Details Screen
  */
 @Composable
 fun ArtistDetailsScreen(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -203,7 +206,7 @@ fun ArtistDetailsScreen(
     onArtistAction: (ArtistAction) -> Unit,
     //onQueueSong: (SongInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -422,8 +425,11 @@ fun ArtistDetailsScreen(
                     fullWidthItem {
                         SongCountAndSortSelectButtons(
                             songs = songs,
-                            onSelectClick = {},
+                            onSelectClick = {
+                                Log.i(TAG, "Multi Select btn clicked")
+                            },
                             onSortClick = {
+                                Log.i(TAG, "Song Sort btn clicked")
                                 showBottomSheet = true
                                 showSortSheet = true
                             },
@@ -432,8 +438,16 @@ fun ArtistDetailsScreen(
 
                     fullWidthItem {
                         PlayShuffleButtons(
-                            onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
-                            onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                            onPlayClick = {
+                                Log.i(TAG, "Play Songs btn clicked")
+                                onArtistAction(ArtistAction.PlaySongs(songs))
+                                navigateToPlayer()
+                            },
+                            onShuffleClick = {
+                                Log.i(TAG, "Shuffle Songs btn clicked")
+                                onArtistAction(ArtistAction.ShuffleSongs(songs))
+                                navigateToPlayer()
+                            },
                         )
                     }
 
@@ -442,8 +456,13 @@ fun ArtistDetailsScreen(
                         Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                             SongListItem(
                                 song = song,
-                                onClick = navigateToPlayer,
+                                onClick = {
+                                    Log.i(TAG, "Song clicked: ${song.title}")
+                                    onArtistAction(ArtistAction.PlaySong(song))
+                                    navigateToPlayer()
+                                },
                                 onMoreOptionsClick = {
+                                    Log.i(TAG, "Song More Option clicked: ${song.title}")
                                     onArtistAction( ArtistAction.SongMoreOptionClicked( song ) )
                                     showBottomSheet = true
                                     showSongMoreOptions = true

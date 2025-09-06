@@ -379,7 +379,7 @@ fun SongMoreOptionsBottomModal(
 
     coroutineScope: CoroutineScope,
     song: SongInfo,
-    navigateToPlayer: (SongInfo) -> Unit = {},
+    navigateToPlayer: () -> Unit = {}, //FixMe
     // would likely need the other navigateTo screens here too
 
     //do i need a context variable? like if this was from PlaylistDetails, or ArtistDetails, or Home, or Library
@@ -409,7 +409,7 @@ fun SongMoreOptionsBottomModal(
             HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             val songActions = arrayListOf(
-                Pair(Actions.PlayItem) { navigateToPlayer(song) },
+                Pair(Actions.PlayItem) { navigateToPlayer() }, //FixMe
                 Pair(Actions.PlayItemNext) {},
                 Pair(Actions.AddToPlaylist) {},
                 Pair(Actions.AddToQueue) {},
@@ -491,7 +491,7 @@ fun AlbumMoreOptionsBottomModal(
     //AlbumDetails context? ArtistDetails context?
     //navigateToAlbumDetails: (AlbumInfo) -> Unit, //usage depends on content: if on library.albums, albumDetails, artistDetails. aka not necessary for moreOptions on albumDetails
     //navigateToArtistDetails: (ArtistInfo) -> Unit,
-    //navigateToPlayer: (SongInfo) -> Unit = {},
+    //navigateToPlayer: () -> Unit = {},
     //showBottomSheet: Boolean,
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -579,7 +579,7 @@ fun ArtistMoreOptionsBottomModal(
     coroutineScope: CoroutineScope,
     artist: ArtistInfo,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit = {},
+    navigateToPlayer: () -> Unit = {},
     context: String = "",
     //showBottomSheet: Boolean,
 ) {

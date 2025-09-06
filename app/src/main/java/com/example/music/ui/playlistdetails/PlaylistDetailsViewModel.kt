@@ -6,10 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
-//import com.example.music.domain.player.SongPlayer
 import com.example.music.ui.Screen
 import com.example.music.data.util.combine
 import com.example.music.domain.usecases.GetPlaylistDetailsV2
+import com.example.music.service.SongController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,7 +45,7 @@ data class PlaylistUiState(
 @HiltViewModel
 class PlaylistDetailsViewModel @Inject constructor(
     getPlaylistDetailsV2: GetPlaylistDetailsV2,
-//    private val songPlayer: SongPlayer,
+    private val songController: SongController,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -84,7 +84,9 @@ class PlaylistDetailsViewModel @Inject constructor(
                 Log.i(TAG, "PlaylistUiState call")
                 Log.i(TAG, "playlistDetailsFilterResult ID: ${playlistDetailsFilterResult.playlist.id}")
                 Log.i(TAG, "playlistDetailsFilterResult songs: ${playlistDetailsFilterResult.songs.size}")
+                Log.i(TAG, "is SongController available: ${songController.isConnected()}")
                 Log.i(TAG, "isReady?: ${!refreshing}")
+
                 PlaylistUiState(
                     isReady = !refreshing,
                     playlist = playlistDetailsFilterResult.playlist,
@@ -122,9 +124,57 @@ class PlaylistDetailsViewModel @Inject constructor(
         }
     }
 
-    fun onQueueSong(song: SongInfo) {
-        //songPlayer.addToQueue(song)
+    fun onPlaylistAction(action: PlaylistAction) {
+        Log.i(TAG, "onPlaylistAction - $action")
+        when (action) {
+            is PlaylistAction.PlaySong -> onPlaySong(action.song)
+            is PlaylistAction.PlaySongs -> onPlaySongs(action.songs)
+            is PlaylistAction.QueueSong -> onQueueSong(action.song)
+            is PlaylistAction.QueueSongs -> onQueueSongs(action.songs)
+            is PlaylistAction.ShuffleSongs -> onShuffleSongs(action.songs)
+            is PlaylistAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
+        }
     }
+
+    private fun onPlaySong(song: SongInfo) {
+        Log.i(TAG, "onPlaySong -> ${song.title}")
+        songController.play(song)
+    }
+
+    private fun onPlaySongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onPlaySongs -> ${songs.size}")
+        songController.play(songs)
+    }
+
+    private fun onQueueSong(song: SongInfo) {
+        Log.i(TAG, "onQueueSong -> ${song.title}")
+        songController.addToQueue(song)
+    }
+
+    private fun onQueueSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongs -> ${songs.size}")
+        songController.addToQueue(songs)
+    }
+
+    private fun onShuffleSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onShuffleSongs -> ${songs.size}")
+        songController.shuffle(songs)
+    }
+
+    private fun onSongMoreOptionClick(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
+        //selectedSong.value = song
+    }
+
+}
+
+sealed interface PlaylistAction {
+    data class PlaySong(val song: SongInfo) : PlaylistAction
+    data class PlaySongs(val songs: List<SongInfo>) : PlaylistAction
+    data class QueueSong(val song: SongInfo) : PlaylistAction
+    data class QueueSongs(val songs: List<SongInfo>) : PlaylistAction
+    data class ShuffleSongs(val songs: List<SongInfo>) : PlaylistAction
+    data class SongMoreOptionClicked(val song: SongInfo) : PlaylistAction
 }
 
 

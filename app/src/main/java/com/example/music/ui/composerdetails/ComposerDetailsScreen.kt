@@ -1,5 +1,6 @@
 package com.example.music.ui.composerdetails
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -79,12 +80,14 @@ import com.example.music.util.quantityStringResource
  * 7/22-23/2025 - Removed PlayerSong completely
  */
 
+private const val TAG = "Composer Details Screen"
+
 /**
  * Stateful version of Composer Details Screen
  */
 @Composable
 fun ComposerDetailsScreen(
-    navigateToPlayer: (SongInfo) -> Unit = {},
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit = {},
     //showBackButton: Boolean,
@@ -121,7 +124,10 @@ fun ComposerDetailsScreen(
  * Error Screen
  */
 @Composable
-private fun ComposerDetailsError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+private fun ComposerDetailsError(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.Center,
@@ -157,7 +163,7 @@ fun ComposerDetailsScreen(
     composer: ComposerInfo,
     songs: List<SongInfo>,
     //onQueueSong: (SongInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //showBackButton: Boolean,
@@ -265,7 +271,7 @@ fun ComposerDetailsContent(
     composer: ComposerInfo,
     songs: List<SongInfo>,
     //onQueueSong: (SongInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -299,8 +305,16 @@ fun ComposerDetailsContent(
 
             fullWidthItem {
                 PlayShuffleButtons(
-                    onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
-                    onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                    onPlayClick = {
+                        Log.i(TAG, "Play Songs btn clicked")
+                        //onComposerAction(ComposerAction.PlaySongs(songs))
+                        //navigateToPlayer()
+                    },
+                    onShuffleClick = {
+                        Log.i(TAG, "Shuffle Songs btn clicked")
+                        //onComposerAction(ComposerAction.ShuffleSongs(songs))
+                        //navigateToPlayer()
+                    },
                 )
             }
 
@@ -309,9 +323,17 @@ fun ComposerDetailsContent(
                 Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                     SongListItem(
                         song = song,
-                        onClick = navigateToPlayer,
-                        onMoreOptionsClick = {},
-                        //onClick = navigateToPlayerSong,
+                        onClick = {
+                            Log.i(TAG, "Song clicked: ${song.title}")
+                            //onComposerAction(ComposerAction.PlaySong(song))
+                            //navigateToPlayerV2()
+                        },
+                        onMoreOptionsClick = {
+                            Log.i(TAG, "Song More Option clicked: ${song.title}")
+                            //onComposerAction(ComposerAction.SongMoreOptionClicked(song))
+                            //showBottomSheet = true
+                            //showSongMoreOptions = true
+                        },
                         //onQueueSong = { },
                         modifier = Modifier.fillMaxWidth(),
                         isListEditable = false,
@@ -385,7 +407,6 @@ private fun SongCountAndSortSelectButtons(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(8.dp).weight(1f, true)
         )
-        //Spacer(Modifier.weight(1f,true))
 
         // sort icon
         IconButton(

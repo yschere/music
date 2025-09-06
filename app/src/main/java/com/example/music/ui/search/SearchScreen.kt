@@ -85,7 +85,7 @@ import com.example.music.ui.tooling.SystemLightPreview
 @Composable
 fun SearchScreen(
     navigateBack: () -> Unit = {},
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     viewModel: SearchQueryViewModel = hiltViewModel(),
@@ -149,14 +149,14 @@ fun SearchScreenReady(
     queryText: String,
 
     navigateBack: () -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     viewModel: SearchQueryViewModel,
 ) {
-//    val coroutineScope = rememberCoroutineScope()
+    //val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-//    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
+    //val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
     ScreenBackground(
         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
@@ -194,7 +194,10 @@ fun SearchScreenReady(
                 onSendQuery = { viewModel.sendQuery() },
 
                 // actions to do when user taps/clicks on results
-                onSongClicked = { item -> navigateToPlayer(item) },
+                onSongClicked = { item ->
+                    viewModel.onPlaySong(item)
+                    navigateToPlayer()
+                },
                 onArtistClicked = { item -> navigateToArtistDetails(item) },
                 onAlbumClicked = { item -> navigateToAlbumDetails(item) },
                 modifier = Modifier.padding(contentPadding),

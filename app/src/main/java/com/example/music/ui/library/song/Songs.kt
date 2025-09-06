@@ -1,5 +1,6 @@
 package com.example.music.ui.library.song
 
+import android.util.Log
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,12 +34,15 @@ import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.model.SongInfo
+import com.example.music.ui.library.LibraryAction
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.shared.LibrarySortSelectionBottomModal
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
+
+private const val TAG = "Library Songs"
 
 /** Changelog:
  *
@@ -56,9 +60,9 @@ import kotlinx.coroutines.CoroutineScope
 fun LazyListScope.songItems(
     songs: List<SongInfo>,
     coroutineScope: CoroutineScope,
-    navigateToPlayer: (SongInfo) -> Unit,
+    onLibraryAction: (LibraryAction) -> Unit,
+    navigateToPlayer: () -> Unit,
 ) {
-
     //section 1: header
     item {
         // ******** var  for modal remember here
@@ -106,62 +110,28 @@ fun LazyListScope.songItems(
     }
 
     item {
-        Row {
-            // shuffle btn
-            Button(
-                onClick = {
-                    /*coroutineScope.launch {
-                        sheetState.hide()
-                        showThemeSheet = false
-                    }*/
-                },
-                colors = buttonColors(
-                    //containerColor = MaterialTheme.colorScheme.primary,
-                    //contentColor = MaterialTheme.colorScheme.background,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .padding(10.dp).weight(0.5f)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Shuffle,
-                    contentDescription = stringResource(R.string.icon_shuffle)
-                )
-                Text("SHUFFLE")
-            }
-
-            // play btn
-            Button(
-                onClick = {
-                    /*coroutineScope.launch {
-                        sheetState.hide()
-                        showThemeSheet = false
-                    }*/
-                },
-                colors = buttonColors(
-                    //containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    //contentColor = MaterialTheme.colorScheme.background,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .padding(10.dp).weight(0.5f)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = stringResource(R.string.icon_play)
-                )
-                Text("PLAY")
-            }
-        }
+        PlayShuffleButtons(
+            onPlayClick = {
+                onLibraryAction(LibraryAction.PlaySongs(songs))
+                navigateToPlayer()
+            },
+            onShuffleClick = {
+                onLibraryAction(LibraryAction.ShuffleSongs(songs))
+                navigateToPlayer()
+            },
+        )
     }
 
     items(
         items = songs,
-        //span = { GridItemSpan(maxLineSpan) }
     ) { song ->
         SongListItem(
             song = song,
-            onClick = { navigateToPlayer(song) },
+            onClick = {
+                Log.i(TAG, "Song clicked: ${song.title}")
+                onLibraryAction(LibraryAction.SongClicked(song))
+                navigateToPlayer()
+            },
             onMoreOptionsClick = {},
             //onQueueSong = {},
             isListEditable = false,
@@ -207,7 +177,8 @@ fun LazyListScope.songItems(
 fun LazyGridScope.songItems(
     songs: List<SongInfo>,
     coroutineScope: CoroutineScope,
-    navigateToPlayer: (SongInfo) -> Unit,
+    onLibraryAction: (LibraryAction) -> Unit,
+    navigateToPlayer: () -> Unit,
 ) {
 
     //section 1: header
@@ -258,8 +229,14 @@ fun LazyGridScope.songItems(
 
     fullWidthItem {
         PlayShuffleButtons(
-            onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
-            onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+            onPlayClick = {
+                onLibraryAction(LibraryAction.PlaySongs(songs))
+                navigateToPlayer()
+            },
+            onShuffleClick = {
+                onLibraryAction(LibraryAction.ShuffleSongs(songs))
+                navigateToPlayer()
+            },
         )
     }
 
@@ -270,7 +247,11 @@ fun LazyGridScope.songItems(
         //Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
         SongListItem(
             song = song,
-            onClick = { navigateToPlayer(song) },
+            onClick = {
+                Log.i(TAG, "Song clicked: ${song.title}")
+                onLibraryAction(LibraryAction.SongClicked(song))
+                navigateToPlayer()
+            },
             onMoreOptionsClick = {},
             //onQueueSong = {},
             isListEditable = false,

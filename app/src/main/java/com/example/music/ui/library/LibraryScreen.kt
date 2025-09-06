@@ -127,7 +127,7 @@ fun LibraryScreen(
     navigateToGenreDetails: (GenreInfo) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -227,7 +227,7 @@ private fun LibraryScreen(
     navigateToGenreDetails: (GenreInfo) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -387,7 +387,7 @@ private fun LibraryContent(
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToGenreDetails: (GenreInfo) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
 ) {
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
@@ -497,8 +497,8 @@ private fun LibraryContent(
                         //what would the songs screen need?
                         songs = librarySongs,
                         coroutineScope = coroutineScope,
+                        onLibraryAction = onLibraryAction,
                         navigateToPlayer = navigateToPlayer,
-                        //onQueueSong = { onLibraryAction(LibraryAction.QueueSong(it)) },
                     )
                 }
 

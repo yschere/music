@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.SongInfo
-//import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetGenreDetailsV2
+import com.example.music.service.SongController
 import com.example.music.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,14 +37,17 @@ data class GenreUiState (
     val isReady: Boolean = false,
     val errorMessage: String? = null,
     val genre: GenreInfo = GenreInfo(),
-    //val albums: /*Persistent*/List<AlbumInfo> = emptyList(),
     val songs: /*Persistent*/List<SongInfo> = emptyList(),
+    val selectSong: SongInfo = SongInfo()
 )
 
+/**
+ * ViewModel that handles the business logic and screen state of the Genre Details screen
+ */
 @HiltViewModel
 class GenreDetailsViewModel @Inject constructor(
     getGenreDetailsV2: GetGenreDetailsV2,
-    //private val songPlayer: SongPlayer,
+    private val songController: SongController,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -54,6 +57,8 @@ class GenreDetailsViewModel @Inject constructor(
     //private val getGenreDetailsData = getGenreDetailsUseCase(genreId)
     private val getGenreDetailsData = getGenreDetailsV2(genreId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    private val selectedSong = MutableStateFlow<SongInfo?>(null)
 
     private val _state = MutableStateFlow(GenreUiState())
 
@@ -69,20 +74,22 @@ class GenreDetailsViewModel @Inject constructor(
             combine(
                 refreshing,
                 getGenreDetailsData,
+                selectedSong,
             ) {
                 refreshing,
-                genreDetailsFilterResult, ->
+                genreDetailsFilterResult,
+                selectSong ->
                 Log.i(TAG, "GenreUiState call")
                 Log.i(TAG, "genreDetailsFilterResult ID: ${genreDetailsFilterResult.genre.id}")
-                //Log.i(TAG, "genreDetailsFilterResult albums: ${genreDetailsFilterResult.albums.size}")
                 Log.i(TAG, "genreDetailsFilterResult songs: ${genreDetailsFilterResult.songs.size}")
+                Log.i(TAG, "is SongController available: ${songController.isConnected()}")
                 Log.i(TAG, "isReady?: ${!refreshing}")
 
                 GenreUiState(
                     isReady = !refreshing,
                     genre = genreDetailsFilterResult.genre,
-                    //albums = genreDetailsFilterResult.albums,
                     songs = genreDetailsFilterResult.songs,
+                    selectSong = selectSong ?: SongInfo(),
                 )
             }.catch { throwable ->
                 emit(
@@ -114,4 +121,56 @@ class GenreDetailsViewModel @Inject constructor(
             refreshing.value = false
         }
     }
+
+    fun onGenreAction(action: GenreAction) {
+        Log.i(TAG, "onGenreAction - $action")
+        when (action) {
+            is GenreAction.QueueSong -> onQueueSong(action.song)
+            is GenreAction.QueueSongs -> onQueueSongs(action.songs)
+            is GenreAction.PlaySong -> onPlaySong(action.song)
+            is GenreAction.PlaySongs -> onPlaySongs(action.songs)
+            is GenreAction.ShuffleSongs -> onShuffleSongs(action.songs)
+            is GenreAction.SongMoreOptionClicked -> onSongMoreOptionClicked(action.song)
+        }
+    }
+
+    private fun onPlaySong(song: SongInfo) {
+        Log.i(TAG, "onPlaySong - ${song.title}")
+        songController.play(song)
+    }
+
+    private fun onPlaySongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onPlaySongs - ${songs.size}")
+        songController.play(songs)
+    }
+
+    private fun onQueueSong(song: SongInfo) {
+        Log.i(TAG, "onQueueSong - ${song.title}")
+        songController.addToQueue(song)
+    }
+
+    private fun onQueueSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongs - ${songs.size}")
+        songController.addToQueue(songs)
+    }
+
+    private fun onShuffleSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onShuffleSongs - ${songs.size}")
+        songController.shuffle(songs)
+    }
+
+    private fun onSongMoreOptionClicked(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionClick - ${song.title}")
+        selectedSong.value = song
+    }
+    
+}
+
+sealed interface GenreAction {
+    data class PlaySong(val song: SongInfo) : GenreAction
+    data class PlaySongs(val songs: List<SongInfo>) : GenreAction
+    data class QueueSong(val song: SongInfo) : GenreAction
+    data class QueueSongs(val songs: List<SongInfo>) : GenreAction
+    data class ShuffleSongs(val songs: List<SongInfo>) : GenreAction
+    data class SongMoreOptionClicked(val song: SongInfo) : GenreAction
 }

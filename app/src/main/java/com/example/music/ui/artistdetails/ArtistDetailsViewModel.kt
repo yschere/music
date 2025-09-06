@@ -9,7 +9,9 @@ import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetArtistDetailsV2
+import com.example.music.service.SongController
 import com.example.music.ui.Screen
+import com.example.music.ui.albumdetails.AlbumAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -44,10 +46,13 @@ data class ArtistUiState (
     val selectSong: SongInfo = SongInfo()
 )
 
+/**
+ * ViewModel that handles the business logic and screen state of the Artist Details screen
+ */
 @HiltViewModel
 class ArtistDetailsViewModel @Inject constructor(
     getArtistDetailsV2: GetArtistDetailsV2,
-    //private val songPlayer: SongPlayer,
+    private val songController: SongController,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -86,6 +91,7 @@ class ArtistDetailsViewModel @Inject constructor(
                 Log.i(TAG, "artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}")
                 Log.i(TAG, "artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}")
                 Log.i(TAG, "artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}")
+                Log.i(TAG, "is SongController available: ${songController.isConnected()}")
                 Log.i(TAG, "isReady?: ${!refreshing}")
 
                 ArtistUiState(
@@ -132,6 +138,10 @@ class ArtistDetailsViewModel @Inject constructor(
         when (action) {
             is ArtistAction.AlbumMoreOptionClicked -> onAlbumMoreOptionClicked(action.album)
             is ArtistAction.QueueSong -> onQueueSong(action.song)
+            is ArtistAction.QueueSongs -> onQueueSongs(action.songs)
+            is ArtistAction.PlaySong -> onPlaySong(action.song)
+            is ArtistAction.PlaySongs -> onPlaySongs(action.songs)
+            is ArtistAction.ShuffleSongs -> onShuffleSongs(action.songs)
             is ArtistAction.SongMoreOptionClicked -> onSongMoreOptionClicked(action.song)
         }
     }
@@ -141,9 +151,29 @@ class ArtistDetailsViewModel @Inject constructor(
         selectedAlbum.value = album
     }
 
+    private fun onPlaySong(song: SongInfo) {
+        Log.i(TAG, "onPlaySong - ${song.title}")
+        songController.play(song)
+    }
+
+    private fun onPlaySongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onPlaySongs - ${songs.size}")
+        songController.play(songs)
+    }
+
     private fun onQueueSong(song: SongInfo) {
         Log.i(TAG, "onQueueSong - ${song.title}")
-        //songPlayer.addToQueue(song)
+        songController.addToQueue(song)
+    }
+
+    private fun onQueueSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongs - ${songs.size}")
+        songController.addToQueue(songs)
+    }
+
+    private fun onShuffleSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onShuffleSongs - ${songs.size}")
+        songController.shuffle(songs)
     }
 
     private fun onSongMoreOptionClicked(song: SongInfo) {
@@ -154,7 +184,11 @@ class ArtistDetailsViewModel @Inject constructor(
 
 sealed interface ArtistAction {
     data class AlbumMoreOptionClicked(val album: AlbumInfo) : ArtistAction
+    data class PlaySong(val song: SongInfo) : ArtistAction
+    data class PlaySongs(val songs: List<SongInfo>) : ArtistAction
     data class QueueSong(val song: SongInfo) : ArtistAction
+    data class QueueSongs(val songs: List<SongInfo>) : ArtistAction
+    data class ShuffleSongs(val songs: List<SongInfo>) : ArtistAction
     data class SongMoreOptionClicked(val song: SongInfo) : ArtistAction
 }
 

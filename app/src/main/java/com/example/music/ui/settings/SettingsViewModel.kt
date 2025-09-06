@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music.data.repository.ShuffleType
 import com.example.music.domain.usecases.GetTotalCountsV2
+import com.example.music.service.SongController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,7 @@ class SettingsViewModel @Inject constructor(
     //need to be able to access CurrentPreferencesDataStore
     //need own set of ScreenActions that trigger like onClick
     getTotalCountsV2: GetTotalCountsV2,
+    private val songController: SongController
 ) : ViewModel() {
 
     private val selectedShuffleType = MutableStateFlow(ShuffleType.ONCE)
@@ -86,6 +88,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onSettingsAction(action: SettingsAction) {
+        Log.i(TAG, "onSettingsAction - $action")
         when(action){
             is SettingsAction.ShuffleTypeSelected -> onShuffleTypeSelected(action.shuffleType)
             is SettingsAction.ThemeModeSelected -> onThemeModeSelected(action.themeMode)

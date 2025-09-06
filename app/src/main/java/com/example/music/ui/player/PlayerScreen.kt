@@ -234,7 +234,7 @@ private fun PlayerScreen(
         // background function
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
     ) { contentPadding ->
-        if (currentSong != null) { // keeping this explicit check for now, don't want to lose context for the FullScreenLoading function below
+        if (currentSong.id != 0L) { // keeping this explicit check for now, don't want to lose context for the FullScreenLoading function below
             PlayerContentWithBackground(
                 currentSong = currentSong,
                 isPlaying = isPlaying,
