@@ -238,7 +238,6 @@ fun AlbumDetailsScreen(
     artist: ArtistInfo,
     songs: List<SongInfo>,
     selectSong: SongInfo,
-    //onQueueSong: (SongInfo) -> Unit,
     onAlbumAction: (AlbumAction) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     navigateToPlayerV2: () -> Unit,
@@ -410,7 +409,7 @@ fun AlbumDetailsScreen(
                             onShuffleClick = {
                                 Log.i(TAG, "Shuffle Album btn clicked")
                                 onAlbumAction(AlbumAction.ShuffleAlbum(songs))
-                                //navigateToPlayer(songs[1])
+                                navigateToPlayerV2()
                             },
                         )
                     }
