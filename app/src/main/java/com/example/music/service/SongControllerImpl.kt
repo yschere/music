@@ -45,7 +45,6 @@ import kotlin.reflect.KProperty
  */
 
 private const val TAG = "SongControllerImpl"
-private const val RAND_SEED = 1 // seed for shuffle randomizer
 
 @OptIn(UnstableApi::class)
 private fun Context.mediaController(listener: MediaController.Listener) : ListenableFuture<MediaController> {
@@ -359,33 +358,17 @@ class SongControllerImpl @Inject constructor(
         val mediaController = mediaController ?: return
         val temp = mediaController.queue
         clearQueue()
-        temp.shuffled( Random(RAND_SEED) ).let {
+        temp.shuffled( Random ).let {
             mediaController.setMediaItems( it )
         }
     }
 
     override fun shuffle(songs: List<SongInfo>) {
         val mediaController = mediaController ?: return
-        // ground rules
-        // 1 if the songs here are the first items going into the queue, then the shuffled
-        // order here is the originating order, aka it is the queue's default track order. hitting un-shuffle will keep this order intact, and hitting shuffle can change the order but the original needs to remain untouched
-        // 2 this does not change the shuffle type
-        // 3 this does not set isShuffle to true
-        // NOW I'M CONFUSION
-        // CAUSE HITTING SHUFFLE WHILE THERE WAS MULTIPLE ITEMS ADDED TO QUEUE
-        // REMOVED THE ORIGINAL ITEM THAT STARTED THE QUEUE, KEPT THE ITEMS THAT WERE ADDED AFTER,
-        // AND PLACED THE NEW "SHUFFLE" ITEM AT THE TOP OF THE QUEUE
-        // I THOUGHT IT CLEARED THE QUEUE???
-        // THIS ALSO APPLIES TO NON PLAYLISTS, IE IF AN ALBUM'S ADDED USING SHUFFLE. THE NEW SORT IS THE DEFAULT
-        // AND IT WILL BE AT THE TOP OF THE QUEUE, REMOVING THE ORIGINAL CONTEXT BUT KEEPING THE ITEMS THAT WERE
-        // "ADD TO QUEUE"
-        clearQueue()
+        mediaController.shuffleModeEnabled = true
 
-        mediaController.setMediaItems(
-            songs.map {
-                it.toMediaItem
-            }.shuffled( Random(RAND_SEED) )
-        )
+        setMediaItems(songs.shuffled(Random))
+        play(true)
     }
 
     override fun isConnected(): Boolean = mediaController?.connectedToken != null
