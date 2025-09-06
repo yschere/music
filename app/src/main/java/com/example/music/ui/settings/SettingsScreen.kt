@@ -75,6 +75,8 @@ import com.example.music.ui.tooling.SystemDarkPreview
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+private const val TAG = "Settings Screen"
+
 /** Changelog:
  *
  * 7/22-23/2025 - Deleted SongPlayer from domain layer.
@@ -123,7 +125,10 @@ fun SettingsScreen(
  * Error Screen
  */
 @Composable
-private fun SettingsScreenError(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+private fun SettingsScreenError(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.Center,
