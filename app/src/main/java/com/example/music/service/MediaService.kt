@@ -177,6 +177,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
             sendBroadcast(NowPlaying.from(this, mediaPlayer))
             return super.onStartCommand(intent, flags, startId)
         }
+        Log.i(TAG, "onStartCommand: action NOT NULL")
 
         if (sessions.find { it.id == mediaSession?.id } == null )
             mediaSession?.let { addSession(it) }
@@ -184,6 +185,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         if (mediaPlayer.playbackState != Player.STATE_READY)
             mediaPlayer.prepare()
 
+        Log.i(TAG, "onStartCommand: Media Player Prepared")
         when (action) {
             NowPlaying.ACTION_TOGGLE_PLAY -> mediaPlayer.playWhenReady = !mediaPlayer.playWhenReady
             NowPlaying.ACTION_NEXT -> mediaPlayer.seekToNextMediaItem()
@@ -213,24 +215,25 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         mediaItem: MediaItem?,
         reason: Int
     ) {
-        Log.i(TAG, "onMediaItemTransition:\n" +
-            "Media Item: $mediaItem\n" +
-            "Reason: $reason")
-        scope.launch {
-            // preferences[PREF_KEY_INDEX] = mediaPlayer.currentMediaItemIndex
-            // save current index in preference?? seems like get current media item index
+        // updating local datastore with metadata about recently played items would begin here
+        when (reason) {
+            Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> {
+                Log.i(TAG, "onMediaItemTransition:\n" +
+                    "onMediaItemTransition reason -> automatic")
+            }
+            Player. MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED -> {
+                Log.i(TAG, "onMediaItemTransition:\n" +
+                    "onMediaItemTransition reason -> playlist changed")
+            }
+            Player. MEDIA_ITEM_TRANSITION_REASON_REPEAT -> {
+                Log.i(TAG, "onMediaItemTransition:\n" +
+                    "onMediaItemTransition reason -> repeat play")
+            }
+            Player. MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
+                Log.i(TAG, "onMediaItemTransition:\n" +
+                    "onMediaItemTransition reason -> seek to different item")
+            }
         }
-
-        if (mediaItem == null || mediaItem.mediaUri?.isThirdPartyUri == true)
-            return
-        scope.launch(Dispatchers.IO) {
-            // val limit of recent playlist limit
-            //val limit = preferences[PREF_KEY_RECENT_PLAYLIST_LIMIT, 50]
-            // playlists addToRecent
-            //playlists.addToRecent(mediaItem, limit.toLong())
-        }
-        //mediaSession.notifyChildrenChanged(ROOT_QUEUE, 0, null)
-
         super.onMediaItemTransition(mediaItem, reason)
     }
 
@@ -280,6 +283,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         events: Player.Events
     ) {
         Log.i(TAG, "onEvents: ${events.size()}")
+        logPlayerEvent(events)
         if (!events.containsAny(*UPDATE_EVENTS))
             return
         sendBroadcast(NowPlaying.from(this, player))
@@ -293,18 +297,41 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         mediaPlayer.seekToNextMediaItem()
     }
 
+    // the entire onPlayWhenReadyChanged section was overridden for
+    // pausing playback if there is a sleep timer set/created
     override fun onPlayWhenReadyChanged(
         isPlaying: Boolean,
         reason: Int
     ) {
         Log.i(TAG, "onPlayWhenReadyChanged\n" +
-                "isPlaying: $isPlaying\n" +
-                "reason: $reason")
+            "isPlaying: $isPlaying\n")
+        when (reason) {
+            Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST -> {
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback set by user to $isPlaying")
+            }
+            Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS -> {
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback paused from loss of audio focus")
+            }
+            Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY -> {
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback paused to avoid becoming noisy")
+            }
+            Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE -> {
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback started / paused from remote change")
+            }
+            Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM -> {
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback paused at end of media item")
+            }
+            Player.PLAY_WHEN_READY_CHANGE_REASON_SUPPRESSED_TOO_LONG -> {
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback paused from suppression for too long")
+            }
+        }
+
         super.onPlayWhenReadyChanged(isPlaying, reason)
 
+        // this section is the sleep timer job
         if (!isPlaying) {
-            sessionMonitorJob?.cancel()
-            scheduledPauseTimeMillis = UNINITIALIZED_SLEEP_TIME_MILLIS
+            sessionMonitorJob?.cancel() // cancels monitor job
+            scheduledPauseTimeMillis = UNINITIALIZED_SLEEP_TIME_MILLIS // uninitializes timer for pausing playback
         } else
             sessionMonitorJob = scope.launch {
                 var isPlay = mediaPlayer.playWhenReady
@@ -312,6 +339,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
                     // get current playback position, set to preferences / datastore
                     //preferences[PREF_KEY_BOOKMARK] = mediaPlayer.currentPosition
                     Log.i(TAG, "Save playback position: ${mediaPlayer.currentPosition}")
+                    // check if playback is scheduled to be paused
                     if (scheduledPauseTimeMillis != UNINITIALIZED_SLEEP_TIME_MILLIS && scheduledPauseTimeMillis <= System.currentTimeMillis()) {
                         // Pause the player as the scheduled pause time has been reached.
                         mediaPlayer.pause()
@@ -321,31 +349,26 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
                     }
                     // Delay for the specified time
                     delay(SAVE_POSITION_DELAY_MILLS)
+
+                    /**Returns whether the player is playing, i. e. getCurrentPosition() is advancing.
+                    If false, then at least one of the following is true:
+                    The playback state is not ready.
+                    There is no intention to play.
+                    Playback is suppressed for other reasons.
+                    Returns:
+                    Whether the player is playing.
+                    See Also:
+                    Player. Listener. onIsPlayingChanged(boolean)*/
                     isPlay = mediaPlayer.isPlaying
-                    //Returns whether the player is playing, i. e. getCurrentPosition() is advancing.
-                    //If false, then at least one of the following is true:
-                    //The playback state is not ready.
-                    //There is no intention to play.
-                    //Playback is suppressed for other reasons.
-                    //Returns:
-                    //Whether the player is playing.
-                    //See Also:
-                    //Player. Listener. onIsPlayingChanged(boolean)
-                    //val isPlaying = mediaPlayer.playWhenReady
-                    //Whether playback will proceed when getPlaybackState() == STATE_READY.
-                    //Returns:
-                    //Whether playback will proceed when ready.
-                    //See Also:
-                    //Player. Listener. onPlayWhenReadyChanged(boolean, int)
                 } while (isPlay)
-        }
+            }
     }
 
+    // --- Need this because of error during initial play of a media item: UnsupportedOperationException: Make sure to implement MediaSession.Callback.onPlaybackResumption() if you add a media button receiver to your manifest or if you implement the recent media item contract with your MediaLibraryService.
     override fun onPlaybackResumption(
         session: MediaSession,
         controller: ControllerInfo
     ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-        // --- Need this because of error during initial play of a media item: UnsupportedOperationException: Make sure to implement MediaSession.Callback.onPlaybackResumption() if you add a media button receiver to your manifest or if you implement the recent media item contract with your MediaLibraryService.
         Log.i(TAG, "onPlaybackResumption:\n" +
                 "Media Session: ${session.id}\n" +
                 "Controller: ${controller.packageName}")
@@ -359,6 +382,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         //return super.onPlaybackResumption(mediaSession,controller)
     }
 
+    /* // Intent for overriding this function is to add custom session commands to the MediaSession
     override fun onConnect(
         session: MediaSession,
         controller: ControllerInfo
@@ -376,8 +400,9 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         return ConnectionResult.AcceptedResultBuilder(session)
             .setAvailableSessionCommands(available.build())
             .build()
-    }
+    }*/
 
+    /* // Intent for overriding this function is to define custom session commands for the MediaSession to reference
     override fun onCustomCommand(
         session: MediaSession,
         controller: ControllerInfo,
@@ -417,10 +442,8 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
                 Futures.immediateFuture(SessionResult(SessionError.ERROR_UNKNOWN))
             }
         }
-        //would need to define these custom commands that action can be
-        // then use when switch cases to define the result and steps to take per action
         //return super.onCustomCommand(session, controller, customCommand, args)
-    }
+    }*/
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         Log.i(TAG, "onTaskRemoved")
@@ -455,20 +478,6 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         )
     }
 
-    /*fun setMediaItem(uri: Uri) {
-        val newItem = MediaItem.Builder()
-            .setMediaId("$uri")
-            .build()
-
-        mediaPlayer.setMediaItem(newItem)
-        mediaPlayer.prepare()
-        mediaPlayer.play()
-    }*/
-
-    override fun onTimeout(startId: Int) {
-        super.onTimeout(startId)
-    }
-
     /*override fun onPostConnect(session: MediaSession, controller: ControllerInfo) {
         super.onPostConnect(session, controller)
         return ConnectionResult.AcceptedResultBuilder(mediaSession)
@@ -484,15 +493,129 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         return super.onMediaButtonEvent(session, controllerInfo, intent)
     }*/
 
-    override fun getContentResolver(): ContentResolver {
-        return super.getContentResolver()
-    }
-
     override fun onDestroy() {
         mediaPlayer.release()
         mediaSession?.release()
         scope.cancel()
         super.onDestroy()
+    }
+
+    private fun logPlayerEvent(events: Player.Events) {
+        if (events.contains(Player.EVENT_TIMELINE_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 0 :: event timeline changed")
+        }
+        if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION) ) {
+            Log.i(TAG, "onEvents -> 1 :: event current media item changed or current item repeating")
+        }
+        if (events.contains(Player.EVENT_TRACKS_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 2 :: event tracks changed")
+        }
+        if (events.contains(Player.EVENT_IS_LOADING_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 3 :: event is loading changed")
+        }
+        if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 4 :: event playback state changed")
+        }
+        if (events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 5 :: event play when ready changed")
+        }
+        if (events.contains(Player.EVENT_PLAYBACK_SUPPRESSION_REASON_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 6 :: event playback suppression reason changed")
+        }
+        if (events.contains(Player.EVENT_IS_PLAYING_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 7 :: event is playing changed")
+        }
+        if (events.contains(Player.EVENT_REPEAT_MODE_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 8 :: event repeat mode changed")
+        }
+        if (events.contains(Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 9 :: event shuffle mode enabled changed")
+        }
+        if (events.contains(Player.EVENT_PLAYER_ERROR) ) {
+            Log.i(TAG, "onEvents -> 10 :: event player error occurred")
+        }
+        if (events.contains(Player.EVENT_POSITION_DISCONTINUITY) ) {
+            Log.i(TAG, "onEvents -> 11 :: event position discontinuity occurred")
+            /** Note:
+             * A position discontinuity occurs when the playing period changes, the playback
+             * position jumps within the period currently being played, or when the playing
+             * period has been skipped or removed.
+             * onEvents(Player, Player. Events) will also be called to report this event along
+             * with other events that happen in the same Looper message queue iteration.
+             */
+        }
+        if (events.contains(Player.EVENT_PLAYBACK_PARAMETERS_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 12 :: event playback parameters changed")
+        }
+        if (events.contains(Player.EVENT_AVAILABLE_COMMANDS_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 13 :: event player's command(s) availability changed")
+        }
+        if (events.contains(Player.EVENT_MEDIA_METADATA_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 14 :: event media metadata changed")
+        }
+        if (events.contains(Player.EVENT_PLAYLIST_METADATA_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 15 :: event playlist metadata changed")
+        }
+        if (events.contains(Player.EVENT_SEEK_BACK_INCREMENT_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 16 :: event seek back increment changed")
+        }
+        if (events.contains(Player.EVENT_SEEK_FORWARD_INCREMENT_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 17 :: event seek forward increment changed")
+        }
+        if (events.contains(Player.EVENT_MAX_SEEK_TO_PREVIOUS_POSITION_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 18 :: event max seek to previous position changed")
+        }
+        if (events.contains(Player.EVENT_TRACK_SELECTION_PARAMETERS_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 19 :: event track selection parameters changed")
+        }
+        if (events.contains(Player.EVENT_AUDIO_ATTRIBUTES_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 20 :: event audio attributes changed")
+        }
+        if (events.contains(Player.EVENT_AUDIO_SESSION_ID) ) {
+            Log.i(TAG, "onEvents -> 21 :: event audio session id set")
+        }
+        if (events.contains(Player.EVENT_VOLUME_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 22 :: event volume changed")
+        }
+        if (events.contains(Player.EVENT_SKIP_SILENCE_ENABLED_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 23 :: event skip silence enabled changed")
+        }
+        if (events.contains(Player.EVENT_SURFACE_SIZE_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 24 :: event surface size changed")
+            /**
+             * Note:
+             * This is for video rendering, which is not a supported MIME type in the app.
+             * So this shouldn't occur.
+             */
+        }
+        if (events.contains(Player.EVENT_VIDEO_SIZE_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 25 :: event video size changed")
+            /**
+             * Note:
+             * This is for video rendering, which is not a supported MIME type in the app.
+             * So this shouldn't occur.
+             */
+        }
+        if (events.contains(Player.EVENT_RENDERED_FIRST_FRAME) ) {
+            Log.i(TAG, "onEvents -> 26 :: event first frame rendered")
+            /**
+             * Note:
+             * This is for video rendering, which is not a supported MIME type in the app.
+             * So this shouldn't occur.
+             */
+        }
+        if (events.contains(Player.EVENT_CUES) ) {
+            Log.i(TAG, "onEvents -> 27 :: event cues changed")
+        }
+        if (events.contains(Player.EVENT_METADATA) ) {
+            Log.i(TAG, "onEvents -> 28 :: event metadata playback changed")
+        }
+        if (events.contains(Player.EVENT_DEVICE_INFO_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 29 :: event device info changed")
+        }
+        if (events.contains(Player.EVENT_DEVICE_VOLUME_CHANGED) ) {
+            Log.i(TAG, "onEvents -> 30 :: event device volume changed")
+        }
     }
 
     companion object {
