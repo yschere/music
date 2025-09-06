@@ -49,7 +49,7 @@ private const val RAND_SEED = 1 // seed for shuffle randomizer
 
 @OptIn(UnstableApi::class)
 private fun Context.mediaController(listener: MediaController.Listener) : ListenableFuture<MediaController> {
-    Log.i(TAG, "calling Context.mediaController Builder")
+    Log.d(TAG, "calling Context.mediaController Builder")
     return MediaController.Builder(this, SessionToken(this, ComponentName(this, MediaService::class.java)))
         .setListener(listener)
         .buildAsync()
@@ -99,14 +99,16 @@ class SongControllerImpl @Inject constructor(
         get() = events.map { currentSong != null }
 
     override fun addToQueue(song: SongInfo) {
-        Log.i(TAG, "Add To Queue - 1 song:\n" +
+        val mediaController = mediaController ?: return
+        Log.d(TAG, "Add To Queue - 1 song:\n" +
             "Song ID: ${song.id}; Song Title: ${song.title}")
-        mediaController?.addMediaItem(song.toMediaItem)
+        mediaController.addMediaItem(song.toMediaItem)
     }
 
     override fun addToQueue(songs: List<SongInfo>) {
-        Log.i(TAG, "Add To Queue - multiple songs")
-        mediaController?.addMediaItems(
+        val mediaController = mediaController ?: return
+        Log.d(TAG, "Add To Queue - multiple songs")
+        mediaController.addMediaItems(
             songs.map {
                 Log.i(TAG, "Song ID: ${it.id}; Song Title: ${it.title}")
                 it.toMediaItem
@@ -115,64 +117,75 @@ class SongControllerImpl @Inject constructor(
     }
 
     override fun addToQueueNext(song: SongInfo) {
-        Log.i(TAG, "Add to Queue Next - 1 song:\n" +
+        val mediaController = mediaController ?: return
+        Log.d(TAG, "Add to Queue Next - 1 song:\n" +
                 "Song ID: ${song.id}; Song Title: ${song.title}")
-        mediaController?.addMediaItem(1,song.toMediaItem)
+        mediaController.addMediaItem(1,song.toMediaItem)
     }
 
     override fun addToQueueNext(songs: List<SongInfo>) {
-        Log.i(TAG, "Add to Queue Next - multiple songs: ${songs.size}")
-        mediaController?.addMediaItems(1,songs.map {
-            Log.i(TAG, "Song ID: ${it.id}; Song Title: ${it.title}")
+        val mediaController = mediaController ?: return
+        Log.d(TAG, "Add to Queue Next - multiple songs: ${songs.size}")
+        mediaController.addMediaItems(1,songs.map {
+            Log.d(TAG, "Song ID: ${it.id}; Song Title: ${it.title}")
             it.toMediaItem
         })
     }
 
     override fun setMediaItem(song: SongInfo) {
-        Log.i(TAG, "Set Media Item: ${song.id}\n" +
+        val mediaController = mediaController ?: return
+        Log.d(TAG, "Set Media Item: ${song.id}\n" +
             "Song ID: ${song.id}; Song Title: ${song.title}")
-        mediaController?.setMediaItem(song.toMediaItem)
+        mediaController.setMediaItem(song.toMediaItem)
     }
 
     override fun setMediaItems(songs: List<SongInfo>) {
-        Log.i(TAG, "Set Media Items: ${songs.size}")
-        mediaController?.setMediaItems(
+        val mediaController = mediaController ?: return
+        Log.d(TAG, "Set Media Items: ${songs.size}")
+        mediaController.setMediaItems(
             songs.map {
-                Log.i(TAG, "Song ID: ${it.id}; Song Title: ${it.title}")
+                Log.d(TAG, "Song ID: ${it.id}; Song Title: ${it.title}")
                 it.toMediaItem
             }
         )
     }
 
     override fun preparePlayer() {
+        val mediaController = mediaController ?: return
         Log.i(TAG, "in preparePlayer(): Prepare Media Controller")
-        mediaController?.prepare()
+        mediaController.prepare()
+        playState()
     }
 
     override fun clearQueue() {
+        val mediaController = mediaController ?: return
         Log.i(TAG, "in clearQueue(): Remove all items from Queue")
-        mediaController?.clearMediaItems()
+        mediaController.clearMediaItems()
+        playState()
     }
 
     override fun play() {
+        val mediaController = mediaController ?: return
         Log.d(TAG, "in play(): START\n" +
                 "SongController isPlaying is set to ${isPlaying}.\n" +
                 "Current Song Controller song is ${currentSong?.title}")
 
-        val item = mediaController?.currentMediaItem
-        Log.i(TAG, "MediaController isPlaying is set to ${mediaController?.isPlaying}\n" +
+        playState()
+
+        val item = mediaController.currentMediaItem
+        Log.d(TAG, "MediaController isPlaying is set to ${mediaController.isPlaying}\n" +
                 "Current Media Controller item is ${item?.title}")
 
         /* // there's 4 playback states to check for: idle, buffering, ready, ended
         // ideally, if we're in here that means the app requested to play something, so should be in buffering
         // want to wait for the media controller to finish buffering, then when it is ready, get to play/pause */
         coroutineScope.launch {
-            while (mediaController?.playbackState == Player.STATE_BUFFERING) {
+            while (mediaController.playbackState == Player.STATE_BUFFERING) {
                 delay(1000)
             }
         }
 
-        if (mediaController?.isPlaying == true) {
+        if (mediaController.isPlaying) {
             Log.d(TAG, "Song Controller Impl IS PLAYING -- set to pause")
             pause()
         } else {
@@ -180,74 +193,85 @@ class SongControllerImpl @Inject constructor(
             play(true)
             preparePlayer()
         }
+
+        playState()
         Log.d(TAG, "in play(): END")
     }
 
     override fun play(playWhenReady: Boolean) {
-        mediaController?.playWhenReady = playWhenReady
-        mediaController?.play()
+        val mediaController = mediaController ?: return
+        mediaController.playWhenReady = playWhenReady
+        mediaController.play()
     }
 
     override fun play(song: SongInfo) {
-        Log.d(TAG, "In play(SongInfo): START")
+        Log.d(TAG, "In play( SongInfo ): START")
         play(listOf(song))
-        Log.d(TAG, "In play(SongInfo): END")
+        Log.d(TAG, "In play( SongInfo ): END")
     }
 
     override fun play(songs: List<SongInfo>) {
-        Log.d(TAG, "In play(List<SongInfo>): START")
+        val mediaController = mediaController ?: return
+        Log.d(TAG, "In play( List<SongInfo> ): START")
+        playState()
 
         Log.d(TAG, "Count of items to queue: ${songs.size} items.")
         setMediaItems(songs)
 
-        Log.d(TAG, "Current media controller state before apply is ${mediaController?.playbackState}.")
+        Log.d(TAG, "Current media controller state before apply is ${mediaController.playbackState}.")
 
-        mediaController?.apply {
+        mediaController.apply {
             seekToDefaultPosition()
             playWhenReady = true
             prepare()
         }
-        Log.d(TAG, "Current media controller state after apply is ${mediaController?.playbackState}.\n" +
-                "Current media controller queue is ${mediaController?.mediaItems?.size} items\n" +
-                "Current media item is ${mediaController?.currentMediaItem?.title}")
+        Log.d(TAG, "Current media controller state after apply is ${mediaController.playbackState}.\n" +
+                "Current media controller queue is ${mediaController.mediaItems.size} items\n" +
+                "Current media item is ${mediaController.currentMediaItem?.title}")
+        playState()
         play()
         Log.d(TAG, "In play( List<SongInfo> ): END")
     }
 
     override fun pause() {
+        val mediaController = mediaController ?: return
         Log.d(TAG, "in pause() START --- isPlaying is $isPlaying")
-        mediaController?.pause()
+        mediaController.pause()
         Log.d(TAG, "in pause() END --- isPlaying is set to $isPlaying")
     }
 
     override fun stop() {
+        val mediaController = mediaController ?: return
         Log.d(TAG, "in stop() --- isPlaying is $isPlaying")
-        mediaController?.stop()
+        mediaController.stop()
         Log.d(TAG, "in stop() --- isPlaying is set to $isPlaying")
     }
 
     override fun seekTo(position: Long) {
+        val mediaController = mediaController ?: return
         Log.d(TAG, "in seekTo(Long) START: $position")
-        mediaController?.seekTo(position)
-        Log.d(TAG, "in seekTo(Long) END: new position is ${mediaController?.currentPosition}")
+        mediaController.seekTo(position)
+        Log.d(TAG, "in seekTo(Long) END: new position is ${mediaController.currentPosition}")
         play(true)
     }
 
     override fun next() {
+        val mediaController = mediaController ?: return
         Log.d(TAG, "in next() function")
-        mediaController?.seekToNextMediaItem()
+        mediaController.seekToNextMediaItem()
         play()
     }
 
     override fun previous() {
+        val mediaController = mediaController ?: return
         Log.d(TAG, "in previous() function")
 
-        if (position < 2000L && mediaController?.hasPreviousMediaItem() == true) {
+        if (position < 2000L && mediaController.hasPreviousMediaItem()) {
             // if media item passed less than 2s, restart position
-            mediaController?.seekToPreviousMediaItem()
+            mediaController.seekToPreviousMediaItem()
         } else {
             // else there isn't any previous item, just restart position
-            mediaController?.seekToDefaultPosition()
+            mediaController.seekToDefaultPosition()
         }
         play()
     }
@@ -293,7 +317,7 @@ class SongControllerImpl @Inject constructor(
     }
 
     override fun onRepeat() {
-        /*Log.i(TAG, "in onRepeat --- repeatState is set to ${_repeatState.value}") // v1
+        /*Log.d(TAG, "in onRepeat --- repeatState is set to ${_repeatState.value}") // v1
         // Log.i(TAG, "in onRepeat --- repeatState is set to ${repeatState.value}") // v2
         when(_repeatState.value) { // v1
         //when(repeatState.value) { // v2
@@ -332,14 +356,16 @@ class SongControllerImpl @Inject constructor(
      * Internal function to shuffle the MediaController queue.
      */
     private fun shuffleQueue() { //this would get called if the queue itself needs to be shuffled
-        val temp = mediaController?.queue
+        val mediaController = mediaController ?: return
+        val temp = mediaController.queue
         clearQueue()
-        temp?.shuffled( Random(RAND_SEED) )?.let {
-            mediaController?.setMediaItems( it )
+        temp.shuffled( Random(RAND_SEED) ).let {
+            mediaController.setMediaItems( it )
         }
     }
 
     override fun shuffle(songs: List<SongInfo>) {
+        val mediaController = mediaController ?: return
         // ground rules
         // 1 if the songs here are the first items going into the queue, then the shuffled
         // order here is the originating order, aka it is the queue's default track order. hitting un-shuffle will keep this order intact, and hitting shuffle can change the order but the original needs to remain untouched
@@ -355,7 +381,7 @@ class SongControllerImpl @Inject constructor(
         // "ADD TO QUEUE"
         clearQueue()
 
-        mediaController?.setMediaItems(
+        mediaController.setMediaItems(
             songs.map {
                 it.toMediaItem
             }.shuffled( Random(RAND_SEED) )
@@ -363,6 +389,30 @@ class SongControllerImpl @Inject constructor(
     }
 
     override fun isConnected(): Boolean = mediaController?.connectedToken != null
+
+    /**
+     * Internal function to log the MediaController playback state.
+     */
+    private fun playState() {
+        val mediaController = mediaController ?: return
+        when(mediaController.playbackState) {
+            Player.STATE_READY -> {
+                Log.d(TAG, "Playback State is READY")
+            }
+            Player.STATE_IDLE -> {
+                Log.d(TAG, "Playback State is IDLE")
+            }
+            Player.STATE_BUFFERING -> {
+                Log.d(TAG, "Playback State is BUFFERING")
+            }
+            Player.STATE_ENDED -> {
+                Log.d(TAG, "Playback State is ENDED")
+            }
+            else -> {
+                Log.e(TAG, "Playback State error")
+            }
+        }
+    }
 }
 
 // Used to enable property delegation
