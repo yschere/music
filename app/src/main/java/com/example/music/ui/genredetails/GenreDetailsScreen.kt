@@ -1,5 +1,6 @@
 package com.example.music.ui.genredetails
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -78,6 +79,8 @@ import com.example.music.util.quantityStringResource
  * 7/22-23/2025 - Removed PlayerSong completely
  */
 
+private const val TAG = "Genre Details Screen"
+
 /**
  * Stateful version of Genre Details Screen
  */
@@ -100,10 +103,8 @@ fun GenreDetailsScreen(
         if (uiState.isReady) {
             GenreDetailsScreen(
                 genre = uiState.genre,
-                //albums = uiState.albums.toPersistentList(),
                 songs = uiState.songs,
-                //onQueueSong = viewModel::onQueueSong,
-                //navigateToAlbumDetails = navigateToAlbumDetails,
+                onGenreAction = viewModel::onGenreAction,
                 navigateToPlayer = navigateToPlayer,
                 navigateToPlayerV2 = navigateToPlayerV2,
                 navigateToSearch = navigateToSearch,
@@ -155,14 +156,12 @@ private fun GenreDetailsLoadingScreen(
 /**
  * Stateless Composable for Genre Details Screen
  */
- @OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GenreDetailsScreen(
     genre: GenreInfo,
-    //albums: PersistentList<AlbumInfo>,
     songs: List<SongInfo>,
-    //onQueueSong: (SongInfo) -> Unit,
-    //navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    onGenreAction: (GenreAction) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     navigateToPlayerV2: () -> Unit,
     navigateToSearch: () -> Unit,
@@ -202,16 +201,10 @@ fun GenreDetailsScreen(
         ) { contentPadding ->
             GenreDetailsContent(
                 genre = genre,
-                //albums = albums,
                 songs = songs,
-                /*onQueueSong = {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(snackBarText)
-                    }
-                    onQueueSong(it)
-                },*/
-                //navigateToAlbumDetails = navigateToAlbumDetails,
+                onGenreAction = onGenreAction,
                 navigateToPlayer = navigateToPlayer,
+                navigateToPlayerV2 = navigateToPlayerV2,
                 modifier = Modifier.padding(contentPadding)
             )
         }
@@ -271,11 +264,10 @@ fun GenreDetailsTopAppBar(
 @Composable
 fun GenreDetailsContent(
     genre: GenreInfo,
-    //albums: PersistentList<AlbumInfo>,
     songs: List<SongInfo>,
-    //onQueueSong: (SongInfo) -> Unit,
-    //navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    onGenreAction: (GenreAction) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -326,8 +318,11 @@ fun GenreDetailsContent(
             fullWidthItem {
                 SongCountAndSortSelectButtons(
                     songs = songs,
-                    onSelectClick = {},
+                    onSelectClick = {
+                        Log.i(TAG, "Multi Select btn clicked")
+                    },
                     onSortClick = {
+                        Log.i(TAG, "Song Sort btn clicked")
                         //showBottomSheet = true
                         //showSortSheet = true
                     }
@@ -336,8 +331,16 @@ fun GenreDetailsContent(
 
             fullWidthItem {
                 PlayShuffleButtons(
-                    onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
-                    onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                    onPlayClick = {
+                        Log.i(TAG, "Play Songs btn clicked")
+                        onGenreAction(GenreAction.PlaySongs(songs))
+                        navigateToPlayerV2()
+                    },
+                    onShuffleClick = {
+                        Log.i(TAG, "Shuffle Songs btn clicked")
+                        onGenreAction(GenreAction.ShuffleSongs(songs))
+                        navigateToPlayerV2()
+                    },
                 )
             }
 
@@ -346,8 +349,17 @@ fun GenreDetailsContent(
                 Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                     SongListItem(
                         song = song,
-                        onClick = navigateToPlayer,
-                        onMoreOptionsClick = {},
+                        onClick = {
+                            Log.i(TAG, "Song clicked ${song.title}")
+                            onGenreAction(GenreAction.PlaySong(song))
+                            navigateToPlayerV2()
+                        },
+                        onMoreOptionsClick = {
+                            Log.i(TAG, "Song More Option clicked ${song.title}")
+                            onGenreAction(GenreAction.SongMoreOptionClicked(song))
+                            //showBottomSheet = true
+                            //showSongMoreOptions = true
+                        },
                         //onQueueSong = { },
                         isListEditable = false,
                         showArtistName = true,
@@ -535,6 +547,7 @@ fun GenreDetailsScreenPreview() {
             //JPop
             genre = PreviewGenres[3],
             songs = getSongsInGenre(3),
+            onGenreAction = {},
 
             //navigateToAlbumDetails = {},
             navigateToPlayer = {},
