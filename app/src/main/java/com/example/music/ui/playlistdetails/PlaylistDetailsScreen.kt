@@ -113,7 +113,7 @@ fun PlaylistDetailsScreen(
             PlaylistDetailsScreen(
                 playlist = uiState.playlist,
                 songs = uiState.songs,
-                onQueueSong = viewModel::onQueueSong,
+                onPlaylistAction = viewModel::onPlaylistAction,
                 navigateToPlayer = navigateToPlayer,
                 navigateToPlayerV2 = navigateToPlayerV2,
                 navigateToSearch = navigateToSearch,
@@ -193,7 +193,7 @@ private fun PlaylistDetailsLoadingScreen(
 private fun PlaylistDetailsScreen(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
-    onQueueSong: (SongInfo) -> Unit,
+    onPlaylistAction: (PlaylistAction) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     navigateToPlayerV2: () -> Unit,
     navigateToSearch: () -> Unit,
@@ -245,6 +245,7 @@ private fun PlaylistDetailsScreen(
                     }
                     onQueueSong(it)
                 },*/
+                onPlaylistAction = onPlaylistAction,
                 navigateToPlayer = navigateToPlayer,
                 navigateToPlayerV2 = navigateToPlayerV2,
                 modifier = Modifier.padding(contentPadding)//.padding(horizontal = 8.dp)
@@ -310,7 +311,7 @@ private fun PlaylistDetailsTopAppBar(
 private fun PlaylistDetailsContent(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
-    //onQueueSong: (SongInfo) -> Unit,
+    onPlaylistAction: (PlaylistAction) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     navigateToPlayerV2: () -> Unit,
     modifier: Modifier = Modifier
@@ -352,8 +353,16 @@ private fun PlaylistDetailsContent(
                         }
                     )
                     PlayShuffleButtons(
-                        onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
-                        onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                        onPlayClick = {
+                            Log.i(TAG, "Play Playlist btn clicked")
+                            onPlaylistAction(PlaylistAction.PlaySongs(songs))
+                            navigateToPlayerV2()
+                        },
+                        onShuffleClick = {
+                            Log.i(TAG, "Shuffle Playlist btn clicked")
+                            onPlaylistAction(PlaylistAction.ShuffleSongs(songs))
+                            navigateToPlayerV2()
+                        },
                     )
                 }
             }
@@ -373,7 +382,11 @@ private fun PlaylistDetailsContent(
                     //call the SongListItem function to display each one, include the data needed to display item in full,
                     //and should likely share context from where this call being made in case specific data needs to be shown / not shown
                     song = song,
-                    onClick = navigateToPlayer,
+                    onClick = {
+                        Log.i(TAG, "Song clicked ${song.title}")
+                        onPlaylistAction(PlaylistAction.PlaySong(song))
+                        navigateToPlayerV2()
+                    },
                     onMoreOptionsClick = {},
                     //onQueueSong = onQueueSong,
                     modifier = Modifier.fillMaxWidth(),
@@ -700,7 +713,7 @@ fun PlaylistDetailsScreenPreview() {
             playlist = PreviewPlaylists[2],
             songs = getPlaylistSongs(2),
 
-            onQueueSong = {},
+            onPlaylistAction = {},
             navigateToPlayer = {},
             navigateToPlayerV2 = {},
             navigateToSearch = {},
