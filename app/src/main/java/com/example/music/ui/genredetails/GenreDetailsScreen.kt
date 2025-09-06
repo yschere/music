@@ -87,8 +87,7 @@ private const val TAG = "Genre Details Screen"
 @Composable
 fun GenreDetailsScreen(
     //navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //modifier: Modifier = Modifier,
@@ -106,7 +105,6 @@ fun GenreDetailsScreen(
                 songs = uiState.songs,
                 onGenreAction = viewModel::onGenreAction,
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerV2 = navigateToPlayerV2,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 modifier = Modifier.fillMaxSize(),
@@ -162,8 +160,7 @@ fun GenreDetailsScreen(
     genre: GenreInfo,
     songs: List<SongInfo>,
     onGenreAction: (GenreAction) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //showBackButton: Boolean,
@@ -204,7 +201,6 @@ fun GenreDetailsScreen(
                 songs = songs,
                 onGenreAction = onGenreAction,
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerV2 = navigateToPlayerV2,
                 modifier = Modifier.padding(contentPadding)
             )
         }
@@ -266,8 +262,7 @@ fun GenreDetailsContent(
     genre: GenreInfo,
     songs: List<SongInfo>,
     onGenreAction: (GenreAction) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -334,12 +329,12 @@ fun GenreDetailsContent(
                     onPlayClick = {
                         Log.i(TAG, "Play Songs btn clicked")
                         onGenreAction(GenreAction.PlaySongs(songs))
-                        navigateToPlayerV2()
+                        navigateToPlayer()
                     },
                     onShuffleClick = {
                         Log.i(TAG, "Shuffle Songs btn clicked")
                         onGenreAction(GenreAction.ShuffleSongs(songs))
-                        navigateToPlayerV2()
+                        navigateToPlayer()
                     },
                 )
             }
@@ -352,7 +347,7 @@ fun GenreDetailsContent(
                         onClick = {
                             Log.i(TAG, "Song clicked ${song.title}")
                             onGenreAction(GenreAction.PlaySong(song))
-                            navigateToPlayerV2()
+                            navigateToPlayer()
                         },
                         onMoreOptionsClick = {
                             Log.i(TAG, "Song More Option clicked ${song.title}")
@@ -551,7 +546,6 @@ fun GenreDetailsScreenPreview() {
 
             //navigateToAlbumDetails = {},
             navigateToPlayer = {},
-            navigateToPlayerV2 = {},
             navigateToSearch = {},
             navigateBack = {},
         )

@@ -121,8 +121,7 @@ private const val TAG = "Artist Details Screen"
 @Composable
 fun ArtistDetailsScreen(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -146,7 +145,6 @@ fun ArtistDetailsScreen(
                 //onQueueSong = viewModel::onQueueSong,
                 navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerV2 = navigateToPlayerV2,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 showBackButton = showBackButton,
@@ -208,8 +206,7 @@ fun ArtistDetailsScreen(
     onArtistAction: (ArtistAction) -> Unit,
     //onQueueSong: (SongInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     showBackButton: Boolean,
@@ -444,12 +441,12 @@ fun ArtistDetailsScreen(
                             onPlayClick = {
                                 Log.i(TAG, "Play Songs btn clicked")
                                 onArtistAction(ArtistAction.PlaySongs(songs))
-                                navigateToPlayerV2()
+                                navigateToPlayer()
                             },
                             onShuffleClick = {
                                 Log.i(TAG, "Shuffle Songs btn clicked")
                                 onArtistAction(ArtistAction.ShuffleSongs(songs))
-                                navigateToPlayerV2()
+                                navigateToPlayer()
                             },
                         )
                     }
@@ -462,7 +459,7 @@ fun ArtistDetailsScreen(
                                 onClick = {
                                     Log.i(TAG, "Song clicked: ${song.title}")
                                     onArtistAction(ArtistAction.PlaySong(song))
-                                    navigateToPlayerV2()
+                                    navigateToPlayer()
                                 },
                                 onMoreOptionsClick = {
                                     Log.i(TAG, "Song More Option clicked: ${song.title}")
@@ -996,7 +993,6 @@ fun ArtistDetailsScreenPreview() {
 
             navigateToAlbumDetails = {},
             navigateToPlayer = {},
-            navigateToPlayerV2 = {},
             navigateToSearch = {},
             navigateBack = {},
             showBackButton = true,

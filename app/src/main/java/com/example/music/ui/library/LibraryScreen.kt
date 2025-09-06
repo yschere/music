@@ -127,8 +127,7 @@ fun LibraryScreen(
     navigateToGenreDetails: (GenreInfo) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -170,7 +169,6 @@ fun LibraryScreen(
             navigateToGenreDetails = navigateToGenreDetails,
             navigateToPlaylistDetails = navigateToPlaylistDetails,
             navigateToPlayer = navigateToPlayer,
-            navigateToPlayerV2 = navigateToPlayerV2,
             navigateToSearch = navigateToSearch,
             modifier = Modifier.fillMaxSize()
         )
@@ -229,8 +227,7 @@ private fun LibraryScreen(
     navigateToGenreDetails: (GenreInfo) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -317,7 +314,6 @@ private fun LibraryScreen(
                     navigateToGenreDetails = navigateToGenreDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToPlayer = navigateToPlayer,
-                    navigateToPlayerV2 = navigateToPlayerV2,
                 )
             }
         }
@@ -391,8 +387,7 @@ private fun LibraryContent(
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToGenreDetails: (GenreInfo) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
 ) {
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
@@ -504,7 +499,6 @@ private fun LibraryContent(
                         coroutineScope = coroutineScope,
                         onLibraryAction = onLibraryAction,
                         navigateToPlayer = navigateToPlayer,
-                        navigateToPlayerV2 = navigateToPlayerV2,
                     )
                 }
 
@@ -695,7 +689,6 @@ private fun PreviewLibrary() {
             navigateToGenreDetails = {},
             navigateToComposerDetails = {},
             navigateToPlayer = {},
-            navigateToPlayerV2 = {},
             navigateToSearch = {},
         )
     }

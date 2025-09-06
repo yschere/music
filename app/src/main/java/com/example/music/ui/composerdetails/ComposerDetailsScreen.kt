@@ -87,8 +87,7 @@ private const val TAG = "Composer Details Screen"
  */
 @Composable
 fun ComposerDetailsScreen(
-    navigateToPlayer: (SongInfo) -> Unit = {},
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit = {},
     //showBackButton: Boolean,
@@ -108,7 +107,6 @@ fun ComposerDetailsScreen(
                 songs = uiState.songs,
                 //onQueueSong = viewModel::onQueueSong,
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerV2 = navigateToPlayerV2,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 //showBackButton = showBackButton,
@@ -165,8 +163,7 @@ fun ComposerDetailsScreen(
     composer: ComposerInfo,
     songs: List<SongInfo>,
     //onQueueSong: (SongInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //showBackButton: Boolean,
@@ -274,7 +271,7 @@ fun ComposerDetailsContent(
     composer: ComposerInfo,
     songs: List<SongInfo>,
     //onQueueSong: (SongInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -311,12 +308,12 @@ fun ComposerDetailsContent(
                     onPlayClick = {
                         Log.i(TAG, "Play Songs btn clicked")
                         //onComposerAction(ComposerAction.PlaySongs(songs))
-                        //navigateToPlayerV2()
+                        //navigateToPlayer()
                     },
                     onShuffleClick = {
                         Log.i(TAG, "Shuffle Songs btn clicked")
                         //onComposerAction(ComposerAction.ShuffleSongs(songs))
-                        //navigateToPlayerV2()
+                        //navigateToPlayer()
                     },
                 )
             }
@@ -526,7 +523,6 @@ fun ComposerDetailsScreenPreview() {
             songs = getSongsByComposer(PreviewComposers[1].id),
 
             navigateToPlayer = {},
-            navigateToPlayerV2 = {},
             navigateToSearch = {},
             navigateBack = {},
         )

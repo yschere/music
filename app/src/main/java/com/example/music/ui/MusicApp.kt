@@ -71,10 +71,7 @@ fun MusicApp(
                     navigateToPlaylistDetails = { playlist ->
                         appState.navigateToPlaylistDetails(playlist.id, backStackEntry)
                     },
-                    navigateToPlayer = { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
-                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSettings = { appState.navigateToSettings(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) }
                 )
@@ -82,18 +79,6 @@ fun MusicApp(
 
             //Player Screen Navigation Router
             composable(Screen.Player.route) { backStackEntry ->
-                PlayerScreen(
-                    windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
-                    displayFeatures = displayFeatures, //used to determine physical properties of display device to accommodate view accordingly
-                    navigateBack = appState::navigateBack, //navigation back button
-                    navigateToHome = { appState.navigateToHome(backStackEntry) },
-                    navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
-                    //navigateToSettings = { appState.navigateToSettings(backStackEntry) },
-                )
-            }
-
-            //Player Screen Navigation Router
-            composable(Screen.PlayerV2.route) { backStackEntry ->
                 PlayerScreen(
                     windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
                     displayFeatures = displayFeatures, //used to determine physical properties of display device to accommodate view accordingly
@@ -128,10 +113,7 @@ fun MusicApp(
                     navigateToPlaylistDetails = { playlist ->
                         appState.navigateToPlaylistDetails(playlist.id, backStackEntry)
                     },
-                    navigateToPlayer =  { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
-                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                 )
             }
 
@@ -143,10 +125,7 @@ fun MusicApp(
                     navigateBack = appState::navigateBack, //navigation back button
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
-                    navigateToPlayer =  { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
-                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSettings = { appState.navigateToSettings(backStackEntry) },
                 )
             }
@@ -156,10 +135,7 @@ fun MusicApp(
                 AlbumDetailsScreen(
                     //windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
                     navigateBack = appState::navigateBack,
-                    navigateToPlayer = { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
-                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
 
                     //dependent on context, ie if showing in pane or as own screen
@@ -176,10 +152,7 @@ fun MusicApp(
                     navigateToAlbumDetails = { album ->
                         appState.navigateToAlbumDetails(album.id, backStackEntry)
                     },
-                    navigateToPlayer = { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
-                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
 
                     //dependent on context, ie if showing in pane or as own screen
@@ -194,10 +167,7 @@ fun MusicApp(
                     //windowSizeClass = adaptiveInfo.windowSizeClass,
 
                     navigateBack = appState::navigateBack,
-                    navigateToPlayer = { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
-                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
@@ -209,10 +179,7 @@ fun MusicApp(
                     //windowSizeClass = adaptiveInfo.windowSizeClass,
 
                     navigateBack = appState::navigateBack,
-                    navigateToPlayer = { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
-                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
@@ -224,10 +191,7 @@ fun MusicApp(
                     //windowSizeClass = adaptiveInfo.windowSizeClass,
 
                     navigateBack = appState::navigateBack,
-                    navigateToPlayer = { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
-                    },
-                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
@@ -240,10 +204,8 @@ fun MusicApp(
                     },
                     navigateToArtistDetails = { artist ->
                         appState.navigateToArtistDetails(artist.id, backStackEntry)
-                    },navigateToPlayer = { song ->
-                        appState.navigateToPlayer(song.id, backStackEntry)
                     },
-                    navigateToPlayerV2 = { appState.navigateToPlayerV2(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                 )
             }
         }

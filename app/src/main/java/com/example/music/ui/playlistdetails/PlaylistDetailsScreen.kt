@@ -94,8 +94,7 @@ private const val TAG = "Playlist Details Screen"
  */
 @Composable
 fun PlaylistDetailsScreen(
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     //modifier: Modifier = Modifier,
@@ -115,7 +114,6 @@ fun PlaylistDetailsScreen(
                 songs = uiState.songs,
                 onPlaylistAction = viewModel::onPlaylistAction,
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerV2 = navigateToPlayerV2,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
                 modifier = Modifier.fillMaxSize(),
@@ -194,8 +192,7 @@ private fun PlaylistDetailsScreen(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
     onPlaylistAction: (PlaylistAction) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -247,7 +244,6 @@ private fun PlaylistDetailsScreen(
                 },*/
                 onPlaylistAction = onPlaylistAction,
                 navigateToPlayer = navigateToPlayer,
-                navigateToPlayerV2 = navigateToPlayerV2,
                 modifier = Modifier.padding(contentPadding)//.padding(horizontal = 8.dp)
             )
         }
@@ -312,8 +308,7 @@ private fun PlaylistDetailsContent(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
     onPlaylistAction: (PlaylistAction) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier
 ) { //determines content of details screen
     //logger.info { "Playlist Details Content function start" }
@@ -336,7 +331,9 @@ private fun PlaylistDetailsContent(
         fullWidthItem {
             if (songs.isEmpty()) {
                 PlaylistDetailsEmptyList(
-                    onClick = {}
+                    onClick = {
+                        Log.i(TAG, "Add to Empty Playlist btn clicked")
+                    }
                 )
             } else {
                 Column {
@@ -356,12 +353,12 @@ private fun PlaylistDetailsContent(
                         onPlayClick = {
                             Log.i(TAG, "Play Playlist btn clicked")
                             onPlaylistAction(PlaylistAction.PlaySongs(songs))
-                            navigateToPlayerV2()
+                            navigateToPlayer()
                         },
                         onShuffleClick = {
                             Log.i(TAG, "Shuffle Playlist btn clicked")
                             onPlaylistAction(PlaylistAction.ShuffleSongs(songs))
-                            navigateToPlayerV2()
+                            navigateToPlayer()
                         },
                     )
                 }
@@ -385,7 +382,7 @@ private fun PlaylistDetailsContent(
                     onClick = {
                         Log.i(TAG, "Song clicked ${song.title}")
                         onPlaylistAction(PlaylistAction.PlaySong(song))
-                        navigateToPlayerV2()
+                        navigateToPlayer()
                     },
                     onMoreOptionsClick = {},
                     //onQueueSong = onQueueSong,
@@ -715,7 +712,6 @@ fun PlaylistDetailsScreenPreview() {
 
             onPlaylistAction = {},
             navigateToPlayer = {},
-            navigateToPlayerV2 = {},
             navigateToSearch = {},
             navigateBack = {},
         )

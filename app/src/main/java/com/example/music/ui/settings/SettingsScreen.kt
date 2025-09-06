@@ -93,8 +93,7 @@ fun SettingsScreen(
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -115,7 +114,6 @@ fun SettingsScreen(
             navigateToLibrary = navigateToLibrary,
             navigateToSettings = navigateToSettings,
             navigateToPlayer = navigateToPlayer,
-            navigateToPlayerV2 = navigateToPlayerV2,
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -161,8 +159,7 @@ private fun SettingsScreen(
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -786,7 +783,6 @@ private fun PreviewSettings() {
                 navigateToLibrary = {},
                 navigateToSettings = {},
                 navigateToPlayer = {},
-                navigateToPlayerV2 = {},
             )
         }
     }

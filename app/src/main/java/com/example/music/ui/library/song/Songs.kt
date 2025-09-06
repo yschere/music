@@ -60,10 +60,9 @@ private const val TAG = "Library Songs"
 fun LazyListScope.songItems(
     songs: List<SongInfo>,
     coroutineScope: CoroutineScope,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    onLibraryAction: (LibraryAction) -> Unit,
+    navigateToPlayer: () -> Unit,
 ) {
-
     //section 1: header
     item {
         // ******** var  for modal remember here
@@ -111,62 +110,28 @@ fun LazyListScope.songItems(
     }
 
     item {
-        Row {
-            // shuffle btn
-            Button(
-                onClick = {
-                    /*coroutineScope.launch {
-                        sheetState.hide()
-                        showThemeSheet = false
-                    }*/
-                },
-                colors = buttonColors(
-                    //containerColor = MaterialTheme.colorScheme.primary,
-                    //contentColor = MaterialTheme.colorScheme.background,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .padding(10.dp).weight(0.5f)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Shuffle,
-                    contentDescription = stringResource(R.string.icon_shuffle)
-                )
-                Text("SHUFFLE")
-            }
-
-            // play btn
-            Button(
-                onClick = {
-                    /*coroutineScope.launch {
-                        sheetState.hide()
-                        showThemeSheet = false
-                    }*/
-                },
-                colors = buttonColors(
-                    //containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    //contentColor = MaterialTheme.colorScheme.background,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .padding(10.dp).weight(0.5f)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = stringResource(R.string.icon_play)
-                )
-                Text("PLAY")
-            }
-        }
+        PlayShuffleButtons(
+            onPlayClick = {
+                onLibraryAction(LibraryAction.PlaySongs(songs))
+                navigateToPlayer()
+            },
+            onShuffleClick = {
+                onLibraryAction(LibraryAction.ShuffleSongs(songs))
+                navigateToPlayer()
+            },
+        )
     }
 
     items(
         items = songs,
-        //span = { GridItemSpan(maxLineSpan) }
     ) { song ->
         SongListItem(
             song = song,
-            onClick = { navigateToPlayer(song) },
+            onClick = {
+                Log.i(TAG, "Song clicked: ${song.title}")
+                onLibraryAction(LibraryAction.SongClicked(song))
+                navigateToPlayer()
+            },
             onMoreOptionsClick = {},
             //onQueueSong = {},
             isListEditable = false,
@@ -213,8 +178,7 @@ fun LazyGridScope.songItems(
     songs: List<SongInfo>,
     coroutineScope: CoroutineScope,
     onLibraryAction: (LibraryAction) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
 ) {
 
     //section 1: header
@@ -267,11 +231,11 @@ fun LazyGridScope.songItems(
         PlayShuffleButtons(
             onPlayClick = {
                 onLibraryAction(LibraryAction.PlaySongs(songs))
-                navigateToPlayerV2()
+                navigateToPlayer()
             },
             onShuffleClick = {
                 onLibraryAction(LibraryAction.ShuffleSongs(songs))
-                navigateToPlayerV2()
+                navigateToPlayer()
             },
         )
     }
@@ -286,7 +250,7 @@ fun LazyGridScope.songItems(
             onClick = {
                 Log.i(TAG, "Song clicked: ${song.title}")
                 onLibraryAction(LibraryAction.SongClicked(song))
-                navigateToPlayerV2()
+                navigateToPlayer()
             },
             onMoreOptionsClick = {},
             //onQueueSong = {},

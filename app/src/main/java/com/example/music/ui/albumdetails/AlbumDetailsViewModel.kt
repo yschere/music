@@ -130,13 +130,23 @@ class AlbumDetailsViewModel @Inject constructor(
         when (action) {
             //is AlbumAction.AddSongToPlaylist -> onAddToPlaylist(action.song)
             //is AlbumAction.AddAlbumToPlaylist -> onAddToPlaylist(action.songs)
+            is AlbumAction.PlaySong -> onPlaySong(action.song)
+            is AlbumAction.PlaySongs -> onPlaySongs(action.songs)
             is AlbumAction.QueueSong -> onQueueSong(action.song)
             is AlbumAction.QueueSongs -> onQueueSongs(action.songs)
+            is AlbumAction.ShuffleSongs -> onShuffleSongs(action.songs)
             is AlbumAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
-            is AlbumAction.ShuffleAlbum -> onShuffleAlbum(action.songs)
-            is AlbumAction.PlayAlbum -> onPlayAlbum(action.songs)
-            is AlbumAction.SongClicked -> onSongClicked(action.song)
         }
+    }
+
+    private fun onPlaySong(song: SongInfo) {
+        Log.i(TAG, "onPlaySong -> ${song.title}")
+        songController.play(song)
+    }
+
+    private fun onPlaySongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onPlaySongs -> ${songs.size}")
+        songController.play(songs)
     }
 
     private fun onQueueSong(song: SongInfo) {
@@ -149,19 +159,9 @@ class AlbumDetailsViewModel @Inject constructor(
         songController.addToQueue(songs)
     }
 
-    private fun onPlayAlbum(songs: List<SongInfo>) {
-        Log.i(TAG, "onPlayAlbum -> ${songs.size}")
-        songController.play(songs)
-    }
-
-    private fun onShuffleAlbum(songs: List<SongInfo>) {
-        Log.i(TAG, "onShuffleAlbum -> ${songs.size}")
+    private fun onShuffleSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onShuffleSongs -> ${songs.size}")
         songController.shuffle(songs)
-    }
-
-    private fun onSongClicked(song: SongInfo) {
-        Log.i(TAG, "onSongClicked -> ${song.title}")
-        songController.play(song)
     }
 
     private fun onSongMoreOptionClick(song: SongInfo) {
@@ -171,11 +171,11 @@ class AlbumDetailsViewModel @Inject constructor(
 }
 
 sealed interface AlbumAction {
+    data class PlaySong(val song: SongInfo) : AlbumAction
+    data class PlaySongs(val songs: List<SongInfo>) : AlbumAction
     data class QueueSong(val song: SongInfo) : AlbumAction
     data class QueueSongs(val songs: List<SongInfo>) : AlbumAction
-    data class PlayAlbum(val songs: List<SongInfo>) : AlbumAction
-    data class ShuffleAlbum(val songs: List<SongInfo>) : AlbumAction
-    data class SongClicked(val song: SongInfo) : AlbumAction
+    data class ShuffleSongs(val songs: List<SongInfo>) : AlbumAction
     data class SongMoreOptionClicked(val song: SongInfo) : AlbumAction
 }
 

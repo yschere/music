@@ -217,8 +217,7 @@ fun MainScreen(
     navigateToSearch: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -232,7 +231,6 @@ fun MainScreen(
             navigateToPlaylistDetails = navigateToPlaylistDetails,
             navigateToLibrary = navigateToLibrary,
             navigateToPlayer = navigateToPlayer,
-            navigateToPlayerV2 = navigateToPlayerV2,
             navigateToSearch = navigateToSearch,
             navigateToSettings = navigateToSettings,
             viewModel = viewModel,
@@ -278,8 +276,7 @@ private fun HomeScreenReady(
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
@@ -312,7 +309,6 @@ private fun HomeScreenReady(
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToLibrary = navigateToLibrary,
                     navigateToPlayer = navigateToPlayer,
-                    navigateToPlayerV2 = navigateToPlayerV2,
                     navigateToSettings = navigateToSettings,
                     navigateToSearch = navigateToSearch,
                     modifier = Modifier.fillMaxSize()
@@ -362,8 +358,7 @@ private fun HomeScreen(
     navigateToSearch: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Effect that changes the home category selection when there are no subscribed podcasts
@@ -442,7 +437,6 @@ private fun HomeScreen(
                     navigateToAlbumDetails = navigateToAlbumDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToPlayer = navigateToPlayer,
-                    navigateToPlayerV2 = navigateToPlayerV2
                 )
             }
         }
@@ -503,8 +497,7 @@ private fun HomeContent(
     navigateToLibrary: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit
+    navigateToPlayer: () -> Unit,
 ) {
     // Main Content on Home screen
     //logger.info { "Home Content function start" }
@@ -536,7 +529,6 @@ private fun HomeContent(
         navigateToAlbumDetails = navigateToAlbumDetails,
         navigateToPlaylistDetails = navigateToPlaylistDetails,
         navigateToPlayer = navigateToPlayer,
-        navigateToPlayerV2 = navigateToPlayerV2
     )
 
     if(showBottomSheet) {
@@ -544,7 +536,7 @@ private fun HomeContent(
             onDismissRequest = { showBottomSheet = false },
             coroutineScope = coroutineScope,
             song = featuredLibraryItemsFilterResult.recentlyAddedSongs[0],
-            navigateToPlayer = navigateToPlayer
+            navigateToPlayer = navigateToPlayer //FixMe
         )
     }
 }
@@ -561,8 +553,7 @@ private fun HomeContentGrid(
     navigateToLibrary: () -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    navigateToPlayerV2: () -> Unit,
+    navigateToPlayer: () -> Unit,
 ) {
     //logger.info { "Home Content Grid function start" }
     LazyVerticalGrid(
@@ -658,7 +649,7 @@ private fun HomeContentGrid(
                         song = song,
                         onClick = {
                             onHomeAction(HomeAction.SongClicked(song))
-                            navigateToPlayerV2()
+                            navigateToPlayer()
                         },
                         //onQueueSong = { },
                         onMoreOptionsClick = { onMoreOptionsClick(song) },
@@ -823,7 +814,6 @@ private fun PreviewHome() {
             navigateToAlbumDetails = {},
             navigateToPlaylistDetails = {},
             navigateToPlayer = {},
-            navigateToPlayerV2 = {},
         )
     }
 }
