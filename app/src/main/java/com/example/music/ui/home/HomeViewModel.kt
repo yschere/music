@@ -114,6 +114,7 @@ class HomeViewModel @Inject constructor(
                 //Log.i(TAG, "viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}")
                 Log.i(TAG, "viewModelScope launch - combine - libraryItemsAlbums: ${libraryItems.recentAlbums.size}")
                 Log.i(TAG, "viewModelScope launch - combine - libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}")
+                Log.i(TAG, "is SongController available: ${songController.isConnected()}")
 
                 HomeScreenUiState(
                     isLoading = refreshing,
