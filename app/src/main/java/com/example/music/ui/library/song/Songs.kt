@@ -1,5 +1,6 @@
 package com.example.music.ui.library.song
 
+import android.util.Log
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,12 +34,15 @@ import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.model.SongInfo
+import com.example.music.ui.library.LibraryAction
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.shared.LibrarySortSelectionBottomModal
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
+
+private const val TAG = "Library Songs"
 
 /** Changelog:
  *
@@ -57,6 +61,7 @@ fun LazyListScope.songItems(
     songs: List<SongInfo>,
     coroutineScope: CoroutineScope,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
 ) {
 
     //section 1: header
@@ -207,7 +212,9 @@ fun LazyListScope.songItems(
 fun LazyGridScope.songItems(
     songs: List<SongInfo>,
     coroutineScope: CoroutineScope,
+    onLibraryAction: (LibraryAction) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
 ) {
 
     //section 1: header
@@ -258,8 +265,14 @@ fun LazyGridScope.songItems(
 
     fullWidthItem {
         PlayShuffleButtons(
-            onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
-            onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+            onPlayClick = {
+                onLibraryAction(LibraryAction.PlaySongs(songs))
+                navigateToPlayerV2()
+            },
+            onShuffleClick = {
+                onLibraryAction(LibraryAction.ShuffleSongs(songs))
+                navigateToPlayerV2()
+            },
         )
     }
 
@@ -270,7 +283,11 @@ fun LazyGridScope.songItems(
         //Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
         SongListItem(
             song = song,
-            onClick = { navigateToPlayer(song) },
+            onClick = {
+                Log.i(TAG, "Song clicked: ${song.title}")
+                onLibraryAction(LibraryAction.SongClicked(song))
+                navigateToPlayerV2()
+            },
             onMoreOptionsClick = {},
             //onQueueSong = {},
             isListEditable = false,

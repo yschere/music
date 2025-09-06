@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.music.data.database.model.Song
 import com.example.music.domain.usecases.GetLibraryComposersUseCase
 import com.example.music.domain.usecases.GetLibraryPlaylistsUseCase
 import com.example.music.domain.usecases.GetAppPreferencesUseCase
@@ -20,6 +21,8 @@ import com.example.music.domain.usecases.GetLibraryArtistsV2
 import com.example.music.domain.usecases.GetLibraryGenresV2
 import com.example.music.domain.usecases.GetLibrarySongsV2
 import com.example.music.domain.usecases.GetTotalCountsV2
+import com.example.music.service.SongController
+import com.example.music.ui.albumdetails.AlbumAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,7 +53,7 @@ class LibraryViewModel @Inject constructor(
     getLibraryAlbumsV2: GetLibraryAlbumsV2,
     getTotalCountsV2: GetTotalCountsV2,
     getAppPreferences: GetAppPreferencesUseCase,
-    //private val songPlayer: SongPlayer,
+    private val songController: SongController
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
         library needs to have categories: playlists, songs, artists, albums, genres, composers
@@ -275,8 +278,12 @@ class LibraryViewModel @Inject constructor(
         when (action) {
             is LibraryAction.LibraryCategorySelected -> onLibraryCategorySelected(action.libraryCategory)
             //maybe filtering / sorting selections added here?
+            is LibraryAction.PlaySongs -> onPlaySongs(action.songs)
             is LibraryAction.QueueSong -> onQueueSong(action.song)
+            is LibraryAction.QueueSongs -> onQueueSongs(action.songs)
             is LibraryAction.ShowModal -> onShowModal(action.libraryCategory, action.isModalOpen)
+            is LibraryAction.ShuffleSongs -> onShuffleSongs(action.songs)
+            is LibraryAction.SongClicked -> onSongClicked(action.song)
         }
     }
 
@@ -285,8 +292,19 @@ class LibraryViewModel @Inject constructor(
         refresh()
     }
 
+    private fun onPlaySongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onPlaySongs -> ${songs.size}")
+        songController.play(songs)
+    }
+
     private fun onQueueSong(song: SongInfo) {
-        //songPlayer.addToQueue(song)
+        Log.i(TAG, "onQueueSong -> ${song.title}")
+        songController.addToQueue(song)
+    }
+
+    private fun onQueueSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongs -> ${songs.size}")
+        songController.addToQueue(songs)
     }
 
     private fun onShowModal(libraryCategory: LibraryCategory, isModalOpen: Boolean) {
@@ -294,6 +312,16 @@ class LibraryViewModel @Inject constructor(
         // want to know which screen on library is being shown
         // want to have a way for contexted modal? how would this accomplish it tho
         showBottomSheet.value = isModalOpen
+    }
+
+    private fun onShuffleSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onShuffleSongs -> ${songs.size}")
+        songController.shuffle(songs)
+    }
+
+    private fun onSongClicked(song: SongInfo) {
+        Log.i(TAG, "onSongClicked -> ${song.title}")
+        songController.play(song)
     }
 }
 
@@ -304,8 +332,12 @@ enum class LibraryCategory {
 @Immutable
 sealed interface LibraryAction {
     data class LibraryCategorySelected(val libraryCategory: LibraryCategory) : LibraryAction
+    data class PlaySongs(val songs: List<SongInfo>) : LibraryAction
     data class QueueSong(val song: SongInfo) : LibraryAction
+    data class QueueSongs(val songs: List<SongInfo>) : LibraryAction
     data class ShowModal(val libraryCategory: LibraryCategory, val isModalOpen: Boolean) : LibraryAction
+    data class ShuffleSongs(val songs: List<SongInfo>) : LibraryAction
+    data class SongClicked(val song: SongInfo) : LibraryAction
 }
 
 data class LibraryScreenUiState(

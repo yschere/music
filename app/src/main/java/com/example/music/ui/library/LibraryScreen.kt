@@ -128,6 +128,7 @@ fun LibraryScreen(
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -169,6 +170,7 @@ fun LibraryScreen(
             navigateToGenreDetails = navigateToGenreDetails,
             navigateToPlaylistDetails = navigateToPlaylistDetails,
             navigateToPlayer = navigateToPlayer,
+            navigateToPlayerV2 = navigateToPlayerV2,
             navigateToSearch = navigateToSearch,
             modifier = Modifier.fillMaxSize()
         )
@@ -228,6 +230,7 @@ private fun LibraryScreen(
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     navigateToSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -314,6 +317,7 @@ private fun LibraryScreen(
                     navigateToGenreDetails = navigateToGenreDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     navigateToPlayer = navigateToPlayer,
+                    navigateToPlayerV2 = navigateToPlayerV2,
                 )
             }
         }
@@ -388,6 +392,7 @@ private fun LibraryContent(
     navigateToGenreDetails: (GenreInfo) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
 ) {
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
@@ -497,8 +502,9 @@ private fun LibraryContent(
                         //what would the songs screen need?
                         songs = librarySongs,
                         coroutineScope = coroutineScope,
+                        onLibraryAction = onLibraryAction,
                         navigateToPlayer = navigateToPlayer,
-                        //onQueueSong = { onLibraryAction(LibraryAction.QueueSong(it)) },
+                        navigateToPlayerV2 = navigateToPlayerV2,
                     )
                 }
 
@@ -689,6 +695,7 @@ private fun PreviewLibrary() {
             navigateToGenreDetails = {},
             navigateToComposerDetails = {},
             navigateToPlayer = {},
+            navigateToPlayerV2 = {},
             navigateToSearch = {},
         )
     }
