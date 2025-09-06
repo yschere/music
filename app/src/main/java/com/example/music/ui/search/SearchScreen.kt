@@ -107,6 +107,7 @@ fun SearchScreen(
             queryText = queryText,
             navigateBack = navigateBack,
             navigateToPlayer = navigateToPlayer,
+            navigateToPlayerV2 = navigateToPlayerV2,
             navigateToArtistDetails = navigateToArtistDetails,
             navigateToAlbumDetails = navigateToAlbumDetails,
             viewModel = viewModel,
@@ -151,6 +152,7 @@ fun SearchScreenReady(
 
     navigateBack: () -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
+    navigateToPlayerV2: () -> Unit,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     viewModel: SearchQueryViewModel,
@@ -195,7 +197,10 @@ fun SearchScreenReady(
                 onSendQuery = { viewModel.sendQuery() },
 
                 // actions to do when user taps/clicks on results
-                onSongClicked = { item -> navigateToPlayer(item) },
+                onSongClicked = { item ->
+                    viewModel.onPlaySong(item)
+                    navigateToPlayerV2()
+                },
                 onArtistClicked = { item -> navigateToArtistDetails(item) },
                 onAlbumClicked = { item -> navigateToAlbumDetails(item) },
                 modifier = Modifier.padding(contentPadding),

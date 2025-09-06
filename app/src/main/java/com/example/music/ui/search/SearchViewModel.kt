@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.model.SearchQueryFilterV2
+import com.example.music.domain.model.SongInfo
 import com.example.music.domain.usecases.SearchQueryV2
+import com.example.music.service.SongController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +31,7 @@ private const val TAG = "Search View Model"
 @HiltViewModel
 class SearchQueryViewModel @Inject constructor(
     private val searchQueryV2: SearchQueryV2,
-    //private val songPlayer: SongPlayer,
+    private val songController: SongController,
 ) : ViewModel() {
 
     private val _searchFieldState: MutableStateFlow<SearchFieldState> =
@@ -124,6 +126,11 @@ class SearchQueryViewModel @Inject constructor(
             }
             resetFieldState()
         }
+    }
+
+    fun onPlaySong(song: SongInfo) {
+        Log.i(TAG, "onPlaySong -> ${song.title}")
+        songController.play(song)
     }
 
     private fun String.blankOrEmpty() = this.isBlank() || this.isEmpty()
