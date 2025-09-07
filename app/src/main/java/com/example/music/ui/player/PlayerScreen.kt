@@ -126,7 +126,7 @@ fun PlayerScreen(
     PlayerScreen(
         currentSong = viewModel.currentSong,
         isPlaying = viewModel.isPlaying,
-        isShuffled = false, //FixMe: update when isShuffled is fixed,
+        isShuffled = viewModel.isShuffled,
         repeatState = RepeatType.ON, //FixMe: update when repeatState is fixed,
         progress = viewModel.progress,
         timeElapsed = viewModel.position,
@@ -811,7 +811,6 @@ private fun PlayerButtons(
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = sideButtonsModifier
                     .clickable(enabled = true, onClick = onShuffle)
-                    //.alpha(if (isPlaying) 1f else 0.25f) //likely change opacity if playing
             )
         } else {
             //determined that the current state IS NOT shuffled (isShuffled is false)

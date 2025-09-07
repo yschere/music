@@ -77,6 +77,7 @@ interface PlayerState {
     val player: Player?
     var progress: Float
     var position: Long
+    var isShuffled: Boolean
 }
 
 /**
@@ -106,7 +107,7 @@ class PlayerViewModel @Inject constructor(
     private var _isPlaying by mutableStateOf(songController.isPlaying)
     private var _position by mutableLongStateOf(songController.position)
     private var _progress by mutableFloatStateOf(songController.progress)
-    //private var _isShuffled = MutableStateFlow(false)
+    private var _isShuffled by mutableStateOf(songController.isShuffled)
     //private val _repeatState = MutableStateFlow(0)
 
     var currentSong by mutableStateOf(SongInfo())
@@ -135,6 +136,12 @@ class PlayerViewModel @Inject constructor(
             _position = value
         }
 
+    override var isShuffled: Boolean
+        get() = _isShuffled
+        set(value) {
+            _isShuffled = value
+        }
+
     private var timerJob: Job? = null
 
     /* // OG method for getting SongInfo when navigating to PlayerScreen:
@@ -161,7 +168,7 @@ class PlayerViewModel @Inject constructor(
                 // if events is empty, take these actions to generate the needed values for populating the Player Screen
                 if (it == null) {
                     Log.d(TAG, "init: running start up events to initialize PlayerVM")
-                    //shuffle mode enabled changed goes here
+                    onPlayerEvent(event = Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)
                     //repeat mode enabled changed goes here
                     onPlayerEvent(event = Player.EVENT_IS_LOADING_CHANGED)
                     onPlayerEvent(event = Player.EVENT_PLAY_WHEN_READY_CHANGED)
@@ -235,7 +242,10 @@ class PlayerViewModel @Inject constructor(
             //Player.EVENT_REPEAT_MODE_CHANGED -> {}
 
             // Event for checking if the shuffle mode is enabled
-            //Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED -> {}
+            Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED -> {
+                _isShuffled = songController.isShuffled
+                Log.d(TAG, "isShuffled set to $isShuffled")
+            }
         }
     }
 
@@ -329,7 +339,7 @@ class PlayerViewModel @Inject constructor(
 
     fun onShuffle() {
         Log.i(TAG, "Hit shuffle btn on Player Screen")
-        //songController.onShuffle()
+        songController.onShuffle()
     }
 
     fun onRepeat() {

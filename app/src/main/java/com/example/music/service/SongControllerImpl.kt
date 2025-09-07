@@ -97,6 +97,12 @@ class SongControllerImpl @Inject constructor(
     override val loaded: Flow<Boolean>
         get() = events.map { currentSong != null }
 
+    override val isShuffled: Boolean
+        get() = mediaController?.shuffleModeEnabled ?: false
+
+    // attempt to save un-shuffled list
+    private var tempPlayOrder: List<SongInfo> = emptyList()
+
     override fun addToQueue(song: SongInfo) {
         val mediaController = mediaController ?: return
         Log.d(TAG, "Add To Queue - 1 song:\n" +
@@ -198,9 +204,11 @@ class SongControllerImpl @Inject constructor(
     }
 
     override fun play(playWhenReady: Boolean) {
+        Log.d(TAG, "in play( Boolean ): START -- playWhenReady $playWhenReady")
         val mediaController = mediaController ?: return
         mediaController.playWhenReady = playWhenReady
         mediaController.play()
+        Log.d(TAG, "in play( Boolean ): END")
     }
 
     override fun play(song: SongInfo) {
@@ -210,11 +218,13 @@ class SongControllerImpl @Inject constructor(
     }
 
     override fun play(songs: List<SongInfo>) {
-        val mediaController = mediaController ?: return
         Log.d(TAG, "In play( List<SongInfo> ): START")
+        val mediaController = mediaController ?: return
         playState()
 
         Log.d(TAG, "Count of items to queue: ${songs.size} items.")
+        mediaController.shuffleModeEnabled = false
+        tempPlayOrder = songs
         setMediaItems(songs)
 
         Log.d(TAG, "Current media controller state before apply is ${mediaController.playbackState}.")
@@ -233,17 +243,42 @@ class SongControllerImpl @Inject constructor(
     }
 
     override fun pause() {
-        val mediaController = mediaController ?: return
         Log.d(TAG, "in pause() START --- isPlaying is $isPlaying")
+        val mediaController = mediaController ?: return
         mediaController.pause()
         Log.d(TAG, "in pause() END --- isPlaying is set to $isPlaying")
     }
 
-    override fun stop() {
+    override fun shuffle(songs: List<SongInfo>) {
+        Log.d(TAG, "in shuffle( List<SongInfo> ): START")
         val mediaController = mediaController ?: return
-        Log.d(TAG, "in stop() --- isPlaying is $isPlaying")
+        playState()
+
+        Log.d(TAG, "Count of items to queue: ${songs.size} items.")
+        mediaController.shuffleModeEnabled = true
+        tempPlayOrder = songs
+        setMediaItems(songs.shuffled(Random))
+
+        Log.d(TAG, "Current media controller state before apply is ${mediaController.playbackState}.")
+        mediaController.apply {
+            seekToDefaultPosition()
+            playWhenReady = true
+            prepare()
+        }
+        Log.d(TAG, "Current media controller state after apply is ${mediaController.playbackState}.\n" +
+                "Current media controller queue is ${mediaController.mediaItems.size} items\n" +
+                "Current media item is ${mediaController.currentMediaItem?.title}")
+
+        playState()
+        play()
+        Log.d(TAG, "in shuffle( List<SongInfo> ): END")
+    }
+
+    override fun stop() {
+        Log.d(TAG, "in stop() START --- isPlaying is $isPlaying")
+        val mediaController = mediaController ?: return
         mediaController.stop()
-        Log.d(TAG, "in stop() --- isPlaying is set to $isPlaying")
+        Log.d(TAG, "in stop() END --- isPlaying is set to $isPlaying")
     }
 
     override fun seekTo(position: Long) {
@@ -273,46 +308,6 @@ class SongControllerImpl @Inject constructor(
             mediaController.seekToDefaultPosition()
         }
         play()
-    }
-
-    override fun onShuffle() {
-        /* // v1
-        Log.d(TAG, "in onShuffle() --- isShuffled is set to ${_isShuffled.value}")
-        _isShuffled.value = !_isShuffled.value!!
-        if (_isShuffled.value == true) { //aka shuffle turned on
-            //TODO: change the queue to be randomized order
-            Log.i(TAG, "BEGIN SHUFFLE QUEUE")
-            shuffleQueue()
-
-        } // v1 end */
-
-        /* // v2
-        Log.i(TAG, "in onShuffle() --- isShuffled is set to ${isShuffled.value}")
-        isShuffled.value = !_isShuffled.value!!
-        if (isShuffled.value == true) { //aka shuffle turned on
-            //TODO: change the queue to be randomized order
-            Log.i(TAG, "BEGIN SHUFFLE QUEUE")
-            shuffleQueue()
-        } // v2 end */
-        /*else { //aka shuffle turned off
-            //TODO: change the queue to be in normal order
-            Log.i(TAG, "BEGIN UNDO QUEUE SHUFFLE")
-            //unShuffleQueue()
-            // this can get real spicy to figure out how to achieve
-            // if i want it to work the same way the play music one works, it would need to keep
-            // the add to history intact, so that switching would just go from one to the other
-            // and hitting shuffle would just throw out a new shuffle order, no need to save it
-            // but to keep the un-shuffled order ... would it take a temporary playlist queue?
-            // and it would just have the songs' track number intrinsically?
-            // because i dunno about keeping a history as a side thing ...
-            // actually, if the queue can be manually reordered, then yeah it would be much better
-            // to just directly give the songs in queue their list order
-            // new concern: in play music, trying to reorder a song while un-shuffled did not keep
-            // that move after the queue was shuffled, then un-shuffled. it returned to its original
-            // placement when it was first added to the queue. maybe it really does use a history ...
-            // or keeps the original placement and reordering uses a temporary shift
-        }*/
-        //updatePlayerPreferences.updateShuffleType
     }
 
     override fun onRepeat() {
@@ -351,24 +346,40 @@ class SongControllerImpl @Inject constructor(
         //_playerSpeed.value -= speed
     }*/
 
+    override fun onShuffle() {
+        val mediaController = mediaController ?: return
+        Log.d(TAG, "in onShuffle(): START --- isShuffled is $isShuffled")
+        if (isShuffled) {
+            Log.i(TAG, "UN-SHUFFLE QUEUE")
+            mediaController.shuffleModeEnabled = false
+            unShuffleQueue()
+        }
+        else {
+            Log.d(TAG, "BEGIN SHUFFLE QUEUE")
+            mediaController.shuffleModeEnabled = true
+            shuffleQueue()
+        }
+        Log.d(TAG, "is onShuffle(): END --- isShuffled is now $isShuffled")
+    }
+
     /**
      * Internal function to shuffle the MediaController queue.
      */
     private fun shuffleQueue() { //this would get called if the queue itself needs to be shuffled
-        val mediaController = mediaController ?: return
-        val temp = mediaController.queue
-        clearQueue()
-        temp.shuffled( Random ).let {
-            mediaController.setMediaItems( it )
-        }
+        Log.d(TAG, "in shuffleQueue(): START")
+        setMediaItems(tempPlayOrder.shuffled(Random))
+        play(true)
+        Log.d(TAG, "in shuffleQueue(): END")
     }
 
-    override fun shuffle(songs: List<SongInfo>) {
-        val mediaController = mediaController ?: return
-        mediaController.shuffleModeEnabled = true
-
-        setMediaItems(songs.shuffled(Random))
+    /**
+     * Internal function to un-shuffle the MediaController queue.
+     */
+    private fun unShuffleQueue() {
+        Log.d(TAG, "in unShuffleQueue(): START")
+        setMediaItems(tempPlayOrder)
         play(true)
+        Log.d(TAG, "in unShuffleQueue(): END")
     }
 
     override fun isConnected(): Boolean = mediaController?.connectedToken != null

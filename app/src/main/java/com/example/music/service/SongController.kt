@@ -66,6 +66,11 @@ interface SongController {
     val hasNext: Boolean
 
     /**
+     * If the queued media items list are in shuffled order.
+     */
+    val isShuffled: Boolean
+
+    /**
      * A reflection of the events occurring in Player
      */
     val events: Flow<Player.Events?>
@@ -182,7 +187,8 @@ interface SongController {
     fun previous()
 
     /**
-     * Use to change the shuffle mode
+     * Use to change the shuffle mode. This is from the Player screen when the user taps the
+     * Shuffle btn so the currently playing queue toggles the shuffle order.
      */
     fun onShuffle()
 
