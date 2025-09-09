@@ -78,6 +78,7 @@ interface PlayerState {
     var progress: Float
     var position: Long
     var isShuffled: Boolean
+    var repeatState: RepeatType
 }
 
 /**
@@ -108,7 +109,7 @@ class PlayerViewModel @Inject constructor(
     private var _position by mutableLongStateOf(songController.position)
     private var _progress by mutableFloatStateOf(songController.progress)
     private var _isShuffled by mutableStateOf(songController.isShuffled)
-    //private val _repeatState = MutableStateFlow(0)
+    private var _repeatState by mutableStateOf(songController.repeatState)
 
     var currentSong by mutableStateOf(SongInfo())
     val hasNext by mutableStateOf(songController.hasNext)
@@ -142,6 +143,12 @@ class PlayerViewModel @Inject constructor(
             _isShuffled = value
         }
 
+    override var repeatState: RepeatType
+        get() = _repeatState
+        set(value) {
+            _repeatState = value
+        }
+
     private var timerJob: Job? = null
 
     /* // OG method for getting SongInfo when navigating to PlayerScreen:
@@ -169,7 +176,7 @@ class PlayerViewModel @Inject constructor(
                 if (it == null) {
                     Log.d(TAG, "init: running start up events to initialize PlayerVM")
                     onPlayerEvent(event = Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)
-                    //repeat mode enabled changed goes here
+                    onPlayerEvent(event = Player.EVENT_REPEAT_MODE_CHANGED)
                     onPlayerEvent(event = Player.EVENT_IS_LOADING_CHANGED)
                     onPlayerEvent(event = Player.EVENT_PLAY_WHEN_READY_CHANGED)
                     onPlayerEvent(event = Player.EVENT_MEDIA_ITEM_TRANSITION)
@@ -239,7 +246,10 @@ class PlayerViewModel @Inject constructor(
             }
 
             // Event for checking if the repeat state has changed
-            //Player.EVENT_REPEAT_MODE_CHANGED -> {}
+            Player.EVENT_REPEAT_MODE_CHANGED -> {
+                _repeatState = songController.repeatState
+                Log.d(TAG, "repeatState set to ${repeatState.name}")
+            }
 
             // Event for checking if the shuffle mode is enabled
             Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED -> {
@@ -344,7 +354,7 @@ class PlayerViewModel @Inject constructor(
 
     fun onRepeat() {
         Log.i(TAG, "Hit repeat btn on Player Screen")
-        //songController.onRepeat()
+        songController.onRepeat()
     }
 
     fun onDestroy() {
