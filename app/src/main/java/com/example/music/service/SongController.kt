@@ -198,7 +198,8 @@ interface SongController {
     fun onShuffle()
 
     /**
-     * Use to change the repeat mode
+     * Use to change the repeat mode. This is from the Player screen when the user taps the
+     * Repeat btn so the current queue with not repeat, repeat one song, or repeat entire queue.
      */
     fun onRepeat()
 
