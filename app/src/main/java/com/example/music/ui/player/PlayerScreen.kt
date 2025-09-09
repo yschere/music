@@ -127,7 +127,7 @@ fun PlayerScreen(
         currentSong = viewModel.currentSong,
         isPlaying = viewModel.isPlaying,
         isShuffled = viewModel.isShuffled,
-        repeatState = RepeatType.ON, //FixMe: update when repeatState is fixed,
+        repeatState = viewModel.repeatState,
         progress = viewModel.progress,
         timeElapsed = viewModel.position,
         hasNext = viewModel.hasNext,
@@ -884,17 +884,7 @@ private fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                     modifier = sideButtonsModifier
-                        .clickable(enabled = true, onClick = onRepeat) //TODO: create action for repeat queue change
-                )
-            }
-            "ON" -> {
-                Image( //shows the icon as the filled version (because its set to on)
-                    imageVector = Icons.Filled.RepeatOn,
-                    contentDescription = stringResource(R.string.pb_repeat_on),
-                    contentScale = ContentScale.Inside,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-                    modifier = sideButtonsModifier
-                        .clickable(enabled = true, onClick = onRepeat) //TODO: create action for repeat queue change
+                        .clickable(enabled = true, onClick = onRepeat)
                 )
             }
             "ONE" -> {
@@ -904,7 +894,17 @@ private fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                     modifier = sideButtonsModifier
-                        .clickable(enabled = true, onClick = onRepeat) //TODO: create action for repeat queue change
+                        .clickable(enabled = true, onClick = onRepeat)
+                )
+            }
+            "ON" -> {
+                Image( //shows the icon as the filled version (because its set to on)
+                    imageVector = Icons.Filled.RepeatOn,
+                    contentDescription = stringResource(R.string.pb_repeat_on),
+                    contentScale = ContentScale.Inside,
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                    modifier = sideButtonsModifier
+                        .clickable(enabled = true, onClick = onRepeat)
                 )
             }
         }
