@@ -227,7 +227,12 @@ class PlayerViewModel @Inject constructor(
                     }
                     currentSong = getSongDataV2(id.toLong())
                     Log.d(TAG, "Current Song set to ${currentSong.title}")
+                    songController.logTrackNumber()
                 }
+            }
+
+            Player.EVENT_TRACKS_CHANGED -> {
+                songController.logTrackNumber()
             }
 
             // Event for checking if play when ready has changed

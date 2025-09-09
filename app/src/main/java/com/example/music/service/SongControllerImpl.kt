@@ -260,7 +260,8 @@ class SongControllerImpl @Inject constructor(
         Log.d(TAG, "Count of items to queue: ${songs.size} items.")
         mediaController.shuffleModeEnabled = true
         tempPlayOrder = songs
-        setMediaItems(songs.shuffled(Random))
+        setMediaItems(songs)
+        //setMediaItems(songs.shuffled(Random))
 
         Log.d(TAG, "Current media controller state before apply is ${mediaController.playbackState}.")
         mediaController.apply {
@@ -376,6 +377,27 @@ class SongControllerImpl @Inject constructor(
      */
     private fun unShuffleQueue() {
         Log.d(TAG, "in unShuffleQueue(): START")
+        /*
+            // Goal for now: to have the queue change back to it's original playback order,
+            // as well as keep the current media item untouched if it is currently
+            // playing. So that when the order changes, the current item's placement can shift,
+            // but it will still play.
+
+            // this can get real spicy to figure out how to achieve
+            // if i want it to work the same way the play music one works, it would need to keep
+            // the add to history intact, so that switching would just go from one to the other
+            // and hitting shuffle would just throw out a new shuffle order, no need to save it
+            // but to keep the un-shuffled order ... would it take a temporary playlist queue?
+            // and it would just have the songs' track number intrinsically?
+            // because i dunno about keeping a history as a side thing ...
+
+            // actually, if the queue can be manually reordered, then yeah it would be much better
+            // to just directly give the songs in queue their list order
+            // new concern: in play music, trying to reorder a song while un-shuffled did not keep
+            // that move after the queue was shuffled, then un-shuffled. it returned to its original
+            // placement when it was first added to the queue. maybe it really does use a history ...
+            // or keeps the original placement and reordering uses a temporary shift
+        */
         setMediaItems(tempPlayOrder)
         play(true)
         Log.d(TAG, "in unShuffleQueue(): END")
@@ -383,6 +405,12 @@ class SongControllerImpl @Inject constructor(
 
     override fun isConnected(): Boolean = mediaController?.connectedToken != null
 
+    override fun logTrackNumber() {
+        val mediaController = mediaController ?: return
+        val currTrack = mediaController.currentMediaItemIndex + 1 // returns the index of the item from its original, ordered context
+        val totalTrack = mediaController.mediaItemCount // total items in playback set
+        Log.d(TAG, "Playing Track #$currTrack of #$totalTrack")
+    }
     /**
      * Internal function to log the MediaController playback state.
      */

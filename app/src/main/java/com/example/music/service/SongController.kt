@@ -216,4 +216,6 @@ interface SongController {
     fun shuffle(songs: List<SongInfo>)
 
     fun isConnected() : Boolean
+
+    fun logTrackNumber()
 }
