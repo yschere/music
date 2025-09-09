@@ -10,6 +10,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.example.music.data.repository.RepeatType
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.player.model.title
 import com.example.music.domain.player.model.toMediaItem
@@ -99,6 +100,8 @@ class SongControllerImpl @Inject constructor(
 
     override val isShuffled: Boolean
         get() = mediaController?.shuffleModeEnabled ?: false
+    override val repeatState: RepeatType
+        get() = RepeatType.entries[mediaController?.repeatMode ?: 0]
 
     // attempt to save un-shuffled list
     private var tempPlayOrder: List<SongInfo> = emptyList()
@@ -311,31 +314,27 @@ class SongControllerImpl @Inject constructor(
     }
 
     override fun onRepeat() {
-        /*Log.d(TAG, "in onRepeat --- repeatState is set to ${_repeatState.value}") // v1
-        // Log.i(TAG, "in onRepeat --- repeatState is set to ${repeatState.value}") // v2
-        when(_repeatState.value) { // v1
-        //when(repeatState.value) { // v2
-            //TODO: figure out how the queue / player needs to change
+        val mediaController = mediaController ?: return
+        Log.d(TAG, "in onRepeat(): START --- repeatState is ${repeatState.name}")
+        when(repeatState) {
             RepeatType.OFF -> {
-                _repeatState.value = RepeatType.ON // v1
-                // repeatState.value = RepeatType.ON // v2
-                Log.i(TAG, "REPEAT TYPE CHANGED TO ON")
+                mediaController.repeatMode = RepeatType.ONE.ordinal
+                Log.i(TAG, "REPEAT TYPE CHANGED TO ONE")
                 //in checking the queue, if the current song is the last song of the queue, set the onNext to play the first song
             }
+            RepeatType.ONE -> {
+                mediaController.repeatMode = RepeatType.ON.ordinal
+                Log.i(TAG, "REPEAT TYPE CHANGED TO ON")
+                //in checking the queue, if the current song is the last song of the queue, trigger the stop function to end the session/queue
+            }
             RepeatType.ON -> {
-                _repeatState.value = RepeatType.ONE // v1
-                // repeatState.value = RepeatType.ONE // v2
-                Log.i(TAG, "REPEAT TYPE CHANGED TO ONE")
+                mediaController.repeatMode = RepeatType.OFF.ordinal
+                Log.i(TAG, "REPEAT TYPE CHANGED TO OFF")
                 //want to keep queue as is, just include boolean logic to put onNext to play the song over
                 //use same boolean logic/value for onPrevious to restart song over
             }
-            RepeatType.ONE -> {
-                _repeatState.value = RepeatType.OFF // v1
-                // repeatState.value = RepeatType.OFF // v2
-                Log.i(TAG, "REPEAT TYPE CHANGED TO OFF")
-                //in checking the queue, if the current song is the last song of the queue, trigger the stop function to end the session/queue
-            }
-        }*/
+        }
+        Log.d(TAG, "in onRepeat(): END --- repeatState set to ${repeatState.name}")
     }
 
     /*override fun increaseSpeed(speed: Duration) {
@@ -350,7 +349,7 @@ class SongControllerImpl @Inject constructor(
         val mediaController = mediaController ?: return
         Log.d(TAG, "in onShuffle(): START --- isShuffled is $isShuffled")
         if (isShuffled) {
-            Log.i(TAG, "UN-SHUFFLE QUEUE")
+            Log.d(TAG, "UN-SHUFFLE QUEUE")
             mediaController.shuffleModeEnabled = false
             unShuffleQueue()
         }
@@ -359,14 +358,14 @@ class SongControllerImpl @Inject constructor(
             mediaController.shuffleModeEnabled = true
             shuffleQueue()
         }
-        Log.d(TAG, "is onShuffle(): END --- isShuffled is now $isShuffled")
+        Log.d(TAG, "is onShuffle(): END --- isShuffled set to $isShuffled")
     }
 
     /**
      * Internal function to shuffle the MediaController queue.
      */
     private fun shuffleQueue() { //this would get called if the queue itself needs to be shuffled
-        Log.d(TAG, "in shuffleQueue(): START")
+        Log.d(TAG, "in shuffleQueue(): START") 
         setMediaItems(tempPlayOrder.shuffled(Random))
         play(true)
         Log.d(TAG, "in shuffleQueue(): END")
@@ -391,16 +390,16 @@ class SongControllerImpl @Inject constructor(
         val mediaController = mediaController ?: return
         when(mediaController.playbackState) {
             Player.STATE_READY -> {
-                Log.d(TAG, "Playback State is READY")
+                Log.e(TAG, "Playback State is READY")
             }
             Player.STATE_IDLE -> {
-                Log.d(TAG, "Playback State is IDLE")
+                Log.e(TAG, "Playback State is IDLE")
             }
             Player.STATE_BUFFERING -> {
-                Log.d(TAG, "Playback State is BUFFERING")
+                Log.e(TAG, "Playback State is BUFFERING")
             }
             Player.STATE_ENDED -> {
-                Log.d(TAG, "Playback State is ENDED")
+                Log.e(TAG, "Playback State is ENDED")
             }
             else -> {
                 Log.e(TAG, "Playback State error")
