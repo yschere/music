@@ -219,8 +219,8 @@ class PlayerViewModel @Inject constructor(
                         id = mediaItem?.mediaId
                     }
                     currentSong = getSongDataV2(id.toLong())
+                    Log.d(TAG, "Current Song set to ${currentSong.title}")
                 }
-                Log.d(TAG, "Current Song set to ${currentSong.title}")
             }
 
             // Event for checking if play when ready has changed
