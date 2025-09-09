@@ -71,6 +71,11 @@ interface SongController {
     val isShuffled: Boolean
 
     /**
+     * If the queued media items list are will be repeated.
+     */
+    val repeatState: RepeatType
+
+    /**
      * A reflection of the events occurring in Player
      */
     val events: Flow<Player.Events?>
