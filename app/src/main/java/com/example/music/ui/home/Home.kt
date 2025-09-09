@@ -38,6 +38,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -97,6 +99,7 @@ import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.ui.shared.CustomDragHandle
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
@@ -297,8 +300,8 @@ private fun HomeScreenReady(
                     windowSizeClass = windowSizeClass,
                     isLoading = uiState.isLoading,
                     featuredLibraryItemsFilterResult = uiState.featuredLibraryItemsFilterResult,
-                    //searchResults = uiState.searchResults,
                     totals = uiState.totals,
+                    selectedSong = uiState.selectSong,
                     onHomeAction = viewModel::onHomeAction,
                     /*navigateToPlaylistDetails = {
                         navigator.navigateTo(SupportingPaneScaffoldRole.Supporting, it.id.toString())
@@ -350,7 +353,7 @@ private fun HomeScreen(
     isLoading: Boolean,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
     totals: List<Int>,
-    //searchResults: SearchQueryFilterV2,
+    selectedSong: SongInfo,
     onHomeAction: (HomeAction) -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
@@ -424,6 +427,7 @@ private fun HomeScreen(
                 HomeContent(
                     coroutineScope = coroutineScope,
                     featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
+                    selectedSong = selectedSong,
                     modifier = modifier.padding(contentPadding), //this contentPadding comes from the Scaffold /*.statusBarsPadding()*/
                     onHomeAction = { action ->
                         if (action is HomeAction.QueueSong) {
@@ -492,6 +496,7 @@ private fun HomeContent(
     coroutineScope: CoroutineScope,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
     //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
+    selectedSong: SongInfo,
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
     navigateToLibrary: () -> Unit,
@@ -499,8 +504,6 @@ private fun HomeContent(
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
 ) {
-    // Main Content on Home screen
-    //logger.info { "Home Content function start" }
     val pLists = featuredLibraryItemsFilterResult.recentAlbums.toPersistentList()
     val pagerState = rememberPagerState { pLists.size }
     LaunchedEffect(pagerState, pLists) {
@@ -513,10 +516,8 @@ private fun HomeContent(
                     //?.let { it2 -> onHomeAction(it2) }
             }//crashes the app on Home screen redraw
     } //this section is called on every redraw for Home Screen
-    //logger.info { "Home Content - HomeContentGrid function call" }
 
     val sheetState = rememberModalBottomSheetState(false,)
-    //var (showBottomSheet, sheetItem) by remember { mutableStateOf(false), mutableStateOf() }
     var showBottomSheet by remember { mutableStateOf(false) }
     HomeContentGrid(
         //sheetState = sheetState,
@@ -534,9 +535,15 @@ private fun HomeContent(
     if(showBottomSheet) {
         SongMoreOptionsBottomModal(
             onDismissRequest = { showBottomSheet = false },
-            coroutineScope = coroutineScope,
-            song = featuredLibraryItemsFilterResult.recentlyAddedSongs[0],
-            navigateToPlayer = navigateToPlayer //FixMe
+            song = selectedSong,
+            navigateToPlayer = navigateToPlayer, //FixMe
+            sheetOnClick = {
+                coroutineScope.launch {
+                    sheetState.hide()
+                }.invokeOnCompletion {
+                    if(!sheetState.isVisible) { showBottomSheet = false }
+                }
+            }
         )
     }
 }
@@ -555,14 +562,11 @@ private fun HomeContentGrid(
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
 ) {
-    //logger.info { "Home Content Grid function start" }
     LazyVerticalGrid(
         columns = GridCells.Adaptive(500.dp), //added so that sufficiently large screens will have multi columns
         //columns = GridCells.Fixed(1),
         modifier = modifier.fillMaxSize(),//.padding(horizontal = 4.dp)
     ) {
-        //logger.info { "Home Content Grid - layer vertical grid start" }
-        //logger.info { "featuredLibraryItemsFilterResult - recentPlaylists size: ${featuredLibraryItemsFilterResult.recentPlaylists.size}" }
         if (featuredLibraryItemsFilterResult.recentAlbums.isNotEmpty()) {//recentPlaylists.isNotEmpty()) {
             fullWidthItem {
                 Row(
@@ -607,7 +611,6 @@ private fun HomeContentGrid(
             }
         }
 
-        //logger.info { "featuredLibraryItemsFilterResult - recentlyAddedSongs size: ${featuredLibraryItemsFilterResult.recentlyAddedSongs.size}" }
         if (featuredLibraryItemsFilterResult.recentlyAddedSongs.isNotEmpty()) {
             fullWidthItem {
                 Row(
@@ -652,7 +655,10 @@ private fun HomeContentGrid(
                             navigateToPlayer()
                         },
                         //onQueueSong = { },
-                        onMoreOptionsClick = { onMoreOptionsClick(song) },
+                        onMoreOptionsClick = {
+                            onHomeAction(HomeAction.SongMoreOptionClicked(song))
+                            onMoreOptionsClick(song)
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         //isListEditable = false,
                         //showArtistName = true,
@@ -663,9 +669,7 @@ private fun HomeContentGrid(
                 }
             }
         }
-        //logger.info { "Home Content Grid - lazy vertical grid end" }
     }
-    //logger.info { "Home Content Grid function end" }
 }
 
 @Composable
@@ -673,7 +677,6 @@ fun HomeSongListItem(
     song: SongInfo,
     onClick: (SongInfo) -> Unit,
     onMoreOptionsClick: () -> Unit,
-    //onMoreOptionsClick: (Any) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.padding(4.dp)) {
@@ -806,6 +809,7 @@ private fun PreviewHome() {
                 PreviewAlbums.size,
                 PreviewPlaylists.size
             ),
+            selectedSong = PreviewSongs[0],
             onHomeAction = {},
             navigateToHome = {},
             navigateToLibrary = {},

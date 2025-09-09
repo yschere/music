@@ -71,9 +71,9 @@ class AlbumDetailsViewModel @Inject constructor(
         get() = _state
 
     init {
-        Log.i(TAG,"albumId: $albumId")
+        Log.i(TAG,"init START --- albumId: $albumId")
         viewModelScope.launch {
-            Log.i(TAG, "init viewModelScope launch start")
+            Log.i(TAG, "viewModelScope launch START")
             combine(
                 refreshing,
                 getAlbumDetailsData,
@@ -107,6 +107,7 @@ class AlbumDetailsViewModel @Inject constructor(
             }
         }
         refresh(force = false)
+        Log.i(TAG, "init END")
     }
 
     fun refresh(force: Boolean = true) {

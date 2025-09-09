@@ -602,7 +602,7 @@ fun AlbumDetailsScreen(
                             showBottomSheet = false
                             showSongMoreOptions = false
                         },
-                        coroutineScope = coroutineScope,
+                        //coroutineScope = coroutineScope,
                         song = selectSong,
                         context = "AlbumDetails",
                         //onQueueSong = { action ->

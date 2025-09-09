@@ -377,9 +377,10 @@ fun SongMoreOptionsBottomModal(
     scrimColor: Color = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
     properties: ModalBottomSheetProperties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
 
-    coroutineScope: CoroutineScope,
+    //coroutineScope: CoroutineScope,
     song: SongInfo,
     navigateToPlayer: () -> Unit = {}, //FixMe
+    sheetOnClick: () -> Unit = {},
     // would likely need the other navigateTo screens here too
 
     //do i need a context variable? like if this was from PlaylistDetails, or ArtistDetails, or Home, or Library
@@ -387,16 +388,14 @@ fun SongMoreOptionsBottomModal(
     context: String = "",
     //showBottomSheet: Boolean,
 ) {
-    var showBottomSheet by remember { mutableStateOf(false) }
-
     ModalBottomSheet(
         onDismissRequest = onDismissRequest, //{showBottomSheet = false}
         sheetState = sheetState, //rememberModalBottomSheetState(skipPartiallyExpanded = false,),
-        contentColor = contentColor, //MaterialTheme.colorScheme.onBackground,
         containerColor = containerColor, //MaterialTheme.colorScheme.background,
+        contentColor = contentColor, //MaterialTheme.colorScheme.onBackground,
         scrimColor = scrimColor, //MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
+        dragHandle = { CustomDragHandle() }, //dragHandle: @Composable () -> Unit = { BottomSheetDefaults.DragHandle() },
         properties = properties, //ModalBottomSheetProperties(shouldDismissOnBackPress = true),
-        dragHandle = { CustomDragHandle() }
     ) {
         Column (
             verticalArrangement = Arrangement.Top,
@@ -450,13 +449,7 @@ fun SongMoreOptionsBottomModal(
             ActionOptionRow( Pair(Actions.DeleteFromLibrary) {} )
 
             Button( // close btn
-                onClick = {
-                    showBottomSheet = false
-                    coroutineScope.launch {
-                        sheetState.hide()
-                        showBottomSheet = false
-                    }
-                },
+                onClick = sheetOnClick,
                 colors = buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onBackground,
@@ -1939,7 +1932,7 @@ fun PreviewMoreOptionsModal() {
                 skipPartiallyExpanded = true,
                 density = Density(1f,1f)
             ),
-            coroutineScope = rememberCoroutineScope(),
+            //coroutineScope = rememberCoroutineScope(),
             song = PreviewSongs[0],
         )
     }

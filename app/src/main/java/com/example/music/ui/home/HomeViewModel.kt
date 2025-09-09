@@ -39,7 +39,6 @@ private const val TAG = "Home View Model"
 class HomeViewModel @Inject constructor(
     featuredLibraryItemsV2: FeaturedLibraryItemsV2,
     getTotalCountsV2: GetTotalCountsV2,
-    //private val searchQueryV2: SearchQueryV2,
     private val songController: SongController
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
@@ -63,7 +62,8 @@ class HomeViewModel @Inject constructor(
     private val featuredLibraryItems = featuredLibraryItemsV2()
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    //private val searchResults = MutableStateFlow<SearchQueryFilterV2?>(null)//searchQueryV2
+    // Holds the song to show in more options modal
+    private val selectedSong = MutableStateFlow<SongInfo?>(null)
 
     // Holds our view state which the UI collects via [state]
     private val _state = MutableStateFlow(HomeScreenUiState())
@@ -91,8 +91,9 @@ class HomeViewModel @Inject constructor(
         get() = _state
 
     init {
-        Log.i(TAG, "viewModelScope launch start")
+        Log.i(TAG, "init START")
         viewModelScope.launch {
+            Log.i(TAG, "viewModelScope launch START")
             // Holds the counts of songs, artists, albums, playlists in library for NavDrawer
             //val counts = getTotalCountsUseCase()
             val counts = getTotalCountsV2()
@@ -102,13 +103,11 @@ class HomeViewModel @Inject constructor(
             combine(
                 refreshing,
                 featuredLibraryItems,
-                ///searchResults,
+                selectedSong,
             ) {
                 refreshing,
                 libraryItems,
-                //searchResult,
-                ->
-
+                selectSong ->
                 Log.i(TAG, "viewModelScope launch - combine start")
                 Log.i(TAG, "viewModelScope launch - combine - refreshing: $refreshing")
                 //Log.i(TAG, "viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}")
@@ -120,7 +119,7 @@ class HomeViewModel @Inject constructor(
                     isLoading = refreshing,
                     featuredLibraryItemsFilterResult = libraryItems,
                     totals = counts,
-                    //searchResults = searchResult ?: SearchQueryFilterV2(),
+                    selectSong = selectSong ?: SongInfo(),
                 )
             }.catch { throwable ->
                 emit(
@@ -135,8 +134,7 @@ class HomeViewModel @Inject constructor(
         }
 
         refresh(force = false)
-
-        Log.i(TAG, "init end")
+        Log.i(TAG, "init END")
     }
 
     fun refresh(force: Boolean = true) {
@@ -162,7 +160,6 @@ class HomeViewModel @Inject constructor(
             is HomeAction.LibraryAlbumSelected -> onLibraryAlbumSelected(action.album)
             //is HomeAction.LibraryPlaylistSelected -> onLibraryPlaylistSelected(action.playlist)
             is HomeAction.QueueSong -> onQueueSong(action.song)
-            //is HomeAction.SendQuery -> onQuerySearch(action.query)
             is HomeAction.SongClicked -> onSongClicked(action.song)
             is HomeAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
         }
@@ -196,7 +193,7 @@ class HomeViewModel @Inject constructor(
 
     private fun onSongMoreOptionClick(song: SongInfo) {
         Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
-        // open bottom sheet for song more options
+        selectedSong.value = song
     }
 }
 
@@ -225,4 +222,5 @@ data class HomeScreenUiState(
     val errorMessage: String? = null,
     val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2 = FeaturedLibraryItemsFilterV2(),
     val totals: List<Int> = emptyList(),
+    val selectSong: SongInfo = SongInfo(),
 )

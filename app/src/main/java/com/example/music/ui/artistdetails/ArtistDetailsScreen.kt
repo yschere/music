@@ -595,7 +595,7 @@ fun ArtistDetailsScreen(
                             showBottomSheet = false
                             showSongMoreOptions = false
                         },
-                        coroutineScope = coroutineScope,
+                        //coroutineScope = coroutineScope,
                         song = selectSong,
                         context = "ArtistDetails",
                         //onQueueSong = { action ->
