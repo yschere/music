@@ -4,13 +4,16 @@ import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.music.data.database.model.Song
 import com.example.music.domain.usecases.FeaturedLibraryItemsV2
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.data.util.combine
+import com.example.music.domain.model.AlbumDetailsFilterResult
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.usecases.GetAlbumDetailsV2
 import com.example.music.domain.usecases.GetTotalCountsV2
 import com.example.music.service.SongController
 import com.example.music.ui.albumdetails.AlbumAction
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -52,7 +56,7 @@ class HomeViewModel @Inject constructor(
     //private val selectedLibraryPlaylist = MutableStateFlow<PlaylistInfo?>(null)
 
     // test version for using MediaStore, uses Album instead of playlist
-    private val selectedLibraryAlbum = MutableStateFlow<AlbumInfo?>(null)
+    private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
 
     // original
     //private val featuredLibraryItems = featuredLibraryItemsUseCase() //returns Flow<FeaturedLibraryItemsFilterResult>
@@ -104,10 +108,12 @@ class HomeViewModel @Inject constructor(
                 refreshing,
                 featuredLibraryItems,
                 selectedSong,
+                selectedAlbum,
             ) {
                 refreshing,
                 libraryItems,
-                selectSong ->
+                selectSong,
+                selectAlbum ->
                 Log.i(TAG, "viewModelScope launch - combine start")
                 Log.i(TAG, "viewModelScope launch - combine - refreshing: $refreshing")
                 //Log.i(TAG, "viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}")
@@ -120,6 +126,7 @@ class HomeViewModel @Inject constructor(
                     featuredLibraryItemsFilterResult = libraryItems,
                     totals = counts,
                     selectSong = selectSong ?: SongInfo(),
+                    selectAlbum = selectAlbum ?: AlbumInfo(),
                 )
             }.catch { throwable ->
                 emit(
@@ -178,7 +185,7 @@ class HomeViewModel @Inject constructor(
     //}
 
     private fun onLibraryAlbumSelected(album: AlbumInfo) {
-        selectedLibraryAlbum.value = album
+        selectedAlbum.value = album
     }
 
     private fun onQueueSong(song: SongInfo) {
@@ -223,4 +230,5 @@ data class HomeScreenUiState(
     val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2 = FeaturedLibraryItemsFilterV2(),
     val totals: List<Int> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
+    val selectAlbum: AlbumInfo = AlbumInfo(),
 )

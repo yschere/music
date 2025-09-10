@@ -55,7 +55,7 @@ private val FEATURED_ITEM_IMAGE_SIZE_DP = 160.dp
 fun FeaturedAlbumsCarousel(
     pagerState: PagerState,
     items: PersistentList<AlbumInfo>,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     onMoreOptionsClick: (Any) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -78,7 +78,7 @@ fun FeaturedAlbumsCarousel(
                 val album = items[page]
                 FeaturedCarouselItem(
                     itemTitle = album.title,
-                    itemImage = album.artworkUri,//album.artwork!!,
+                    itemImage = album.artworkUri,
                     itemSize = album.songCount,
                     onMoreOptionsClick = { onMoreOptionsClick(album) },
                     //onClick = AlbumMoreOptionsBottomModal(album),
@@ -86,7 +86,7 @@ fun FeaturedAlbumsCarousel(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable {
-                            navigateToAlbumDetails(album)
+                            navigateToAlbumDetails(album.id)
                         }
                 )
             }

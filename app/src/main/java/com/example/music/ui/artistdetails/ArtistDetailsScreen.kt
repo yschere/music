@@ -120,7 +120,7 @@ private const val TAG = "Artist Details Screen"
  */
 @Composable
 fun ArtistDetailsScreen(
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
@@ -205,7 +205,7 @@ fun ArtistDetailsScreen(
     selectAlbum: AlbumInfo,
     onArtistAction: (ArtistAction) -> Unit,
     //onQueueSong: (SongInfo) -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
@@ -397,7 +397,7 @@ fun ArtistDetailsScreen(
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .clickable {
-                                                navigateToAlbumDetails(album)
+                                                navigateToAlbumDetails(album.id)
                                             }
                                     )
                                 }
@@ -619,7 +619,7 @@ fun ArtistDetailsScreen(
                         coroutineScope = coroutineScope,
                         artist = artist,
                         context = "ArtistDetails",
-                        navigateToArtistDetails = {},
+                        //navigateToArtistDetails = {},
                         navigateToPlayer = navigateToPlayer,
                     )
                 }
@@ -684,7 +684,7 @@ fun ArtistDetailsContent(
     songs: List<SongInfo>,
     //onQueueSong: (SongInfo) -> Unit,
     coroutineScope: CoroutineScope,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {

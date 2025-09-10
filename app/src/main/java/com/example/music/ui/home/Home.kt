@@ -1,5 +1,6 @@
 package com.example.music.ui.home
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 //import androidx.compose.foundation.background
 //import androidx.compose.foundation.clickable
@@ -89,6 +90,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
+import com.example.music.data.mediaresolver.model.Album
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
@@ -132,6 +134,8 @@ import java.time.OffsetDateTime
  *
  * 7/22-23/2025 - Removed PlayerSong completely
  */
+
+private const val TAG = "Home Screen"
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 private fun <T> ThreePaneScaffoldNavigator<T>.isMainPaneHidden(): Boolean {
@@ -218,7 +222,7 @@ fun MainScreen(
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
@@ -280,7 +284,7 @@ private fun HomeScreenReady(
     navigateToSettings: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateToPlayer: () -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -302,11 +306,8 @@ private fun HomeScreenReady(
                     featuredLibraryItemsFilterResult = uiState.featuredLibraryItemsFilterResult,
                     totals = uiState.totals,
                     selectedSong = uiState.selectSong,
+                    selectedAlbum = uiState.selectAlbum,
                     onHomeAction = viewModel::onHomeAction,
-                    /*navigateToPlaylistDetails = {
-                        navigator.navigateTo(SupportingPaneScaffoldRole.Supporting, it.id.toString())
-                        //navigator to supporting pane scaffold
-                    },*/
                     navigateToHome = navigateToHome,
                     navigateToAlbumDetails = navigateToAlbumDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
@@ -354,12 +355,13 @@ private fun HomeScreen(
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
     totals: List<Int>,
     selectedSong: SongInfo,
+    selectedAlbum: AlbumInfo,
     onHomeAction: (HomeAction) -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier
@@ -428,6 +430,7 @@ private fun HomeScreen(
                     coroutineScope = coroutineScope,
                     featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
                     selectedSong = selectedSong,
+                    selectedAlbum = selectedAlbum,
                     modifier = modifier.padding(contentPadding), //this contentPadding comes from the Scaffold /*.statusBarsPadding()*/
                     onHomeAction = { action ->
                         if (action is HomeAction.QueueSong) {
@@ -497,13 +500,15 @@ private fun HomeContent(
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
     //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
     selectedSong: SongInfo,
+    selectedAlbum: AlbumInfo,
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
     navigateToLibrary: () -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
 ) {
+    Log.i(TAG, "HomeContent START")
     val pLists = featuredLibraryItemsFilterResult.recentAlbums.toPersistentList()
     val pagerState = rememberPagerState { pLists.size }
     LaunchedEffect(pagerState, pLists) {
@@ -520,7 +525,6 @@ private fun HomeContent(
     val sheetState = rememberModalBottomSheetState(false,)
     var showBottomSheet by remember { mutableStateOf(false) }
     HomeContentGrid(
-        //sheetState = sheetState,
         pagerState = pagerState,
         featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
         modifier = modifier,
@@ -533,14 +537,38 @@ private fun HomeContent(
     )
 
     if(showBottomSheet) {
+        Log.i(TAG, "HomeContent -> showBottomSheet is TRUE")
         SongMoreOptionsBottomModal(
             onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState,
             song = selectedSong,
-            navigateToPlayer = navigateToPlayer, //FixMe
-            sheetOnClick = {
+            navigateToPlayer = {
                 coroutineScope.launch {
+                    Log.i(TAG, "Song More Options Modal -> PlaySong clicked")
+                    onHomeAction(HomeAction.SongClicked(selectedSong))
+                    navigateToPlayer()
                     sheetState.hide()
                 }.invokeOnCompletion {
+                    Log.i(TAG, "set showBottomSheet to FALSE")
+                    if(!sheetState.isVisible) { showBottomSheet = false }
+                }
+            },
+            navigateToAlbumDetails = {
+                coroutineScope.launch {
+                    Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked")
+                    navigateToAlbumDetails(selectedSong.albumId)
+                    sheetState.hide()
+                }.invokeOnCompletion {
+                    Log.i(TAG, "set showBottomSheet to FALSE")
+                    if(!sheetState.isVisible) { showBottomSheet = false }
+                }
+            },
+            sheetOnClick = {
+                coroutineScope.launch {
+                    Log.i(TAG, "Hide sheet state")
+                    sheetState.hide()
+                }.invokeOnCompletion {
+                    Log.i(TAG, "set showBottomSheet to FALSE")
                     if(!sheetState.isVisible) { showBottomSheet = false }
                 }
             }
@@ -550,7 +578,6 @@ private fun HomeContent(
 
 @Composable
 private fun HomeContentGrid(
-    //sheetState: SheetState,
     pagerState: PagerState,
     featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
     //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
@@ -558,16 +585,15 @@ private fun HomeContentGrid(
     onHomeAction: (HomeAction) -> Unit,
     onMoreOptionsClick: (Any) -> Unit,
     navigateToLibrary: () -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(500.dp), //added so that sufficiently large screens will have multi columns
-        //columns = GridCells.Fixed(1),
-        modifier = modifier.fillMaxSize(),//.padding(horizontal = 4.dp)
+        columns = GridCells.Adaptive(500.dp),
+        modifier = modifier.fillMaxSize(),
     ) {
-        if (featuredLibraryItemsFilterResult.recentAlbums.isNotEmpty()) {//recentPlaylists.isNotEmpty()) {
+        if (featuredLibraryItemsFilterResult.recentAlbums.isNotEmpty()) {
             fullWidthItem {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -642,29 +668,21 @@ private fun HomeContentGrid(
                     }
                 }
             }
-            /**
-             * ORIGINAL VERSION: using featuredLibraryItemsFilterResult.recentlyAddedSongs which is List<SongInfo>
-             */
             items(featuredLibraryItemsFilterResult.recentlyAddedSongs) { song ->
-                //recently added songs as featured songs would go here, limit 5-10. More btn would take to fuller list of songs, limit 100
                 Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
                     HomeSongListItem(
                         song = song,
                         onClick = {
+                            Log.i(TAG, "Song Clicked: ${song.title}")
                             onHomeAction(HomeAction.SongClicked(song))
                             navigateToPlayer()
                         },
-                        //onQueueSong = { },
                         onMoreOptionsClick = {
+                            Log.i(TAG, "Song More Option Clicked: ${song.title}")
                             onHomeAction(HomeAction.SongMoreOptionClicked(song))
                             onMoreOptionsClick(song)
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        //isListEditable = false,
-                        //showArtistName = true,
-                        //showAlbumImage = true,
-                        //showAlbumTitle = true,
-                        //showTrackNumber = false,
                     )
                 }
             }
@@ -675,16 +693,15 @@ private fun HomeContentGrid(
 @Composable
 fun HomeSongListItem(
     song: SongInfo,
-    onClick: (SongInfo) -> Unit,
+    onClick: () -> Unit,
     onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.padding(4.dp)) {
         Surface(
             shape = MaterialTheme.shapes.large,
-            color = Color.Transparent,
-            //color = MaterialTheme.colorScheme.surfaceContainer,
-            onClick = { onClick(song) },
+            color = Color.Transparent, //MaterialTheme.colorScheme.surfaceContainer,
+            onClick = onClick,
         ) {
             HomeSongListItemRow(
                 song = song,
@@ -752,8 +769,7 @@ private fun HomeSongListItemRow(
         }
 
         IconButton( //more options button
-            //modifier = Modifier.padding(0.dp),
-            onClick = onMoreOptionsClick, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
+            onClick = onMoreOptionsClick,
         ) {
             Icon( //more options icon
                 imageVector = Icons.Default.MoreVert,
@@ -810,6 +826,7 @@ private fun PreviewHome() {
                 PreviewPlaylists.size
             ),
             selectedSong = PreviewSongs[0],
+            selectedAlbum = PreviewAlbums[0],
             onHomeAction = {},
             navigateToHome = {},
             navigateToLibrary = {},

@@ -65,8 +65,8 @@ fun MusicApp(
 
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
-                    navigateToAlbumDetails = { album ->
-                        appState.navigateToAlbumDetails(album.id, backStackEntry)
+                    navigateToAlbumDetails = { albumId: Long ->
+                        appState.navigateToAlbumDetails(albumId, backStackEntry)
                     },
                     navigateToPlaylistDetails = { playlist ->
                         appState.navigateToPlaylistDetails(playlist.id, backStackEntry)
@@ -149,8 +149,8 @@ fun MusicApp(
                     //keeping for now in case window class size becomes relevant
                     //windowSizeClass = adaptiveInfo.windowSizeClass,
                     navigateBack = appState::navigateBack,
-                    navigateToAlbumDetails = { album ->
-                        appState.navigateToAlbumDetails(album.id, backStackEntry)
+                    navigateToAlbumDetails = { albumId ->
+                        appState.navigateToAlbumDetails(albumId, backStackEntry)
                     },
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },

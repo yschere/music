@@ -502,7 +502,7 @@ fun PlaylistMoreOptionsBottomModal(
 
             // action items, shown items are dependent on this being a song item
             songActions.forEach { item ->
-                ActionOptionRow(item)
+                ActionOptionRow(item.first, item.second)
                 /*Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.action }
@@ -525,7 +525,7 @@ fun PlaylistMoreOptionsBottomModal(
             navActions.add( Pair(ActionItem( "Go to Playlist", Icons.AutoMirrored.Outlined.PlaylistAddCheck, R.string.icon_playlist), {} ) )
 
             navActions.forEach { item ->
-                ActionOptionRow(item)
+                ActionOptionRow(item.first, item.second)
                 /*Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(8.dp).clickable { item.action }
