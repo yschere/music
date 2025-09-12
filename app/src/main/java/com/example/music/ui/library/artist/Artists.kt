@@ -139,7 +139,6 @@ fun LazyGridScope.artistItems(
         if(showBottomSheet) {
             LibrarySortSelectionBottomModal(
                 onDismissRequest = { showBottomSheet = false },
-                coroutineScope = coroutineScope,
                 libraryCategory = LibraryCategory.Artists,
             )
         }
@@ -208,7 +207,6 @@ fun LazyGridScope.artistItems(
         if(showBottomSheet) {
             LibrarySortSelectionBottomModal(
                 onDismissRequest = { showBottomSheet = false },
-                coroutineScope = coroutineScope,
                 libraryCategory = LibraryCategory.Artists,
             )
         }

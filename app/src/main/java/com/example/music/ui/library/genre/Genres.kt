@@ -127,7 +127,6 @@ fun LazyGridScope.genreItems(
         if(showBottomSheet) {
             LibrarySortSelectionBottomModal(
                 onDismissRequest = { showBottomSheet = false },
-                coroutineScope = coroutineScope,
                 libraryCategory = LibraryCategory.Genres,
             )
         }

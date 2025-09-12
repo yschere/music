@@ -211,8 +211,7 @@ fun LazyGridScope.playlistItems(
                         showBottomSheet = false
                         //showSheet = showBottomSheet
                         showContext = false
-                   },
-                    coroutineScope = coroutineScope,
+                    },
                     libraryCategory = LibraryCategory.Playlists,
                 )
             }

@@ -143,7 +143,6 @@ fun LazyGridScope.albumItems(
         if(showBottomSheet) {
             LibrarySortSelectionBottomModal(
                 onDismissRequest = { showBottomSheet = false },
-                coroutineScope = coroutineScope,
                 libraryCategory = LibraryCategory.Albums,
             )
         }

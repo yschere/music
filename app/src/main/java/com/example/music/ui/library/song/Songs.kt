@@ -103,7 +103,6 @@ fun LazyListScope.songItems(
         if (showBottomSheet) {
             LibrarySortSelectionBottomModal(
                 onDismissRequest = { showBottomSheet = false },
-                coroutineScope = coroutineScope,
                 libraryCategory = LibraryCategory.Songs,
             )
         }
@@ -221,7 +220,6 @@ fun LazyGridScope.songItems(
         if(showBottomSheet) {
             LibrarySortSelectionBottomModal(
                 onDismissRequest = { showBottomSheet = false },
-                coroutineScope = coroutineScope,
                 libraryCategory = LibraryCategory.Songs,
             )
         }
@@ -244,7 +242,6 @@ fun LazyGridScope.songItems(
         items = songs,
         span = { GridItemSpan(maxLineSpan) }
     ) { song ->
-        //Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
         SongListItem(
             song = song,
             onClick = {
@@ -253,7 +250,6 @@ fun LazyGridScope.songItems(
                 navigateToPlayer()
             },
             onMoreOptionsClick = {},
-            //onQueueSong = {},
             isListEditable = false,
             showArtistName = true,
             showAlbumImage = true,
@@ -261,7 +257,6 @@ fun LazyGridScope.songItems(
             showTrackNumber = false,
             modifier = Modifier.fillMaxWidth()
         )
-        //}
     }
 }
 
