@@ -35,14 +35,26 @@ import javax.inject.Inject
  * 7/22-23/2025 - Removed PlayerSong completely
  */
 
-/** logger tag for this class */
 private const val TAG = "Home View Model"
 
-//this is where all the components to create the HomeScreen view are stored/collected
+@Immutable
+data class HomeScreenUiState(
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null,
+    val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2 = FeaturedLibraryItemsFilterV2(),
+    val totals: List<Int> = emptyList(),
+    val selectSong: SongInfo = SongInfo(),
+    val selectAlbum: AlbumInfo = AlbumInfo(),
+)
+
+/**
+ * ViewModel that handles the business logic and screen state of the Home screen
+ */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     featuredLibraryItemsV2: FeaturedLibraryItemsV2,
     getTotalCountsV2: GetTotalCountsV2,
+    private val getAlbumDetailsV2: GetAlbumDetailsV2,
     private val songController: SongController
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
@@ -52,22 +64,13 @@ class HomeViewModel @Inject constructor(
         means of retrieving object: FeaturedLibraryItemsUseCase
      */
 
-    // original
-    //private val selectedLibraryPlaylist = MutableStateFlow<PlaylistInfo?>(null)
-
-    // test version for using MediaStore, uses Album instead of playlist
-    private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
-
-    // original
-    //private val featuredLibraryItems = featuredLibraryItemsUseCase() //returns Flow<FeaturedLibraryItemsFilterResult>
-        //.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
     // test version for using MediaStore, uses Album instead of playlist for now
     private val featuredLibraryItems = featuredLibraryItemsV2()
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    // Holds the song to show in more options modal
+    // Holds the song, album to show in more options modal
     private val selectedSong = MutableStateFlow<SongInfo?>(null)
+    private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
 
     // Holds our view state which the UI collects via [state]
     private val _state = MutableStateFlow(HomeScreenUiState())
@@ -98,12 +101,8 @@ class HomeViewModel @Inject constructor(
         Log.i(TAG, "init START")
         viewModelScope.launch {
             Log.i(TAG, "viewModelScope launch START")
-            // Holds the counts of songs, artists, albums, playlists in library for NavDrawer
-            //val counts = getTotalCountsUseCase()
             val counts = getTotalCountsV2()
 
-            // Combines the latest value from each of the flows, allowing us to generate a
-            // view state instance which only contains the latest values.
             combine(
                 refreshing,
                 featuredLibraryItems,
@@ -114,12 +113,12 @@ class HomeViewModel @Inject constructor(
                 libraryItems,
                 selectSong,
                 selectAlbum ->
-                Log.i(TAG, "viewModelScope launch - combine start")
-                Log.i(TAG, "viewModelScope launch - combine - refreshing: $refreshing")
-                //Log.i(TAG, "viewModelScope launch - combine - libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}")
-                Log.i(TAG, "viewModelScope launch - combine - libraryItemsAlbums: ${libraryItems.recentAlbums.size}")
-                Log.i(TAG, "viewModelScope launch - combine - libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}")
-                Log.i(TAG, "is SongController available: ${songController.isConnected()}")
+                Log.i(TAG, "HomeUiState combine START\n" +
+                    "refreshing: $refreshing\n" +
+                    //"libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}\n" +
+                    "libraryItemsAlbums: ${libraryItems.recentAlbums.size}\n" +
+                    "libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}\n" +
+                    "is SongController available: ${songController.isConnected()}")
 
                 HomeScreenUiState(
                     isLoading = refreshing,
@@ -139,7 +138,6 @@ class HomeViewModel @Inject constructor(
                 _state.value = it
             }
         }
-
         refresh(force = false)
         Log.i(TAG, "init END")
     }
@@ -164,11 +162,20 @@ class HomeViewModel @Inject constructor(
         Log.i(TAG, "onHomeAction - $action")
         when (action) {
             is HomeAction.EmptyLibraryView -> onEmptyPlaylistView()
-            is HomeAction.LibraryAlbumSelected -> onLibraryAlbumSelected(action.album)
+            is HomeAction.AlbumMoreOptionClicked -> onAlbumMoreOptionClicked(action.album)
             //is HomeAction.LibraryPlaylistSelected -> onLibraryPlaylistSelected(action.playlist)
-            is HomeAction.QueueSong -> onQueueSong(action.song)
-            is HomeAction.SongClicked -> onSongClicked(action.song)
             is HomeAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
+
+            is HomeAction.PlaySong -> onPlaySong(action.song) // songMO-play
+            is HomeAction.PlaySongNext -> onQueueSongNext(action.song) // songMO-playNext
+            //is HomeAction.AddSongToPlaylist -> onAddToPlaylist(action.song) // songMO-addToPlaylist
+            is HomeAction.QueueSong -> onQueueSong(action.song) // songMO-addToQueue
+
+            is HomeAction.PlaySongs -> onPlaySongs(action.album) // albumMO-play
+            is HomeAction.PlaySongsNext -> onQueueSongsNext(action.album) // albumMO-playNext
+            is HomeAction.ShuffleSongs -> onShuffleSongs(action.album) // albumMO-shuffle
+            //is HomeAction.AddAlbumToPlaylist -> onAddToPlaylist(action.album) // albumMO-addToPlaylist
+            is HomeAction.QueueSongs -> onQueueSongs(action.album) // albumMO-addToQueue
         }
     }
 
@@ -176,16 +183,45 @@ class HomeViewModel @Inject constructor(
         //featuredPlaylists = null
     }
 
-    private fun onMoreBtnClicked(item: Any) {
-        //showBottomSheet = true
+    private fun onAlbumMoreOptionClicked(album: AlbumInfo) {
+        Log.i(TAG, "onAlbumMoreOptionClick -> ${album.title}")
+        selectedAlbum.value = album
     }
 
-    //private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
-        //selectedLibraryPlaylist.value = playlist
-    //}
+    private fun onSongMoreOptionClick(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
+        selectedSong.value = song
+    }
 
-    private fun onLibraryAlbumSelected(album: AlbumInfo) {
-        selectedAlbum.value = album
+    /*private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
+        selectedLibraryPlaylist.value = playlist
+    }*/
+
+    private fun onPlaySong(song: SongInfo) {
+        Log.i(TAG, "onPlaySong -> ${song.title}")
+        songController.play(song)
+    }
+
+    /*private fun onPlaySongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onPlaySongs -> ${songs.size}")
+        songController.play(songs)
+        /* //what is the thing that would jump start this step process. would it go thru the viewModel??
+        //step 1: regardless of shuffle being on or off, set shuffle to off
+        //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
+        //step 3: set the player to play the first item in queue
+        //step 4: navigateToPlayer(first item)
+        //step 5: start playing
+        coroutineScope.launch {
+            sheetState.hide()
+            showThemeSheet = false
+        }*/
+    }*/
+    private fun onPlaySongs(album: AlbumInfo) {
+        Log.i(TAG, "onPlaySongs -> ${album.title}")
+        viewModelScope.launch {
+            val songs = getAlbumDetailsV2(album.id).first().songs
+            songController.play(songs)
+        }
     }
 
     private fun onQueueSong(song: SongInfo) {
@@ -193,14 +229,57 @@ class HomeViewModel @Inject constructor(
         songController.addToQueue(song)
     }
 
-    private fun onSongClicked(song: SongInfo) {
-        Log.i(TAG, "onSongClicked -> ${song.title}")
-        songController.play(song)
+    private fun onQueueSongNext(song: SongInfo) {
+        Log.i(TAG, "onQueueSongNext -> ${song.title}")
+        songController.addToQueueNext(song)
     }
 
-    private fun onSongMoreOptionClick(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
-        selectedSong.value = song
+    /*private fun onQueueSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongs -> ${songs.size}")
+        songController.addToQueue(songs)
+    }*/
+    private fun onQueueSongs(album: AlbumInfo) {
+        Log.i(TAG, "onQueueSongs -> ${album.title}")
+        viewModelScope.launch {
+            val songs = getAlbumDetailsV2(album.id).first().songs
+            songController.addToQueue(songs)
+        }
+    }
+
+    /*private fun onQueueSongsNext(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongsNext - ${songs.size}")
+        songController.addToQueueNext(songs)
+    }*/
+    private fun onQueueSongsNext(album: AlbumInfo) {
+        Log.i(TAG, "onQueueSongsNext -> ${album.title}")
+        viewModelScope.launch {
+            val songs = getAlbumDetailsV2(album.id).first().songs
+            songController.addToQueueNext(songs)
+        }
+    }
+
+    /*private fun onShuffleSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onShuffleSongs -> ${songs.size}")
+        songController.shuffle(songs)
+        /* //what is the thing that would jump start this step process
+        //step 1: regardless of shuffle being on or off, set shuffle to on
+        //step 2?: confirm the shuffle type
+        //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
+        //step 4: set the player to play the first item in queue
+        //step 5: navigateToPlayer(first item)
+        //step 6: start playing
+        //needs to take the songs in the playlist, shuffle the
+        coroutineScope.launch {
+            sheetState.hide()
+            showThemeSheet = false
+        }*/
+    }*/
+    private fun onShuffleSongs(album: AlbumInfo) {
+        Log.i(TAG, "onShuffleSongs -> ${album.title}")
+        viewModelScope.launch {
+            val songs = getAlbumDetailsV2(album.id).first().songs
+            songController.shuffle(songs)
+        }
     }
 }
 
@@ -216,19 +295,19 @@ class HomeViewModel @Inject constructor(
 @Immutable
 sealed interface HomeAction {
     data class EmptyLibraryView(val playlist: PlaylistInfo) : HomeAction
-    data class LibraryAlbumSelected(val album: AlbumInfo) : HomeAction
-    //data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
-    data class QueueSong(val song: SongInfo) : HomeAction
-    data class SongClicked(val song: SongInfo) : HomeAction
+    data class AlbumMoreOptionClicked(val album: AlbumInfo) : HomeAction
     data class SongMoreOptionClicked(val song: SongInfo) : HomeAction
-}
+    //data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
 
-@Immutable
-data class HomeScreenUiState(
-    val isLoading: Boolean = true,
-    val errorMessage: String? = null,
-    val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2 = FeaturedLibraryItemsFilterV2(),
-    val totals: List<Int> = emptyList(),
-    val selectSong: SongInfo = SongInfo(),
-    val selectAlbum: AlbumInfo = AlbumInfo(),
-)
+    data class PlaySong(val song: SongInfo) : HomeAction
+    //data class PlaySongs(val songs: List<SongInfo>) : HomeAction
+    data class PlaySongs(val album: AlbumInfo) : HomeAction
+    data class PlaySongNext(val song: SongInfo) : HomeAction
+    //data class PlaySongsNext(val songs: List<SongInfo>) : HomeAction
+    data class PlaySongsNext(val album: AlbumInfo) : HomeAction
+    data class QueueSong(val song: SongInfo) : HomeAction
+    //data class QueueSongs(val songs: List<SongInfo>) : HomeAction
+    data class QueueSongs(val album: AlbumInfo) : HomeAction
+    //data class ShuffleSongs(val songs: List<SongInfo>) : HomeAction
+    data class ShuffleSongs(val album: AlbumInfo) : HomeAction
+}
