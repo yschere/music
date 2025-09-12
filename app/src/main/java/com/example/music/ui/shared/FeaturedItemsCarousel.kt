@@ -56,7 +56,7 @@ fun FeaturedAlbumsCarousel(
     pagerState: PagerState,
     items: PersistentList<AlbumInfo>,
     navigateToAlbumDetails: (Long) -> Unit,
-    onMoreOptionsClick: (Any) -> Unit,
+    onMoreOptionsClick: (AlbumInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
