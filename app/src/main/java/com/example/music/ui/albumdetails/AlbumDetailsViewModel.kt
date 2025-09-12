@@ -21,8 +21,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private const val TAG = "Album Details View Model"
-
 /** Changelog:
  * ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
  * As of 2/10/2025, this version is in remote branch and working on
@@ -34,6 +32,8 @@ private const val TAG = "Album Details View Model"
  *
  * 7/22-23/2025 - Deleted SongPlayer from domain layer.
  */
+
+private const val TAG = "Album Details View Model"
 
 data class AlbumUiState (
     val isReady: Boolean = false,
@@ -82,11 +82,11 @@ class AlbumDetailsViewModel @Inject constructor(
                 refreshing,
                 albumDetailsFilterResult,
                 selectSong ->
-                Log.i(TAG, "AlbumUiState call")
-                Log.i(TAG, "albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}")
-                Log.i(TAG, "albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}")
-                Log.i(TAG, "is SongController available: ${songController.isConnected()}")
-                Log.i(TAG, "isReady?: ${!refreshing}")
+                Log.i(TAG, "AlbumUiState combine START" +
+                    "albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}" +
+                    "albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}\n" +
+                    "is SongController available: ${songController.isConnected()}\n" +
+                    "isReady?: ${!refreshing}")
 
                 AlbumUiState(
                     isReady = !refreshing,
@@ -105,6 +105,7 @@ class AlbumDetailsViewModel @Inject constructor(
             }.collect{
                 _state.value = it
             }
+            Log.i(TAG, "viewModelScope launch END")
         }
         refresh(force = false)
         Log.i(TAG, "init END")
@@ -129,14 +130,18 @@ class AlbumDetailsViewModel @Inject constructor(
     fun onAlbumAction(action: AlbumAction) {
         Log.i(TAG, "onAlbumAction - $action")
         when (action) {
-            //is AlbumAction.AddSongToPlaylist -> onAddToPlaylist(action.song)
-            //is AlbumAction.AddAlbumToPlaylist -> onAddToPlaylist(action.songs)
-            is AlbumAction.PlaySong -> onPlaySong(action.song)
-            is AlbumAction.PlaySongs -> onPlaySongs(action.songs)
-            is AlbumAction.QueueSong -> onQueueSong(action.song)
-            is AlbumAction.QueueSongs -> onQueueSongs(action.songs)
-            is AlbumAction.ShuffleSongs -> onShuffleSongs(action.songs)
             is AlbumAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
+
+            is AlbumAction.PlaySong -> onPlaySong(action.song) // songMO-play
+            is AlbumAction.PlaySongNext -> onQueueSongNext(action.song) // songMO-playNext
+            //is AlbumAction.AddSongToPlaylist -> onAddToPlaylist(action.song) // songMO-addToPlaylist
+            is AlbumAction.QueueSong -> onQueueSong(action.song) // songMO-addToQueue
+
+            is AlbumAction.PlaySongs -> onPlaySongs(action.songs) // albumMO-play
+            is AlbumAction.PlaySongsNext -> onQueueSongsNext(action.songs) // albumMO-playNext
+            is AlbumAction.ShuffleSongs -> onShuffleSongs(action.songs) // albumMO-shuffle
+            //is AlbumAction.AddAlbumToPlaylist -> onAddToPlaylist(action.songs) // albumMO-addToPlaylist
+            is AlbumAction.QueueSongs -> onQueueSongs(action.songs) // albumMO-addToQueue
         }
     }
 
@@ -148,6 +153,16 @@ class AlbumDetailsViewModel @Inject constructor(
     private fun onPlaySongs(songs: List<SongInfo>) {
         Log.i(TAG, "onPlaySongs -> ${songs.size}")
         songController.play(songs)
+        /* //what is the thing that would jump start this step process. would it go thru the viewModel??
+        //step 1: regardless of shuffle being on or off, set shuffle to off
+        //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
+        //step 3: set the player to play the first item in queue
+        //step 4: navigateToPlayer(first item)
+        //step 5: start playing
+        coroutineScope.launch {
+            sheetState.hide()
+            showThemeSheet = false
+        }*/
     }
 
     private fun onQueueSong(song: SongInfo) {
@@ -155,14 +170,36 @@ class AlbumDetailsViewModel @Inject constructor(
         songController.addToQueue(song)
     }
 
+    private fun onQueueSongNext(song: SongInfo) {
+        Log.i(TAG, "onQueueSongNext -> ${song.title}")
+        songController.addToQueueNext(song)
+    }
+
     private fun onQueueSongs(songs: List<SongInfo>) {
         Log.i(TAG, "onQueueSongs -> ${songs.size}")
         songController.addToQueue(songs)
     }
 
+    private fun onQueueSongsNext(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongsNext - ${songs.size}")
+        songController.addToQueueNext(songs)
+    }
+
     private fun onShuffleSongs(songs: List<SongInfo>) {
         Log.i(TAG, "onShuffleSongs -> ${songs.size}")
         songController.shuffle(songs)
+        /* //what is the thing that would jump start this step process
+        //step 1: regardless of shuffle being on or off, set shuffle to on
+        //step 2?: confirm the shuffle type
+        //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
+        //step 4: set the player to play the first item in queue
+        //step 5: navigateToPlayer(first item)
+        //step 6: start playing
+        //needs to take the songs in the playlist, shuffle the
+        coroutineScope.launch {
+            sheetState.hide()
+            showThemeSheet = false
+        }*/
     }
 
     private fun onSongMoreOptionClick(song: SongInfo) {
@@ -174,6 +211,8 @@ class AlbumDetailsViewModel @Inject constructor(
 sealed interface AlbumAction {
     data class PlaySong(val song: SongInfo) : AlbumAction
     data class PlaySongs(val songs: List<SongInfo>) : AlbumAction
+    data class PlaySongNext(val song: SongInfo) : AlbumAction
+    data class PlaySongsNext(val songs: List<SongInfo>) : AlbumAction
     data class QueueSong(val song: SongInfo) : AlbumAction
     data class QueueSongs(val songs: List<SongInfo>) : AlbumAction
     data class ShuffleSongs(val songs: List<SongInfo>) : AlbumAction
