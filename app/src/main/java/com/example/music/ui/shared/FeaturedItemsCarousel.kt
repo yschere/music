@@ -1,6 +1,7 @@
 package com.example.music.ui.shared
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -41,7 +42,7 @@ import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 
-private const val TAG = "Featured Albums Carousel"
+private const val TAG = "Featured Items Carousel"
 private val FEATURED_ITEM_IMAGE_SIZE_DP = 160.dp
 
 /**
@@ -59,12 +60,14 @@ fun FeaturedAlbumsCarousel(
     onMoreOptionsClick: (AlbumInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    Log.i(TAG, "Featured Albums Carousel START")
     Column(modifier = modifier) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.Transparent)
         ) {
+            Log.i(TAG, "Generating Horizontal pager")
             val horizontalPadding = (this.maxWidth - FEATURED_ITEM_IMAGE_SIZE_DP) / 2
             HorizontalPager(
                 state = pagerState,
@@ -75,12 +78,15 @@ fun FeaturedAlbumsCarousel(
                 pageSpacing = 24.dp,
                 pageSize = PageSize.Fixed(FEATURED_ITEM_IMAGE_SIZE_DP)
             ) { page ->
+                Log.i(TAG, "Generating Carousel Item: $page")
                 val album = items[page]
                 FeaturedCarouselItem(
                     itemTitle = album.title,
                     itemImage = album.artworkUri,
                     itemSize = album.songCount,
-                    onMoreOptionsClick = { onMoreOptionsClick(album) },
+                    onMoreOptionsClick = {
+                        onMoreOptionsClick(album)
+                    },
                     //onClick = AlbumMoreOptionsBottomModal(album),
                     //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
                     modifier = Modifier
@@ -151,11 +157,10 @@ fun FeaturedCarouselItem(
     itemTitle: String = "",
     itemImage: Uri,
     itemSize: Int = 0,
-    onMoreOptionsClick: (Any) -> Unit,
-    //onClick: () -> Unit, //pass in either Album or Playlist MoreOptionsModal action here
+    onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //Log.i(TAG, "Featured Carousel Item function start")
+    Log.i(TAG, "Featured Carousel Item START: $itemTitle")
     Column(modifier) {
         Box(
             contentAlignment = Alignment.BottomStart,
@@ -203,7 +208,7 @@ fun FeaturedCarouselItem(
 
             // more options btn
             IconButton(
-                onClick = { onMoreOptionsClick },
+                onClick = onMoreOptionsClick,
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
