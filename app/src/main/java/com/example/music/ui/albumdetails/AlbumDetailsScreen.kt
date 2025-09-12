@@ -258,9 +258,9 @@ fun AlbumDetailsScreen(
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
     val sheetState = rememberModalBottomSheetState(false,)
-    var showBottomSheet by remember { mutableStateOf(false) } // if bottom modal needs to be opened
-    var showSortSheet by remember { mutableStateOf(false) } // if bottom modal content is for sorting songs
-    var showAlbumMoreOptions by remember { mutableStateOf(false) } // if bottom modal content is for album details more options
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
+    var showAlbumMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
 
     ScreenBackground(
@@ -305,11 +305,11 @@ fun AlbumDetailsScreen(
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
-                        // more options btn // temporary placement till figure out if this should be part of header
+
                         IconButton(
                             onClick = {
                                 showBottomSheet = true
-                                showAlbumMoreOptions = true /* onMoreOptionsClick */
+                                showAlbumMoreOptions = true
                             }
                         ) {
                             Icon(
@@ -343,9 +343,7 @@ fun AlbumDetailsScreen(
                     navigateToPlayer = { navigateToPlayerSong(PreviewSongs[5]) },
                 )*/
             },
-            snackbarHost = { // setting the snackbar hoststate to the scaffold
-                SnackbarHost(hostState = snackbarHostState)
-            },
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             contentColor = contentColorFor(MaterialTheme.colorScheme.background) // MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
@@ -514,10 +512,10 @@ fun AlbumDetailsScreen(
                             coroutineScope.launch {
                                 Log.i(TAG, "Album More Options Modal -> PlaySongs clicked")
                                 onAlbumAction(AlbumAction.PlaySongs(songs))
-                                navigateToPlayer()
                                 sheetState.hide()
+                                navigateToPlayer()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showAlbumMoreOptions = false
@@ -526,8 +524,8 @@ fun AlbumDetailsScreen(
                         },
                         playNext = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked")
-                                onAlbumAction(AlbumAction.PlaySongNext(selectSong))
+                                Log.i(TAG, "Album More Options Modal -> PlaySongsNext clicked")
+                                onAlbumAction(AlbumAction.PlaySongsNext(songs))
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showBottomSheet to FALSE")
@@ -539,7 +537,7 @@ fun AlbumDetailsScreen(
                         },
                         shuffle = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Artist More Options Modal -> ShuffleSong clicked")
+                                Log.i(TAG, "Album More Options Modal -> ShuffleSongs clicked")
                                 onAlbumAction(AlbumAction.ShuffleSongs(songs))
                                 navigateToPlayer()
                                 sheetState.hide()
@@ -554,14 +552,14 @@ fun AlbumDetailsScreen(
                         //addToPlaylist = {},
                         addToQueue = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> QueueSong clicked")
-                                onAlbumAction(AlbumAction.QueueSong(selectSong))
+                                Log.i(TAG, "Album More Options Modal -> QueueSongs clicked")
+                                onAlbumAction(AlbumAction.QueueSongs(songs))
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showBottomSheet to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
-                                    showSongMoreOptions = false
+                                    showAlbumMoreOptions = false
                                 }
                             }
                         },

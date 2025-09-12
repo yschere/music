@@ -224,10 +224,10 @@ fun ArtistDetailsScreen(
     }
 
     val sheetState = rememberModalBottomSheetState(false,)
-    var showBottomSheet by remember { mutableStateOf(false) } // if bottom modal needs to be opened
-    var showSortSheet by remember { mutableStateOf(false) } // if bottom modal content is for sorting songs
-    var showAlbumMoreOptions by remember { mutableStateOf(false) } // if bottom modal content is for album details more options
-    var showArtistMoreOptions by remember { mutableStateOf(false) } // if bottom modal content is for album details more options
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
+    var showAlbumMoreOptions by remember { mutableStateOf(false) }
+    var showArtistMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
 
     ScreenBackground(
@@ -272,11 +272,11 @@ fun ArtistDetailsScreen(
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
-                        // more options btn // temporary placement till figure out if this should be part of header
+
                         IconButton(
                             onClick = {
                                 showBottomSheet = true
-                                showArtistMoreOptions = true /* onMoreOptionsClick */
+                                showArtistMoreOptions = true
                             }
                         ) {
                             Icon(
@@ -310,9 +310,7 @@ fun ArtistDetailsScreen(
                     navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
                 )*/
             },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             contentColor = contentColorFor(MaterialTheme.colorScheme.background) // MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
@@ -362,7 +360,7 @@ fun ArtistDetailsScreen(
                         )
                     }
                     fullWidthItem {
-                        Column(modifier = modifier) {
+                        /*Column(modifier = modifier) {
                             BoxWithConstraints(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -397,19 +395,18 @@ fun ArtistDetailsScreen(
                                     )
                                 }
                             }
-                        }
-                        /*FeaturedAlbumsCarousel(
+                        }*/
+                        FeaturedAlbumsCarousel(
                             pagerState = pagerState,
                             items = albums,
                             navigateToAlbumDetails = navigateToAlbumDetails,
-                            onMoreOptionsClick = {
-                                onArtistAction( ArtistAction.AlbumMoreOptionClicked(it) )
-                                ArtistAction.AlbumMoreOptionClicked(it)
+                            onMoreOptionsClick = { album: AlbumInfo ->
+                                onArtistAction( ArtistAction.AlbumMoreOptionClicked(album) )
                                 showBottomSheet = true
                                 showAlbumMoreOptions = true
                             },
                             modifier = Modifier.fillMaxWidth()
-                        )*/
+                        )
                     }
                 }
 
@@ -446,8 +443,10 @@ fun ArtistDetailsScreen(
                     }
 
                     // songs list
-                    items(songs) { song -> // for each song in list:
-                        Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
+                    items(songs) { song ->
+                        Box(
+                            Modifier.padding(horizontal = 12.dp, vertical = 0.dp)
+                        ) {
                             SongListItem(
                                 song = song,
                                 onClick = {
@@ -457,7 +456,7 @@ fun ArtistDetailsScreen(
                                 },
                                 onMoreOptionsClick = {
                                     Log.i(TAG, "Song More Option clicked: ${song.title}")
-                                    onArtistAction( ArtistAction.SongMoreOptionClicked( song ) )
+                                    onArtistAction(ArtistAction.SongMoreOptionClicked(song))
                                     showBottomSheet = true
                                     showSongMoreOptions = true
                                 },
@@ -470,84 +469,6 @@ fun ArtistDetailsScreen(
                             )
                         }
                     }
-                    /*items(songs) { song ->
-                        Box(modifier = modifier.padding(/*horizontal = 12.dp, */vertical = 0.dp)) {
-                            Surface(
-                                shape = MaterialTheme.shapes.large,
-                                color = Color.Transparent,
-                                //color = MaterialTheme.colorScheme.surfaceContainer,
-                                onClick = { navigateToPlayer(song) },
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .padding(/*horizontal = 12.dp, */vertical = 8.dp)
-                                        .padding(start = 12.dp),
-                                ) {
-                                    AlbumImage(
-                                        albumImage = 1,
-                                        contentDescription = song.title,
-                                        modifier = Modifier
-                                            .size(56.dp)
-                                            .clip(MaterialTheme.shapes.small)
-                                    )
-
-                                    Column(modifier.weight(1f)) {
-                                        Text(
-                                            text = song.title,
-                                            maxLines = 1,
-                                            minLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
-                                        )
-                                        Row(
-                                            modifier = modifier.padding(horizontal = 10.dp)
-                                        ) {
-                                            Text(
-                                                text = song.artistName,
-                                                maxLines = 1,
-                                                minLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                modifier = Modifier.padding(vertical = 2.dp),
-                                            )
-                                            Text(
-                                                text = " • " + song.albumTitle,
-                                                maxLines = 1,
-                                                minLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                modifier = Modifier.padding(vertical = 2.dp),
-                                            )
-                                            Text(
-                                                text = " • " + song.duration.formatStr(),
-                                                maxLines = 1,
-                                                minLines = 1,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                modifier = Modifier.padding(vertical = 2.dp)//, horizontal = 8.dp),
-                                            )
-                                        }
-                                    }
-
-                                    IconButton( //more options button
-                                        //modifier = Modifier.padding(0.dp),
-                                        onClick = {
-                                            onArtistAction( ArtistAction.SongMoreOptionClicked( song ) )
-                                            showBottomSheet = true
-                                            showSongMoreOptions = true
-                                        }, // pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
-                                    ) {
-                                        Icon( //more options icon
-                                            imageVector = Icons.Default.MoreVert,
-                                            contentDescription = stringResource(R.string.icon_more),
-                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }*/
                 }
             }
 
@@ -593,10 +514,10 @@ fun ArtistDetailsScreen(
                         album = selectAlbum,
                         play = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> PlaySongs clicked")
-                                onArtistAction(ArtistAction.PlaySongs(songs))
-                                navigateToPlayer()
+                                Log.i(TAG, "Album More Options Modal -> Play Album clicked")
+                                onArtistAction(ArtistAction.PlayAlbum(selectAlbum))
                                 sheetState.hide()
+                                navigateToPlayer()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
@@ -607,8 +528,8 @@ fun ArtistDetailsScreen(
                         },
                         playNext = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked")
-                                onArtistAction(ArtistAction.QueueSongs(songs))
+                                Log.i(TAG, "Album More Options Modal -> Play Album Next clicked")
+                                onArtistAction(ArtistAction.PlayAlbumNext(selectAlbum))
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
@@ -618,15 +539,28 @@ fun ArtistDetailsScreen(
                                 }
                             }
                         },
-                        shuffle = {},
+                        shuffle = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> Shuffle Album clicked")
+                                onArtistAction(ArtistAction.ShuffleAlbum(selectAlbum))
+                                sheetState.hide()
+                                navigateToPlayer()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
                         //addToPlaylist = {},
                         addToQueue = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> QueueSongs clicked")
-                                onArtistAction(ArtistAction.QueueSongs(songs))
+                                Log.i(TAG, "Album More Options Modal -> Queue Album clicked")
+                                onArtistAction(ArtistAction.QueueAlbum(selectAlbum))
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showAlbumMoreOptions = false
@@ -769,7 +703,7 @@ fun ArtistDetailsScreen(
                         },
                         shuffle = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Artist More Options Modal -> ShuffleSong clicked")
+                                Log.i(TAG, "Artist More Options Modal -> ShuffleSongs clicked")
                                 onArtistAction(ArtistAction.ShuffleSongs(songs))
                                 navigateToPlayer()
                                 sheetState.hide()

@@ -82,7 +82,7 @@ class AlbumDetailsViewModel @Inject constructor(
                 refreshing,
                 albumDetailsFilterResult,
                 selectSong ->
-                Log.i(TAG, "AlbumUiState combine START" +
+                Log.i(TAG, "AlbumUiState combine START\n" +
                     "albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}" +
                     "albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}\n" +
                     "is SongController available: ${songController.isConnected()}\n" +
@@ -105,7 +105,6 @@ class AlbumDetailsViewModel @Inject constructor(
             }.collect{
                 _state.value = it
             }
-            Log.i(TAG, "viewModelScope launch END")
         }
         refresh(force = false)
         Log.i(TAG, "init END")
@@ -133,21 +132,34 @@ class AlbumDetailsViewModel @Inject constructor(
             is AlbumAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
 
             is AlbumAction.PlaySong -> onPlaySong(action.song) // songMO-play
-            is AlbumAction.PlaySongNext -> onQueueSongNext(action.song) // songMO-playNext
+            is AlbumAction.PlaySongNext -> onPlaySongNext(action.song) // songMO-playNext
             //is AlbumAction.AddSongToPlaylist -> onAddToPlaylist(action.song) // songMO-addToPlaylist
             is AlbumAction.QueueSong -> onQueueSong(action.song) // songMO-addToQueue
 
             is AlbumAction.PlaySongs -> onPlaySongs(action.songs) // albumMO-play
-            is AlbumAction.PlaySongsNext -> onQueueSongsNext(action.songs) // albumMO-playNext
+            is AlbumAction.PlaySongsNext -> onPlaySongsNext(action.songs) // albumMO-playNext
             is AlbumAction.ShuffleSongs -> onShuffleSongs(action.songs) // albumMO-shuffle
             //is AlbumAction.AddAlbumToPlaylist -> onAddToPlaylist(action.songs) // albumMO-addToPlaylist
             is AlbumAction.QueueSongs -> onQueueSongs(action.songs) // albumMO-addToQueue
         }
     }
 
+    private fun onSongMoreOptionClick(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
+        selectedSong.value = song
+    }
+
     private fun onPlaySong(song: SongInfo) {
         Log.i(TAG, "onPlaySong -> ${song.title}")
         songController.play(song)
+    }
+    private fun onPlaySongNext(song: SongInfo) {
+        Log.i(TAG, "onQueueSongNext -> ${song.title}")
+        songController.addToQueueNext(song)
+    }
+    private fun onQueueSong(song: SongInfo) {
+        Log.i(TAG, "onQueueSong -> ${song.title}")
+        songController.addToQueue(song)
     }
 
     private fun onPlaySongs(songs: List<SongInfo>) {
@@ -164,27 +176,14 @@ class AlbumDetailsViewModel @Inject constructor(
             showThemeSheet = false
         }*/
     }
-
-    private fun onQueueSong(song: SongInfo) {
-        Log.i(TAG, "onQueueSong -> ${song.title}")
-        songController.addToQueue(song)
+    private fun onPlaySongsNext(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongsNext - ${songs.size}")
+        songController.addToQueueNext(songs)
     }
-
-    private fun onQueueSongNext(song: SongInfo) {
-        Log.i(TAG, "onQueueSongNext -> ${song.title}")
-        songController.addToQueueNext(song)
-    }
-
     private fun onQueueSongs(songs: List<SongInfo>) {
         Log.i(TAG, "onQueueSongs -> ${songs.size}")
         songController.addToQueue(songs)
     }
-
-    private fun onQueueSongsNext(songs: List<SongInfo>) {
-        Log.i(TAG, "onQueueSongsNext - ${songs.size}")
-        songController.addToQueueNext(songs)
-    }
-
     private fun onShuffleSongs(songs: List<SongInfo>) {
         Log.i(TAG, "onShuffleSongs -> ${songs.size}")
         songController.shuffle(songs)
@@ -201,22 +200,19 @@ class AlbumDetailsViewModel @Inject constructor(
             showThemeSheet = false
         }*/
     }
-
-    private fun onSongMoreOptionClick(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
-        selectedSong.value = song
-    }
 }
 
 sealed interface AlbumAction {
-    data class PlaySong(val song: SongInfo) : AlbumAction
-    data class PlaySongs(val songs: List<SongInfo>) : AlbumAction
-    data class PlaySongNext(val song: SongInfo) : AlbumAction
-    data class PlaySongsNext(val songs: List<SongInfo>) : AlbumAction
-    data class QueueSong(val song: SongInfo) : AlbumAction
-    data class QueueSongs(val songs: List<SongInfo>) : AlbumAction
-    data class ShuffleSongs(val songs: List<SongInfo>) : AlbumAction
     data class SongMoreOptionClicked(val song: SongInfo) : AlbumAction
+
+    data class PlaySong(val song: SongInfo) : AlbumAction
+    data class PlaySongNext(val song: SongInfo) : AlbumAction
+    data class QueueSong(val song: SongInfo) : AlbumAction
+
+    data class PlaySongs(val songs: List<SongInfo>) : AlbumAction
+    data class PlaySongsNext(val songs: List<SongInfo>) : AlbumAction
+    data class ShuffleSongs(val songs: List<SongInfo>) : AlbumAction
+    data class QueueSongs(val songs: List<SongInfo>) : AlbumAction
 }
 
 /**

@@ -4,9 +4,11 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.music.data.mediaresolver.model.Artist
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.usecases.GetAlbumDetailsV2
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetArtistDetailsV2
 import com.example.music.service.SongController
@@ -18,11 +20,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-private const val TAG = "Artist Details View Model"
 
 /** Changelog:
  * ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
@@ -35,6 +36,8 @@ private const val TAG = "Artist Details View Model"
  *
  * 7/22-23/2025 - Deleted SongPlayer from domain layer.
  */
+
+private const val TAG = "Artist Details View Model"
 
 data class ArtistUiState (
     val isReady: Boolean = false,
@@ -52,6 +55,7 @@ data class ArtistUiState (
 @HiltViewModel
 class ArtistDetailsViewModel @Inject constructor(
     getArtistDetailsV2: GetArtistDetailsV2,
+    private val getAlbumDetailsV2: GetAlbumDetailsV2,
     private val songController: SongController,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -87,12 +91,12 @@ class ArtistDetailsViewModel @Inject constructor(
                 artistDetailsFilterResult,
                 selectSong,
                 selectAlbum ->
-                Log.i(TAG, "ArtistUiState call")
-                Log.i(TAG, "artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}")
-                Log.i(TAG, "artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}")
-                Log.i(TAG, "artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}")
-                Log.i(TAG, "is SongController available: ${songController.isConnected()}")
-                Log.i(TAG, "isReady?: ${!refreshing}")
+                Log.i(TAG, "ArtistUiState combine START\n" +
+                    "artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}\n" +
+                    "artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}\n" +
+                    "artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}\n" +
+                    "is SongController available: ${songController.isConnected()}\n" +
+                    "isReady?: ${!refreshing}")
 
                 ArtistUiState(
                     isReady = !refreshing,
@@ -136,20 +140,25 @@ class ArtistDetailsViewModel @Inject constructor(
     fun onArtistAction(action: ArtistAction) {
         Log.i(TAG, "onArtistAction - $action")
         when (action) {
-            is ArtistAction.AlbumMoreOptionClicked -> onAlbumMoreOptionClicked(action.album) // opens albumMO
-            is ArtistAction.SongMoreOptionClicked -> onSongMoreOptionClicked(action.song) // opens songMO
+            is ArtistAction.AlbumMoreOptionClicked -> onAlbumMoreOptionClicked(action.album) // selects albumMO
+            is ArtistAction.SongMoreOptionClicked -> onSongMoreOptionClicked(action.song) // selects songMO
 
             is ArtistAction.PlaySong -> onPlaySong(action.song) // songMO-play
-            is ArtistAction.PlaySongNext -> onQueueSongNext(action.song) // songMo-playNext
+            is ArtistAction.PlaySongNext -> onPlaySongNext(action.song) // songMo-playNext
             //is ArtistAction.AddSongToPlaylist -> songMO-addToPlaylist
             is ArtistAction.QueueSong -> onQueueSong(action.song) // songMO-addToQueue
 
-            is ArtistAction.PlaySongs -> onPlaySongs(action.songs) // artistMO-play; albumMO-play
-            is ArtistAction.PlaySongsNext -> onQueueSongsNext(action.songs) // artistMO-playNext; albumMO-playNext
-            is ArtistAction.ShuffleSongs -> onShuffleSongs(action.songs) // artistMo-shuffle; albumMO-shuffle
-            //is ArtistAction.AddAlbumToPlaylist // albumMO-addToPlaylist
+            is ArtistAction.PlaySongs -> onPlaySongs(action.songs) // artistMO-play
+            is ArtistAction.PlaySongsNext -> onPlaySongsNext(action.songs) // artistMO-playNext
+            is ArtistAction.ShuffleSongs -> onShuffleSongs(action.songs) // artistMo-shuffle
             //is ArtistAction.AddArtistToPlaylist // artistMO-addToPlaylist
-            is ArtistAction.QueueSongs -> onQueueSongs(action.songs) // artistMO-addToQueue; albumMo-addToQueue
+            is ArtistAction.QueueSongs -> onQueueSongs(action.songs) // artistMO-addToQueue
+
+            is ArtistAction.PlayAlbum -> onPlayAlbum(action.album) // albumMO-play
+            is ArtistAction.PlayAlbumNext -> onPlayAlbumNext(action.album) // albumMO-playNext
+            is ArtistAction.ShuffleAlbum -> onShuffleAlbum(action.album) // albumMO-shuffle
+            //is ArtistAction.AddAlbumToPlaylist // albumMO-addToPlaylist
+            is ArtistAction.QueueAlbum -> onQueueAlbum(action.album) // albumMo-addToQueue
         }
     }
 
@@ -157,58 +166,88 @@ class ArtistDetailsViewModel @Inject constructor(
         Log.i(TAG, "onAlbumMoreOptionClicked - ${album.title}")
         selectedAlbum.value = album
     }
+    private fun onSongMoreOptionClicked(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionClick - ${song.title}")
+        selectedSong.value = song
+    }
 
     private fun onPlaySong(song: SongInfo) {
         Log.i(TAG, "onPlaySong - ${song.title}")
         songController.play(song)
+    }
+    private fun onPlaySongNext(song: SongInfo) {
+        Log.i(TAG, "onPlaySongNext - ${song.title}")
+        songController.addToQueueNext(song)
+    }
+    private fun onQueueSong(song: SongInfo) {
+        Log.i(TAG, "onQueueSong - ${song.title}")
+        songController.addToQueue(song)
     }
 
     private fun onPlaySongs(songs: List<SongInfo>) {
         Log.i(TAG, "onPlaySongs - ${songs.size}")
         songController.play(songs)
     }
-
-    private fun onQueueSong(song: SongInfo) {
-        Log.i(TAG, "onQueueSong - ${song.title}")
-        songController.addToQueue(song)
+    private fun onPlaySongsNext(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongsNext - ${songs.size}")
+        songController.addToQueueNext(songs)
     }
-
-    private fun onQueueSongNext(song: SongInfo) {
-        Log.i(TAG, "onQueueSongNext - ${song.title}")
-        songController.addToQueueNext(song)
+    private fun onShuffleSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onShuffleSongs - ${songs.size}")
+        songController.shuffle(songs)
     }
-
     private fun onQueueSongs(songs: List<SongInfo>) {
         Log.i(TAG, "onQueueSongs - ${songs.size}")
         songController.addToQueue(songs)
     }
 
-    private fun onQueueSongsNext(songs: List<SongInfo>) {
-        Log.i(TAG, "onQueueSongsNext - ${songs.size}")
-        songController.addToQueueNext(songs)
+    private fun onPlayAlbum(album: AlbumInfo) {
+        Log.i(TAG, "onPlaySongs -> ${album.title}")
+        viewModelScope.launch {
+            val songs = getAlbumDetailsV2(album.id).first().songs
+            songController.play(songs)
+        }
     }
-
-    private fun onShuffleSongs(songs: List<SongInfo>) {
-        Log.i(TAG, "onShuffleSongs - ${songs.size}")
-        songController.shuffle(songs)
+    private fun onPlayAlbumNext(album: AlbumInfo) {
+        Log.i(TAG, "onPlayAlbumNext -> ${album.title}")
+        viewModelScope.launch {
+            val songs = getAlbumDetailsV2(album.id).first().songs
+            songController.addToQueueNext(songs)
+        }
     }
-
-    private fun onSongMoreOptionClicked(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick - ${song.title}")
-        selectedSong.value = song
+    private fun onShuffleAlbum(album: AlbumInfo) {
+        Log.i(TAG, "onShuffleAlbum -> ${album.title}")
+        viewModelScope.launch {
+            val songs = getAlbumDetailsV2(album.id).first().songs
+            songController.shuffle(songs)
+        }
+    }
+    private fun onQueueAlbum(album: AlbumInfo) {
+        Log.i(TAG, "onQueueAlbum -> ${album.title}")
+        viewModelScope.launch {
+            val songs = getAlbumDetailsV2(album.id).first().songs
+            songController.addToQueue(songs)
+        }
     }
 }
 
 sealed interface ArtistAction {
     data class AlbumMoreOptionClicked(val album: AlbumInfo) : ArtistAction
+    data class SongMoreOptionClicked(val song: SongInfo) : ArtistAction
+
     data class PlaySong(val song: SongInfo) : ArtistAction
     data class PlaySongNext(val song: SongInfo) : ArtistAction
+    data class QueueSong(val song: SongInfo) : ArtistAction
+
     data class PlaySongs(val songs: List<SongInfo>) : ArtistAction
     data class PlaySongsNext(val songs: List<SongInfo>) : ArtistAction
-    data class QueueSong(val song: SongInfo) : ArtistAction
-    data class QueueSongs(val songs: List<SongInfo>) : ArtistAction
     data class ShuffleSongs(val songs: List<SongInfo>) : ArtistAction
-    data class SongMoreOptionClicked(val song: SongInfo) : ArtistAction
+    data class QueueSongs(val songs: List<SongInfo>) : ArtistAction
+
+    data class PlayAlbum(val album: AlbumInfo) : ArtistAction
+    data class PlayAlbumNext(val album: AlbumInfo) : ArtistAction
+    data class ShuffleAlbum(val album: AlbumInfo) : ArtistAction
+    data class QueueAlbum(val album: AlbumInfo) : ArtistAction
 }
 
 /**
