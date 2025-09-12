@@ -40,8 +40,8 @@ data class ArtistUiState (
     val isReady: Boolean = false,
     val errorMessage: String? = null,
     val artist: ArtistInfo = ArtistInfo(),
-    val albums: /*Persistent*/List<AlbumInfo> = emptyList(),
-    val songs: /*Persistent*/List<SongInfo> = emptyList(),
+    val albums: List<AlbumInfo> = emptyList(),
+    val songs: List<SongInfo> = emptyList(),
     val selectAlbum: AlbumInfo = AlbumInfo(),
     val selectSong: SongInfo = SongInfo()
 )
@@ -74,9 +74,9 @@ class ArtistDetailsViewModel @Inject constructor(
         get() = _state
 
     init {
-        Log.i(TAG, "artistId: $artistId")
+        Log.i(TAG, "init START --- artistId: $artistId")
         viewModelScope.launch {
-            Log.i(TAG, "init viewModelScope launch start")
+            Log.i(TAG, "viewModelScope launch START")
             combine(
                 refreshing,
                 getArtistDetailsData,
@@ -114,7 +114,7 @@ class ArtistDetailsViewModel @Inject constructor(
             }
         }
         refresh(force = false)
-
+        Log.i(TAG, "init END")
     }
 
     fun refresh(force: Boolean = true) {
@@ -136,13 +136,20 @@ class ArtistDetailsViewModel @Inject constructor(
     fun onArtistAction(action: ArtistAction) {
         Log.i(TAG, "onArtistAction - $action")
         when (action) {
-            is ArtistAction.AlbumMoreOptionClicked -> onAlbumMoreOptionClicked(action.album)
-            is ArtistAction.QueueSong -> onQueueSong(action.song)
-            is ArtistAction.QueueSongs -> onQueueSongs(action.songs)
-            is ArtistAction.PlaySong -> onPlaySong(action.song)
-            is ArtistAction.PlaySongs -> onPlaySongs(action.songs)
-            is ArtistAction.ShuffleSongs -> onShuffleSongs(action.songs)
-            is ArtistAction.SongMoreOptionClicked -> onSongMoreOptionClicked(action.song)
+            is ArtistAction.AlbumMoreOptionClicked -> onAlbumMoreOptionClicked(action.album) // opens albumMO
+            is ArtistAction.SongMoreOptionClicked -> onSongMoreOptionClicked(action.song) // opens songMO
+
+            is ArtistAction.PlaySong -> onPlaySong(action.song) // songMO-play
+            is ArtistAction.PlaySongNext -> onQueueSongNext(action.song) // songMo-playNext
+            //is ArtistAction.AddSongToPlaylist -> songMO-addToPlaylist
+            is ArtistAction.QueueSong -> onQueueSong(action.song) // songMO-addToQueue
+
+            is ArtistAction.PlaySongs -> onPlaySongs(action.songs) // artistMO-play; albumMO-play
+            is ArtistAction.PlaySongsNext -> onQueueSongsNext(action.songs) // artistMO-playNext; albumMO-playNext
+            is ArtistAction.ShuffleSongs -> onShuffleSongs(action.songs) // artistMo-shuffle; albumMO-shuffle
+            //is ArtistAction.AddAlbumToPlaylist // albumMO-addToPlaylist
+            //is ArtistAction.AddArtistToPlaylist // artistMO-addToPlaylist
+            is ArtistAction.QueueSongs -> onQueueSongs(action.songs) // artistMO-addToQueue; albumMo-addToQueue
         }
     }
 
@@ -166,9 +173,19 @@ class ArtistDetailsViewModel @Inject constructor(
         songController.addToQueue(song)
     }
 
+    private fun onQueueSongNext(song: SongInfo) {
+        Log.i(TAG, "onQueueSongNext - ${song.title}")
+        songController.addToQueueNext(song)
+    }
+
     private fun onQueueSongs(songs: List<SongInfo>) {
         Log.i(TAG, "onQueueSongs - ${songs.size}")
         songController.addToQueue(songs)
+    }
+
+    private fun onQueueSongsNext(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongsNext - ${songs.size}")
+        songController.addToQueueNext(songs)
     }
 
     private fun onShuffleSongs(songs: List<SongInfo>) {
@@ -185,7 +202,9 @@ class ArtistDetailsViewModel @Inject constructor(
 sealed interface ArtistAction {
     data class AlbumMoreOptionClicked(val album: AlbumInfo) : ArtistAction
     data class PlaySong(val song: SongInfo) : ArtistAction
+    data class PlaySongNext(val song: SongInfo) : ArtistAction
     data class PlaySongs(val songs: List<SongInfo>) : ArtistAction
+    data class PlaySongsNext(val songs: List<SongInfo>) : ArtistAction
     data class QueueSong(val song: SongInfo) : ArtistAction
     data class QueueSongs(val songs: List<SongInfo>) : ArtistAction
     data class ShuffleSongs(val songs: List<SongInfo>) : ArtistAction
