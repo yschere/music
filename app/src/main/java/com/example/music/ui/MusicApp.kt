@@ -43,7 +43,6 @@ fun MusicApp(
     displayFeatures: List<DisplayFeature>,
     appState: MusicAppState = rememberMusicAppState()
 ) {
-
     Log.i(TAG, "navigation composable start")
     val adaptiveInfo = currentWindowAdaptiveInfo()
     /*val sizeClassText =
@@ -54,7 +53,6 @@ fun MusicApp(
             navController = appState.navController,
             startDestination = Screen.Home.route
         ) {
-
             // Home Navigation Router
             composable(Screen.Home.route) { backStackEntry ->
                 MainScreen(
@@ -65,15 +63,18 @@ fun MusicApp(
 
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
+                    navigateToSearch = { appState.navigateToSearch(backStackEntry) },
+                    navigateToSettings = { appState.navigateToSettings(backStackEntry) },
                     navigateToAlbumDetails = { albumId: Long ->
                         appState.navigateToAlbumDetails(albumId, backStackEntry)
+                    },
+                    navigateToArtistDetails = { artistId: Long ->
+                        appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
                     navigateToPlaylistDetails = { playlist ->
                         appState.navigateToPlaylistDetails(playlist.id, backStackEntry)
                     },
-                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
-                    navigateToSettings = { appState.navigateToSettings(backStackEntry) },
-                    navigateToSearch = { appState.navigateToSearch(backStackEntry) }
                 )
             }
 
@@ -85,7 +86,6 @@ fun MusicApp(
                     navigateBack = appState::navigateBack, //navigation back button
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
-                    //navigateToSettings = { appState.navigateToSettings(backStackEntry) },
                 )
             }
 
@@ -96,8 +96,9 @@ fun MusicApp(
                     navigateBack = appState::navigateBack, //navigation back button
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
-                    navigateToSettings = { appState.navigateToSettings(backStackEntry) },
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
+                    navigateToSettings = { appState.navigateToSettings(backStackEntry) },
                     navigateToAlbumDetails = { album ->
                         appState.navigateToAlbumDetails(album.id, backStackEntry)
                     },
@@ -112,6 +113,19 @@ fun MusicApp(
                     },
                     navigateToPlaylistDetails = { playlist ->
                         appState.navigateToPlaylistDetails(playlist.id, backStackEntry)
+                    },
+                )
+            }
+
+            //Search Screen Navigation Router
+            composable(Screen.Search.route) { backStackEntry ->
+                SearchScreen(
+                    navigateBack = appState::navigateBack,
+                    navigateToAlbumDetails = { album ->
+                        appState.navigateToAlbumDetails(album.id, backStackEntry)
+                    },
+                    navigateToArtistDetails = { artist ->
+                        appState.navigateToArtistDetails(artist.id, backStackEntry)
                     },
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                 )
@@ -135,11 +149,11 @@ fun MusicApp(
                 AlbumDetailsScreen(
                     //windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
                     navigateBack = appState::navigateBack,
+                    navigateToArtistDetails = { artistId ->
+                        appState.navigateToArtistDetails(artistId, backStackEntry)
+                    },
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
-
-                    //dependent on context, ie if showing in pane or as own screen
-                    showBackButton = true
                 )
             }
 
@@ -154,9 +168,6 @@ fun MusicApp(
                     },
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
-
-                    //dependent on context, ie if showing in pane or as own screen
-                    showBackButton = true,
                 )
             }
 
@@ -193,19 +204,6 @@ fun MusicApp(
                     navigateBack = appState::navigateBack,
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
-                )
-            }
-
-            composable(Screen.Search.route) { backStackEntry ->
-                SearchScreen(
-                    navigateBack = appState::navigateBack,
-                    navigateToAlbumDetails = { album ->
-                        appState.navigateToAlbumDetails(album.id, backStackEntry)
-                    },
-                    navigateToArtistDetails = { artist ->
-                        appState.navigateToArtistDetails(artist.id, backStackEntry)
-                    },
-                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                 )
             }
         }

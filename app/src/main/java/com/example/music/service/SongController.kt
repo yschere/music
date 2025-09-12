@@ -5,7 +5,6 @@ import androidx.media3.common.Player
 import com.example.music.data.repository.RepeatType
 import com.example.music.domain.model.SongInfo
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import java.time.Duration
 
 /** Changelog:
@@ -66,14 +65,9 @@ interface SongController {
     val hasNext: Boolean
 
     /**
-     * If the queued media items list are in shuffled order.
+     * The media3 Player object that provides Player functionality to SongController
      */
-    val isShuffled: Boolean
-
-    /**
-     * If the queued media items list are will be repeated.
-     */
-    val repeatState: RepeatType
+    val player: Player?
 
     /**
      * A reflection of the events occurring in Player
@@ -86,14 +80,19 @@ interface SongController {
     val loaded: Flow<Boolean>
 
     /**
+     * If the queued media items list are in shuffled order.
+     */
+    val isShuffled: Boolean
+
+    /**
+     * If the queued media items list are will be repeated.
+     */
+    val repeatState: RepeatType
+
+    /**
      * The speed of which the player increments
      */
     //var playerSpeed: Duration
-
-    /**
-     * The media3 Player object that provides Player functionality to SongController
-     */
-    val player: Player?
 
     /**
      * Add song to end of queue
@@ -170,6 +169,8 @@ interface SongController {
      */
     fun pause()
 
+    fun shuffle(songs: List<SongInfo>)
+
     /**
      * Stops the currently playing song
      */
@@ -192,16 +193,16 @@ interface SongController {
     fun previous()
 
     /**
-     * Use to change the shuffle mode. This is from the Player screen when the user taps the
-     * Shuffle btn so the currently playing queue toggles the shuffle order.
-     */
-    fun onShuffle()
-
-    /**
      * Use to change the repeat mode. This is from the Player screen when the user taps the
      * Repeat btn so the current queue with not repeat, repeat one song, or repeat entire queue.
      */
     fun onRepeat()
+
+    /**
+     * Use to change the shuffle mode. This is from the Player screen when the user taps the
+     * Shuffle btn so the currently playing queue toggles the shuffle order.
+     */
+    fun onShuffle()
 
     /**
      * Increases the speed of Player playback by a given time specified in [Duration].
@@ -212,8 +213,6 @@ interface SongController {
      * Decreases the speed of Player playback by a given time specified in [Duration].
      */
     //fun decreaseSpeed(speed: Duration = Duration.ofMillis(500))
-
-    fun shuffle(songs: List<SongInfo>)
 
     fun isConnected() : Boolean
 

@@ -82,9 +82,9 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     /**
-     *  A coroutine job that monitors the playback state and performs some actions based on it.
-     *  It saves the current playback position every 5 seconds and pauses the player if the sleep time is reached.
-     *  The job is cancelled when the service is destroyed or the playback is stopped.
+     * A coroutine job that monitors the playback state and performs some actions based on it.
+     * It saves the current playback position every 5 seconds and pauses the player if the sleep time is reached.
+     * The job is cancelled when the service is destroyed or the playback is stopped.
      */
     private var sessionMonitorJob: Job? = null
 

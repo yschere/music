@@ -15,7 +15,6 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.player.model.title
 import com.example.music.domain.player.model.toMediaItem
 import com.example.music.ui.shared.mediaItems
-import com.example.music.ui.shared.queue
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -28,7 +27,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.time.Duration
 import javax.inject.Inject
 import kotlin.random.Random
 import kotlin.reflect.KProperty
@@ -338,14 +336,6 @@ class SongControllerImpl @Inject constructor(
         Log.d(TAG, "in onRepeat(): END --- repeatState set to ${repeatState.name}")
     }
 
-    /*override fun increaseSpeed(speed: Duration) {
-        //_playerSpeed.value += speed
-    }
-
-    override fun decreaseSpeed(speed: Duration) {
-        //_playerSpeed.value -= speed
-    }*/
-
     override fun onShuffle() {
         val mediaController = mediaController ?: return
         Log.d(TAG, "in onShuffle(): START --- isShuffled is $isShuffled")
@@ -361,6 +351,14 @@ class SongControllerImpl @Inject constructor(
         }
         Log.d(TAG, "is onShuffle(): END --- isShuffled set to $isShuffled")
     }
+
+    /*override fun increaseSpeed(speed: Duration) {
+        //_playerSpeed.value += speed
+    }
+
+    override fun decreaseSpeed(speed: Duration) {
+        //_playerSpeed.value -= speed
+    }*/
 
     /**
      * Internal function to shuffle the MediaController queue.
@@ -411,24 +409,25 @@ class SongControllerImpl @Inject constructor(
         val totalTrack = mediaController.mediaItemCount // total items in playback set
         Log.d(TAG, "Playing Track #$currTrack of #$totalTrack")
     }
+
     /**
      * Internal function to log the MediaController playback state.
      */
     private fun playState() {
         val mediaController = mediaController ?: return
         when(mediaController.playbackState) {
-            Player.STATE_READY -> {
-                Log.e(TAG, "Playback State is READY")
-            }
             Player.STATE_IDLE -> {
                 Log.e(TAG, "Playback State is IDLE")
-            }
+            } // 1
             Player.STATE_BUFFERING -> {
                 Log.e(TAG, "Playback State is BUFFERING")
-            }
+            } // 2
+            Player.STATE_READY -> {
+                Log.e(TAG, "Playback State is READY")
+            } // 3
             Player.STATE_ENDED -> {
                 Log.e(TAG, "Playback State is ENDED")
-            }
+            } // 4
             else -> {
                 Log.e(TAG, "Playback State error")
             }
