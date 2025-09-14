@@ -1,6 +1,8 @@
 package com.example.music.ui.library.artist
 
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,10 +10,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Checklist
@@ -33,75 +37,40 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.domain.model.ArtistInfo
+import com.example.music.domain.testing.PreviewArtists
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.shared.LibrarySortSelectionBottomModal
+import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.StickyHeader
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import com.example.music.util.stickyHeader
-import kotlinx.coroutines.CoroutineScope
 
 /** Changelog:
  *
  * 7/22-23/2025 - Removed PlayerSong completely
  */
 
+private const val TAG = "Library Artists"
+
 /**
  * Artist Items Lazy List Scope Generator.
  * Provides header item with a count of the artist given, and
  * generates a column of artists, with each artist item shown as a row.
  */
-/*fun LazyListScope.artistItems(
+fun LazyListScope.artistItems(
     artists: List<ArtistInfo>,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
-//    navigateToPlayer: (SongInfo) -> Unit,
-//    onQueueSong: (SongInfo) -> Unit
+    onArtistMoreOptionsClick: () -> Unit,
+    onSortClick: () -> Unit,
+    onSelectClick: () -> Unit
 ) {
+    Log.i(TAG, "Lazy List START")
     item {
-        Text(
-            text = """\s[a-z]""".toRegex().replace(
-                quantityStringResource(R.plurals.artists, artists.size, artists.size)
-            ) {
-                it.value.uppercase()
-            },
-            //text = quantityStringResource(R.plurals.artists, artists.size, artists.size),
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp)
-        )
-    }
-
-    items(artists) { item ->
-        ArtistListItem(
-            //what is needed for the artist list navigation use case
-            artist = item,
-            navigateToArtistDetails = navigateToArtistDetails,
-            modifier = Modifier.fillParentMaxWidth(),
-        )
-    }
-}*/
-
-/**
- * Artist Items Lazy Grid Scope Generator.
- * Provides header item with a count of the artist given, and
- * generates a column of artists, with each artist item shown as a row.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-fun LazyGridScope.artistItems(
-    artists: List<ArtistInfo>,
-    coroutineScope: CoroutineScope,
-    navigateToArtistDetails: (ArtistInfo) -> Unit,
-    //navigateToPlayer: (SongInfo) -> Unit,
-    //onQueueSong: (PlayerSong) -> Unit
-) {
-
-    //section 1: header
-    fullWidthItem {
-        //******** var  for modal remember here
-        var showBottomSheet by remember { mutableStateOf(false) }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -114,43 +83,101 @@ fun LazyGridScope.artistItems(
                 },
                 textAlign = TextAlign.Left,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(8.dp).weight(1f,true)
+                modifier = Modifier
+                    .padding(8.dp)
+                    .weight(1f, true)
             )
-            //Spacer(Modifier.weight(1f,true))
 
-            //sort icon
-            IconButton(onClick={showBottomSheet = true}) {
+            // Sort btn
+            IconButton(onClick = onSortClick) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
+                    imageVector = Icons.AutoMirrored.Filled.Sort,
                     contentDescription = stringResource(R.string.icon_sort),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
 
-            // multi-select icon
-            IconButton(onClick ={/* filter */}) {
+            // Multi-Select btn
+            IconButton(onClick = onSelectClick) {
                 Icon(
-                    imageVector = Icons.Filled.Checklist,//want this to be multi select icon
+                    imageVector = Icons.Filled.Checklist,
                     contentDescription = stringResource(R.string.icon_multi_select),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }
-        if(showBottomSheet) {
-            LibrarySortSelectionBottomModal(
-                onDismissRequest = { showBottomSheet = false },
-                libraryCategory = LibraryCategory.Artists,
+    }
+
+    items(artists) { artist ->
+        ArtistListItem(
+            artist = artist,
+            navigateToArtistDetails = navigateToArtistDetails,
+            onMoreOptionsClick = { onArtistMoreOptionsClick(artist) },
+            modifier = Modifier.fillParentMaxWidth(),
+        )
+    }
+}
+
+/**
+ * Artist Items Lazy Grid Scope Generator.
+ * Provides header item with a count of the artist given, and
+ * generates a column of artists, with each artist item shown as a row.
+ */
+fun LazyGridScope.artistItems(
+    artists: List<ArtistInfo>,
+    navigateToArtistDetails: (ArtistInfo) -> Unit,
+    onArtistMoreOptionsClick: (ArtistInfo) -> Unit,
+    onSortClick: () -> Unit = {},
+    onSelectClick: () -> Unit = {},
+) {
+    Log.i(TAG, "Lazy Grid START")
+    //section 1: header
+    fullWidthItem{
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = """\s[a-z]""".toRegex().replace(
+                    quantityStringResource(R.plurals.artists, artists.size, artists.size)
+                ) {
+                    it.value.uppercase()
+                },
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .weight(1f, true)
             )
+
+            // Sort btn
+            IconButton(onClick = onSortClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Sort,
+                    contentDescription = stringResource(R.string.icon_sort),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+
+            // Multi-Select btn
+            IconButton(onClick = onSelectClick) {
+                Icon(
+                    imageVector = Icons.Filled.Checklist,
+                    contentDescription = stringResource(R.string.icon_multi_select),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
         }
     }
 
     items(
         artists,
         span = { GridItemSpan(maxLineSpan) }
-    ) { item ->
+    ) { artist ->
         ArtistListItem(
-            artist = item,
-            navigateToArtistDetails = navigateToArtistDetails,
+            artist = artist,
+            navigateToArtistDetails = { navigateToArtistDetails(artist) },
+            onMoreOptionsClick = { onArtistMoreOptionsClick(artist) },
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -159,18 +186,18 @@ fun LazyGridScope.artistItems(
 /**
  * Artist Items Lazy Grid Scope Generator with Sticky Headers.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 fun LazyGridScope.artistItems(
     mappedArtists: Map<Char,List<ArtistInfo>>,
     artistCount: Int,
-    coroutineScope: CoroutineScope,
     state: LazyGridState,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
+    onArtistMoreOptionsClick: (ArtistInfo) -> Unit,
+    onSortClick: () -> Unit = {},
+    onSelectClick: () -> Unit = {},
 ) {
+    Log.i(TAG, "Lazy Grid START")
     //section 1: header
-    fullWidthItem {
-        //******** var  for modal remember here
-        var showBottomSheet by remember { mutableStateOf(false) }
+    fullWidthItem{
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -183,34 +210,31 @@ fun LazyGridScope.artistItems(
                 },
                 textAlign = TextAlign.Left,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(8.dp).weight(1f,true)
+                modifier = Modifier
+                    .padding(8.dp)
+                    .weight(1f, true)
             )
 
-            //sort icon
-            IconButton(onClick={showBottomSheet = true}) {
+            // Sort btn
+            IconButton(onClick = onSortClick) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
+                    imageVector = Icons.AutoMirrored.Filled.Sort,
                     contentDescription = stringResource(R.string.icon_sort),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
 
-            // multi-select icon
-            IconButton(onClick ={/* filter */}) {
+            // Multi-Select btn
+            IconButton(onClick = onSelectClick) {
                 Icon(
-                    imageVector = Icons.Filled.Checklist,//want this to be multi select icon
+                    imageVector = Icons.Filled.Checklist,
                     contentDescription = stringResource(R.string.icon_multi_select),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }
-        if(showBottomSheet) {
-            LibrarySortSelectionBottomModal(
-                onDismissRequest = { showBottomSheet = false },
-                libraryCategory = LibraryCategory.Artists,
-            )
-        }
     }
+
     mappedArtists.forEach { (letter, artists) ->
         //sticky header would go here, need to get some replacement for it
         stickyHeader(
@@ -222,10 +246,11 @@ fun LazyGridScope.artistItems(
         items(
             artists,
             span = { GridItemSpan(maxLineSpan) }
-        ) { item ->
+        ) { artist ->
             ArtistListItem(
-                artist = item,
-                navigateToArtistDetails = navigateToArtistDetails,
+                artist = artist,
+                navigateToArtistDetails = { navigateToArtistDetails(artist) },
+                onMoreOptionsClick = { onArtistMoreOptionsClick(artist) },
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -236,17 +261,18 @@ fun LazyGridScope.artistItems(
 fun ArtistListItem(
     artist: ArtistInfo,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
+    onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(4.dp)) { //outermost layer with padding of 4 for separation between other song list items
-        Surface( //second most layer, contains onclick action and background color
+    Box(modifier = modifier.padding(4.dp)) {
+        Surface(
             shape = MaterialTheme.shapes.large,
-            //color = MaterialTheme.colorScheme.background,
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            onClick = { navigateToArtistDetails(artist) }, //this is how navigateToPlayer should be used for each song ListItem, as the passed in onClick event
+            color = MaterialTheme.colorScheme.surfaceContainer, //MaterialTheme.colorScheme.background,
+            onClick = { navigateToArtistDetails(artist) },
         ) {
-            ArtistListItemRow( //design content of song list item
+            ArtistListItemRow(
                 artist = artist,
+                onMoreOptionsClick = onMoreOptionsClick,
                 modifier = modifier//.padding(4.dp),
             )
         }
@@ -256,15 +282,16 @@ fun ArtistListItem(
 @Composable
 private fun ArtistListItemRow(
     artist: ArtistInfo,
+    onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row( //third layer, contains layout logic and information for content
+    Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
 
         ArtistListItemIcon(
-            artist = artist.name, //placeholder
+            artist = artist.name,
             modifier = Modifier
                 .size(56.dp)
                 .clip(MaterialTheme.shapes.small)
@@ -280,6 +307,7 @@ private fun ArtistListItemRow(
                 modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
             )
             Row(
+                horizontalArrangement = Arrangement.Start,
                 modifier = modifier.padding(horizontal = 10.dp)
             ) {
                 Text(
@@ -301,12 +329,9 @@ private fun ArtistListItemRow(
             }
         }
 
-        // More Options button
-        IconButton(
-            //modifier = Modifier.padding(0.dp),
-            onClick = {  }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
-        ) {
-            Icon( //more options icon
+        // More Options btn
+        IconButton(onClick = onMoreOptionsClick) {
+            Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.icon_more),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -323,14 +348,32 @@ private fun ArtistListItemIcon(
     artist: String,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
+    Box(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+    ){
         Text(
             text = artist[0].toString(),
             minLines = 1,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 15.dp),
+        )
+    }
+}
+
+@Preview
+@Composable
+fun ArtistListItemPreview() {
+    MusicTheme {
+        ArtistListItem(
+            artist = PreviewArtists[0],
+            navigateToArtistDetails = {},
+            onMoreOptionsClick = {},
+            modifier = Modifier,
         )
     }
 }
