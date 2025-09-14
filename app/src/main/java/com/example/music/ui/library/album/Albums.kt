@@ -1,6 +1,7 @@
 package com.example.music.ui.library.album
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -29,11 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,13 +45,13 @@ import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.model.AlbumInfo
-import com.example.music.ui.library.LibraryCategory
-import com.example.music.ui.shared.LibrarySortSelectionBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
 
+private const val TAG = "Library Albums"
+private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
 /**
  * Album Items Lazy List Scope Generator.
  * Provides header item with a count of the albums given, and
@@ -63,49 +59,13 @@ import kotlinx.coroutines.CoroutineScope
  */
 fun LazyListScope.albumItems(
     albums: List<AlbumInfo>,
-    coroutineScope: CoroutineScope,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    onMoreOptionsClick: () -> Unit,
+    onSortClick: () -> Unit,
+    onSelectClick: () -> Unit
 ) {
+    Log.i(TAG, "Lazy List START")
     item {
-        Text(
-            text = """\s[a-z]""".toRegex().replace(
-                quantityStringResource(R.plurals.albums, albums.size, albums.size)
-            ) {
-                it.value.uppercase()
-            },
-            //text = quantityStringResource(R.plurals.albums, albums.size, albums.size),
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp)
-        )
-    }
-
-    items(albums) { item ->
-        AlbumItemRow(
-            album = item,
-            coroutineScope = coroutineScope,
-            navigateToAlbumDetails = navigateToAlbumDetails,
-        )
-    }
-}
-
-/**
- * Album Items Lazy Grid Scope Generator.
- * Provides header item with a count of the albums given, and
- * generates a grid of albums, with each album item shown as a card.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-fun LazyGridScope.albumItems(
-    albums: List<AlbumInfo>,
-    coroutineScope: CoroutineScope,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    //modifier: Modifier = Modifier,
-) {
-
-    // section1: header
-    fullWidthItem {
-        // ******** var  for modal remember here
-        var showBottomSheet by remember { mutableStateOf(false) }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -120,10 +80,9 @@ fun LazyGridScope.albumItems(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(8.dp).weight(1f,true)
             )
-            //Spacer(Modifier.weight(1f,true))
 
             // sort icon
-            IconButton(onClick={showBottomSheet = true}) {
+            IconButton(onClick = onSortClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
                     contentDescription = stringResource(R.string.icon_sort),
@@ -132,7 +91,7 @@ fun LazyGridScope.albumItems(
             }
 
             // multi-select icon
-            IconButton(onClick={/* filter */}) {
+            IconButton(onClick = onSelectClick) {
                 Icon(
                     imageVector = Icons.Filled.Checklist,//want this to be multi select icon
                     contentDescription = stringResource(R.string.icon_multi_select),
@@ -140,27 +99,83 @@ fun LazyGridScope.albumItems(
                 )
             }
         }
-        if(showBottomSheet) {
-            LibrarySortSelectionBottomModal(
-                onDismissRequest = { showBottomSheet = false },
-                libraryCategory = LibraryCategory.Albums,
+    }
+
+    items(albums) { album ->
+        AlbumItemRow(
+            album = album,
+            navigateToAlbumDetails = navigateToAlbumDetails,
+            onMoreOptionsClick = onMoreOptionsClick,
+            modifier = Modifier.fillParentMaxWidth(),
+        )
+    }
+}
+
+/**
+ * Album Items Lazy Grid Scope Generator.
+ * Provides header item with a count of the albums given, and
+ * generates a grid of albums, with each album item shown as a card.
+ */
+fun LazyGridScope.albumItems(
+    albums: List<AlbumInfo>,
+    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    onAlbumMoreOptionsClick: (AlbumInfo) -> Unit,
+    onSortClick: () -> Unit = {},
+    onSelectClick: () -> Unit = {},
+) {
+    Log.i(TAG, "Lazy Grid START")
+    fullWidthItem {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = """\s[a-z]""".toRegex().replace(
+                    quantityStringResource(R.plurals.albums, albums.size, albums.size)
+                ) {
+                    it.value.uppercase()
+                },
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(8.dp).weight(1f,true)
             )
+
+            // sort icon
+            IconButton(onClick = onSortClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
+                    contentDescription = stringResource(R.string.icon_sort),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+
+            // multi-select icon
+            IconButton(onClick = onSelectClick) {
+                Icon(
+                    imageVector = Icons.Filled.Checklist,//want this to be multi select icon
+                    contentDescription = stringResource(R.string.icon_multi_select),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
         }
     }
 
     items(
         albums,
         span = { GridItemSpan(1) }
-    ){ item ->
+    ){ album ->
         Surface(
             shape = MaterialTheme.shapes.large,
             color = Color.Transparent,
             modifier = Modifier,
-            onClick = { navigateToAlbumDetails(item) }
+            onClick = { navigateToAlbumDetails(album) }
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally){
-                AlbumItemBoxHeader(item)
-                AlbumItemBoxFooter(item)
+                AlbumItemBoxHeader(album)
+                AlbumItemBoxFooter(
+                    album = album, 
+                    onMoreOptionsClick = { onAlbumMoreOptionsClick(album) }
+                )
             }
         }
     }
@@ -173,7 +188,7 @@ fun LazyGridScope.albumItems(
 private fun AlbumItemRow(
     album: AlbumInfo,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    coroutineScope: CoroutineScope,
+    onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = Modifier.padding(4.dp)){
@@ -218,20 +233,9 @@ private fun AlbumItemRow(
                     }
                 }
 
-                IconButton( // more options button
-                    //modifier = Modifier.padding(0.dp),
-                    onClick = { /*
-                        coroutineScope.launch {
-                            AlbumMoreOptionsBottomModal(
-                                onDismissRequest = {},
-                                coroutineScope = coroutineScope,
-                                album = album,
-                                navigateToAlbumDetails = navigateToAlbumDetails,
-                            )
-                        }*/
-                    }, // pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
-                ) {
-                    Icon( // more options icon
+                // More Options btn
+                IconButton(onClick = onMoreOptionsClick) {
+                    Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = stringResource(R.string.icon_more),
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -242,11 +246,10 @@ private fun AlbumItemRow(
     }
 }
 
-private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
-
 @Composable
 private fun AlbumItemBoxFooter(
     album: AlbumInfo,
+    onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -261,11 +264,7 @@ private fun AlbumItemBoxFooter(
             modifier = Modifier.padding(4.dp).weight(1f,true)
         )
 
-        //Spacer(Modifier.weight(1f))
-
-        IconButton(
-            onClick = {  },
-        ) {
+        IconButton(onClick = onMoreOptionsClick) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.icon_more),
@@ -309,52 +308,15 @@ private fun AlbumItemBoxHeader(
     }
 }
 
-@Composable
-private fun TopAlbumRowItem(
-    albumName: String,
-    albumImage: Uri,
-    //isFollowed: Boolean,
-    modifier: Modifier = Modifier,
-    //onToggleFollowClicked: () -> Unit,
-) {
-    Column(
-        modifier.semantics(mergeDescendants = true) {}
-    ) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .align(Alignment.CenterHorizontally)
-        ) {
-            AlbumImage(
-                albumImage = albumImage,
-                contentDescription = albumName,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(MaterialTheme.shapes.medium),
-            )
-        }
-
-        Text(
-            text = albumName,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .fillMaxWidth()
-        )
-    }
-}
-
-//@Preview
+@Preview
 @Composable
 fun AlbumItemPreviewRow() {
     MusicTheme {
         AlbumItemRow(
             album = PreviewAlbums[0],
             navigateToAlbumDetails = {},
-            coroutineScope = rememberCoroutineScope(),
+            onMoreOptionsClick = {},
+            modifier = Modifier
         )
     }
 }
@@ -372,7 +334,7 @@ fun AlbumItemPreviewBox() {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     AlbumItemBoxHeader(PreviewAlbums[0])
-                    AlbumItemBoxFooter(PreviewAlbums[0])
+                    AlbumItemBoxFooter(PreviewAlbums[0], {})
                 }
             }
 
@@ -384,7 +346,7 @@ fun AlbumItemPreviewBox() {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     AlbumItemBoxHeader(PreviewAlbums[3])
-                    AlbumItemBoxFooter(PreviewAlbums[3])
+                    AlbumItemBoxFooter(PreviewAlbums[3], {})
                 }
             }
         }
