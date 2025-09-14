@@ -174,7 +174,6 @@ fun ActionOptionRow(
 fun MoreOptionModalHeader(
     title: String = "", // item's name or title
     item: Any, // one of the info items ... should these Info types actually come from a base class?
-    //contentDescription: String = "", // also likely item's name or title, currently an item's artwork
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -217,32 +216,26 @@ fun MoreOptionModalHeader(
                 text = when(item) {
                     is SongInfo -> {
                         item.setSubtitle()
-                        //songSubtext(item)
                     }
 
                     is PlaylistInfo -> {
                         item.setSubtitle()
-                        //songCountSubtext(item)
                     }
 
                     is ArtistInfo -> {
                         item.setSubtitle()
-                        //artistSubtext(item)
                     }
 
                     is AlbumInfo -> {
                         item.setSubtitle()
-                        //songCountSubtext(item)
                     }
 
                     is ComposerInfo -> {
                         item.setSubtitle()
-                        //songCountSubtext(item)
                     }
 
                     is GenreInfo -> {
                         item.setSubtitle()
-                        //songCountSubtext(item)
                     }
 
                     else -> {
@@ -545,9 +538,9 @@ fun AlbumMoreOptionsBottomModal(
             if (context != "AlbumDetails")
                 ActionOptionRow( Actions.GoToAlbum, goToAlbum ) // { navigateToAlbumDetails(albumId) or navigateToAlbumDetails(album) }
 
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            ActionOptionRow( Actions.EditAlbumTags, {} ) //onClick action would go into lambda edit album tags
+            //ActionOptionRow( Actions.EditAlbumTags, {} ) //onClick action would go into lambda edit album tags
 
             Button(
                 onClick = onClose,
@@ -620,10 +613,10 @@ fun ArtistMoreOptionsBottomModal(
             // if on library.artists
             if (context != "ArtistDetails") {
                 ActionOptionRow( Actions.GoToArtist, goToArtist )
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            ActionOptionRow( Actions.EditArtistTags, {} ) //onClick action in the lambda
+            //ActionOptionRow( Actions.EditArtistTags, {} ) //onClick action in the lambda
 
             Button(
                 onClick = onClose,
