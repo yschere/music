@@ -493,6 +493,18 @@ fun AlbumDetailsScreen(
                                 }
                             }
                         },
+                        onSave = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Save sheet state - does nothing atm")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSortSheet = false
+                                }
+                            }
+                        },
                         content = "SongInfo",
                         context = "AlbumDetails",
                     )
