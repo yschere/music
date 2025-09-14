@@ -99,11 +99,11 @@ fun MusicApp(
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                     navigateToSettings = { appState.navigateToSettings(backStackEntry) },
-                    navigateToAlbumDetails = { album ->
-                        appState.navigateToAlbumDetails(album.id, backStackEntry)
+                    navigateToAlbumDetails = { albumId ->
+                        appState.navigateToAlbumDetails(albumId, backStackEntry)
                     },
-                    navigateToArtistDetails = { artist ->
-                        appState.navigateToArtistDetails(artist.id, backStackEntry)
+                    navigateToArtistDetails = { artistId ->
+                        appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
                     navigateToGenreDetails = { genre ->
                         appState.navigateToGenreDetails(genre.id, backStackEntry)
