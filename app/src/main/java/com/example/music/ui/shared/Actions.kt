@@ -42,15 +42,15 @@ data class ActionItem(
  * Object that contains all the possible actions for the MoreOptions bottom modals.
  */
 object Actions {
-    val PlayItem: ActionItem = ActionItem("Play", Icons.Filled.PlayArrow, R.string.icon_play) //{ /*navigateToPlayerSong(song)*/ }
+    val PlayItem: ActionItem = ActionItem("Play", Icons.Filled.PlayArrow, R.string.icon_play)
     val PlayItemNext: ActionItem = ActionItem("Play next", Icons.AutoMirrored.Filled.QueueMusic, R.string.icon_play_next)
-    val ShuffleItem: ActionItem = ActionItem("Shuffle", Icons.Filled.Shuffle, R.string.icon_shuffle) // is for playlist, album, artist, composer, genre
-    val AddToPlaylist: ActionItem = ActionItem("Add to Playlist", Icons.AutoMirrored.Filled.PlaylistAdd, R.string.icon_add_to_playlist) // is for individual song, for multiple songs if selection works, for album, for artist, for composer, for genre, for playlist
-    val AddToQueue: ActionItem = ActionItem("Add to Queue", Icons.Filled.Queue, R.string.icon_add_to_queue) // is for individual song, for multiple songs if selection works, for album, for artist, for composer, for genre, for playlist
+    val ShuffleItem: ActionItem = ActionItem("Shuffle", Icons.Filled.Shuffle, R.string.icon_shuffle)
+    val AddToPlaylist: ActionItem = ActionItem("Add to Playlist", Icons.AutoMirrored.Filled.PlaylistAdd, R.string.icon_add_to_playlist)
+    val AddToQueue: ActionItem = ActionItem("Add to Queue", Icons.Filled.Queue, R.string.icon_add_to_queue)
 
-    val GoToArtist: ActionItem = ActionItem("Go to Artist", Icons.Filled.Person, R.string.icon_artist) // navigateToArtistDetails(transform artistName to artist.Id)
-    val GoToAlbumArtist: ActionItem = ActionItem("Go to Album Artist", Icons.Filled.Person, R.string.icon_artist) // navigateToArtistDetails(transform artistName to artist.Id)
-    val GoToAlbum: ActionItem = ActionItem("Go to Album", Icons.Filled.Album, R.string.icon_album) // navigateToAlbumDetails(transform albumTitle to album.Id)
+    val GoToArtist: ActionItem = ActionItem("Go to Artist", Icons.Filled.Person, R.string.icon_artist)
+    val GoToAlbumArtist: ActionItem = ActionItem("Go to Album Artist", Icons.Filled.Person, R.string.icon_artist)
+    val GoToAlbum: ActionItem = ActionItem("Go to Album", Icons.Filled.Album, R.string.icon_album)
     val GoToComposer: ActionItem = ActionItem("Go to Composer", Icons.Filled.Person, R.string.icon_composer)
     val GoToGenre: ActionItem = ActionItem("Go to Genre", Icons.Filled.Category, R.string.icon_genre)
     val GoToPlaylist: ActionItem = ActionItem("Go to Playlist", Icons.Filled.LibraryMusic, R.string.icon_playlist)
