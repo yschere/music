@@ -65,7 +65,7 @@ private const val TAG = "Library Artists"
 fun LazyListScope.artistItems(
     artists: List<ArtistInfo>,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
-    onArtistMoreOptionsClick: () -> Unit,
+    onArtistMoreOptionsClick: (ArtistInfo) -> Unit,
     onSortClick: () -> Unit,
     onSelectClick: () -> Unit
 ) {

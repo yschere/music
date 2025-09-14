@@ -1,17 +1,36 @@
 package com.example.music.ui.library.song
 
 import android.util.Log
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.model.SongInfo
 import com.example.music.ui.shared.SongListItem
 import com.example.music.util.fullWidthItem
+import com.example.music.util.quantityStringResource
 
 /** Changelog:
  *
@@ -44,10 +63,11 @@ fun LazyListScope.songItems(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = """\s[a-z]""".toRegex()
-                    .replace(quantityStringResource(R.plurals.songs, songs.size, songs.size)) {
-                        it.value.uppercase()
-                    },
+                text = """\s[a-z]""".toRegex().replace(
+                    quantityStringResource(R.plurals.songs, songs.size, songs.size)
+                ) {
+                    it.value.uppercase()
+                },
                 textAlign = TextAlign.Left,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(8.dp).weight(1f, true)
