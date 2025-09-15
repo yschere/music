@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -50,6 +51,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -89,15 +91,17 @@ import com.example.music.ui.library.composer.composerItems
 import com.example.music.ui.library.genre.genreItems
 import com.example.music.ui.library.playlist.playlistItems
 import com.example.music.ui.library.song.songItems
+import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
+import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
+import com.example.music.ui.shared.GenreMoreOptionsBottomModal
+import com.example.music.ui.shared.LibrarySortSelectionBottomModal
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
-import com.example.music.util.isCompact
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
-private const val TAG = "Library Screen"
 
 /** Changelog:
  *
@@ -109,6 +113,8 @@ private const val TAG = "Library Screen"
  *
  * 7/22-23/2025 - Removed PlayerSong completely
  */
+
+private const val TAG = "Library Screen"
 
 /**
  * Stateful Composable for the Library Screen of the app. Contains windowSizeClass,
@@ -122,10 +128,10 @@ fun LibraryScreen(
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    navigateToArtistDetails: (ArtistInfo) -> Unit,
-    navigateToGenreDetails: (GenreInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
+    navigateToGenreDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
@@ -138,12 +144,10 @@ fun LibraryScreen(
     }
     Surface {
         LibraryScreen(
-            //for now so I can see anything load in emulator, gonna put some preview values
             windowSizeClass = windowSizeClass,
             isLoading = uiState.isLoading,
             libraryCategories = uiState.libraryCategories,
             selectedLibraryCategory = uiState.selectedLibraryCategory,
-            //would probably load in the preferences data store around here to collect what sorting used to view screens
             libraryAlbums = uiState.libraryAlbums,
             libraryArtists = uiState.libraryArtists,
             libraryComposers = uiState.libraryComposers,
@@ -151,25 +155,18 @@ fun LibraryScreen(
             libraryPlaylists = uiState.libraryPlaylists,
             librarySongs = uiState.librarySongs,
             totals = uiState.totals,
+
             onLibraryAction = viewModel::onLibraryAction,
-            /*navigateToAlbumDetails = { //was navigateToPodcastDetails,
-               //  then navigateToPlaylistDetails but uiState
-               //  doesn't share playlistInfo, but it can
-               //  share genre, album, song infos
-               //  could make this navigateToAlbumDetails. would need an albumInfo that
-               //  can encapsulate the type of properties needed that Podcast has
-                navigator.navigateTo(SupportingPaneScaffoldRole.Supporting, it.id.toString())
-            },*/
             navigateToHome = navigateToHome,
             navigateToLibrary = navigateToLibrary,
+            navigateToPlayer = navigateToPlayer,
+            navigateToSearch = navigateToSearch,
             navigateToSettings = navigateToSettings,
             navigateToAlbumDetails = navigateToAlbumDetails,
             navigateToArtistDetails = navigateToArtistDetails,
             navigateToComposerDetails = navigateToComposerDetails,
             navigateToGenreDetails = navigateToGenreDetails,
             navigateToPlaylistDetails = navigateToPlaylistDetails,
-            navigateToPlayer = navigateToPlayer,
-            navigateToSearch = navigateToSearch,
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -216,19 +213,19 @@ private fun LibraryScreen(
     libraryGenres: List<GenreInfo>,
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
+
     totals: List<Int>,
     onLibraryAction: (LibraryAction) -> Unit,
-    //navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
-    navigateToSettings: () -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    navigateToArtistDetails: (ArtistInfo) -> Unit,
-    navigateToGenreDetails: (GenreInfo) -> Unit,
-    navigateToComposerDetails: (ComposerInfo) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
+    navigateToSettings: () -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
+    navigateToComposerDetails: (ComposerInfo) -> Unit,
+    navigateToGenreDetails: (Long) -> Unit,
+    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -236,13 +233,6 @@ private fun LibraryScreen(
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //FixMe: update the snackBar selection to properly convey action taken
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    //moved to using listState and visible within LibraryContent()
-    //val listState = rememberLazyListState()
-    // The FAB is initially shown. Upon scrolling past the first item we hide the FAB by using a
-    // remembered derived state to minimize unnecessary compositions.
-    //val fabVisible by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
-
-    //library screen seeing if navDrawer acts differently if placed before ScreenBackground
     NavDrawer(
         "Library",
         totals,
@@ -282,9 +272,7 @@ private fun LibraryScreen(
                         navigateToPlayerSong = { navigateToPlayerSong(PreviewPlayerSongs[5]) },
                     )*/
                 },
-                snackbarHost = {
-                    SnackbarHost(hostState = snackbarHostState)
-                },
+                snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 containerColor = Color.Transparent,
                 contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
             ) { contentPadding ->
@@ -299,6 +287,7 @@ private fun LibraryScreen(
                     libraryGenres = libraryGenres,
                     libraryPlaylists = libraryPlaylists,
                     librarySongs = librarySongs,
+
                     modifier = Modifier.padding(contentPadding),
                     onLibraryAction = { action ->
                         if (action is LibraryAction.QueueSong) {
@@ -345,7 +334,6 @@ private fun LibraryTopAppBar(
             )
         }
 
-        //right align objects after this space
         Spacer(Modifier.weight(1f))
 
         // search btn
@@ -359,13 +347,12 @@ private fun LibraryTopAppBar(
     }
 }
 
-private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
-
 /**
  * Composable for Library Screen Content
  * Adjusted the library categories so that the selected category determines the grid view
  * new version: want to make a singular vertical grid that has dynamic layout based on tab chosen
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LibraryContent(
     coroutineScope: CoroutineScope,
@@ -382,29 +369,29 @@ private fun LibraryContent(
     modifier: Modifier = Modifier,
     onLibraryAction: (LibraryAction) -> Unit,
 
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    navigateToArtistDetails: (ArtistInfo) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToGenreDetails: (GenreInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
+    navigateToGenreDetails: (Long) -> Unit,
+    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
 ) {
+    Log.i(TAG, "LibraryContent START")
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
-    //derived state is useful when the evaluated expression's value changes are less often than the item's own value changing
-    //     so that recomposition only occurs when the evaluated result changes.
-    //     the emitted state/value doesn't have to be updated with every change in the given item
-    //     ALSO good for form validation -> updating a button/field error or disable state when an input is valid/invalid
-    //     if there's something that could be used in viewModel/nonComposable, it can still be with derivedStateOf, just won't need remember
 
-    //so to make use of derived state for changing the sticky headers,
-    //     would need way to select those out of the groupedBy maps and have those items be the deciders
+    val sheetState = rememberModalBottomSheetState(false,)
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
+    var showAlbumMoreOptions by remember { mutableStateOf(false) }
+    var showArtistMoreOptions by remember { mutableStateOf(false) }
+    var showGenreMoreOptions by remember { mutableStateOf(false) }
+    var showSongMoreOptions by remember { mutableStateOf(false) }
 
-    //if i want to make sticky headers, seems like that would need to be
-    //     defined before the items set creation since it will
-    //     be dependent on the sort order before using groupBy
-    //     might be fine to use as init version, but if there's a defined
-    //     sort order later, need to reference that instead
+    var selectedAlbum by remember { mutableStateOf(AlbumInfo()) }
+    var selectedArtist by remember { mutableStateOf(ArtistInfo()) }
+    var selectedGenre by remember { mutableStateOf(GenreInfo()) }
+    var selectedSong by remember { mutableStateOf(SongInfo()) }
 
     val groupedAlbumItems = libraryAlbums.groupBy { it.title.first() }
     val groupedArtistItems = libraryArtists.groupBy { it.name.first() }
@@ -416,11 +403,8 @@ private fun LibraryContent(
     groupedArtistItems.forEach { (letter, artist) ->
         Log.i(TAG, "Output for groupedArtists Letter: $letter, artist: $artist")
     }
-    //if artists, composers, genres, songs -> column fixed to 1 -> LazyVerticalGrid(columns = GridCells.Fixed(1), modifier = Modifier.padding(horizontal = 12.dp))
-    //if playlists, albums -> column fixed, but to whatever the max amount of columns can be shown
 
-    // can this section be done on a span basis? so that if i set the column to be some number X,
-    // i can then make the adaptive ones be span1 and the other be spanX?
+    // screen sizing parameters for generating LazyGrid columns
     val config = LocalConfiguration.current
     val screenWidth = config.screenWidthDp
     val horizontalPadding = 12
@@ -443,7 +427,7 @@ private fun LibraryContent(
                 LibraryCategoryTabs(
                     libraryCategories = libraryCategories,
                     selectedLibraryCategory = selectedLibraryCategory,
-                    onLibraryCategorySelected = { //selectedLibraryCategory.value = it
+                    onLibraryCategorySelected = {
                         onLibraryAction(
                             LibraryAction.LibraryCategorySelected(
                                 it
@@ -460,23 +444,52 @@ private fun LibraryContent(
                     artistItems(
                         mappedArtists = groupedArtistItems,
                         artistCount = libraryArtists.size,
-                        coroutineScope = coroutineScope,
                         state = listState,
-                        navigateToArtistDetails = navigateToArtistDetails,
+                        navigateToArtistDetails = { artist: ArtistInfo ->
+                            Log.i(TAG, "Artist clicked: ${artist.name}")
+                            navigateToArtistDetails(artist.id)
+                        },
+                        onArtistMoreOptionsClick = { artist: ArtistInfo ->
+                            Log.i(TAG, "Artist More Option Clicked: ${artist.name}")
+                            selectedArtist = artist
+                            showBottomSheet = true
+                            showArtistMoreOptions = true
+                        },
+                        onSortClick = {
+                            Log.i(TAG, "Artist Sort btn clicked")
+                            showBottomSheet = true
+                            showSortSheet = true
+                        },
+                        onSelectClick = {
+                            Log.i(TAG, "Artist Multi Select btn clicked")
+                        }
                     )
-
-                    /** original version **/
+                    /** original version, not using sticky headers **/
                     /*artistItems(
-                        //what would the artists screen need?
                         artists = libraryArtists,
-                        coroutineScope = coroutineScope,
-                        navigateToArtistDetails = navigateToArtistDetails,
+                        navigateToArtistDetails = { artist: ArtistInfo ->
+                            Log.i(TAG, "Artist clicked: ${artist.name}")
+                            navigateToArtistDetails(artist.id)
+                        },
+                        onArtistMoreOptionsClick = { artist: ArtistInfo ->
+                            Log.i(TAG, "Artist More Option Clicked: ${artist.name}")
+                            selectedArtist = artist
+                            showBottomSheet = true
+                            showArtistMoreOptions = true
+                        },
+                        onSortClick = {
+                            Log.i(TAG, "Artist Sort btn clicked")
+                            showBottomSheet = true
+                            showSortSheet = true
+                        },
+                        onSelectClick = {
+                            Log.i(TAG, "Artist Multi Select btn clicked")
+                        }
                     )*/
                 }
 
                 LibraryCategory.Composers -> {
                     composerItems(
-                        //what would the composers screen need?
                         composers = libraryComposers,
                         coroutineScope = coroutineScope,
                         navigateToComposerDetails = navigateToComposerDetails,
@@ -485,40 +498,94 @@ private fun LibraryContent(
 
                 LibraryCategory.Genres -> {
                     genreItems(
-                        //what would the genres screen need?
                         genres = libraryGenres,
-                        coroutineScope = coroutineScope,
-                        navigateToGenreDetails = navigateToGenreDetails,
+                        navigateToGenreDetails = { genre: GenreInfo ->
+                            Log.i(TAG, "Genre clicked: ${genre.name}")
+                            navigateToGenreDetails(genre.id)
+                        },
+                        onGenreMoreOptionsClick = { genre: GenreInfo ->
+                            Log.i(TAG, "Genre More Option Clicked: ${genre.name}")
+                            selectedGenre = genre
+                            showBottomSheet = true
+                            showGenreMoreOptions = true
+                        },
+                        onSortClick = {
+                            Log.i(TAG, "Genre Sort btn clicked")
+                            showBottomSheet = true
+                            showSortSheet = true
+                        },
+                        onSelectClick = {
+                            Log.i(TAG, "Genre Multi Select btn clicked")
+                        },
                     )
                 }
 
                 LibraryCategory.Songs -> {
                     songItems(
-                        //what would the songs screen need?
                         songs = librarySongs,
-                        coroutineScope = coroutineScope,
-                        onLibraryAction = onLibraryAction,
-                        navigateToPlayer = navigateToPlayer,
+                        navigateToPlayer = { song: SongInfo ->
+                            Log.i(TAG, "Song clicked: ${song.title}")
+                            onLibraryAction(LibraryAction.PlaySong(song))
+                            navigateToPlayer()
+                        },
+                        onSongMoreOptionsClick = { song: SongInfo ->
+                            Log.i(TAG, "Song More Option Clicked: ${song.title}")
+                            selectedSong = song
+                            showBottomSheet = true
+                            showSongMoreOptions = true
+                        },
+                        onSortClick = {
+                            Log.i(TAG, "Song Sort btn clicked")
+                            showBottomSheet = true
+                            showSortSheet = true
+                        },
+                        onSelectClick = {
+                            Log.i(TAG, "Song Multi Select btn clicked")
+                        },
+                        onPlayClick = {
+                            Log.i(TAG, "Play Songs btn clicked")
+                            onLibraryAction(LibraryAction.PlaySongs(librarySongs))
+                            navigateToPlayer()
+                        },
+                        onShuffleClick = {
+                            Log.i(TAG, "Shuffle Songs btn clicked")
+                            onLibraryAction(LibraryAction.ShuffleSongs(librarySongs))
+                            navigateToPlayer()
+                        },
                     )
                 }
 
                 /** adaptive columns section **/
                 LibraryCategory.Albums -> {
                     albumItems(
-                        //what would the albums screen need?
                         albums = libraryAlbums,
-                        coroutineScope = coroutineScope,
-                        navigateToAlbumDetails = navigateToAlbumDetails,
+                        navigateToAlbumDetails = { album: AlbumInfo ->
+                            Log.i(TAG, "Album clicked: ${album.title}")
+                            navigateToAlbumDetails(album.id)
+                        },
+                        onAlbumMoreOptionsClick = { album: AlbumInfo ->
+                            Log.i(TAG, "Album More Option Clicked: ${album.title}")
+                            selectedAlbum = album
+                            showBottomSheet = true
+                            showAlbumMoreOptions = true
+                        },
+                        onSortClick = {
+                            Log.i(TAG, "Album Sort btn clicked")
+                            showBottomSheet = true
+                            showSortSheet = true
+                        },
+                        onSelectClick = {
+                            Log.i(TAG, "Album Multi Select btn clicked")
+                        },
                     )
                 }
 
                 LibraryCategory.Playlists -> {
                     playlistItems(
-                        //what would the playlist screen need?
                         playlists = libraryPlaylists,
                         navigateToPlaylistDetails = navigateToPlaylistDetails,
                         coroutineScope = coroutineScope,
-                        modifier = modifier//.align(Alignment.CenterHorizontally),
+                        modifier = modifier
                     )
                 }
             }
@@ -563,6 +630,437 @@ private fun LibraryContent(
             }
         }
     }
+
+    // Library BottomSheet
+    if (showBottomSheet) {
+        Log.i(TAG, "Library Content -> showBottomSheet is TRUE")
+        // bottom sheet context - sort btn
+        if (showSortSheet) {
+            Log.i(TAG, "Library Content -> $selectedLibraryCategory Sort Modal is TRUE")
+            LibrarySortSelectionBottomModal(
+                onDismissRequest = {
+                    showBottomSheet = false
+                    showSortSheet = false
+                },
+                sheetState = sheetState,
+                libraryCategory = selectedLibraryCategory,
+                // need to show selection
+                onClose = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Hide sheet state")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSortSheet = false
+                        }
+                    }
+                },
+                onApply = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Save sheet state - does nothing atm")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSortSheet = false
+                        }
+                    }
+                },
+            )
+        }
+
+        // bottom sheet context - album more option btn
+        else if (showAlbumMoreOptions) {
+            Log.i(TAG, "Library Content -> Album More Options is TRUE")
+            AlbumMoreOptionsBottomModal(
+                onDismissRequest = {
+                    showBottomSheet = false
+                    showAlbumMoreOptions = false
+                },
+                sheetState = sheetState,
+                album = selectedAlbum,
+                play = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> Play Album clicked")
+                        onLibraryAction(LibraryAction.PlayAlbum(selectedAlbum))
+                        sheetState.hide()
+                        navigateToPlayer()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showAlbumMoreOptions = false
+                        }
+                    }
+                },
+                playNext = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> Play Album Next clicked")
+                        onLibraryAction(LibraryAction.PlayAlbumNext(selectedAlbum))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showAlbumMoreOptions = false
+                        }
+                    }
+                },
+                shuffle = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> Shuffle Album clicked")
+                        onLibraryAction(LibraryAction.ShuffleAlbum(selectedAlbum))
+                        sheetState.hide()
+                        navigateToPlayer()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showAlbumMoreOptions = false
+                        }
+                    }
+                },
+                //addToPlaylist = {},
+                addToQueue = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> Queue Album clicked")
+                        onLibraryAction(LibraryAction.QueueAlbum(selectedAlbum))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showAlbumMoreOptions = false
+                        }
+                    }
+                },
+                goToArtist = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> Go To Artist clicked")
+                        navigateToArtistDetails(selectedAlbum.albumArtistId ?: 0L) // not a good check, would break if bottom modal didn't have null check too
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showAlbumMoreOptions = false
+                        }
+                    }
+                },
+                goToAlbum = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> Go To Album clicked")
+                        navigateToAlbumDetails(selectedAlbum.id)
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showAlbumMoreOptions = false
+                        }
+                    }
+                },
+                onClose = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Hide sheet state")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showAlbumMoreOptions = false
+                        }
+                    }
+                },
+                context = "Library",
+            )
+        }
+
+        // bottom sheet context - artist more option btn
+        else if (showArtistMoreOptions) {
+            Log.i(TAG, "Library Content -> Artist More Options is TRUE")
+            ArtistMoreOptionsBottomModal(
+                onDismissRequest = {
+                    showBottomSheet = false
+                    showArtistMoreOptions = false
+                },
+                sheetState = sheetState,
+                artist = selectedArtist,
+                play = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Artist More Options Modal -> Play Artist clicked")
+                        onLibraryAction(LibraryAction.PlayArtist(selectedArtist))
+                        sheetState.hide()
+                        navigateToPlayer()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set ArtistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showArtistMoreOptions = false
+                        }
+                    }
+                },
+                playNext = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Artist More Options Modal -> Play Artist Next clicked")
+                        onLibraryAction(LibraryAction.PlayArtistNext(selectedArtist))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set ArtistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showArtistMoreOptions = false
+                        }
+                    }
+                },
+                shuffle = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Artist More Options Modal -> Shuffle Artist clicked")
+                        onLibraryAction(LibraryAction.ShuffleArtist(selectedArtist))
+                        sheetState.hide()
+                        navigateToPlayer()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set ArtistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showArtistMoreOptions = false
+                        }
+                    }
+                },
+                //addToPlaylist = {},
+                addToQueue = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Artist More Options Modal -> Queue Artist clicked")
+                        onLibraryAction(LibraryAction.QueueArtist(selectedArtist))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set ArtistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showArtistMoreOptions = false
+                        }
+                    }
+                },
+                goToArtist = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Artist More Options Modal -> Go To Artist clicked")
+                        navigateToAlbumDetails(selectedArtist.id)
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set ArtistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showArtistMoreOptions = false
+                        }
+                    }
+                },
+                onClose = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Hide sheet state")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set ArtistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showArtistMoreOptions = false
+                        }
+                    }
+                },
+                context = "Library",
+            )
+        }
+
+        // bottom sheet context - genre more option btn
+        else if (showGenreMoreOptions) {
+            Log.i(TAG, "Library Content -> Genre More Options is TRUE")
+            GenreMoreOptionsBottomModal(
+                onDismissRequest = {
+                    showBottomSheet = false
+                    showGenreMoreOptions = false
+                },
+                sheetState = sheetState,
+                genre = selectedGenre,
+                play = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Genre More Options Modal -> Play Genre clicked")
+                        onLibraryAction(LibraryAction.PlayGenre(selectedGenre))
+                        sheetState.hide()
+                        navigateToPlayer()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set GenreMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showGenreMoreOptions = false
+                        }
+                    }
+                },
+                /*playNext = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Artist More Options Modal -> Play Artist Next clicked")
+                        onLibraryAction(LibraryAction.PlayArtistNext(selectedArtist))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set ArtistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showArtistMoreOptions = false
+                        }
+                    }
+                },*/
+                shuffle = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Genre More Options Modal -> Shuffle Genre clicked")
+                        onLibraryAction(LibraryAction.ShuffleGenre(selectedGenre))
+                        sheetState.hide()
+                        navigateToPlayer()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set GenreMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showGenreMoreOptions = false
+                        }
+                    }
+                },
+                //addToPlaylist = {},
+                /*addToQueue = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Artist More Options Modal -> Queue Artist clicked")
+                        onLibraryAction(LibraryAction.QueueArtist(selectedArtist))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set ArtistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showArtistMoreOptions = false
+                        }
+                    }
+                },*/
+                goToGenre = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Genre More Options Modal -> Go To Genre clicked")
+                        navigateToGenreDetails(selectedGenre.id)
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set GenreMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showGenreMoreOptions = false
+                        }
+                    }
+                },
+                onClose = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Hide sheet state")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set GenreMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showGenreMoreOptions = false
+                        }
+                    }
+                },
+                context = "Library",
+            )
+        }
+
+        // bottom sheet context - song more option btn
+        else if (showSongMoreOptions) {
+            Log.i(TAG, "Library Content -> Song More Options is TRUE")
+            SongMoreOptionsBottomModal(
+                onDismissRequest = {
+                    showBottomSheet = false
+                    showSongMoreOptions = false
+                },
+                sheetState = sheetState,
+                song = selectedSong,
+                play = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> PlaySong clicked")
+                        onLibraryAction(LibraryAction.PlaySong(selectedSong))
+                        navigateToPlayer()
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                playNext = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked")
+                        onLibraryAction(LibraryAction.PlaySongNext(selectedSong))
+                        navigateToPlayer()
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                //addToPlaylist = {},
+                addToQueue = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> QueueSong clicked")
+                        onLibraryAction(LibraryAction.QueueSong(selectedSong))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                goToArtist = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> GoToArtist clicked")
+                        navigateToArtistDetails(selectedSong.artistId)
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                goToAlbum = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked")
+                        navigateToAlbumDetails(selectedSong.albumId)
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                onClose = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Hide sheet state")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                context = "Library",
+            )
+        }
+    }
 }
 
 @Composable
@@ -570,7 +1068,6 @@ private fun LibraryCategoryTabs(
     libraryCategories: List<LibraryCategory>,
     selectedLibraryCategory: LibraryCategory,
     onLibraryCategorySelected: (LibraryCategory) -> Unit,
-    //modifier: Modifier = Modifier,
 ) {
     if (libraryCategories.isEmpty()) {
         return
@@ -628,23 +1125,6 @@ private fun LibraryCategoryTabIndicator(
     )
 }
 
-/*@Composable
-private fun lastUpdated(updated: OffsetDateTime): String {
-    val duration = Duration.between(updated.toLocalDateTime(), LocalDateTime.now())
-    val days = duration.toDays().toInt()
-
-    return when {
-        days > 28 -> stringResource(R.string.updated_longer)
-        days >= 7 -> {
-            val weeks = days / 7
-            quantityStringResource(R.plurals.updated_weeks_ago, weeks, weeks)
-        }
-
-        days > 0 -> quantityStringResource(R.plurals.updated_days_ago, days, days)
-        else -> stringResource(R.string.updated_today)
-    }
-}*/
-
 @Preview
 @Composable
 private fun LibraryTopAppBarPreview() {
@@ -666,6 +1146,7 @@ private fun PreviewLibrary() {
         LibraryScreen(
             windowSizeClass = CompactWindowSizeClass,
             isLoading = false,
+
             libraryCategories = LibraryCategory.entries,
             selectedLibraryCategory = LibraryCategory.Songs,
             libraryAlbums = PreviewAlbums,
@@ -679,17 +1160,18 @@ private fun PreviewLibrary() {
                 PreviewArtists.size,
                 PreviewAlbums.size,
                 PreviewPlaylists.size),
+
             onLibraryAction = {},
             navigateToHome = {},
             navigateToLibrary = {},
+            navigateToPlayer = {},
+            navigateToSearch = {},
             navigateToSettings = {},
             navigateToAlbumDetails = {},
             navigateToArtistDetails = {},
-            navigateToPlaylistDetails = {},
-            navigateToGenreDetails = {},
             navigateToComposerDetails = {},
-            navigateToPlayer = {},
-            navigateToSearch = {},
+            navigateToGenreDetails = {},
+            navigateToPlaylistDetails = {},
         )
     }
 }

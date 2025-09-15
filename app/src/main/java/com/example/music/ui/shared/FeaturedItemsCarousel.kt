@@ -84,16 +84,10 @@ fun FeaturedAlbumsCarousel(
                     itemTitle = album.title,
                     itemImage = album.artworkUri,
                     itemSize = album.songCount,
-                    onMoreOptionsClick = {
-                        onMoreOptionsClick(album)
-                    },
-                    //onClick = AlbumMoreOptionsBottomModal(album),
-                    //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
+                    onMoreOptionsClick = { onMoreOptionsClick(album) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable {
-                            navigateToAlbumDetails(album.id)
-                        }
+                        .clickable { navigateToAlbumDetails(album.id) }
                 )
             }
         }
@@ -112,9 +106,10 @@ fun FeaturedPlaylistsCarousel(
     pagerState: PagerState,
     items: PersistentList<PlaylistInfo>,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    onMoreOptionsClick: (PlaylistInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //Log.i(TAG, "Featured Playlist Item function start")
+    //Log.i(TAG, "Featured Playlist Carousel START")
     Column(modifier = modifier) {
         BoxWithConstraints(
             modifier = Modifier
@@ -137,15 +132,10 @@ fun FeaturedPlaylistsCarousel(
                     itemTitle = playlist.name,
                     itemImage = Uri.parse(""), // FixMe: needs Playlist Image generation
                     itemSize = playlist.songCount,
-                    onMoreOptionsClick = {},
-                    //onMoreOptionsClick = { onMoreOptionsClick(playlist) },
-                    //onClick = PlaylistMoreOptionsBottomModal(playlist),
-                    //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
+                    onMoreOptionsClick = { onMoreOptionsClick(playlist) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable {
-                            navigateToPlaylistDetails(playlist)
-                        }
+                        .clickable { navigateToPlaylistDetails(playlist) }
                 )
             }
         }
@@ -161,7 +151,7 @@ fun FeaturedCarouselItem(
     modifier: Modifier = Modifier,
 ) {
     Log.i(TAG, "Featured Carousel Item START: $itemTitle")
-    Column(modifier) {
+    Column(modifier = modifier) {
         Box(
             contentAlignment = Alignment.BottomStart,
             modifier = Modifier
@@ -197,10 +187,9 @@ fun FeaturedCarouselItem(
         ) {
             Text(
                 text = itemTitle,
-                //style = MaterialTheme.typography.bodySmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium, //MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(4.dp).weight(1f,true)
                 //modifier = Modifier
                     //.padding(top = 8.dp)
@@ -228,7 +217,6 @@ private fun PreviewCard() {
             itemTitle = PreviewAlbums[0].title,
             itemImage = Uri.parse(""),//album.artwork!!,
             onMoreOptionsClick = {},
-            //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
             modifier = Modifier
                 .size(FEATURED_ITEM_IMAGE_SIZE_DP, FEATURED_ITEM_IMAGE_SIZE_DP + 48.dp)
                 .fillMaxSize()

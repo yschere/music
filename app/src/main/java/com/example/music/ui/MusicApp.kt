@@ -99,14 +99,14 @@ fun MusicApp(
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                     navigateToSettings = { appState.navigateToSettings(backStackEntry) },
-                    navigateToAlbumDetails = { album ->
-                        appState.navigateToAlbumDetails(album.id, backStackEntry)
+                    navigateToAlbumDetails = { albumId ->
+                        appState.navigateToAlbumDetails(albumId, backStackEntry)
                     },
-                    navigateToArtistDetails = { artist ->
-                        appState.navigateToArtistDetails(artist.id, backStackEntry)
+                    navigateToArtistDetails = { artistId ->
+                        appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
-                    navigateToGenreDetails = { genre ->
-                        appState.navigateToGenreDetails(genre.id, backStackEntry)
+                    navigateToGenreDetails = { genreId ->
+                        appState.navigateToGenreDetails(genreId, backStackEntry)
                     },
                     navigateToComposerDetails = { composer ->
                         appState.navigateToComposerDetails(composer.id, backStackEntry)
@@ -192,6 +192,12 @@ fun MusicApp(
                     navigateBack = appState::navigateBack,
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
+                    navigateToAlbumDetails = { albumId ->
+                        appState.navigateToAlbumDetails(albumId, backStackEntry)
+                    },
+                    navigateToArtistDetails = { artistId ->
+                        appState.navigateToArtistDetails(artistId, backStackEntry)
+                    }
                 )
             }
 

@@ -4,19 +4,15 @@ import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.data.database.model.Song
 import com.example.music.domain.usecases.FeaturedLibraryItemsV2
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
-//import com.example.music.domain.player.SongPlayer
 import com.example.music.data.util.combine
-import com.example.music.domain.model.AlbumDetailsFilterResult
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.usecases.GetAlbumDetailsV2
 import com.example.music.domain.usecases.GetTotalCountsV2
 import com.example.music.service.SongController
-import com.example.music.ui.albumdetails.AlbumAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -167,12 +163,12 @@ class HomeViewModel @Inject constructor(
             is HomeAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
 
             is HomeAction.PlaySong -> onPlaySong(action.song) // songMO-play
-            is HomeAction.PlaySongNext -> onQueueSongNext(action.song) // songMO-playNext
+            is HomeAction.PlaySongNext -> onPlaySongNext(action.song) // songMO-playNext
             //is HomeAction.AddSongToPlaylist -> onAddToPlaylist(action.song) // songMO-addToPlaylist
             is HomeAction.QueueSong -> onQueueSong(action.song) // songMO-addToQueue
 
             is HomeAction.PlaySongs -> onPlaySongs(action.album) // albumMO-play
-            is HomeAction.PlaySongsNext -> onQueueSongsNext(action.album) // albumMO-playNext
+            is HomeAction.PlaySongsNext -> onPlaySongsNext(action.album) // albumMO-playNext
             is HomeAction.ShuffleSongs -> onShuffleSongs(action.album) // albumMO-shuffle
             //is HomeAction.AddAlbumToPlaylist -> onAddToPlaylist(action.album) // albumMO-addToPlaylist
             is HomeAction.QueueSongs -> onQueueSongs(action.album) // albumMO-addToQueue
@@ -187,12 +183,10 @@ class HomeViewModel @Inject constructor(
         Log.i(TAG, "onAlbumMoreOptionClick -> ${album.title}")
         selectedAlbum.value = album
     }
-
     private fun onSongMoreOptionClick(song: SongInfo) {
         Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
         selectedSong.value = song
     }
-
     /*private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
         selectedLibraryPlaylist.value = playlist
     }*/
@@ -201,21 +195,15 @@ class HomeViewModel @Inject constructor(
         Log.i(TAG, "onPlaySong -> ${song.title}")
         songController.play(song)
     }
+    private fun onPlaySongNext(song: SongInfo) {
+        Log.i(TAG, "onQueueSongNext -> ${song.title}")
+        songController.addToQueueNext(song)
+    }
+    private fun onQueueSong(song: SongInfo) {
+        Log.i(TAG, "onQueueSong -> ${song.title}")
+        songController.addToQueue(song)
+    }
 
-    /*private fun onPlaySongs(songs: List<SongInfo>) {
-        Log.i(TAG, "onPlaySongs -> ${songs.size}")
-        songController.play(songs)
-        /* //what is the thing that would jump start this step process. would it go thru the viewModel??
-        //step 1: regardless of shuffle being on or off, set shuffle to off
-        //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
-        //step 3: set the player to play the first item in queue
-        //step 4: navigateToPlayer(first item)
-        //step 5: start playing
-        coroutineScope.launch {
-            sheetState.hide()
-            showThemeSheet = false
-        }*/
-    }*/
     private fun onPlaySongs(album: AlbumInfo) {
         Log.i(TAG, "onPlaySongs -> ${album.title}")
         viewModelScope.launch {
@@ -223,62 +211,25 @@ class HomeViewModel @Inject constructor(
             songController.play(songs)
         }
     }
-
-    private fun onQueueSong(song: SongInfo) {
-        Log.i(TAG, "onQueueSong -> ${song.title}")
-        songController.addToQueue(song)
-    }
-
-    private fun onQueueSongNext(song: SongInfo) {
-        Log.i(TAG, "onQueueSongNext -> ${song.title}")
-        songController.addToQueueNext(song)
-    }
-
-    /*private fun onQueueSongs(songs: List<SongInfo>) {
-        Log.i(TAG, "onQueueSongs -> ${songs.size}")
-        songController.addToQueue(songs)
-    }*/
-    private fun onQueueSongs(album: AlbumInfo) {
-        Log.i(TAG, "onQueueSongs -> ${album.title}")
-        viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
-            songController.addToQueue(songs)
-        }
-    }
-
-    /*private fun onQueueSongsNext(songs: List<SongInfo>) {
-        Log.i(TAG, "onQueueSongsNext - ${songs.size}")
-        songController.addToQueueNext(songs)
-    }*/
-    private fun onQueueSongsNext(album: AlbumInfo) {
+    private fun onPlaySongsNext(album: AlbumInfo) {
         Log.i(TAG, "onQueueSongsNext -> ${album.title}")
         viewModelScope.launch {
             val songs = getAlbumDetailsV2(album.id).first().songs
             songController.addToQueueNext(songs)
         }
     }
-
-    /*private fun onShuffleSongs(songs: List<SongInfo>) {
-        Log.i(TAG, "onShuffleSongs -> ${songs.size}")
-        songController.shuffle(songs)
-        /* //what is the thing that would jump start this step process
-        //step 1: regardless of shuffle being on or off, set shuffle to on
-        //step 2?: confirm the shuffle type
-        //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
-        //step 4: set the player to play the first item in queue
-        //step 5: navigateToPlayer(first item)
-        //step 6: start playing
-        //needs to take the songs in the playlist, shuffle the
-        coroutineScope.launch {
-            sheetState.hide()
-            showThemeSheet = false
-        }*/
-    }*/
     private fun onShuffleSongs(album: AlbumInfo) {
         Log.i(TAG, "onShuffleSongs -> ${album.title}")
         viewModelScope.launch {
             val songs = getAlbumDetailsV2(album.id).first().songs
             songController.shuffle(songs)
+        }
+    }
+    private fun onQueueSongs(album: AlbumInfo) {
+        Log.i(TAG, "onQueueSongs -> ${album.title}")
+        viewModelScope.launch {
+            val songs = getAlbumDetailsV2(album.id).first().songs
+            songController.addToQueue(songs)
         }
     }
 }
@@ -300,14 +251,11 @@ sealed interface HomeAction {
     //data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
 
     data class PlaySong(val song: SongInfo) : HomeAction
-    //data class PlaySongs(val songs: List<SongInfo>) : HomeAction
-    data class PlaySongs(val album: AlbumInfo) : HomeAction
     data class PlaySongNext(val song: SongInfo) : HomeAction
-    //data class PlaySongsNext(val songs: List<SongInfo>) : HomeAction
-    data class PlaySongsNext(val album: AlbumInfo) : HomeAction
     data class QueueSong(val song: SongInfo) : HomeAction
-    //data class QueueSongs(val songs: List<SongInfo>) : HomeAction
-    data class QueueSongs(val album: AlbumInfo) : HomeAction
-    //data class ShuffleSongs(val songs: List<SongInfo>) : HomeAction
+
+    data class PlaySongs(val album: AlbumInfo) : HomeAction
+    data class PlaySongsNext(val album: AlbumInfo) : HomeAction
     data class ShuffleSongs(val album: AlbumInfo) : HomeAction
+    data class QueueSongs(val album: AlbumInfo) : HomeAction
 }

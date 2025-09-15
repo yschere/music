@@ -1,15 +1,12 @@
 package com.example.music.ui.artistdetails
 
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -17,15 +14,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -62,7 +56,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -73,7 +66,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
-import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.Keyline1
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewArtists
@@ -82,19 +74,14 @@ import com.example.music.domain.testing.getSongsByArtist
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.ui.home.HomeAction
-
-
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
-import com.example.music.ui.shared.FeaturedCarouselItem
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
-import com.example.music.ui.shared.formatStr
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
@@ -102,7 +89,6 @@ import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /** Changelog:
@@ -254,8 +240,7 @@ fun ArtistDetailsScreen(
                         }
                     },
                     navigationIcon = {
-                        //back button
-                        IconButton( onClick = navigateBack ) {
+                        IconButton(onClick = navigateBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(id = R.string.icon_back_nav),
@@ -264,7 +249,7 @@ fun ArtistDetailsScreen(
                         }
                     },
                     actions = {
-                        // search btn
+                        // Search btn
                         IconButton( onClick = navigateToSearch ) {
                             Icon(
                                 imageVector = Icons.Outlined.Search,
@@ -273,6 +258,7 @@ fun ArtistDetailsScreen(
                             )
                         }
 
+                        // Artist More Options btn
                         IconButton(
                             onClick = {
                                 showBottomSheet = true
@@ -298,7 +284,6 @@ fun ArtistDetailsScreen(
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
-
                 //ArtistDetailsTopAppBar(
                     //navigateBack = navigateBack,
                 //)
@@ -339,8 +324,7 @@ fun ArtistDetailsScreen(
                 columns = GridCells.Fixed(1),
                 modifier = modifier.padding(contentPadding)
                     .fillMaxSize()
-                // does not have the initial .padding(horizontal = 12.dp) so that
-                // Albums horizontal pager is not cut into
+                    // does not have .padding(horizontal = 12.dp) to account for the albums carousel
             ) {
                 // section 1: header item
                 // is within TopAppBar now
@@ -348,6 +332,7 @@ fun ArtistDetailsScreen(
                 //section 2: albums list
                 if (albums.isNotEmpty()) {
                     fullWidthItem {
+                        // this item is only for listing count of albums, so not using sorting or selection here
                         Text(
                             text = """\s[a-z]""".toRegex().replace(
                                 quantityStringResource(R.plurals.albums, albums.size, albums.size)
@@ -359,48 +344,14 @@ fun ArtistDetailsScreen(
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                         )
                     }
+
                     fullWidthItem {
-                        /*Column(modifier = modifier) {
-                            BoxWithConstraints(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.Transparent)
-                            ) {
-                                val horizontalPadding = (this.maxWidth - 160.dp) / 2
-                                HorizontalPager(
-                                    state = pagerState,
-                                    contentPadding = PaddingValues(
-                                        horizontal = horizontalPadding,
-                                        vertical = 16.dp,
-                                    ),
-                                    pageSpacing = 24.dp,
-                                    pageSize = PageSize.Fixed(160.dp)
-                                ) { page ->
-                                    val album = albums[page]
-                                    FeaturedCarouselItem(
-                                        itemImage = album.artworkUri,
-                                        itemTitle = album.title,
-                                        itemSize = album.songCount,
-                                        onMoreOptionsClick = {
-                                            onArtistAction( ArtistAction.AlbumMoreOptionClicked(album) )
-                                            //ArtistAction.AlbumMoreOptionClicked(album)
-                                            showBottomSheet = true
-                                            showAlbumMoreOptions = true
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clickable {
-                                                navigateToAlbumDetails(album.id)
-                                            }
-                                    )
-                                }
-                            }
-                        }*/
                         FeaturedAlbumsCarousel(
                             pagerState = pagerState,
                             items = albums,
                             navigateToAlbumDetails = navigateToAlbumDetails,
                             onMoreOptionsClick = { album: AlbumInfo ->
+                                Log.i(TAG, "Album More Options clicked: ${album.title}")
                                 onArtistAction( ArtistAction.AlbumMoreOptionClicked(album) )
                                 showBottomSheet = true
                                 showAlbumMoreOptions = true
@@ -488,6 +439,18 @@ fun ArtistDetailsScreen(
                         onClose = {
                             coroutineScope.launch {
                                 Log.i(TAG, "Hide sheet state")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSortSheet = false
+                                }
+                            }
+                        },
+                        onApply = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Save sheet state - does nothing atm")
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showBottomSheet to FALSE")
@@ -803,7 +766,6 @@ fun ArtistDetailsContent(
     artist: ArtistInfo,
     albums: PersistentList<AlbumInfo>,
     songs: List<SongInfo>,
-    coroutineScope: CoroutineScope,
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     modifier: Modifier = Modifier
@@ -831,8 +793,7 @@ fun ArtistDetailsContent(
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
         modifier = modifier.fillMaxSize(),
-        //does not have the initial .padding(horizontal = 12.dp) so that
-        // Albums horizontal pager is not cut into
+        // does not have .padding(horizontal = 12.dp) to account for the albums carousel
     ) {
         //section 1: header item
         fullWidthItem {
@@ -883,8 +844,8 @@ fun ArtistDetailsContent(
 
             fullWidthItem {
                 PlayShuffleButtons(
-                    onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
-                    onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                    onPlayClick = {},
+                    onShuffleClick = {},
                 )
             }
 

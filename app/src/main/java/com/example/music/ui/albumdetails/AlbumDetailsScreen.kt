@@ -2,10 +2,6 @@ package com.example.music.ui.albumdetails
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring.StiffnessMediumLow
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -33,9 +29,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -46,12 +40,8 @@ import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.BottomAppBarDefaults
-import androidx.compose.material3.BottomAppBarState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -59,19 +49,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarDefaults.TopAppBarExpandedHeight
-import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
 import androidx.compose.material3.contentColorFor
-import androidx.compose.material3.rememberBottomAppBarState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -84,9 +68,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -95,7 +76,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.min
@@ -104,18 +84,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.Keyline1
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
-import com.example.music.domain.testing.getArtistData
 import com.example.music.domain.testing.getSongsInAlbum
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.testing.PreviewArtists
-import com.example.music.domain.testing.PreviewSongs
-import com.example.music.ui.albumdetails.AlbumAction.SongMoreOptionClicked
-import com.example.music.ui.artistdetails.ArtistAction
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Loading
@@ -123,14 +97,11 @@ import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.shared.formatStr
-import com.example.music.ui.shared.gridVerticalScrollbar
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /** Changelog:
@@ -287,7 +258,6 @@ fun AlbumDetailsScreen(
                         }
                     },
                     navigationIcon = {
-                        //back button
                         IconButton(onClick = navigateBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -297,7 +267,7 @@ fun AlbumDetailsScreen(
                         }
                     },
                     actions = {
-                        // search btn
+                        // Search btn
                         IconButton( onClick = navigateToSearch ) {
                             Icon(
                                 imageVector = Icons.Outlined.Search,
@@ -306,6 +276,7 @@ fun AlbumDetailsScreen(
                             )
                         }
 
+                        // Album More Options btn
                         IconButton(
                             onClick = {
                                 showBottomSheet = true
@@ -408,25 +379,25 @@ fun AlbumDetailsScreen(
                     //section 2: songs list
                     items(songs) { song -> // for each song in list:
                         SongListItem(
-                                song = song,
-                                onClick = {
-                                    Log.i(TAG, "Song clicked: ${song.title}")
-                                    onAlbumAction(AlbumAction.PlaySong(song))
-                                    navigateToPlayer()
-                                },
-                                onMoreOptionsClick = {
-                                    Log.i(TAG, "Song More Option clicked: ${song.title}")
-                                    onAlbumAction(AlbumAction.SongMoreOptionClicked(song))
-                                    showBottomSheet = true
-                                    showSongMoreOptions = true
-                                },
-                                isListEditable = false,
-                                showAlbumImage = true,
-                                showArtistName = true,
-                                showAlbumTitle = false,
-                                showTrackNumber = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
+                            song = song,
+                            onClick = {
+                                Log.i(TAG, "Song clicked: ${song.title}")
+                                onAlbumAction(AlbumAction.PlaySong(song))
+                                navigateToPlayer()
+                            },
+                            onMoreOptionsClick = {
+                                Log.i(TAG, "Song More Option clicked: ${song.title}")
+                                onAlbumAction(AlbumAction.SongMoreOptionClicked(song))
+                                showBottomSheet = true
+                                showSongMoreOptions = true
+                            },
+                            isListEditable = false,
+                            showAlbumImage = true,
+                            showArtistName = true,
+                            showAlbumTitle = false,
+                            showTrackNumber = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
                 }
 
@@ -484,6 +455,18 @@ fun AlbumDetailsScreen(
                         onClose = {
                             coroutineScope.launch {
                                 Log.i(TAG, "Hide sheet state")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSortSheet = false
+                                }
+                            }
+                        },
+                        onApply = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Save sheet state - does nothing atm")
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showBottomSheet to FALSE")
@@ -1067,7 +1050,7 @@ private fun SongCountAndSortSelectButtons(
         IconButton(
             onClick = onSortClick,
             modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) { // showBottomSheet = true
+        ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Sort,
                 contentDescription = stringResource(R.string.icon_sort),
@@ -1096,10 +1079,10 @@ private fun SongCountAndSortSelectButtons(
 private fun PlayShuffleButtons(
     onPlayClick: () -> Unit,
     onShuffleClick: () -> Unit,
-    //modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        Modifier.padding(bottom = 8.dp)
+        modifier.padding(bottom = 8.dp)
     ) {
         // play btn
         Button(

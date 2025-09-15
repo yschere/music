@@ -15,17 +15,11 @@ import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults.buttonColors
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -34,15 +28,9 @@ import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.model.SongInfo
-import com.example.music.ui.library.LibraryAction
 import com.example.music.ui.shared.SongListItem
-import com.example.music.ui.library.LibraryCategory
-import com.example.music.ui.shared.LibrarySortSelectionBottomModal
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
-import kotlinx.coroutines.CoroutineScope
-
-private const val TAG = "Library Songs"
 
 /** Changelog:
  *
@@ -53,20 +41,99 @@ private const val TAG = "Library Songs"
  * 7/22-23/2025 - Removed PlayerSong completely
  */
 
+private const val TAG = "Library Songs"
+
 /**
  * Overloaded version of lazy list for songItems
  */
-@OptIn(ExperimentalMaterial3Api::class)
 fun LazyListScope.songItems(
     songs: List<SongInfo>,
-    coroutineScope: CoroutineScope,
-    onLibraryAction: (LibraryAction) -> Unit,
-    navigateToPlayer: () -> Unit,
+    navigateToPlayer: (SongInfo) -> Unit,
+    onSongMoreOptionsClick: (SongInfo) -> Unit,
+    onSortClick: () -> Unit = {},
+    onSelectClick: () -> Unit = {},
+    onPlayClick: () -> Unit = {},
+    onShuffleClick: () -> Unit = {},
 ) {
+    Log.i(TAG, "Lazy List START")
     //section 1: header
     item {
-        // ******** var  for modal remember here
-        var showBottomSheet by remember { mutableStateOf(false) }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = """\s[a-z]""".toRegex().replace(
+                    quantityStringResource(R.plurals.songs, songs.size, songs.size)
+                ) {
+                    it.value.uppercase()
+                },
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(8.dp).weight(1f, true)
+            )
+            //Spacer(Modifier.weight(1f,true))
+
+            // sort icon
+            IconButton(onClick = onSortClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
+                    contentDescription = stringResource(R.string.icon_sort),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+
+            // multi-select icon
+            IconButton(onClick = onSelectClick) {
+                Icon(
+                    imageVector = Icons.Filled.Checklist,//want this to be multi select icon
+                    contentDescription = stringResource(R.string.icon_multi_select),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+    }
+
+    // section 1.5: play and shuffle buttons
+    item {
+        PlayShuffleButtons(
+            onPlayClick = onPlayClick,
+            onShuffleClick = onShuffleClick,
+        )
+    }
+
+    items(
+        items = songs,
+    ) { song ->
+        SongListItem(
+            song = song,
+            onClick = { navigateToPlayer(song) },
+            onMoreOptionsClick = { onSongMoreOptionsClick(song) },
+            isListEditable = false,
+            showArtistName = true,
+            showAlbumImage = true,
+            showAlbumTitle = true,
+            showTrackNumber = false,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+/**
+ * Overloaded version of lazy grid for songItems
+ */
+fun LazyGridScope.songItems(
+    songs: List<SongInfo>,
+    navigateToPlayer: (SongInfo) -> Unit,
+    onSongMoreOptionsClick: (SongInfo) -> Unit,
+    onSortClick: () -> Unit = {},
+    onSelectClick: () -> Unit = {},
+    onPlayClick: () -> Unit = {},
+    onShuffleClick: () -> Unit = {},
+) {
+    Log.i(TAG, "Lazy Grid START")
+    //section 1: header
+    fullWidthItem {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -83,7 +150,7 @@ fun LazyListScope.songItems(
             //Spacer(Modifier.weight(1f,true))
 
             // sort icon
-            IconButton(onClick = { showBottomSheet = true }) {
+            IconButton(onClick = onSortClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
                     contentDescription = stringResource(R.string.icon_sort),
@@ -92,7 +159,7 @@ fun LazyListScope.songItems(
             }
 
             // multi-select icon
-            IconButton(onClick = {/* filter */ }) {
+            IconButton(onClick = onSelectClick) {
                 Icon(
                     imageVector = Icons.Filled.Checklist,//want this to be multi select icon
                     contentDescription = stringResource(R.string.icon_multi_select),
@@ -100,141 +167,13 @@ fun LazyListScope.songItems(
                 )
             }
         }
-        if (showBottomSheet) {
-            LibrarySortSelectionBottomModal(
-                onDismissRequest = { showBottomSheet = false },
-                libraryCategory = LibraryCategory.Songs,
-            )
-        }
     }
 
-    item {
-        PlayShuffleButtons(
-            onPlayClick = {
-                onLibraryAction(LibraryAction.PlaySongs(songs))
-                navigateToPlayer()
-            },
-            onShuffleClick = {
-                onLibraryAction(LibraryAction.ShuffleSongs(songs))
-                navigateToPlayer()
-            },
-        )
-    }
-
-    items(
-        items = songs,
-    ) { song ->
-        SongListItem(
-            song = song,
-            onClick = {
-                Log.i(TAG, "Song clicked: ${song.title}")
-                onLibraryAction(LibraryAction.SongClicked(song))
-                navigateToPlayer()
-            },
-            onMoreOptionsClick = {},
-            //onQueueSong = {},
-            isListEditable = false,
-            showArtistName = true,
-            showAlbumImage = true,
-            showAlbumTitle = true,
-            showTrackNumber = false,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-
-    /* // original lazy list version
-    item {
-        Text(
-            text = """\s[a-z]""".toRegex().replace(quantityStringResource(R.plurals.songs, songs.size, songs.size)) {
-                it.value.uppercase()
-            },
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp)
-        )
-    }
-
-    items(songs) { item ->
-        SongListItem(
-            song = item,
-            onClick = { navigateToPlayer(item) },
-            //onQueueSong = {},
-            isListEditable = false,
-            showArtistName = true,
-            showAlbumImage = true,
-            showAlbumTitle = true,
-            showTrackNumber = false,
-            modifier = Modifier.fillParentMaxWidth(),
-        )
-    }*/
-}
-
-/**
- * Overloaded version of lazy grid for songItems
- */
-@OptIn(ExperimentalMaterial3Api::class)
-fun LazyGridScope.songItems(
-    songs: List<SongInfo>,
-    coroutineScope: CoroutineScope,
-    onLibraryAction: (LibraryAction) -> Unit,
-    navigateToPlayer: () -> Unit,
-) {
-
-    //section 1: header
-    fullWidthItem {
-        // ******** var  for modal remember here
-        var showBottomSheet by remember { mutableStateOf(false) }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = """\s[a-z]""".toRegex()
-                    .replace(quantityStringResource(R.plurals.songs, songs.size, songs.size)) {
-                        it.value.uppercase()
-                    },
-                textAlign = TextAlign.Left,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(8.dp).weight(1f,true)
-            )
-            //Spacer(Modifier.weight(1f,true))
-
-            // sort icon
-            IconButton(onClick = { showBottomSheet = true }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
-                    contentDescription = stringResource(R.string.icon_sort),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-
-            // multi-select icon
-            IconButton(onClick = {/* filter */ }) {
-                Icon(
-                    imageVector = Icons.Filled.Checklist,//want this to be multi select icon
-                    contentDescription = stringResource(R.string.icon_multi_select),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-        }
-        if(showBottomSheet) {
-            LibrarySortSelectionBottomModal(
-                onDismissRequest = { showBottomSheet = false },
-                libraryCategory = LibraryCategory.Songs,
-            )
-        }
-    }
-
+    // section 1.5: play and shuffle buttons
     fullWidthItem {
         PlayShuffleButtons(
-            onPlayClick = {
-                onLibraryAction(LibraryAction.PlaySongs(songs))
-                navigateToPlayer()
-            },
-            onShuffleClick = {
-                onLibraryAction(LibraryAction.ShuffleSongs(songs))
-                navigateToPlayer()
-            },
+            onPlayClick = onPlayClick,
+            onShuffleClick = onShuffleClick,
         )
     }
 
@@ -244,12 +183,8 @@ fun LazyGridScope.songItems(
     ) { song ->
         SongListItem(
             song = song,
-            onClick = {
-                Log.i(TAG, "Song clicked: ${song.title}")
-                onLibraryAction(LibraryAction.SongClicked(song))
-                navigateToPlayer()
-            },
-            onMoreOptionsClick = {},
+            onClick = { navigateToPlayer(song) },
+            onMoreOptionsClick = { onSongMoreOptionsClick(song) },
             isListEditable = false,
             showArtistName = true,
             showAlbumImage = true,
@@ -270,20 +205,10 @@ private fun PlayShuffleButtons(
     modifier: Modifier = Modifier,
 ) {
     Row(modifier.padding(bottom = 8.dp)) {
-        //Row(Modifier.padding(bottom = 8.dp)) { // original version for screens that don't have carousel / don't need to remove horizontal padding on lazyVerticalGrid
         // play btn
         Button(
-            onClick = onPlayClick, //what is the thing that would jump start this step process. would it go thru the viewModel??
-            //step 1: regardless of shuffle being on or off, set shuffle to off
-            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
-            //step 3: set the player to play the first item in queue
-            //step 4: navigateToPlayer(first item)
-            //step 5: start playing
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
-            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
+            onClick = onPlayClick,
+            //did have colors set, colors = buttonColors( container -> primary, content -> background )
             shape = MusicShapes.small,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
@@ -298,18 +223,7 @@ private fun PlayShuffleButtons(
 
         // shuffle btn
         Button(
-            onClick = onShuffleClick, //what is the thing that would jump start this step process
-            //step 1: regardless of shuffle being on or off, set shuffle to on
-            //step 2?: confirm the shuffle type
-            //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
-            //step 4: set the player to play the first item in queue
-            //step 5: navigateToPlayer(first item)
-            //step 6: start playing
-            //needs to take the songs in the playlist, shuffle the
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
+            onClick = onShuffleClick,
             //did have colors set, colors = buttonColors( container -> primary, content -> background )
             shape = MusicShapes.small,
             modifier = Modifier
