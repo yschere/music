@@ -83,9 +83,7 @@ fun LazyListScope.artistItems(
                 },
                 textAlign = TextAlign.Left,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .weight(1f, true)
+                modifier = Modifier.padding(8.dp).weight(1f, true)
             )
 
             // Sort btn
@@ -145,9 +143,7 @@ fun LazyGridScope.artistItems(
                 },
                 textAlign = TextAlign.Left,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .weight(1f, true)
+                modifier = Modifier.padding(8.dp).weight(1f, true)
             )
 
             // Sort btn
@@ -195,7 +191,7 @@ fun LazyGridScope.artistItems(
     onSortClick: () -> Unit = {},
     onSelectClick: () -> Unit = {},
 ) {
-    Log.i(TAG, "Lazy Grid START")
+    Log.i(TAG, "Lazy Grid with Sticky Headers START")
     //section 1: header
     fullWidthItem{
         Row(
@@ -351,16 +347,14 @@ private fun ArtistListItemIcon(
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-    ){
+    ) {
         Text(
             text = artist[0].toString(),
             minLines = 1,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 15.dp),
+            modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
         )
     }
 }
