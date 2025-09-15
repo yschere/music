@@ -240,8 +240,7 @@ fun ArtistDetailsScreen(
                         }
                     },
                     navigationIcon = {
-                        //back button
-                        IconButton( onClick = navigateBack ) {
+                        IconButton(onClick = navigateBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(id = R.string.icon_back_nav),
@@ -250,7 +249,7 @@ fun ArtistDetailsScreen(
                         }
                     },
                     actions = {
-                        // search btn
+                        // Search btn
                         IconButton( onClick = navigateToSearch ) {
                             Icon(
                                 imageVector = Icons.Outlined.Search,
@@ -259,6 +258,7 @@ fun ArtistDetailsScreen(
                             )
                         }
 
+                        // Artist More Options btn
                         IconButton(
                             onClick = {
                                 showBottomSheet = true
@@ -284,7 +284,6 @@ fun ArtistDetailsScreen(
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
-
                 //ArtistDetailsTopAppBar(
                     //navigateBack = navigateBack,
                 //)
@@ -449,7 +448,7 @@ fun ArtistDetailsScreen(
                                 }
                             }
                         },
-                        onSave = {
+                        onApply = {
                             coroutineScope.launch {
                                 Log.i(TAG, "Save sheet state - does nothing atm")
                                 sheetState.hide()

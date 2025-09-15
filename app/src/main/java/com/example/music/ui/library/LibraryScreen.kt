@@ -657,7 +657,7 @@ private fun LibraryContent(
                         }
                     }
                 },
-                onSave = {
+                onApply = {
                     coroutineScope.launch {
                         Log.i(TAG, "Save sheet state - does nothing atm")
                         sheetState.hide()
@@ -873,7 +873,7 @@ private fun LibraryContent(
             )
         }
 
-        // bottom sheet context - artist more option btn
+        // bottom sheet context - genre more option btn
         else if (showGenreMoreOptions) {
             Log.i(TAG, "Library Content -> Genre More Options is TRUE")
             GenreMoreOptionsBottomModal(
