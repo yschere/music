@@ -495,7 +495,7 @@ fun AlbumMoreOptionsBottomModal(
     goToArtist: () -> Unit = {},
     goToAlbum: () -> Unit = {}, // if on Library.Albums tab
     onClose: () -> Unit = {},
-    context: String,
+    context: String = "",
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,//{showBottomSheet = false}
@@ -722,13 +722,11 @@ fun GenreMoreOptionsBottomModal(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
 
     genre: GenreInfo,
-    navigateToGenreDetails: (GenreInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit = {},
     play: () -> Unit = {},
-    playNext: () -> Unit = {},
+    //playNext: () -> Unit = {},
     shuffle: () -> Unit = {},
     //addToPlaylist: () -> Unit = {},
-    addToQueue: () -> Unit = {},
+    //addToQueue: () -> Unit = {},
     goToGenre: () -> Unit = {}, // if on Library.Genres tab
     onClose: () -> Unit = {},
     context: String = "",
@@ -754,26 +752,26 @@ fun GenreMoreOptionsBottomModal(
 
             val genreActions = listOf(
                 Pair(Actions.PlayItem, play),
-                Pair(Actions.PlayItemNext, playNext),
+                //Pair(Actions.PlayItemNext, playNext),
                 Pair(Actions.ShuffleItem, shuffle),
                 //Pair(Actions.AddToPlaylist, addToPlaylist),
-                Pair(Actions.AddToQueue, addToQueue),
+                //Pair(Actions.AddToQueue, addToQueue),
             )
 
             // action items, shown items are dependent on this being a song item
             genreActions.forEach { item ->
                 ActionOptionRow(item.first, item.second)
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-
+            
             // if on library.genres
             if (context != "GenreDetails") {
-                ActionOptionRow(Actions.GoToGenre, { navigateToGenreDetails(genre) }) // { navigateToGenreDetails(genre.id) }
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+                ActionOptionRow(Actions.GoToGenre, goToGenre)
             }
 
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            ActionOptionRow(Actions.EditGenreTags, {})
+            //ActionOptionRow(Actions.EditGenreTags, {})
 
             Button(
                 onClick = onClose,
