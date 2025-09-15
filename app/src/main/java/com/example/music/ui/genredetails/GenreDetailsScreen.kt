@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,10 +38,13 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,15 +62,23 @@ import com.example.music.domain.testing.PreviewGenres
 import com.example.music.domain.testing.getSongsInGenre
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.ui.artistdetails.ArtistAction
+import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
+import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
+import com.example.music.ui.shared.DetailsSortSelectionBottomModal
+import com.example.music.ui.shared.GenreMoreOptionsBottomModal
 
 
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
+import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /** Changelog:
  *
@@ -86,11 +98,11 @@ private const val TAG = "Genre Details Screen"
  */
 @Composable
 fun GenreDetailsScreen(
-    //navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateBack: () -> Unit,
-    //modifier: Modifier = Modifier,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     viewModel: GenreDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -103,10 +115,13 @@ fun GenreDetailsScreen(
             GenreDetailsScreen(
                 genre = uiState.genre,
                 songs = uiState.songs,
+                selectSong = uiState.selectSong,
                 onGenreAction = viewModel::onGenreAction,
+                navigateBack = navigateBack,
                 navigateToPlayer = navigateToPlayer,
                 navigateToSearch = navigateToSearch,
-                navigateBack = navigateBack,
+                navigateToAlbumDetails = navigateToAlbumDetails,
+                navigateToArtistDetails = navigateToArtistDetails,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
@@ -159,11 +174,13 @@ private fun GenreDetailsLoadingScreen(
 fun GenreDetailsScreen(
     genre: GenreInfo,
     songs: List<SongInfo>,
+    selectSong: SongInfo,
     onGenreAction: (GenreAction) -> Unit,
+    navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateBack: () -> Unit,
-    //showBackButton: Boolean,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -188,19 +205,21 @@ fun GenreDetailsScreen(
                     navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
                 )*/
             },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             //modifier = modifier.fillMaxSize().systemBarsPadding(),
             containerColor = Color.Transparent,
             contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
             //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
         ) { contentPadding ->
             GenreDetailsContent(
+                coroutineScope = coroutineScope,
                 genre = genre,
                 songs = songs,
+                selectSong = selectSong,
                 onGenreAction = onGenreAction,
                 navigateToPlayer = navigateToPlayer,
+                navigateToAlbumDetails = navigateToAlbumDetails,
+                navigateToArtistDetails = navigateToArtistDetails,
                 modifier = Modifier.padding(contentPadding)
             )
         }
@@ -257,14 +276,25 @@ fun GenreDetailsTopAppBar(
 /**
  * Composable for Genre Details Screen's Content.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenreDetailsContent(
+    coroutineScope: CoroutineScope,
     genre: GenreInfo,
     songs: List<SongInfo>,
+    selectSong: SongInfo,
     onGenreAction: (GenreAction) -> Unit,
     navigateToPlayer: () -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    Log.i(TAG, "GenreContent START")
+    val sheetState = rememberModalBottomSheetState(false)
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
+    var showGenreMoreOptions by remember { mutableStateOf(false) }
+    var showSongMoreOptions by remember { mutableStateOf(false) }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
@@ -282,33 +312,8 @@ fun GenreDetailsContent(
             )
         }
 
-        // section 2: albums list
-        /*if (!albums.isEmpty()) {
-            fullWidthItem {
-                Text(
-                    text = """\s[a-z]""".toRegex().replace(
-                        quantityStringResource(R.plurals.albums, albums.size, albums.size)
-                    ) {
-                        it.value.uppercase()
-                    },
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-            fullWidthItem {
-                FeaturedAlbumsCarousel(
-                    pagerState = pagerState,
-                    items = albums,
-                    navigateToAlbumDetails = navigateToAlbumDetails,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }*/
-
-        // section 3: songs list
-        if (songs.isNotEmpty()) { // this is just to make sure the songs list loaded
-
+        // section 2: songs list
+        if (songs.isNotEmpty()) {
             // songs header
             fullWidthItem {
                 SongCountAndSortSelectButtons(
@@ -318,8 +323,8 @@ fun GenreDetailsContent(
                     },
                     onSortClick = {
                         Log.i(TAG, "Song Sort btn clicked")
-                        //showBottomSheet = true
-                        //showSortSheet = true
+                        showBottomSheet = true
+                        showSortSheet = true
                     }
                 )
             }
@@ -352,8 +357,8 @@ fun GenreDetailsContent(
                         onMoreOptionsClick = {
                             Log.i(TAG, "Song More Option clicked ${song.title}")
                             onGenreAction(GenreAction.SongMoreOptionClicked(song))
-                            //showBottomSheet = true
-                            //showSongMoreOptions = true
+                            showBottomSheet = true
+                            showSongMoreOptions = true
                         },
                         //onQueueSong = { },
                         isListEditable = false,
@@ -365,6 +370,222 @@ fun GenreDetailsContent(
                     )
                 }
             }
+        }
+    }
+
+    // GenreDetails BottomSheet
+    if (showBottomSheet) {
+        Log.i(TAG, "GenreDetails Content -> showBottomSheet is TRUE")
+        // bottom sheet context - sort btn
+        if (showSortSheet) {
+            Log.i(TAG, "GenreDetails Content -> Song Sort Modal is TRUE")
+            DetailsSortSelectionBottomModal(
+                onDismissRequest = {
+                    showBottomSheet = false
+                    showSortSheet = false
+                },
+                sheetState = sheetState,
+                // need to show selection
+                onClose = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Hide sheet state")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSortSheet = false
+                        }
+                    }
+                },
+                onSave = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Save sheet state - does nothing atm")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSortSheet = false
+                        }
+                    }
+                },
+                content = "SongInfo",
+                context = "GenreDetails",
+            )
+        }
+
+        // bottom sheet context - genre more option btn
+        else if (showGenreMoreOptions) {
+            Log.i(TAG, "GenreDetails Content -> Genre More Options is TRUE")
+            GenreMoreOptionsBottomModal(
+                onDismissRequest = {
+                    showBottomSheet = false
+                    showGenreMoreOptions = false
+                },
+                sheetState = sheetState,
+                genre = genre,
+                play = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Genre More Options Modal -> Play Songs clicked")
+                        onGenreAction(GenreAction.PlaySongs(songs))
+                        sheetState.hide()
+                        navigateToPlayer()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set GenreMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showGenreMoreOptions = false
+                        }
+                    }
+                },
+                playNext = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> Play Songs Next clicked")
+                        onGenreAction(GenreAction.PlaySongsNext(songs))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set GenreMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showGenreMoreOptions = false
+                        }
+                    }
+                },
+                shuffle = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Genre More Options Modal -> Shuffle Songs clicked")
+                        onGenreAction(GenreAction.ShuffleSongs(songs))
+                        sheetState.hide()
+                        navigateToPlayer()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set GenreMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showGenreMoreOptions = false
+                        }
+                    }
+                },
+                //addToPlaylist = {},
+                addToQueue = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Genre More Options Modal -> Queue Songs clicked")
+                        onGenreAction(GenreAction.QueueSongs(songs))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set GenreMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showGenreMoreOptions = false
+                        }
+                    }
+                },
+                onClose = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Hide sheet state")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set GenreMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showGenreMoreOptions = false
+                        }
+                    }
+                },
+                context = "GenreDetails",
+            )
+        }
+
+        // bottom sheet context - song more option btn
+        else if (showSongMoreOptions) {
+            Log.i(TAG, "GenreDetails Content -> Song More Options is TRUE")
+            SongMoreOptionsBottomModal(
+                onDismissRequest = {
+                    showBottomSheet = false
+                    showSongMoreOptions = false
+                },
+                sheetState = sheetState,
+                song = selectSong,
+                play = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> PlaySong clicked")
+                        onGenreAction(GenreAction.PlaySong(selectSong))
+                        navigateToPlayer()
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                playNext = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked")
+                        onGenreAction(GenreAction.PlaySongNext(selectSong))
+                        navigateToPlayer()
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                //addToPlaylist = {},
+                addToQueue = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> QueueSong clicked")
+                        onGenreAction(GenreAction.QueueSong(selectSong))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                goToArtist = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> GoToArtist clicked")
+                        navigateToArtistDetails(selectSong.artistId)
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        showBottomSheet = false
+                        showSongMoreOptions = false
+                    }
+                },
+                goToAlbum = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked")
+                        navigateToAlbumDetails(selectSong.albumId)
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                onClose = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Hide sheet state")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        }
+                    }
+                },
+                context = "GenreDetails",
+            )
         }
     }
 }
@@ -542,11 +763,13 @@ fun GenreDetailsScreenPreview() {
             //JPop
             genre = PreviewGenres[3],
             songs = getSongsInGenre(3),
-            onGenreAction = {},
+            selectSong = getSongsInGenre(3)[0],
 
-            //navigateToAlbumDetails = {},
+            onGenreAction = {},
             navigateToPlayer = {},
             navigateToSearch = {},
+            navigateToAlbumDetails = {},
+            navigateToArtistDetails = {},
             navigateBack = {},
         )
     }
