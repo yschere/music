@@ -131,7 +131,7 @@ fun LibraryScreen(
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
-    navigateToGenreDetails: (GenreInfo) -> Unit,
+    navigateToGenreDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
@@ -224,7 +224,7 @@ private fun LibraryScreen(
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
-    navigateToGenreDetails: (GenreInfo) -> Unit,
+    navigateToGenreDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -372,7 +372,7 @@ private fun LibraryContent(
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
-    navigateToGenreDetails: (GenreInfo) -> Unit,
+    navigateToGenreDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
 ) {
@@ -501,7 +501,7 @@ private fun LibraryContent(
                         genres = libraryGenres,
                         navigateToGenreDetails = { genre: GenreInfo ->
                             Log.i(TAG, "Genre clicked: ${genre.name}")
-                            navigateToGenreDetails(genre)
+                            navigateToGenreDetails(genre.id)
                         },
                         onGenreMoreOptionsClick = { genre: GenreInfo ->
                             Log.i(TAG, "Genre More Option Clicked: ${genre.name}")
@@ -941,7 +941,7 @@ private fun LibraryContent(
                 goToGenre = {
                     coroutineScope.launch {
                         Log.i(TAG, "Genre More Options Modal -> Go To Genre clicked")
-                        navigateToGenreDetails(selectedGenre)
+                        navigateToGenreDetails(selectedGenre.id)
                         sheetState.hide()
                     }.invokeOnCompletion {
                         Log.i(TAG, "set showBottomSheet to FALSE; set GenreMoreOptions to FALSE")

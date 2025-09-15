@@ -105,8 +105,8 @@ fun MusicApp(
                     navigateToArtistDetails = { artistId ->
                         appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
-                    navigateToGenreDetails = { genre ->
-                        appState.navigateToGenreDetails(genre.id, backStackEntry)
+                    navigateToGenreDetails = { genreId ->
+                        appState.navigateToGenreDetails(genreId, backStackEntry)
                     },
                     navigateToComposerDetails = { composer ->
                         appState.navigateToComposerDetails(composer.id, backStackEntry)
