@@ -16,6 +16,7 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.data.util.combine
 import com.example.music.domain.usecases.GetAlbumDetailsV2
 import com.example.music.domain.usecases.GetArtistDetailsV2
+import com.example.music.domain.usecases.GetGenreDetailsV2
 import com.example.music.domain.usecases.GetLibraryAlbumsV2
 import com.example.music.domain.usecases.GetLibraryArtistsV2
 import com.example.music.domain.usecases.GetLibraryGenresV2
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -56,9 +58,6 @@ data class LibraryScreenUiState(
     val libraryPlaylists: List<PlaylistInfo> = emptyList(),
     val librarySongs: List<SongInfo> = emptyList(),
     val totals: List<Int> = emptyList(),
-    val selectSong: SongInfo = SongInfo(),
-    val selectAlbum: AlbumInfo = AlbumInfo(),
-    val selectArtist: ArtistInfo = ArtistInfo()
 )
 
 @HiltViewModel
@@ -74,6 +73,7 @@ class LibraryViewModel @Inject constructor(
 
     private val getAlbumDetailsV2: GetAlbumDetailsV2,
     private val getArtistDetailsV2: GetArtistDetailsV2,
+    private val getGenreDetailsV2: GetGenreDetailsV2,
     private val songController: SongController
 ) : ViewModel() {
     /* ------ Current running UI needs:  ------
@@ -128,14 +128,6 @@ class LibraryViewModel @Inject constructor(
 
     private val appPreferencesFlow = getAppPreferences()
 
-    // Holds the sorting preferences saved in the data store
-    //private val sortPrefs = getAppPreferences()
-
-    // Holds the selected items values to show in more options modals
-    private val selectedSong = MutableStateFlow<SongInfo?>(null)
-    private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
-    private val selectedArtist = MutableStateFlow<ArtistInfo?>(null)
-
     // Holds our view state which the UI collects via [state]
     private val _state = MutableStateFlow(LibraryScreenUiState())
 
@@ -156,102 +148,39 @@ class LibraryViewModel @Inject constructor(
                 libraryCategories,
                 selectedLibraryCategory,
                 appPreferencesFlow,
-                //getLibraryAlbumsUseCase("title", true),//sortedAlbums,
-                //getLibraryAlbumsV2("title", true),
-
-                //getLibraryArtistsUseCase("name", true),//sortedArtists,
-                //getLibraryArtistsV2("name", true),
-
                 getLibraryComposersUseCase("name", true),//sortedComposers,
-
-                //getLibraryGenresUseCase("name", true),//sortedGenres,
-                //getLibraryGenresV2("name", true),
-
                 getLibraryPlaylistsUseCase("name", true),//sortedPlaylists,
-
-                //getLibrarySongsUseCase("title", true),//sortedSongs,
-                //getLibrarySongsV2("title", true),
-                selectedSong,
-                selectedAlbum,
-                selectedArtist,
             ) {
-
-            /*combine(
-                libraryCategories,
-                selectedLibraryCategory,
-                refreshing,
-                sortPrefs.transform<AppPreferences,List<AlbumInfo>> { values ->
-                    getLibraryAlbumsUseCase(values.albumSortOrder.name, values.isAlbumAsc)//sortedAlbums,
-                },
-                sortPrefs.transform<AppPreferences,List<ArtistInfo>> { values ->
-                    getLibraryArtistsUseCase(values.artistSortOrder.name, values.isArtistAsc)//sortedArtists,
-                },
-                sortPrefs.transform<AppPreferences,List<ComposerInfo>> { values ->
-                    getLibraryComposersUseCase(values.composerSortOrder.name, values.isComposerAsc)//sortedComposers,
-                },
-                sortPrefs.transform<AppPreferences,List<GenreInfo>> { values ->
-                    getLibraryGenresUseCase(values.genreSortOrder.name, values.isGenreAsc)//sortedGenres,
-                },
-                sortPrefs.transform<AppPreferences,List<PlaylistInfo>> { values ->
-                    getLibraryPlaylistsUseCase(values.playlistSortOrder.name, values.isPlaylistAsc)//sortedPlaylists,
-                },
-                sortPrefs.transform<AppPreferences,List<SongInfo>> { values ->
-                    getLibrarySongsUseCase(values.songSortOrder.name, values.isSongAsc)//sortedSongs,
-                },
-            ){*/
                 refreshing,
                 libraryCategories,
                 libraryCategory,
                 appPreferences,
-                //libraryAlbums,
-                //libraryArtists,
                 libraryComposers,
-                //libraryGenres,
                 libraryPlaylists,
-                //librarySongs,
-                selectSong,
-                selectAlbum,
-                selectArtist
                 ->
-
                 Log.i(TAG, "LibraryScreenUiState combine START:\n" +
                     "isLoading: $refreshing\n" +
                     "libraryCategories: $libraryCategories\n" +
                     "selectedLibraryCategory: $libraryCategory\n")
                 var libraryAlbums: List<AlbumInfo> = emptyList()
                 var libraryArtists: List<ArtistInfo> = emptyList()
-                //var libraryComposers: List<ComposerInfo> = emptyList()
                 var libraryGenres: List<GenreInfo> = emptyList()
-                //var libraryPlaylists: List<PlaylistInfo> = emptyList()
                 var librarySongs: List<SongInfo> = emptyList()
                 when (libraryCategory) {
-                    LibraryCategory.Playlists -> {
-                        //libraryPlaylists = getLibraryPlaylistsUseCase("name", true)//sortedPlaylists,
-                        //libraryPlaylists = getLibraryPlaylistsUseCase(appPreferences.playlistSortOrder.name, appPreferences.isPlaylistAsc)
-                    }
+                    LibraryCategory.Playlists -> {}
                     LibraryCategory.Songs -> {
-                        //librarySongs = getLibrarySongsV2("TITLE", true)
-                        //librarySongs = getLibrarySongsV2("TITLE", appPreferences.isSongAsc)
                         librarySongs = getLibrarySongsV2(appPreferences.songSortOrder.name, appPreferences.isSongAsc)
                     }
                     LibraryCategory.Artists -> {
-                        //libraryArtists = getLibraryArtistsV2("ARTIST", true)
-                        //libraryArtists = getLibraryArtistsV2("ARTIST", appPreferences.isArtistAsc)
                         libraryArtists = getLibraryArtistsV2(appPreferences.artistSortOrder.name, appPreferences.isArtistAsc)
                     }
                     LibraryCategory.Albums -> {
-                        //libraryAlbums = getLibraryAlbumsV2("ALBUM", true)
-                        //libraryAlbums = getLibraryAlbumsV2("ALBUM", appPreferences.isAlbumAsc)
                         libraryAlbums = getLibraryAlbumsV2(appPreferences.albumSortOrder.name, appPreferences.isAlbumAsc)
                     }
                     LibraryCategory.Genres -> {
-                        //libraryGenres = getLibraryGenresV2("NAME", true)
-                        //libraryGenres = getLibraryGenresV2("NAME", appPreferences.isGenreAsc)
                         libraryGenres = getLibraryGenresV2(appPreferences.genreSortOrder.name, appPreferences.isGenreAsc)
                     }
-                    LibraryCategory.Composers -> {
-                        //libraryComposers = getLibraryComposersUseCase(appPreferences.composerSortOrder.name, appPreferences.isComposerAsc)
-                    }
+                    LibraryCategory.Composers -> {}
                 }
 
                 LibraryScreenUiState(
@@ -265,9 +194,6 @@ class LibraryViewModel @Inject constructor(
                     libraryPlaylists = libraryPlaylists,
                     librarySongs = librarySongs,
                     totals = counts,
-                    selectSong = selectSong ?: SongInfo(),
-                    selectAlbum = selectAlbum ?: AlbumInfo(),
-                    selectArtist = selectArtist ?: ArtistInfo()
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")
@@ -305,9 +231,6 @@ class LibraryViewModel @Inject constructor(
         Log.i(TAG, "onLibraryAction - $action")
         when (action) {
             is LibraryAction.LibraryCategorySelected -> onLibraryCategorySelected(action.libraryCategory)
-            is LibraryAction.AlbumMoreOptionsClicked -> onAlbumMoreOptionsClicked(action.album)
-            is LibraryAction.ArtistMoreOptionsClicked -> onArtistMoreOptionsClicked(action.artist)
-            is LibraryAction.SongMoreOptionsClicked -> onSongMoreOptionsClicked(action.song)
 
             is LibraryAction.PlaySong -> onPlaySong(action.song)
             is LibraryAction.PlaySongNext -> onPlaySongNext(action.song)
@@ -326,25 +249,15 @@ class LibraryViewModel @Inject constructor(
             is LibraryAction.PlayArtistNext -> onPlayArtistNext(action.artist)
             is LibraryAction.ShuffleArtist -> onShuffleArtist(action.artist)
             is LibraryAction.QueueArtist -> onQueueArtist(action.artist)
+
+            is LibraryAction.PlayGenre -> onPlayGenre(action.genre)
+            is LibraryAction.ShuffleGenre -> onShuffleGenre(action.genre)
         }
     }
 
     private fun onLibraryCategorySelected(libraryCategory: LibraryCategory) {
         selectedLibraryCategory.value = libraryCategory
         refresh()
-    }
-
-    private fun onAlbumMoreOptionsClicked(album: AlbumInfo) {
-        Log.i(TAG, "onAlbumMoreOptionClick -> ${album.title}")
-        selectedAlbum.value = album
-    }
-    private fun onArtistMoreOptionsClicked(artist: ArtistInfo) {
-        Log.i(TAG, "onArtistMoreOptionClick -> ${artist.name}")
-        selectedArtist.value = artist
-    }
-    private fun onSongMoreOptionsClicked(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
-        selectedSong.value = song
     }
 
     private fun onPlaySong(song: SongInfo) {
@@ -430,6 +343,21 @@ class LibraryViewModel @Inject constructor(
             songController.addToQueue(songs)
         }
     }
+
+    private fun onPlayGenre(genre: GenreInfo) {
+        Log.i(TAG, "onPlayGenre -> ${genre.name}")
+        viewModelScope.launch {
+            val songs = getGenreDetailsV2(genre.id).first().songs
+            songController.play(songs)
+        }
+    }
+    private fun onShuffleGenre(genre: GenreInfo) {
+        Log.i(TAG, "onShuffleGenre -> ${genre.name}")
+        viewModelScope.launch {
+            val songs = getGenreDetailsV2(genre.id).first().songs
+            songController.shuffle(songs)
+        }
+    }
 }
 
 enum class LibraryCategory {
@@ -439,9 +367,6 @@ enum class LibraryCategory {
 @Immutable
 sealed interface LibraryAction {
     data class LibraryCategorySelected(val libraryCategory: LibraryCategory) : LibraryAction
-    data class AlbumMoreOptionsClicked(val album: AlbumInfo) : LibraryAction
-    data class ArtistMoreOptionsClicked(val artist: ArtistInfo) : LibraryAction
-    data class SongMoreOptionsClicked(val song: SongInfo) : LibraryAction
 
     data class PlaySong(val song: SongInfo) : LibraryAction // songMO-play
     data class PlaySongNext(val song: SongInfo) : LibraryAction // songMO-playNext
@@ -460,6 +385,9 @@ sealed interface LibraryAction {
     data class PlayArtistNext(val artist: ArtistInfo) : LibraryAction
     data class ShuffleArtist(val artist: ArtistInfo) : LibraryAction
     data class QueueArtist(val artist: ArtistInfo) : LibraryAction
+
+    data class PlayGenre(val genre: GenreInfo) : LibraryAction
+    data class ShuffleGenre(val genre: GenreInfo) : LibraryAction
 }
 
 /* sealed interface LibraryScreenUiState {
