@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
@@ -32,6 +35,8 @@ import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.CompLightPreview
+import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.quantityStringResource
 
 private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
@@ -41,34 +46,102 @@ fun AlbumListItem(
     album: AlbumInfo,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     onMoreOptionsClick: () -> Unit,
-    boxOrRow: Boolean = true,
+    cardOrRow: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(4.dp)) { // 2.dp
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainer, //MaterialTheme.colorScheme.background,
-            onClick = { navigateToAlbumDetails(album) },
-        ) {
-            if (boxOrRow){
-                AlbumItemBox(
+    Box(modifier = modifier.padding(4.dp)) {
+        if (cardOrRow) {
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = Color.Transparent,
+                onClick = { navigateToAlbumDetails(album) }
+            ) {
+                AlbumItemCard(
                     album = album,
                     onMoreOptionsClick = onMoreOptionsClick,
+                    modifier = Modifier,
                 )
-            } else {
+            }
+        } else {
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                onClick = { navigateToAlbumDetails(album) }
+            ) {
                 AlbumItemRow(
                     album = album,
                     onMoreOptionsClick = onMoreOptionsClick,
-                    modifier = modifier,
+                    modifier = Modifier,
                 )
             }
         }
     }
 }
 
-// originally on Library.Albums
 /**
- * Create a composable view of a Album in a row form
+ * Create a composable view of an Album in a card form
+ */
+@Composable
+fun AlbumItemCard(
+    album: AlbumInfo,
+    onMoreOptionsClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Box(
+            contentAlignment = Alignment.BottomStart,
+            modifier = Modifier
+                .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
+                .align(Alignment.CenterHorizontally)
+        ){
+            AlbumImage(
+                albumImage = album.artworkUri,
+                contentDescription = album.title,
+                modifier = Modifier
+                    .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
+                    .clip(MaterialTheme.shapes.medium),
+            )
+            Text(
+                text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
+                maxLines = 1,
+                minLines = 1,
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(10.dp)
+                    .border(1.dp,color = Color.Transparent, shape = MusicShapes.small)
+                    .background(
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        shape = MusicShapes.small
+                    )
+                    .padding(4.dp)
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.requiredWidth(FEATURED_ALBUM_IMAGE_SIZE_DP) // required because item card doesn't have paging width like featured carousel
+        ) {
+            Text(
+                text = album.title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(4.dp).weight(1f,true)
+            )
+
+            IconButton(onClick = onMoreOptionsClick) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = stringResource(R.string.icon_more),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Create a composable view of an Album in a row form
  */
 @Composable
 fun AlbumItemRow(
@@ -78,20 +151,17 @@ fun AlbumItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        //from albumListItem
-        modifier = Modifier.padding(8.dp).background(MaterialTheme.colorScheme.background),
-        //from Library.Albums
-        //modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        modifier = Modifier.padding(8.dp)//horizontal = 12.dp, vertical = 8.dp //.background(MaterialTheme.colorScheme.background),
     ) {
         AlbumImage(
             albumImage = album.artworkUri,
             contentDescription = album.title,
             modifier = modifier
                 .size(56.dp)
-                .clip(MaterialTheme.shapes.medium),
+                .clip(MaterialTheme.shapes.small), //medium
         )
 
-        Column(modifier.weight(1f)) {
+        Column(modifier.weight(1f)){
             Text(
                 text = album.title,
                 maxLines = 1,
@@ -134,98 +204,17 @@ fun AlbumItemRow(
     }
 }
 
-@Composable
-fun AlbumItemBox(
-    album: AlbumInfo,
-    onMoreOptionsClick: () -> Unit,
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        AlbumItemBoxHeader(album = album)
-        AlbumItemBoxFooter(
-            album = album,
-            onMoreOptionsClick = onMoreOptionsClick
-        )
-    }
-}
-
-// from Library.Albums
-@Composable
-fun AlbumItemBoxFooter(
-    album: AlbumInfo,
-    onMoreOptionsClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.requiredWidth(FEATURED_ALBUM_IMAGE_SIZE_DP)
-    ) {
-        Text(
-            text = album.title,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(4.dp).weight(1f,true)
-        )
-
-        IconButton(onClick = onMoreOptionsClick) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-    }
-}
-
-// from Library.Albums
-@Composable
-fun AlbumItemBoxHeader(
-    album: AlbumInfo,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        contentAlignment = Alignment.BottomStart
-    ){
-        AlbumImage(
-            albumImage = album.artworkUri,
-            contentDescription = album.title,
-            modifier = modifier
-                .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
-                .clip(MaterialTheme.shapes.medium),
-        )
-
-        // Song Count in bottom left of album image
-        Text(
-            text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
-            maxLines = 1,
-            minLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(10.dp)
-                .border(1.dp,color = Color.Transparent, shape = MusicShapes.small)
-                .background(
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = MusicShapes.small
-                )
-                .padding(4.dp)
-        )
-    }
-}
-
 @Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
 //@Preview( name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES )
 @Composable
-private fun AlbumListItem_BOXPreview() {
+private fun AlbumListItem_CARDPreview() {
     MusicTheme {
         AlbumListItem(
             album = PreviewAlbums[0],
             navigateToAlbumDetails = {},
             onMoreOptionsClick = {},
             modifier = Modifier,
-            boxOrRow = true,
+            cardOrRow = true,
         )
     }
 }
@@ -239,7 +228,7 @@ private fun AlbumListItem_ROWPreview() {
             navigateToAlbumDetails = {},
             onMoreOptionsClick = {},
             modifier = Modifier,
-            boxOrRow = false,
+            cardOrRow = false,
         )
     }
 }
