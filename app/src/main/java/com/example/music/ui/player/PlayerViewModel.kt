@@ -71,6 +71,12 @@ data class PlayerUiState(
     val currentSong: SongInfo = SongInfo(),
 )*/
 
+interface MiniPlayerState {
+    var currentSong: SongInfo
+    var isPlaying: Boolean
+    val player: Player?
+}
+
 interface PlayerState {
     val currentMedia: MediaItem?
     var isPlaying: Boolean
