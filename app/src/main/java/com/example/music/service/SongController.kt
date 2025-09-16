@@ -80,6 +80,11 @@ interface SongController {
     val loaded: Flow<Boolean>
 
     /**
+     * A reflection of when SongController is "in use"
+     */
+    val isActive: Boolean
+
+    /**
      * If the queued media items list are in shuffled order.
      */
     val isShuffled: Boolean

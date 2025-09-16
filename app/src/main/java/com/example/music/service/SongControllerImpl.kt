@@ -95,6 +95,8 @@ class SongControllerImpl @Inject constructor(
         }.flowOn(Dispatchers.Main)
     override val loaded: Flow<Boolean>
         get() = events.map { currentSong != null }
+    override val isActive: Boolean
+        get() = (mediaController?.playbackState == Player.STATE_READY) || (mediaController?.playbackState == Player.STATE_BUFFERING)
 
     override val isShuffled: Boolean
         get() = mediaController?.shuffleModeEnabled ?: false
