@@ -2,8 +2,12 @@ package com.example.music.ui.home
 
 import android.util.Log
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.Player
 import com.example.music.domain.usecases.FeaturedLibraryItemsV2
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.AlbumInfo
@@ -11,8 +15,10 @@ import com.example.music.domain.model.PlaylistInfo
 import com.example.music.data.util.combine
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.usecases.GetAlbumDetailsV2
+import com.example.music.domain.usecases.GetSongDataV2
 import com.example.music.domain.usecases.GetTotalCountsV2
 import com.example.music.service.SongController
+import com.example.music.ui.player.MiniPlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,14 +28,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-/** Changelog:
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
 
 private const val TAG = "Home View Model"
 
@@ -41,6 +39,7 @@ data class HomeScreenUiState(
     val totals: List<Int> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
     val selectAlbum: AlbumInfo = AlbumInfo(),
+    val isActive: Boolean = false,
 )
 
 /**
@@ -51,14 +50,9 @@ class HomeViewModel @Inject constructor(
     featuredLibraryItemsV2: FeaturedLibraryItemsV2,
     getTotalCountsV2: GetTotalCountsV2,
     private val getAlbumDetailsV2: GetAlbumDetailsV2,
+    private val getSongDataV2: GetSongDataV2,
     private val songController: SongController
-) : ViewModel() {
-    /* ------ Current running UI needs:  ------
-        objects: FeaturedLibraryItemsFilterResult, which contains
-            Recent Playlists: list of most recently played playlists, limit passed as int 5
-            Recently Added Songs: list of most recently added songs to library, limit passed as int 10
-        means of retrieving object: FeaturedLibraryItemsUseCase
-     */
+) : ViewModel(), MiniPlayerState {
 
     // test version for using MediaStore, uses Album instead of playlist for now
     private val featuredLibraryItems = featuredLibraryItemsV2()
@@ -67,6 +61,21 @@ class HomeViewModel @Inject constructor(
     // Holds the song, album to show in more options modal
     private val selectedSong = MutableStateFlow<SongInfo?>(null)
     private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
+
+    // bottom player section
+    //override var currentMedia: MediaItem? by mutableStateOf(songController.currentSong)
+    override var currentSong by mutableStateOf(SongInfo())
+    // want this to be the property that checks for keeping the mini player open
+    private var isActive by mutableStateOf(songController.isActive)
+    override val player: Player?
+        get() = songController.player
+    private var _isPlaying by mutableStateOf(songController.isPlaying)
+    override var isPlaying
+        get() = _isPlaying
+        set(value) {
+            if (value) songController.play(true)
+            else songController.pause()
+        }
 
     // Holds our view state which the UI collects via [state]
     private val _state = MutableStateFlow(HomeScreenUiState())
@@ -98,6 +107,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             Log.i(TAG, "viewModelScope launch START")
             val counts = getTotalCountsV2()
+            Log.i(TAG, "SongController status:\n" +
+                "isActive?: $isActive\n" +
+                "player?: ${player?.playbackState}\n")
 
             combine(
                 refreshing,
@@ -116,12 +128,19 @@ class HomeViewModel @Inject constructor(
                     "libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}\n" +
                     "is SongController available: ${songController.isConnected()}")
 
+                val id = songController.currentSong?.mediaId
+                if (id != null) {
+                    currentSong = getSongDataV2(id.toLong())
+                }
+                //isActive = songController.isActive
+
                 HomeScreenUiState(
                     isLoading = refreshing,
                     featuredLibraryItemsFilterResult = libraryItems,
                     totals = counts,
                     selectSong = selectSong ?: SongInfo(),
                     selectAlbum = selectAlbum ?: AlbumInfo(),
+                    isActive = songController.isActive,
                 )
             }.catch { throwable ->
                 emit(
@@ -152,6 +171,28 @@ class HomeViewModel @Inject constructor(
             Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
+    }
+
+    fun onPlay() {
+        Log.i(TAG,"Hit play btn on Home Screen.")
+        songController.play(true)
+        _isPlaying = true
+    }
+
+    fun onPause() {
+        Log.i(TAG, "Hit pause btn on Home Screen")
+        songController.pause()
+        _isPlaying = false
+    }
+
+    fun onPrevious() {
+        Log.i(TAG, "Hit previous btn on Home Screen")
+        songController.previous()
+    }
+
+    fun onNext() {
+        Log.i(TAG, "Hit next btn on Home Screen")
+        songController.next()
     }
 
     fun onHomeAction(action: HomeAction) {
