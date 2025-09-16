@@ -87,12 +87,13 @@ fun AlbumItemCard(
     onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier
+            .width(FEATURED_ALBUM_IMAGE_SIZE_DP)
+    ) {
         Box(
             contentAlignment = Alignment.BottomStart,
-            modifier = Modifier
-                .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
-                .align(Alignment.CenterHorizontally)
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         ){
             AlbumImage(
                 albumImage = album.artworkUri,
@@ -101,6 +102,8 @@ fun AlbumItemCard(
                     .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
                     .clip(MaterialTheme.shapes.medium),
             )
+
+            // Song Count in bottom left of album image
             Text(
                 text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
                 maxLines = 1,
@@ -119,7 +122,6 @@ fun AlbumItemCard(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.requiredWidth(FEATURED_ALBUM_IMAGE_SIZE_DP) // required because item card doesn't have paging width like featured carousel
         ) {
             Text(
                 text = album.title,
@@ -129,6 +131,7 @@ fun AlbumItemCard(
                 modifier = Modifier.padding(4.dp).weight(1f,true)
             )
 
+            // More Options button
             IconButton(onClick = onMoreOptionsClick) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
