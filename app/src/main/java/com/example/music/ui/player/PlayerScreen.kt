@@ -97,7 +97,7 @@ import kotlin.math.roundToLong
 private const val TAG = "Player Screen"
 
 /**
- * StateFUL version of player screen
+ * Stateless version of Player Screen
  */
 @Composable
 fun PlayerScreen(
@@ -454,14 +454,14 @@ private fun PlayerContentRegular(
 private fun PlayerTopAppBar(
     //queue: List<SongInfo>, // queue is not currently in use here for navigation to QueueScreen, don't think it should be used for nav at all
     navigateBack: () -> Unit,
-    navigateToQueue: () -> Unit
+    navigateToQueue: () -> Unit,
+    onMoreOptionsClick: () -> Unit = {},
 ){
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
-
-        //back button
+        // Back btn
         IconButton(onClick = navigateBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -473,8 +473,7 @@ private fun PlayerTopAppBar(
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
-        // show queue button
-        //IconButton(onClick = navigateToQueue(queue)) {
+        // navigateToQueue btn
         IconButton(onClick = navigateToQueue) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.QueueMusic,
@@ -483,8 +482,8 @@ private fun PlayerTopAppBar(
             )
         }
 
-        // more options button
-        IconButton(onClick = {  }) {
+        // More Options btn
+        IconButton(onClick = onMoreOptionsClick) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.icon_more),
@@ -538,10 +537,8 @@ private fun SongLyricsSwitch(
             text = "Lyrics",
             style = MaterialTheme.typography.titleLarge,
             color =
-                if (hasLyrics)
-                    MaterialTheme.colorScheme.onSurface
-                else
-                    MaterialTheme.colorScheme.onSurfaceVariant,
+                if (hasLyrics) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(4.dp)
                 .clickable(
                     enabled = hasLyrics,

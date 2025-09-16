@@ -6,70 +6,24 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.core.content.res.TypedArrayUtils.getText
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
-import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.session.MediaController
-import com.example.music.R
 import com.example.music.data.repository.RepeatType
-import com.example.music.data.util.combine
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.model.toSongInfo
-import com.example.music.domain.player.model.duration
-import com.example.music.domain.player.model.mediaUri
-import com.example.music.domain.player.model.title
-import com.example.music.domain.player.model.toMediaItem
-import com.example.music.domain.testing.getSongData
 import com.example.music.service.SongController
 import com.example.music.domain.usecases.GetSongDataV2
-import com.example.music.ui.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.lang.Thread.State
-import java.time.Duration
 import javax.inject.Inject
-import kotlin.math.log
 import kotlin.math.roundToLong
 
-/** Changelog:
- *
- * 7/22-23/2025 - Revised to separate PlayerUiState from songControllerState
- * Removed PlayerSong completely
- */
-
 private const val TAG = "Player View Model"
-
-/* // possible v2 for PlayerUiState since all the details on the screen are actually reliant on SongController data
-data class PlayerUiState(
-    val isReady: Boolean = false,
-    val errorMessage: String? = null,
-    val currentSong: SongInfo = SongInfo(),
-)*/
 
 interface MiniPlayerState {
     var currentSong: SongInfo
@@ -103,12 +57,6 @@ class PlayerViewModel @Inject constructor(
     private val getSongDataV2: GetSongDataV2,
     private val songController: SongController,
 ) : ViewModel(), PlayerState {
-
-    /* // ------- Intended idea with revised PlayerViewModel: ------
-    // Have PlayerScreen show the current values of SongController -> ie MediaService/MediaPlayer
-    // And to do so, want to be able to reference mutable state values that are coming directly from song controller
-    // Hopefully, by setting values through mutableStateOf that use songController values directly
-    // without a songControllerState will mean that it won't be setting PlayerVM with null/dead values */
 
     private var _isPlaying by mutableStateOf(songController.isPlaying)
     private var _position by mutableLongStateOf(songController.position)
@@ -156,15 +104,6 @@ class PlayerViewModel @Inject constructor(
         }
 
     private var timerJob: Job? = null
-
-    /* // OG method for getting SongInfo when navigating to PlayerScreen:
-    // songId should always be present in the PlayerViewModel.
-    // If that's not the case, fail crashing the app!
-    private val _songId: String =
-        savedStateHandle.get<String>(Screen.ARG_SONG_ID)!! //Uri.decode(savedStateHandle.get<String>(Screen.ARG_EPISODE_URI)!!)
-    private val songId = _songId.toLong()
-    private val getSongData = getSongDataV2(songId)
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed()) */
 
     private val refreshing = MutableStateFlow(false)
 
