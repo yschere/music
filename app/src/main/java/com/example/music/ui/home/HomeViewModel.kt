@@ -39,7 +39,7 @@ data class HomeScreenUiState(
     val totals: List<Int> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
     val selectAlbum: AlbumInfo = AlbumInfo(),
-    val isActive: Boolean = false,
+    //val isActive: Boolean = false,
 )
 
 /**
@@ -66,7 +66,14 @@ class HomeViewModel @Inject constructor(
     //override var currentMedia: MediaItem? by mutableStateOf(songController.currentSong)
     override var currentSong by mutableStateOf(SongInfo())
     // want this to be the property that checks for keeping the mini player open
-    private var isActive by mutableStateOf(songController.isActive)
+    private var _isActive by mutableStateOf(songController.isActive)
+    var isActive
+        get() = _isActive
+        set(value) {
+            _isActive = checkActive()
+            refresh(value)
+        }
+
     override val player: Player?
         get() = songController.player
     private var _isPlaying by mutableStateOf(songController.isPlaying)
@@ -128,11 +135,12 @@ class HomeViewModel @Inject constructor(
                     "libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}\n" +
                     "is SongController available: ${songController.isConnected()}")
 
-                val id = songController.currentSong?.mediaId
-                if (id != null) {
-                    currentSong = getSongDataV2(id.toLong())
-                }
+                //val id = songController.currentSong?.mediaId
+                //if (id != null) {
+                    //currentSong = getSongDataV2(id.toLong())
+                //}
                 //isActive = songController.isActive
+                getSongControllerState()
 
                 HomeScreenUiState(
                     isLoading = refreshing,
@@ -140,7 +148,7 @@ class HomeViewModel @Inject constructor(
                     totals = counts,
                     selectSong = selectSong ?: SongInfo(),
                     selectAlbum = selectAlbum ?: AlbumInfo(),
-                    isActive = songController.isActive,
+                    //isActive = isActive,
                 )
             }.catch { throwable ->
                 emit(
@@ -170,7 +178,46 @@ class HomeViewModel @Inject constructor(
 
             Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
+            if (force) {
+                combine(
+                    featuredLibraryItems,
+                    selectedSong,
+                    selectedAlbum,
+                ) {
+                    libraryItems,
+                    selectSong,
+                    selectAlbum ->
+                    isActive = checkActive()
+
+                    HomeScreenUiState(
+                        isLoading = refreshing.value,
+                        featuredLibraryItemsFilterResult = libraryItems,
+                        selectSong = selectSong ?: SongInfo(),
+                        selectAlbum = selectAlbum ?: AlbumInfo(),
+                        //isActive = isActive,
+                    )
+                }.collect {
+                    _state.value = it
+                }
+            }
         }
+    }
+
+    suspend fun getSongControllerState() {
+        val id = songController.currentSong?.mediaId
+        if (id != null) {
+            currentSong = getSongDataV2(id.toLong())
+        }
+        _isPlaying = songController.isPlaying
+        isActive = songController.isActive
+    }
+
+    fun checkActive(): Boolean {
+        return songController.isActive
+    }
+
+    fun checkSong(): Long {
+        return songController.currentSong?.mediaId?.toLong() ?: 0L
     }
 
     fun onPlay() {

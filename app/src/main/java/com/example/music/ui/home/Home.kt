@@ -58,13 +58,13 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,6 +75,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
@@ -201,6 +204,7 @@ fun MainScreen(
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    Log.i(TAG, "Main Screen START")
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     Box {
@@ -253,11 +257,44 @@ private fun HomeScreenReady(
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    Log.i(TAG, "Home Screen Ready START")
     val navigator = rememberSupportingPaneScaffoldNavigator<String>(
         scaffoldDirective = calculateScaffoldDirective(currentWindowAdaptiveInfo())
     )
     BackHandler(enabled = navigator.canNavigateBack()) {
         navigator.navigateBack()
+    }
+
+    var isActive by remember { mutableStateOf(viewModel.isActive) }
+    val lifecycleOwner = ProcessLifecycleOwner.get()
+    val lifecycleObserver = remember {
+        LifecycleEventObserver { _, event ->
+            Log.i(TAG, "HOME READY -> Lifecycle Event")
+            if (event == Lifecycle.Event.ON_RESUME) {
+                Log.i(TAG, "HOME READY -> Lifecycle resumed")
+                isActive = viewModel.checkActive()
+                Log.i(TAG, "isActive set to $isActive")
+            }
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+        }
+    }
+
+    LaunchedEffect(key1 = viewModel.isActive, key2 = viewModel.currentSong) {
+        Log.i(TAG, "HOME READY launched effect START")
+        Log.i(TAG, "viewModel isActive: ${viewModel.isActive}")
+        Log.i(TAG, "viewModel checkActive: ${viewModel.checkActive()}")
+        if (viewModel.isActive != viewModel.checkActive() ||
+            viewModel.currentSong.id != viewModel.checkSong()
+        ) {
+            viewModel.getSongControllerState()
+        }
+        Log.i(TAG, "HOME READY launched effect END")
     }
 
     Surface {
@@ -271,9 +308,11 @@ private fun HomeScreenReady(
                     totals = uiState.totals,
                     selectSong = uiState.selectSong,
                     selectAlbum = uiState.selectAlbum,
-                    isActive = uiState.isActive, // if playback is active
+                    isActive = viewModel.isActive, // if playback is active
                     isPlaying = viewModel.isPlaying,
                     currentSong = viewModel.currentSong,
+                    refresh = viewModel::refresh,
+                    checkActive = viewModel.checkActive(),
                     onHomeAction = viewModel::onHomeAction,
                     navigateToHome = navigateToHome,
                     navigateToLibrary = navigateToLibrary,
@@ -331,6 +370,8 @@ private fun HomeScreen(
     isActive: Boolean,
     isPlaying: Boolean,
     currentSong: SongInfo,
+    refresh: (Boolean) -> Unit,
+    checkActive: Boolean,
     onHomeAction: (HomeAction) -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
@@ -350,14 +391,6 @@ private fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //FixMe: update the snackBar selection to properly convey action taken
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-
-    // Effect that changes the home category selection when there are no subscribed podcasts
-    //FixMe: repurpose this for RecentPlaylists, so that if there's no recent playlists as featured playlists, have a defaulted view
-    LaunchedEffect(key1 = featuredLibraryItemsFilterResult.recentAlbums) {//featuredLibraryItemsFilterResult.recentPlaylists) {
-        if (featuredLibraryItemsFilterResult.recentAlbums.isEmpty()) {//recentPlaylists.isEmpty()) {
-            onHomeAction(HomeAction.EmptyLibraryView(PlaylistInfo()))
-        }
-    }
 
     NavDrawer(
         "Home Page",
@@ -499,17 +532,6 @@ private fun HomeContent(
     var showBottomSheet by remember { mutableStateOf(false) }
     var showAlbumMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
-
-    LaunchedEffect(pagerState, pLists) {
-        snapshotFlow { pagerState.currentPage }
-            .collect {
-                //this would be used to collect info for action that
-                // will need the current context to be redrawn to display result
-                //val playlist = pLists.getOrNull(it)
-                //playlist?.let { it1 -> HomeAction.LibraryPlaylistSelected(it1) }
-                //?.let { it2 -> onHomeAction(it2) }
-            }//crashes the app on Home screen redraw
-    } //this section is called on every redraw for Home Screen
 
     HomeContentGrid(
         pagerState = pagerState,
@@ -988,6 +1010,8 @@ private fun PreviewHome() {
             isActive = true,
             isPlaying = true,
             currentSong = PreviewSongs[0],
+            refresh = {},
+            checkActive = false,
             onHomeAction = {},
             navigateToHome = {},
             navigateToLibrary = {},
