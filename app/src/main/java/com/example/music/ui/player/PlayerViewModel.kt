@@ -64,12 +64,12 @@ import kotlin.math.roundToLong
 
 private const val TAG = "Player View Model"
 
-// possible v2 for PlayerUiState since all the details on the screen are actually reliant on SongController data
+/* // possible v2 for PlayerUiState since all the details on the screen are actually reliant on SongController data
 data class PlayerUiState(
     val isReady: Boolean = false,
     val errorMessage: String? = null,
     val currentSong: SongInfo = SongInfo(),
-)
+)*/
 
 interface PlayerState {
     val currentMedia: MediaItem?
@@ -96,7 +96,6 @@ val SongController.progress
 class PlayerViewModel @Inject constructor(
     private val getSongDataV2: GetSongDataV2,
     private val songController: SongController,
-    //savedStateHandle: SavedStateHandle,
 ) : ViewModel(), PlayerState {
 
     /* // ------- Intended idea with revised PlayerViewModel: ------
@@ -115,7 +114,8 @@ class PlayerViewModel @Inject constructor(
     val hasNext by mutableStateOf(songController.hasNext)
 
     override var currentMedia: MediaItem? by mutableStateOf(songController.currentSong)
-    override val player: Player? get() = songController.player
+    override val player: Player?
+        get() = songController.player
     override var isPlaying
         get() = _isPlaying
         set(value) {
@@ -164,9 +164,8 @@ class PlayerViewModel @Inject constructor(
 
     init {
         Log.i(TAG, "init START")
-
         viewModelScope.launch {
-            Log.i(TAG, "init viewModelScope START")
+            Log.i(TAG, "viewModelScope launch START")
 
             // Use SongController events to generate or update the Player Screen as the Player object changes
             songController.events.collect {
@@ -189,7 +188,7 @@ class PlayerViewModel @Inject constructor(
                 }
             }
             playWhenReady()
-            Log.i(TAG, "init viewModelScope END")
+            Log.i(TAG, "viewModelScope launch END")
         }
         Log.i(TAG, "init END")
     }

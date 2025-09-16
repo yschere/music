@@ -2,7 +2,6 @@ package com.example.music.ui.shared
 
 import android.graphics.Bitmap
 import android.net.Uri
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,9 +31,6 @@ import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.CompLightPreview
-import java.time.Duration
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 
 /**
  * Original Song List Item
@@ -227,7 +223,7 @@ private fun SongInfo.setSubText(
     if (showAlbumTitle && this.albumId != 0L) {
         subTitle = subTitle.plus( this.albumTitle + " • ")
     }
-    subTitle = subTitle.plus(this.duration.formatStr())
+    subTitle = subTitle.plus(this.duration.formatString())
     return subTitle
 }
 
@@ -239,7 +235,6 @@ private fun SongListItem_GeneralPreview() {
             song = PreviewSongs[2],
             onClick = {},
             onMoreOptionsClick = {},
-            //onQueueSong = {},
             isListEditable = false,
             showAlbumImage = true,
             showArtistName = true,
@@ -258,7 +253,6 @@ private fun SongListItem_ShowAllPreview() {
             song = PreviewSongs[0],
             onClick = {},
             onMoreOptionsClick = {},
-            //onQueueSong = {},
             isListEditable = true,
             showAlbumImage = true,
             showArtistName = true,
@@ -277,7 +271,6 @@ private fun SongListItem_AlbumDetailsPreview() {
             song = PreviewSongs[5],
             onClick = {},
             onMoreOptionsClick = {},
-            //onQueueSong = {},
             isListEditable = false,
             showAlbumImage = true,
             showArtistName = true,
@@ -298,7 +291,6 @@ private fun SongListItem_AllSongsPreview() {
             //album = PreviewAlbums[6],
             onClick = {},
             onMoreOptionsClick = {},
-            //onQueueSong = {},
             isListEditable = false,
             showAlbumImage = true,
             showArtistName = true,
@@ -317,7 +309,6 @@ private fun SongListItem_PlaylistDetailsPreview() {
             song = PreviewSongs[3],
             onClick = {},
             onMoreOptionsClick = {},
-            //onQueueSong = {},
             isListEditable = false,
             showAlbumImage = true,
             showArtistName = true,
@@ -337,7 +328,6 @@ private fun SongListItem_EditListPreview() {
             song = PreviewSongs[2],
             onClick = {},
             onMoreOptionsClick = {},
-            //onQueueSong = {},
             isListEditable = true,
             showAlbumImage = true,
             showArtistName = true,
@@ -346,14 +336,4 @@ private fun SongListItem_EditListPreview() {
             //modifier = Modifier,
         )
     }
-}
-
-/*private val MediumDateFormatter by lazy {
-    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-}*/
-
-fun Duration.formatStr(): String {
-    val minutes = this.toMinutes().toString().padStart(1, '0')
-    val seconds = (this.toSeconds() % 60).toString().padStart(2, '0')
-    return "$minutes:$seconds"
 }

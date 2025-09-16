@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.EaseOutExpo
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -41,7 +40,6 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,11 +49,9 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,10 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -81,7 +74,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.layout.DisplayFeature
 import com.example.music.R
@@ -90,8 +82,9 @@ import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
 import com.example.music.designsys.component.ImageBackgroundRadialGradientScrim
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.model.toSongInfo
 import com.example.music.domain.testing.PreviewSongs
+import com.example.music.ui.shared.Error
+import com.example.music.ui.shared.formatString
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.isCompact
@@ -102,12 +95,6 @@ import java.time.Duration
 import kotlin.math.roundToLong
 
 private const val TAG = "Player Screen"
-
-/** Changelog:
- *
- * 7/22-23/2025 - Revised uiState properties and referencing of uiState in PlayerScreen functions to use its
- * properties instead. Removed PlayerSong completely
- */
 
 /**
  * StateFUL version of player screen
@@ -120,9 +107,7 @@ fun PlayerScreen(
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     viewModel: PlayerViewModel = hiltViewModel(),
-    //modifier: Modifier,
 ) {
-
     PlayerScreen(
         currentSong = viewModel.currentSong,
         isPlaying = viewModel.isPlaying,
@@ -172,25 +157,14 @@ private fun PlayerScreenError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Text(
-                text = stringResource(id = R.string.an_error_has_occurred),
-                modifier = Modifier.padding(16.dp)
-            )
-            Button(onClick = onRetry) {
-                Text(text = stringResource(id = R.string.retry_label))
-            }
-        }
-    }
+    Error(
+        onRetry = onRetry,
+        modifier = modifier
+    )
 }
 
 /**
- * StateLESS version of player screen
+ * Stateless version of Player Screen
  */
 @Composable
 private fun PlayerScreen(
@@ -210,11 +184,11 @@ private fun PlayerScreen(
     playerControlActions: PlayerControlActions,
     modifier: Modifier = Modifier
 ) {
-//    DisposableEffect(Unit) {
-//        onDispose {
-//            onStop()
-//        }
-//    }
+    /*DisposableEffect(Unit) {
+        onDispose {
+            onStop()
+        }
+    }*/
 
     val coroutineScope = rememberCoroutineScope()
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
@@ -260,9 +234,13 @@ private fun PlayerScreen(
     }
 }
 
-//full screen circular progress - loading screen
+/**
+ * Loading Screen
+ */
 @Composable
-private fun FullScreenLoading(modifier: Modifier = Modifier) {
+private fun FullScreenLoading(
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -271,11 +249,11 @@ private fun FullScreenLoading(modifier: Modifier = Modifier) {
         CircularProgressIndicator()
     }
 }
+//full screen circular progress - loading screen
 
 @Composable
 private fun PlayerBackground(
     song: SongInfo,
-    //album: Album?,
     modifier: Modifier,
 ) {
     //how to make this into album artwork
@@ -654,7 +632,6 @@ private fun PlayerImageBm(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SongDetails(
     songTitle: String? = "",
@@ -691,14 +668,8 @@ private fun SongDetails(
     }
 }
 
-fun Duration.formatString(): String {
-    val minutes = this.toMinutes().toString().padStart(2, '0')
-    val secondsLeft = (this.toSeconds() % 60).toString().padStart(2, '0')
-    return "$minutes:$secondsLeft"
-}
-
 @Composable
-fun PlayerSlider( //removed private modifier to borrow this func for BottomModals
+fun PlayerSlider(
     progress: Float,
     timeElapsed: Long,
     songDuration: Duration?,
@@ -742,7 +713,6 @@ fun PlayerSlider( //removed private modifier to borrow this func for BottomModal
     }
 }
 
-// FUTURE THOUGHT: rework this for song player
 @Composable
 private fun PlayerButtons(
     hasNext: Boolean,
@@ -760,24 +730,6 @@ private fun PlayerButtons(
     sideButtonSize: Dp = 48.dp,
 ) {
 
-    /*
-        ----- Logic for player buttons -----
-            want the play / pause button to show the action it will take if pressed
-            want the shuffle and repeat buttons to show the current state they are in
-            want the previous and next buttons to show enabled
-                for previous: if passed starting point, it will restart the song
-                    if on starting point, plays previous song in queue
-                    if no previous song in queue, ends the queue/session
-                    if repeat is on, check queue:
-                        if no queue or repeat is one, restarts current song
-                        if no queue or repeat is all, plays last song in context of current song player Question: is shuffle logic needed here too?
-                for next: if pressed, skips to next song
-                    if has queue:
-                        if repeat is on, play next song
-                        if repeat is one, restart current song
-                        if repeat is all and song is the last one in queue, restart queue from beginning
-                            if shuffle is set to every re-queue, shuffle queue then restart
-     */
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
