@@ -424,7 +424,7 @@ fun AlbumDetailsScreen(
                                 Log.i(TAG, "Hide sheet state")
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set Song Sort to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSortSheet = false
@@ -436,7 +436,7 @@ fun AlbumDetailsScreen(
                                 Log.i(TAG, "Save sheet state - does nothing atm")
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set DetailSort to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSortSheet = false
@@ -478,7 +478,7 @@ fun AlbumDetailsScreen(
                                 onAlbumAction(AlbumAction.PlaySongsNext(songs))
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showAlbumMoreOptions = false
@@ -489,10 +489,10 @@ fun AlbumDetailsScreen(
                             coroutineScope.launch {
                                 Log.i(TAG, "Album More Options Modal -> ShuffleSongs clicked")
                                 onAlbumAction(AlbumAction.ShuffleSongs(songs))
-                                navigateToPlayer()
                                 sheetState.hide()
+                                navigateToPlayer()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showAlbumMoreOptions = false
@@ -506,7 +506,7 @@ fun AlbumDetailsScreen(
                                 onAlbumAction(AlbumAction.QueueSongs(songs))
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showAlbumMoreOptions = false
@@ -519,7 +519,7 @@ fun AlbumDetailsScreen(
                                 navigateToArtistDetails(selectSong.artistId)
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showAlbumMoreOptions = false
@@ -531,7 +531,7 @@ fun AlbumDetailsScreen(
                                 Log.i(TAG, "Hide sheet state")
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showAlbumMoreOptions = false
@@ -556,10 +556,10 @@ fun AlbumDetailsScreen(
                             coroutineScope.launch {
                                 Log.i(TAG, "Song More Options Modal -> PlaySong clicked")
                                 onAlbumAction(AlbumAction.PlaySong(selectSong))
-                                navigateToPlayer()
                                 sheetState.hide()
+                                navigateToPlayer()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSongMoreOptions = false
@@ -572,7 +572,7 @@ fun AlbumDetailsScreen(
                                 onAlbumAction(AlbumAction.PlaySongNext(selectSong))
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSongMoreOptions = false
@@ -586,7 +586,7 @@ fun AlbumDetailsScreen(
                                 onAlbumAction(AlbumAction.QueueSong(selectSong))
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSongMoreOptions = false
@@ -599,7 +599,7 @@ fun AlbumDetailsScreen(
                                 navigateToArtistDetails(selectSong.artistId)
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSongMoreOptions = false
@@ -611,7 +611,7 @@ fun AlbumDetailsScreen(
                                 Log.i(TAG, "Hide sheet state")
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSongMoreOptions = false
@@ -705,7 +705,6 @@ fun AlbumDetailsHeader(
                         .clip(MaterialTheme.shapes.large),
                 )
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(start = 16.dp),
                 ) {
                     Text(
