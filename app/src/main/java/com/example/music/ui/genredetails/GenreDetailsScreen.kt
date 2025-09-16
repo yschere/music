@@ -75,6 +75,7 @@ import com.example.music.ui.artistdetails.ArtistAction
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
+import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.GenreMoreOptionsBottomModal
 
 
@@ -149,21 +150,10 @@ private fun GenreDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Text(
-                text = stringResource(id = R.string.an_error_has_occurred),
-                modifier = Modifier.padding(16.dp)
-            )
-            Button(onClick = onRetry) {
-                Text(text = stringResource(id = R.string.retry_label))
-            }
-        }
-    }
+    Error(
+        onRetry = onRetry,
+        modifier = modifier
+    )
 }
 
 /**

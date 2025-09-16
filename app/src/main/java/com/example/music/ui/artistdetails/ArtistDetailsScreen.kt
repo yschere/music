@@ -137,21 +137,10 @@ private fun ArtistDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Text(
-                text = stringResource(id = R.string.an_error_has_occurred),
-                modifier = Modifier.padding(16.dp)
-            )
-            Button(onClick = onRetry) {
-                Text(text = stringResource(id = R.string.retry_label))
-            }
-        }
-    }
+    Error(
+        onRetry = onRetry,
+        modifier = modifier
+    )
 }
 
 /**
@@ -244,6 +233,7 @@ fun ArtistDetailsScreen(
                             )
                         }
 
+                        // Artist More Options
                         IconButton(
                             onClick = {
                                 showBottomSheet = true

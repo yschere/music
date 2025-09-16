@@ -67,6 +67,7 @@ import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.getPlaylistSongs
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
@@ -157,21 +158,10 @@ private fun PlaylistDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Text(
-                text = stringResource(id = R.string.an_error_has_occurred),
-                modifier = Modifier.padding(16.dp)
-            )
-            Button(onClick = onRetry) {
-                Text(text = stringResource(id = R.string.retry_label))
-            }
-        }
-    }
+    Error(
+        onRetry = onRetry,
+        modifier = modifier
+    )
 }
 
 /**
