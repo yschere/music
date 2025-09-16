@@ -2,14 +2,8 @@ package com.example.music.ui.home
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
-//import androidx.compose.foundation.background
-//import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-//import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-//import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -22,14 +16,10 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-//import androidx.compose.foundation.pager.HorizontalPager
-//import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
-//import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
@@ -40,8 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -101,13 +89,15 @@ import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
+import com.example.music.ui.shared.BottomSheetPlayer
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
-import com.example.music.ui.shared.formatStr
+import com.example.music.ui.shared.formatString
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.fullWidthItem
@@ -120,22 +110,6 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
-/** Changelog:
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 4/11/2025 - Connected search implementation in HomeViewModel and domain's SearchQueryV2 to
- * the HomeScreen in HomeTopAppBarV2
- *
- * 4/13/2025 - Further revised search implementation in app so that it is on a separate screen
- * SearchScreen / SearchQueryViewModel, and now tapping the Search Icon in the TopAppBar
- * will navigate to SearchScreen view. Removed HomeTopAppBarV2.
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
-
 private const val TAG = "Home Screen"
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -147,7 +121,6 @@ private fun <T> ThreePaneScaffoldNavigator<T>.isMainPaneHidden(): Boolean {
  * Copied from `calculatePaneScaffoldDirective()` in [PaneScaffoldDirective], with modifications to
  * only show 1 pane horizontally if either width or height size class is compact.
  */
-//@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun calculateScaffoldDirective(
     windowAdaptiveInfo: WindowAdaptiveInfo,
     verticalHingePolicy: HingePolicy = HingePolicy.AvoidSeparating
@@ -298,6 +271,9 @@ private fun HomeScreenReady(
                     totals = uiState.totals,
                     selectSong = uiState.selectSong,
                     selectAlbum = uiState.selectAlbum,
+                    isActive = uiState.isActive, // if playback is active
+                    isPlaying = viewModel.isPlaying,
+                    currentSong = viewModel.currentSong,
                     onHomeAction = viewModel::onHomeAction,
                     navigateToHome = navigateToHome,
                     navigateToLibrary = navigateToLibrary,
@@ -308,6 +284,12 @@ private fun HomeScreenReady(
                     navigateToArtistDetails = navigateToArtistDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
                     modifier = Modifier.fillMaxSize(),
+                    miniPlayerControlActions = MiniPlayerControlActions(
+                        onPlayPress = viewModel::onPlay,
+                        onPausePress = viewModel::onPause,
+                        onNext = viewModel::onNext,
+                        onPrevious = viewModel::onPrevious
+                    ),
                 )
             },
             //FixMe: when navigateTo___Details determined, need to update this. it's based on PodcastDetailsViewModel
@@ -339,7 +321,6 @@ private fun HomeScreenReady(
  * Composable for Home Screen and its properties needed to render the
  * components of the page.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun HomeScreen(
     isLoading: Boolean,
@@ -347,6 +328,9 @@ private fun HomeScreen(
     totals: List<Int>,
     selectSong: SongInfo,
     selectAlbum: AlbumInfo,
+    isActive: Boolean,
+    isPlaying: Boolean,
+    currentSong: SongInfo,
     onHomeAction: (HomeAction) -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
@@ -356,8 +340,17 @@ private fun HomeScreen(
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
 ) {
+    Log.i(TAG, "Home Screen START\n" +
+        "currentSong? ${currentSong.title}\n" +
+        "isActive? $isActive")
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //FixMe: update the snackBar selection to properly convey action taken
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
     // Effect that changes the home category selection when there are no subscribed podcasts
     //FixMe: repurpose this for RecentPlaylists, so that if there's no recent playlists as featured playlists, have a defaulted view
     LaunchedEffect(key1 = featuredLibraryItemsFilterResult.recentAlbums) {//featuredLibraryItemsFilterResult.recentPlaylists) {
@@ -365,11 +358,6 @@ private fun HomeScreen(
             onHomeAction(HomeAction.EmptyLibraryView(PlaylistInfo()))
         }
     }
-
-    val coroutineScope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //FixMe: update the snackBar selection to properly convey action taken
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     NavDrawer(
         "Home Page",
@@ -404,15 +392,19 @@ private fun HomeScreen(
                     }
                 },
                 bottomBar = {
-                    /* //should show BottomBarPlayer here if a queue session is running or service is running
-                    BottomBarPlayer(
-                        song = PreviewSongs[5],
-                        navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
-                    )*/
+                    if (isActive){
+                        BottomSheetPlayer(
+                            song = currentSong,
+                            isPlaying = isPlaying,
+                            navigateToPlayer = navigateToPlayer,
+                            onPlayPress = miniPlayerControlActions.onPlayPress,
+                            onPausePress = miniPlayerControlActions.onPausePress,
+                        )
+                    }
                 },
                 snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 containerColor = Color.Transparent,
-                contentColor = contentColorFor(MaterialTheme.colorScheme.background)  //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
+                contentColor = contentColorFor(MaterialTheme.colorScheme.background) //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
             ) { contentPadding ->
                 // Main Content
                 HomeContent(
@@ -502,21 +494,22 @@ private fun HomeContent(
     Log.i(TAG, "HomeContent START")
     val pLists = featuredLibraryItemsFilterResult.recentAlbums.toPersistentList()
     val pagerState = rememberPagerState { pLists.size }
-    LaunchedEffect(pagerState, pLists) {
-        snapshotFlow { pagerState.currentPage }
-            .collect {
-            //this would be used to collect info for action that
-            // will need the current context to be redrawn to display result
-                //val playlist = pLists.getOrNull(it)
-                //playlist?.let { it1 -> HomeAction.LibraryPlaylistSelected(it1) }
-                    //?.let { it2 -> onHomeAction(it2) }
-            }//crashes the app on Home screen redraw
-    } //this section is called on every redraw for Home Screen
 
     val sheetState = rememberModalBottomSheetState(false,)
     var showBottomSheet by remember { mutableStateOf(false) }
-    var showAlbumMoreOptions by remember { mutableStateOf(false) } // if bottom modal content is for album details more options
+    var showAlbumMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
+
+    LaunchedEffect(pagerState, pLists) {
+        snapshotFlow { pagerState.currentPage }
+            .collect {
+                //this would be used to collect info for action that
+                // will need the current context to be redrawn to display result
+                //val playlist = pLists.getOrNull(it)
+                //playlist?.let { it1 -> HomeAction.LibraryPlaylistSelected(it1) }
+                //?.let { it2 -> onHomeAction(it2) }
+            }//crashes the app on Home screen redraw
+    } //this section is called on every redraw for Home Screen
 
     HomeContentGrid(
         pagerState = pagerState,
@@ -777,7 +770,7 @@ private fun HomeContentGrid(
                             .padding(horizontal = 16.dp),
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
 
-                    ) {
+                        ) {
                         Text(
                             text = "More",
                             //color = MaterialTheme.colorScheme.onPrimary,
@@ -924,7 +917,7 @@ private fun HomeSongListItemRow(
                     modifier = Modifier.padding(vertical = 2.dp),
                 )
                 Text(
-                    text = " • " + song.duration.formatStr(),
+                    text = " • " + song.duration.formatString(),
                     maxLines = 1,
                     minLines = 1,
                     style = MaterialTheme.typography.bodySmall,
@@ -992,6 +985,9 @@ private fun PreviewHome() {
             ),
             selectSong = PreviewSongs[0],
             selectAlbum = PreviewAlbums[0],
+            isActive = true,
+            isPlaying = true,
+            currentSong = PreviewSongs[0],
             onHomeAction = {},
             navigateToHome = {},
             navigateToLibrary = {},
@@ -1001,6 +997,12 @@ private fun PreviewHome() {
             navigateToAlbumDetails = {},
             navigateToArtistDetails = {},
             navigateToPlaylistDetails = {},
+            miniPlayerControlActions = MiniPlayerControlActions(
+                onPlayPress = {},
+                onPausePress = {},
+                onNext = {},
+                onPrevious = {},
+            ),
             modifier = Modifier,
         )
     }
