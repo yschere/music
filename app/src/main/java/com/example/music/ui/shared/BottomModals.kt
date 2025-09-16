@@ -10,42 +10,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
-import androidx.compose.material.icons.filled.Album
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Queue
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -64,8 +48,6 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.contentColorFor
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -73,13 +55,11 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -106,33 +86,11 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.domain.testing.getSongData
 import com.example.music.ui.library.LibraryCategory
-import com.example.music.ui.player.PlayerSlider
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.time.Duration
-
-/** Changelog:
- *
- * 4/2/2025 - Revised PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong. This doesn't mean full
- * removal like the other, non-Player screens because Bottom Modals also contains
- * BottomPlayer, which does need PlayerSong as the supporting model.
- *
- * 4/9/2025 - Updated AlbumMoreOptions, ComposerMoreOptions, GenreMoreOptions, PlaylistMoreOptions
- * to use ActionOptionRow for displaying their individual object's actions. And cleaned up some
- * of the commented out code that's not needed anymore.
- *
- * 4/14/2024 - Created CustomDragHandle to create a drag handle that takes up less space.
- * Updated the bottom modals' padding for column structure and list items so the onPress, onClick
- * highlight covers the full width of the item.
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
 
 private const val TAG = "Bottom Modal"
 
@@ -456,7 +414,7 @@ fun SongMoreOptionsBottomModal(
                 //ActionOptionRow( Pair(Actions.RemoveFromQueue) {} )
             //ActionOptionRow( Pair(Actions.DeleteFromLibrary) {} ) */
 
-            Button( // close btn
+            Button(
                 onClick = onClose,
                 colors = buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -791,8 +749,6 @@ fun PlaylistMoreOptionsBottomModal(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
 
     playlist: PlaylistInfo,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit = {},
     play: () -> Unit = {},
     playNext: () -> Unit = {},
     shuffle: () -> Unit = {},
@@ -803,10 +759,10 @@ fun PlaylistMoreOptionsBottomModal(
     context: String = "",
 ) {
     ModalBottomSheet(
-        onDismissRequest = onDismissRequest,//{showBottomSheet = false}
-        sheetState = sheetState,//rememberModalBottomSheetState(skipPartiallyExpanded = false,),
-        containerColor = MaterialTheme.colorScheme.background,//MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,//MaterialTheme.colorScheme.onBackground,
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
@@ -837,16 +793,16 @@ fun PlaylistMoreOptionsBottomModal(
 
             // if on library.playlists
             if (context != "PlaylistDetails") {
-                ActionOptionRow( Actions.GoToPlaylist, goToPlaylist ) // { navigateToPlaylistDetails(playlist.id) }
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+                ActionOptionRow( Actions.GoToPlaylist, goToPlaylist )
+                //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
 
-            ActionOptionRow( Actions.EditPlaylistTags, {} )
-            ActionOptionRow( Actions.EditPlaylistOrder, {} )
+            //ActionOptionRow( Actions.EditPlaylistTags, {} )
+            //ActionOptionRow( Actions.EditPlaylistOrder, {} )
 
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-            ActionOptionRow( Actions.ExportPlaylist, {} )
-            ActionOptionRow( Actions.DeletePlaylist, {} )
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            //ActionOptionRow( Actions.ExportPlaylist, {} )
+            //ActionOptionRow( Actions.DeletePlaylist, {} )
 
             Button(
                 onClick = onClose,
@@ -895,10 +851,10 @@ fun QueueMoreOptionsBottomModal(
     context: String = "",
 ) {
     ModalBottomSheet(
-        onDismissRequest = onDismissRequest,//{showBottomSheet = false}
-        sheetState = sheetState,//rememberModalBottomSheetState(skipPartiallyExpanded = false,),
-        containerColor = MaterialTheme.colorScheme.background,//MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,//MaterialTheme.colorScheme.onBackground,
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
@@ -1099,8 +1055,8 @@ fun DetailsSortSelectionBottomModal(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,//MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,//MaterialTheme.colorScheme.onBackground,
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
@@ -1359,112 +1315,6 @@ fun CreatePlaylistBottomModal(
     }
 }
 
-// TODO: determine if this should remain using PlayerSong or be changed to SongInfo
-//  initial idea is to remain as is - 4/2/2025
-//  making it SongInfo - 7/23/2025
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BottomSheet(
-    song: SongInfo,
-    isPlaying: Boolean,
-    onPlayPress: () -> Unit,
-    onPausePress: () -> Unit,
-    onNext: () -> Unit,
-    onPrevious: () -> Unit,
-    navigateToPlayer: () -> Unit = {},
-    //navigateToQueue: () -> Unit = {},
-    sheetState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
-        /*SheetState(
-            skipPartiallyExpanded = false,
-            density = Density(1f,1f),
-            initialValue = if (isActive) SheetValue.PartiallyExpanded else SheetValue.Hidden,
-            skipHiddenState = isActive,
-        )*/
-    modifier: Modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
-    content: @Composable () -> Unit = {},
-) {
-    /**
-     * Goal: to create the bottom bar that will appear when a song is in play while the user is in the app
-     * will only show when in play, otherwise is not visible nor interact-able
-     */
-    /*val sheetState = rememberBottomSheetScaffoldState(
-        SheetState(
-            skipPartiallyExpanded = false,
-            density = Density(1f,1f),
-            initialValue = if (isPlaying) SheetValue.PartiallyExpanded else SheetValue.Hidden,
-            skipHiddenState = isPlaying,
-        ),
-    )*/
-    BottomSheetScaffold(
-        sheetContent = {
-            /*if (sheetState.bottomSheetState.hasPartiallyExpandedState)
-                BottomSheetPlayer(
-                    song = song,
-                    isPlaying = isPlaying,
-                    navigateToPlayer = navigateToPlayer,
-                    //navigateToQueue = navigateToQueue,
-                    onPlayPress = onPlayPress,
-                    onPausePress = onPausePress,
-                    modifier = modifier,
-                )
-            else if (sheetState.bottomSheetState.hasExpandedState)
-                */BottomSheetFullPlayer(
-                    song = song,
-                    isPlaying = isPlaying,
-                    navigateToPlayer = navigateToPlayer,
-                    //navigateToQueue = navigateToQueue,
-                    onPlayPress = onPlayPress,
-                    onPausePress = onPausePress,
-                    onNext = onNext,
-                    onPrevious = onPrevious,
-                    modifier = modifier,
-                )
-        },
-        //modifier = modifier,//Modifier.windowInsetsPadding(WindowInsets.navigationBars),
-        scaffoldState = BottomSheetScaffoldState(
-            bottomSheetState = sheetState.bottomSheetState,//SheetState(initialValue = SheetValue.Expanded, skipPartiallyExpanded = true, density = Density(1f,1f)),
-            snackbarHostState = sheetState.snackbarHostState,//SnackbarHostState(),
-        ),
-        sheetPeekHeight = 0.dp,
-        sheetMaxWidth = Dp.Unspecified,
-        sheetShape = MusicShapes.extraSmall,
-        sheetContainerColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        //sheetContentColor
-        //sheetTonalElevation
-        //sheetShadowElevation
-        sheetDragHandle = {
-            if (sheetState.bottomSheetState.hasExpandedState) {
-                CustomDragHandle()
-            }
-        },
-        sheetSwipeEnabled = false,
-        topBar = { /* // screen's top app bar
-            HomeTopAppBar(
-                navigateToSearch = navigateToSearch,
-                onNavigationIconClick = {
-                    coroutineScope.launch {
-                        drawerState.apply {
-                            if (isClosed) open() else close()
-                        }
-                    }
-                },
-            )
-            if (isLoading) {
-                LinearProgressIndicator(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
-        }*/ },
-        //snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-        containerColor = Color.Transparent,
-        contentColor = contentColorFor(MaterialTheme.colorScheme.background), //MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
-    ) { //content with paddingValues
-        content()
-    }
-}
-
-// TODO: same concern as BottomSheet above
 @Composable
 fun BottomSheetPlayer(
     song: SongInfo,
@@ -1575,7 +1425,6 @@ fun BottomSheetPlayer(
     }
 }
 
-// TODO: same concern as above
 @Composable
 fun BottomSheetFullPlayer(
     song: SongInfo,
@@ -1711,8 +1560,8 @@ fun BottomSheetPlayerButtons(
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
             modifier = sideButtonsModifier
                 .clickable(enabled = true, onClick = onPrevious)
-                //.clickable(enabled = isPlaying, onClick = onPrevious)
-                //.alpha(if (isPlaying) 1f else 0.25f)
+            //.clickable(enabled = isPlaying, onClick = onPrevious)
+            //.alpha(if (isPlaying) 1f else 0.25f)
         )
 
         if (isPlaying) {
@@ -1747,7 +1596,7 @@ fun BottomSheetPlayerButtons(
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
             modifier = sideButtonsModifier
                 .clickable(enabled = true, onClick = onNext)
-                //.alpha(if (hasNext) 1f else 0.25f)
+            //.alpha(if (hasNext) 1f else 0.25f)
         )
     }
 }
@@ -1788,10 +1637,10 @@ fun RadioGroupSet(
                 Text(
                     text = text,
                     color =
-                        if (text == selectedOption)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onBackground,
+                    if (text == selectedOption)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onBackground,
                     //style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(start = 16.dp)
                 )
@@ -1823,7 +1672,7 @@ fun RadioGroupSet(
     * playlist page (from all playlists to selected playlist): on individual song context - play next, add to queue, add to playlist, edit playlist, remove from playlist, delete(?), view tags(?)
  */
 
-@CompLightPreview
+//@CompLightPreview
 @Composable
 fun PreviewRadioButtons() {
     MusicTheme {
@@ -1864,26 +1713,6 @@ fun PreviewMoreOptionsModal() {
             ),
             //coroutineScope = rememberCoroutineScope(),
             song = PreviewSongs[0],
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-//@SystemLightPreview
-@Composable
-fun PreviewBottomSheet() {
-    MusicTheme {
-        BottomSheet(
-            song = PreviewSongs[0],
-            isPlaying = false,
-            onPlayPress = {},
-            onPausePress = {},
-            onNext = {},
-            onPrevious = {},
-            navigateToPlayer = {},
-            sheetState = rememberBottomSheetScaffoldState(),
-            modifier = Modifier,
-            content = {},
         )
     }
 }
