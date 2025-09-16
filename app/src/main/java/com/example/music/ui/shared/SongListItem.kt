@@ -36,51 +36,30 @@ import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-/** Changelog:
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
-
 /**
  * Original Song List Item
  */
 @Composable
 fun SongListItem(
     song: SongInfo,
-    onClick: (SongInfo) -> Unit, // navigateToPlayer
-    onMoreOptionsClick: (SongInfo) -> Unit, //want to use for moreOptionsModal,
-    // would I also need the context for where this is being clicked?
-    // it would be used for determining which modal options to show
-    // (what are the different contexts that need to be covered?)
-    //onQueueSong: (SongInfo) -> Unit, // addToQueue
-    isListEditable: Boolean,
-    showArtistName: Boolean,
-    showAlbumImage: Boolean,
-    showAlbumTitle: Boolean,
-    showTrackNumber: Boolean,
+    onClick: (SongInfo) -> Unit,
+    onMoreOptionsClick: () -> Unit,
+    isListEditable: Boolean = false,
+    showArtistName: Boolean = false,
+    showAlbumImage: Boolean = false,
+    showAlbumTitle: Boolean = false,
+    showTrackNumber: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    /* //want one row to show all items
-    //want song title on separate row from extra info items (artist, album, duration)
-    //need to include show__ boolean options with Item, like showAlbumImage and showSummary
-    //remove the play and queue buttons, shift the album image to the far left, keep moreVert on the far right
-    */
-
     Box(modifier = modifier.padding(4.dp)) {
         Surface(
             shape = MaterialTheme.shapes.large,
-            //color = MaterialTheme.colorScheme.background,
             color = MaterialTheme.colorScheme.surfaceContainer,
-            onClick = { onClick(song) }, //this is how navigateToPlayer should be used for each song ListItem, as the passed in onClick event
+            onClick = { onClick(song) },
         ) {
             SongListItemRow(
                 song = song,
                 onMoreOptionsClick = onMoreOptionsClick,
-                //onQueueSong = onQueueSong,
                 isListEditable = isListEditable,
                 showArtistName = showArtistName,
                 showAlbumImage = showAlbumImage,
@@ -88,23 +67,6 @@ fun SongListItem(
                 showTrackNumber = showTrackNumber,
                 modifier = modifier,
             )
-
-            /* //this iteration had the padding within song list item row as part of the row surrounding the call itself
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                SongListItemRow(
-                    song = song,
-                    //artist = artist,
-                    album = album,
-                    //onClick = onClick,
-                    isListEditable = false,
-                    showArtistName = true,
-                    showAlbumImage = true,
-                    showAlbumTitle = true,
-                    modifier = modifier,
-                )
-            }*/
         }
     }
 }
@@ -115,7 +77,7 @@ fun SongListItem(
 @Composable
 private fun SongListItemRow(
     song: SongInfo,
-    onMoreOptionsClick: (SongInfo) -> Unit,
+    onMoreOptionsClick: () -> Unit,
     isListEditable: Boolean,
     showArtistName: Boolean,
     showAlbumImage: Boolean,
@@ -123,24 +85,21 @@ private fun SongListItemRow(
     showTrackNumber: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    //for now keep the list of properties as is
-    //later want to be able to support having the context of where
-    //the item is being viewed as what determines which properties get shown
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        modifier = Modifier.padding(8.dp),
     ) {
         /* // ********* UI Logic Expectations: *********
             // for properties that can be null, replace them with empty string
-            // --expected possible null properties: duration ... when the fuck was this null, trackNumber
+            // --expected possible empty, null properties: artist, album, duration, trackNumber, artworkUri
 
             // want to show Album Image on all screens except edit maybe, but choosing song artwork if it exists, if not check for album artwork and show that
             // --expect edit (playlist order?) screen to have showAlbumImage as false or not have this param passed
             // --expect home.songs, library.songs, albumDetails, genreDetails, artistDetails, playlistDetails, composerDetails to have showAlbumImage as true
+            // --when a song doesn't have uri / artworkBitmap saved, there will be default empty artwork used instead
 
-            // want to show track number on album screen for sure, maybe/maybe not for playlist screen
+            // want to show track number on album screen only
             // --expect albumDetails to have showTrackNumber as true
-            // --undecided on playlistDetails
             // --expect all other screens to have showTrackNumber as false, or not have param passed
 
             // do not want to show album title on albumDetails screen
@@ -173,11 +132,13 @@ private fun SongListItemRow(
         // FixMe: change this so it's not as pronounced, nor shifts over the rest of the row content
         if (showTrackNumber) {
             Text(
-                text = (song.trackNumber ?: 0).toString(), //FOUND, one place where song property is needed that PlayerSong does not need. original code: song.albumTrackNumber from SongInfo with album context, still the same in SongListItem(songInfo, albumInfo)
+                text =
+                    if (song.trackNumber == null) ""
+                    else song.trackNumber.toString(),
                 minLines = 1,
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(vertical = 10.dp, horizontal = 12.dp),
+                modifier = Modifier.padding(10.dp),
             )
         }
 
@@ -193,6 +154,8 @@ private fun SongListItemRow(
             )
         }
 
+        // Song Title
+        // Artist, Album, duration
         Column(modifier.weight(1f)) {
             Text(
                 text = song.title,
@@ -207,47 +170,21 @@ private fun SongListItemRow(
                 modifier = modifier.padding(horizontal = 10.dp)
             ) {
                 Text(
-                    text = setSubText(song, showAlbumTitle, showArtistName),// song.setSubTitle(showArtistName, showAlbumTitle),
+                    text = song.setSubText(showAlbumTitle, showArtistName),
                     maxLines = 1,
                     minLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(vertical = 2.dp),
                 )
-
-                /* //old duration
-                    val duration = song.duration
-                    Text(
-                        text = when {
-                            duration != null -> {
-                                // If we have the duration, we combine the date/duration via a
-                                // formatted string
-                                stringResource(
-                                    R.string.song_date_duration,
-                                    duration.toMinutes().toInt()
-                                )
-                            }
-                            // Otherwise we just use the date
-                            else -> MediumDateFormatter.format(song.dateLastPlayed)
-                        },
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp)
-                            .weight(1f)
-                    )
-                */
             }
         }
 
-        IconButton( //more options button
-            //modifier = Modifier.padding(0.dp),
-            onClick = { onMoreOptionsClick(song) }, //pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
-        ) {
-            Icon( //more options icon
+        // More Options btn
+        IconButton(onClick = onMoreOptionsClick) {
+            Icon(
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more), //stringResource(R.string.icon_more) + "for song " + song.title,
+                contentDescription = stringResource(R.string.icon_more),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
@@ -279,42 +216,20 @@ private fun SongListItemImageBm(
 }
 
 @Composable
-private fun setSubText(song: SongInfo, showArtistName: Boolean, showAlbumTitle: Boolean): String {
-    var subTitle = ""
-    if (showArtistName && song.artistId.toInt() != -1) {
-        subTitle = subTitle.plus(song.artistName )
-        subTitle = subTitle.plus(" • ")
-    }
-    if (showAlbumTitle && song.albumId.toInt() != -1) {
-        subTitle = subTitle.plus( song.albumTitle )
-        subTitle = subTitle.plus(" • ")
-    }
-    subTitle = subTitle.plus(song.duration.formatStr())
-    return subTitle
-}
-/*
-@Composable
-private fun SongInfo.setSubTitle(
+private fun SongInfo.setSubText(
     showArtistName: Boolean,
     showAlbumTitle: Boolean,
 ): String {
-    //logic to use:
-    // if showArtistName and id is valid: show artist name
-    // if showAlbumTitle and id is valid: show album title
-    // always include duration
-
-    // build subTitle:
     var subTitle = ""
-    if (showArtistName && this.artistId.toInt() != -1) {
+    if (showArtistName && this.artistId != 0L) {
         subTitle = subTitle.plus(this.artistName + " • ")
     }
-    if (showAlbumTitle && this.albumId.toInt() != -1) {
+    if (showAlbumTitle && this.albumId != 0L) {
         subTitle = subTitle.plus( this.albumTitle + " • ")
     }
     subTitle = subTitle.plus(this.duration.formatStr())
     return subTitle
-}*/
-
+}
 
 @CompLightPreview
 @Composable
@@ -426,7 +341,7 @@ private fun SongListItem_EditListPreview() {
             isListEditable = true,
             showAlbumImage = true,
             showArtistName = true,
-            showAlbumTitle = false,
+            showAlbumTitle = true,
             showTrackNumber = false,
             //modifier = Modifier,
         )
