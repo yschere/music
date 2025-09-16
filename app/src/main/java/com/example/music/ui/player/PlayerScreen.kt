@@ -149,6 +149,13 @@ data class PlayerControlActions(
     val onRepeat: () -> Unit
 )
 
+data class MiniPlayerControlActions(
+    val onPlayPress: () -> Unit,
+    val onPausePress: () -> Unit,
+    val onNext: () -> Unit,
+    val onPrevious: () -> Unit,
+)
+
 /**
  * Error Screen
  */
