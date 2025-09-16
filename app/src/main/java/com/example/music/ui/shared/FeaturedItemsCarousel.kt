@@ -191,14 +191,10 @@ fun FeaturedCarouselItem(
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium, //MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(4.dp).weight(1f,true)
-                //modifier = Modifier
-                    //.padding(top = 8.dp)
             )
 
-            // more options btn
-            IconButton(
-                onClick = onMoreOptionsClick,
-            ) {
+            // More Options btn
+            IconButton(onClick = onMoreOptionsClick) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = stringResource(R.string.icon_more),
