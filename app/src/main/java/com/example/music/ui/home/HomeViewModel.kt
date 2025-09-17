@@ -39,7 +39,6 @@ data class HomeScreenUiState(
     val totals: List<Int> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
     val selectAlbum: AlbumInfo = AlbumInfo(),
-    //val isActive: Boolean = false,
 )
 
 /**
@@ -59,8 +58,8 @@ class HomeViewModel @Inject constructor(
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     // Holds the song, album to show in more options modal
-    private val selectedSong = MutableStateFlow<SongInfo?>(null)
-    private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
+    private val selectedSong = MutableStateFlow(SongInfo())
+    private val selectedAlbum = MutableStateFlow(AlbumInfo())
 
     // bottom player section
     //override var currentMedia: MediaItem? by mutableStateOf(songController.currentSong)
@@ -70,7 +69,7 @@ class HomeViewModel @Inject constructor(
     var isActive
         get() = _isActive
         set(value) {
-            _isActive = checkActive()
+            _isActive = songController.isActive
             refresh(value)
         }
 
@@ -135,20 +134,14 @@ class HomeViewModel @Inject constructor(
                     "libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}\n" +
                     "is SongController available: ${songController.isConnected()}")
 
-                //val id = songController.currentSong?.mediaId
-                //if (id != null) {
-                    //currentSong = getSongDataV2(id.toLong())
-                //}
-                //isActive = songController.isActive
                 getSongControllerState()
 
                 HomeScreenUiState(
                     isLoading = refreshing,
                     featuredLibraryItemsFilterResult = libraryItems,
                     totals = counts,
-                    selectSong = selectSong ?: SongInfo(),
-                    selectAlbum = selectAlbum ?: AlbumInfo(),
-                    //isActive = isActive,
+                    selectSong = selectSong,
+                    selectAlbum = selectAlbum,
                 )
             }.catch { throwable ->
                 emit(
@@ -161,8 +154,71 @@ class HomeViewModel @Inject constructor(
                 _state.value = it
             }
         }
+        viewModelScope.launch {
+            songController.events.collect {
+                Log.d(TAG, "get SongController Player Event(s)")
+
+                // if events is empty, take these actions to generate the needed values for populating the Player Screen
+                if (it == null) {
+                    Log.d(TAG, "init: running start up events to initialize HomeVM")
+                    getSongControllerState()
+                    onPlayerEvent(event = Player.EVENT_IS_LOADING_CHANGED)
+                    onPlayerEvent(event = Player.EVENT_MEDIA_ITEM_TRANSITION)
+                    onPlayerEvent(event = Player.EVENT_IS_PLAYING_CHANGED)
+                    return@collect
+                }
+                // else, repeat the onPlayerEvent call to enact each event
+                repeat(it.size()) { index ->
+                    onPlayerEvent(it.get(index))
+                }
+            }
+        }
         refresh(force = false)
         Log.i(TAG, "init END")
+    }
+
+    private fun onPlayerEvent(event: Int) {
+        when (event) {
+            // Event for checking if the SongController is loaded and ready to read
+            Player.EVENT_IS_LOADING_CHANGED -> {
+                val loaded = songController.loaded
+                if (loaded.equals(true)) {
+                    refreshing.value = false
+                    isActive = songController.isActive
+                }
+                Log.d(TAG, "isLoading changed:\n" +
+                    "isPlaying set to $isPlaying\n" +
+                    "isActive set to $isActive")
+            }
+
+            // Event for checking if SongController is playing
+            Player.EVENT_IS_PLAYING_CHANGED -> {
+                _isPlaying = songController.isPlaying
+                isActive = songController.isActive
+                Log.d(TAG, "isPlaying changed:\n" +
+                    "isPlaying set to $isPlaying" +
+                    "isActive set to $isActive")
+            }
+
+            // Event for checking if the current media item has changed
+            Player.EVENT_MEDIA_ITEM_TRANSITION -> {
+                val mediaItem = songController.currentSong
+                viewModelScope.launch {
+                    var id = mediaItem?.mediaId
+                    while (id == null) {
+                        delay(100)
+                        id = mediaItem?.mediaId
+                    }
+                    currentSong = getSongDataV2(id.toLong())
+                    Log.d(TAG, "Current Song set to ${currentSong.title}")
+                    songController.logTrackNumber()
+                }
+            }
+
+            Player.EVENT_TRACKS_CHANGED -> {
+                songController.logTrackNumber()
+            }
+        }
     }
 
     fun refresh(force: Boolean = true) {
@@ -178,46 +234,16 @@ class HomeViewModel @Inject constructor(
 
             Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
-            if (force) {
-                combine(
-                    featuredLibraryItems,
-                    selectedSong,
-                    selectedAlbum,
-                ) {
-                    libraryItems,
-                    selectSong,
-                    selectAlbum ->
-                    isActive = checkActive()
-
-                    HomeScreenUiState(
-                        isLoading = refreshing.value,
-                        featuredLibraryItemsFilterResult = libraryItems,
-                        selectSong = selectSong ?: SongInfo(),
-                        selectAlbum = selectAlbum ?: AlbumInfo(),
-                        //isActive = isActive,
-                    )
-                }.collect {
-                    _state.value = it
-                }
-            }
         }
     }
 
-    suspend fun getSongControllerState() {
+    private suspend fun getSongControllerState() {
         val id = songController.currentSong?.mediaId
         if (id != null) {
             currentSong = getSongDataV2(id.toLong())
         }
         _isPlaying = songController.isPlaying
         isActive = songController.isActive
-    }
-
-    fun checkActive(): Boolean {
-        return songController.isActive
-    }
-
-    fun checkSong(): Long {
-        return songController.currentSong?.mediaId?.toLong() ?: 0L
     }
 
     fun onPlay() {
