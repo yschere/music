@@ -19,6 +19,16 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.size.Scale
+import java.time.Duration
+
+/**
+ * Format Duration to string as MM:HH
+ */
+fun Duration.formatString(): String {
+    val minutes = this.toMinutes().toString().padStart(2, '0')
+    val secondsLeft = (this.toSeconds() % 60).toString().padStart(2, '0')
+    return "$minutes:$secondsLeft"
+}
 
 /**
  * referenced by MediaService -> onMediaItemTransition

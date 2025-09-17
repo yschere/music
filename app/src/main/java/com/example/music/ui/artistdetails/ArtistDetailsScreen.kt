@@ -23,11 +23,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,7 +55,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -67,7 +62,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
 import com.example.music.designsys.theme.Keyline1
-import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.getAlbumsByArtist
 import com.example.music.domain.testing.getSongsByArtist
@@ -77,8 +71,11 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
+import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
+import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.shared.Loading
+import com.example.music.ui.shared.PlayShuffleButtons
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
@@ -90,17 +87,6 @@ import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
-
-/** Changelog:
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
 
 private const val TAG = "Artist Details Screen"
 
@@ -151,21 +137,10 @@ private fun ArtistDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Text(
-                text = stringResource(id = R.string.an_error_has_occurred),
-                modifier = Modifier.padding(16.dp)
-            )
-            Button(onClick = onRetry) {
-                Text(text = stringResource(id = R.string.retry_label))
-            }
-        }
-    }
+    Error(
+        onRetry = onRetry,
+        modifier = modifier
+    )
 }
 
 /**
@@ -235,11 +210,11 @@ fun ArtistDetailsScreen(
                             )
                         } else {
                             // if false, bar is expanded so use full header
-                            //AlbumDetailsHeaderLargeAlbumCover(album, modifier)
                             ArtistDetailsHeaderTitle(artist)
                         }
                     },
                     navigationIcon = {
+                        // Back btn
                         IconButton(onClick = navigateBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -250,7 +225,7 @@ fun ArtistDetailsScreen(
                     },
                     actions = {
                         // Search btn
-                        IconButton( onClick = navigateToSearch ) {
+                        IconButton(onClick = navigateToSearch) {
                             Icon(
                                 imageVector = Icons.Outlined.Search,
                                 contentDescription = stringResource(R.string.icon_search),
@@ -258,7 +233,7 @@ fun ArtistDetailsScreen(
                             )
                         }
 
-                        // Artist More Options btn
+                        // Artist More Options
                         IconButton(
                             onClick = {
                                 showBottomSheet = true
@@ -284,9 +259,14 @@ fun ArtistDetailsScreen(
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
-                //ArtistDetailsTopAppBar(
-                    //navigateBack = navigateBack,
-                //)
+                /*ArtistDetailsTopAppBar(
+                    navigateBack = navigateBack,
+                    navigateToSearch = navigateToSearch,
+                    onMoreOptionsClick = {
+                        showBottomSheet = true
+                        showArtistMoreOptions = true
+                    }
+                ) */
             },
             bottomBar = {
                 /* //should show BottomBarPlayer here if a queue session is running or service is running
@@ -300,24 +280,6 @@ fun ArtistDetailsScreen(
             containerColor = Color.Transparent,
             contentColor = contentColorFor(MaterialTheme.colorScheme.background) // MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
         ) { contentPadding ->
-            /* // VERSION 1 : call ArtistDetailsContent()
-            ArtistDetailsContent(
-                artist = artist,
-                albums = albums,
-                songs = songs,
-                /*onQueueSong = {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(snackBarText)
-                    }
-                    onQueueSong(it)
-                },*/
-                coroutineScope = coroutineScope,
-                navigateToAlbumDetails = navigateToAlbumDetails,
-                navigateToPlayer = navigateToPlayer,
-                modifier = Modifier.padding(contentPadding)
-            )*/
-
-            // VERSION 2 : place everything in details screen ()
             val albs = albums.toPersistentList()
             val pagerState = rememberPagerState { albs.size }
             LazyVerticalGrid(
@@ -326,10 +288,7 @@ fun ArtistDetailsScreen(
                     .fillMaxSize()
                     // does not have .padding(horizontal = 12.dp) to account for the albums carousel
             ) {
-                // section 1: header item
-                // is within TopAppBar now
-
-                //section 2: albums list
+                // Albums Section
                 if (albums.isNotEmpty()) {
                     fullWidthItem {
                         // this item is only for listing count of albums, so not using sorting or selection here
@@ -361,20 +320,22 @@ fun ArtistDetailsScreen(
                     }
                 }
 
-                //section 3: songs list
+                // Song Section
                 if (songs.isNotEmpty()) {
                     // songs header
                     fullWidthItem {
-                        SongCountAndSortSelectButtons(
-                            songs = songs,
-                            onSelectClick = {
-                                Log.i(TAG, "Multi Select btn clicked")
-                            },
+                        ItemCountAndSortSelectButtons(
+                            id = R.plurals.songs,
+                            itemCount = songs.size,
                             onSortClick = {
                                 Log.i(TAG, "Song Sort btn clicked")
                                 showBottomSheet = true
                                 showSortSheet = true
                             },
+                            onSelectClick = {
+                                Log.i(TAG, "Multi Select btn clicked")
+                            },
+                            modifier = Modifier.padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
                         )
                     }
 
@@ -390,13 +351,14 @@ fun ArtistDetailsScreen(
                                 onArtistAction(ArtistAction.ShuffleSongs(songs))
                                 navigateToPlayer()
                             },
+                            modifier = Modifier.padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
                         )
                     }
 
                     // songs list
                     items(songs) { song ->
                         Box(
-                            Modifier.padding(horizontal = 12.dp, vertical = 0.dp)
+                            Modifier.padding(horizontal = 12.dp, vertical = 0.dp) // added for screen with carousel for additional horizontal padding
                         ) {
                             SongListItem(
                                 song = song,
@@ -731,6 +693,8 @@ fun ArtistDetailsScreen(
 @Composable
 fun ArtistDetailsTopAppBar(
     navigateBack: () -> Unit,
+    navigateToSearch: () -> Unit,
+    onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -740,7 +704,7 @@ fun ArtistDetailsTopAppBar(
             .statusBarsPadding()
             .padding(horizontal = 8.dp)
     ) {
-        //back button
+        // Back button
         IconButton(onClick = navigateBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -752,16 +716,17 @@ fun ArtistDetailsTopAppBar(
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
-        // search btn
-        IconButton(onClick = {  }) {
+        // Search btn
+        IconButton(onClick = navigateToSearch) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = stringResource(R.string.icon_search),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
-        //more options btn // temporary placement till figure out if this should be part of header
-        IconButton(onClick = {}) {
+
+        // Artist More Options btn
+        IconButton(onClick = onMoreOptionsClick) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.icon_more),
@@ -771,124 +736,11 @@ fun ArtistDetailsTopAppBar(
     }
 }
 
-/**
- * Composable for Artist Details Screen's Content.
- */
-@Composable
-fun ArtistDetailsContent(
-    artist: ArtistInfo,
-    albums: PersistentList<AlbumInfo>,
-    songs: List<SongInfo>,
-    navigateToAlbumDetails: (Long) -> Unit,
-    navigateToPlayer: (SongInfo) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    /*
-        ------- VERSION 2: albums and songs combined in one grid -------
-        Goal: Header item to contain artist name,
-        Use remainder of screen for two panes, first pane is albums list, second pane is songs list
-        Albums list will have one, immutable sort order. Albums pane will have # albums as 'title'.
-        Songs list will have sort and selection options. Songs pane will have # songs as 'title'.
-        Future consideration: include shuffle and play btns between song pane 'title' and list
-     */
-
-    val albs = albums.toPersistentList()
-    val pagerState = rememberPagerState { albs.size }
-    LaunchedEffect(pagerState, albs) {
-        snapshotFlow { pagerState.currentPage }
-            .collect {
-                /*val album = albums.getOrNull(it)
-                album?.let { it1 -> ArtistsDetailsAction.ArtistAlbumSelected(it1) }
-                    ?.let { it2 -> onArtistsDetailsAction(it2) }*/
-            }//crashes the app on screen redraw
-    }
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(1),
-        modifier = modifier.fillMaxSize(),
-        // does not have .padding(horizontal = 12.dp) to account for the albums carousel
-    ) {
-        //section 1: header item
-        fullWidthItem {
-            ArtistDetailsHeaderTitle ( artist )
-            /*ArtistDetailsHeaderItem(
-                artist = artist,
-                modifier = Modifier
-                    .fillMaxWidth()
-            )*/
-        }
-
-        //section 2: albums list
-        if (!albums.isEmpty()) {
-            fullWidthItem {
-                Text(
-                    text = """\s[a-z]""".toRegex().replace(
-                        quantityStringResource(R.plurals.albums, albums.size, albums.size)
-                    ) {
-                        it.value.uppercase()
-                    },
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
-                )
-            }
-            fullWidthItem {
-                FeaturedAlbumsCarousel(
-                    pagerState = pagerState,
-                    items = albums,
-                    navigateToAlbumDetails = navigateToAlbumDetails,
-                    onMoreOptionsClick = {},
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-
-        //section 3: songs list
-        if (songs.isNotEmpty()) {
-
-            // songs header
-            fullWidthItem {
-                SongCountAndSortSelectButtons(
-                    songs = songs,
-                    onSortClick = {},
-                    onSelectClick = {},
-                )
-            }
-
-            fullWidthItem {
-                PlayShuffleButtons(
-                    onPlayClick = {},
-                    onShuffleClick = {},
-                )
-            }
-
-            // songs list
-            items(songs) { song ->
-                Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
-                    SongListItem(
-                        song = song,
-                        onClick = navigateToPlayer,
-                        onMoreOptionsClick = {},
-                        isListEditable = false,
-                        showArtistName = true,
-                        showAlbumImage = true,
-                        showAlbumTitle = true,
-                        showTrackNumber = false,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-        }
-    }
-}
-
 @Composable
 fun ArtistDetailsHeaderItem(
     artist: ArtistInfo,
     modifier: Modifier = Modifier
 ) {
-    // FUTURE THOUGHT: choose if want 1 image or multi image view for artist header
-    // and for the 1 image, should it be the 1st album, or an image for externally of the artist?
     BoxWithConstraints(
         modifier = modifier.padding(Keyline1)
     ) {
@@ -899,14 +751,6 @@ fun ArtistDetailsHeaderItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            /*AlbumImage(
-                modifier = Modifier
-                    //.size(widthConstraint, 200.dp)
-                    .fillMaxSize()
-                    .clip(MaterialTheme.shapes.large),
-                albumImage = R.drawable.bpicon,//album.artwork!!,//album.imageUrl or album.artwork when that is fixed
-                contentDescription = "artist Image"
-            )*/
             Text(
                 text = artist.name,
                 maxLines = 2,
@@ -939,106 +783,6 @@ fun ArtistDetailsHeaderTitle(
             //color = MaterialTheme.colorScheme.primaryContainer,
             style = MaterialTheme.typography.headlineMedium
         )
-    }
-}
-
-/**
- * Content section 2.3: song count and list sort icons
- */
-@Composable
-private fun SongCountAndSortSelectButtons(
-    songs: List<SongInfo>,
-    onSortClick: () -> Unit,
-    onSelectClick: () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
-    ) {
-        Text(
-            text = """\s[a-z]""".toRegex().replace(
-                quantityStringResource(R.plurals.songs, songs.size, songs.size)
-            ) {
-                it.value.uppercase()
-            },
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp).weight(1f, true)
-        )
-
-        // sort icon
-        IconButton(
-            onClick = onSortClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) { // showBottomSheet = true
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Sort,
-                contentDescription = stringResource(R.string.icon_sort),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-
-        // multi-select icon
-        IconButton(
-            onClick = onSelectClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Checklist,
-                contentDescription = stringResource(R.string.icon_multi_select),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-    }
-}
-
-/**
- * Content section 2.5: play and shuffle buttons
- */
-@Composable
-private fun PlayShuffleButtons(
-    onPlayClick: () -> Unit,
-    onShuffleClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    //Row(Modifier.padding(bottom = 8.dp)) { // original version for screens that don't have carousel
-    Row(
-        modifier
-            .padding(bottom = 8.dp)
-            .padding(horizontal = 12.dp) // added for screens with carousel for additional horizontal padding
-    ) {
-        // play btn
-        Button(
-            onClick = onPlayClick,
-            //did have colors set, colors = buttonColors( container -> primary, content -> background )
-            shape = MusicShapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PlayArrow,
-                contentDescription = stringResource(R.string.icon_play)
-            )
-            Text("PLAY")
-        }
-
-        // shuffle btn
-        Button(
-            onClick = onShuffleClick,
-            //did have colors set, colors = buttonColors( container -> primary, content -> background )
-            shape = MusicShapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Shuffle,
-                contentDescription = stringResource(R.string.icon_shuffle)
-            )
-            Text("SHUFFLE")
-        }
     }
 }
 

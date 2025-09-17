@@ -1,7 +1,6 @@
 package com.example.music.ui.composerdetails
 
 import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -58,8 +57,7 @@ import com.example.music.domain.testing.PreviewComposers
 import com.example.music.domain.testing.getSongsByComposer
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.SongInfo
-
-
+import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
@@ -68,17 +66,6 @@ import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
-
-/** Changelog:
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
 
 private const val TAG = "Composer Details Screen"
 
@@ -128,21 +115,10 @@ private fun ComposerDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Text(
-                text = stringResource(id = R.string.an_error_has_occurred),
-                modifier = Modifier.padding(16.dp)
-            )
-            Button(onClick = onRetry) {
-                Text(text = stringResource(id = R.string.retry_label))
-            }
-        }
-    }
+    Error(
+        onRetry = onRetry,
+        modifier = modifier
+    )
 }
 
 /**

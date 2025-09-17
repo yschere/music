@@ -9,18 +9,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
-/** Changelog:
- * 4/5/2025 - Created GetPlaylistDetailsV2 to accommodate change to song_playlist_entries
- * from MusicDatabase now using MediaStore Audio ids instead of previewData Song ids.
- */
-
-/** logger tag for this class */
 private const val TAG = "Get Playlist Details V2"
 
 /**
  * Use case to retrieve data for [PlaylistDetailsFilterResult] domain model for PlaylistDetailsScreen UI.
- * @property resolver [MediaRepo] Content Resolver for MediaStore
  * @property playlistRepo [PlaylistRepo] The repository for accessing Playlist data
+ * @property mediaRepo [MediaRepo] Content Resolver for MediaStore
  */
 class GetPlaylistDetailsV2 @Inject constructor(
     private val playlistRepo: PlaylistRepo,

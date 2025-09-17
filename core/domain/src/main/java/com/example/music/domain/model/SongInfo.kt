@@ -17,13 +17,6 @@ import com.example.music.data.mediaresolver.model.uri
 import java.time.Duration
 import java.time.OffsetDateTime
 
-/** Changelog:
- *
- * 7/22-23/2025 - Added Uri property to SongInfo.
- * Added transformer from MediaItem to SongInfo.
- * Removed PlayerSong completely
- */
-
 /**
  * External data layer representation of a song.Intent: to represent a Playlist for the UI, with the ability to
  * order playlists by dateCreated, dateLastAccessed, dateLastPlayed, and song count.
