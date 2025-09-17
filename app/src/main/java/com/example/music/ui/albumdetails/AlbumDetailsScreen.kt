@@ -548,8 +548,8 @@ fun AlbumDetailsScreen(
                         },
                         goToArtist = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> GoToArtist clicked :: ${selectSong.artistId}")
-                                navigateToArtistDetails(selectSong.artistId)
+                                Log.i(TAG, "Album More Options Modal -> GoToArtist clicked :: ${album.albumArtistId ?: "null id"}")
+                                navigateToArtistDetails(album.albumArtistId ?: 0L) // not a good check for if this is null
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showBottomSheet to FALSE")
