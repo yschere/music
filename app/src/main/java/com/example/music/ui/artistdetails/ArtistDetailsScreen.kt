@@ -1,15 +1,12 @@
 package com.example.music.ui.artistdetails
 
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -17,15 +14,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -49,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,7 +56,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -72,7 +66,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
-import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.Keyline1
 import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewArtists
@@ -81,18 +74,14 @@ import com.example.music.domain.testing.getSongsByArtist
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-
-
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
-import com.example.music.ui.shared.FeaturedCarouselItem
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
-import com.example.music.ui.shared.formatStr
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
@@ -100,7 +89,7 @@ import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /** Changelog:
  *
@@ -120,12 +109,10 @@ private const val TAG = "Artist Details Screen"
  */
 @Composable
 fun ArtistDetailsScreen(
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateBack: () -> Unit,
-    showBackButton: Boolean,
-    //modifier: Modifier = Modifier,
+    navigateToAlbumDetails: (Long) -> Unit,
     viewModel: ArtistDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -142,12 +129,10 @@ fun ArtistDetailsScreen(
                 selectSong = uiState.selectSong,
                 selectAlbum = uiState.selectAlbum,
                 onArtistAction = viewModel::onArtistAction,
-                //onQueueSong = viewModel::onQueueSong,
-                navigateToAlbumDetails = navigateToAlbumDetails,
+                navigateBack = navigateBack,
                 navigateToPlayer = navigateToPlayer,
                 navigateToSearch = navigateToSearch,
-                navigateBack = navigateBack,
-                showBackButton = showBackButton,
+                navigateToAlbumDetails = navigateToAlbumDetails,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
@@ -204,12 +189,10 @@ fun ArtistDetailsScreen(
     selectSong: SongInfo,
     selectAlbum: AlbumInfo,
     onArtistAction: (ArtistAction) -> Unit,
-    //onQueueSong: (SongInfo) -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateBack: () -> Unit,
-    showBackButton: Boolean,
+    navigateToAlbumDetails: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -226,10 +209,11 @@ fun ArtistDetailsScreen(
         }
     }
 
-    var showBottomSheet by remember { mutableStateOf(false) } // if bottom modal needs to be opened
-    var showSortSheet by remember { mutableStateOf(false) } // if bottom modal content is for sorting songs
-    var showAlbumMoreOptions by remember { mutableStateOf(false) } // if bottom modal content is for album details more options
-    var showArtistMoreOptions by remember { mutableStateOf(false) } // if bottom modal content is for album details more options
+    val sheetState = rememberModalBottomSheetState(false,)
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
+    var showAlbumMoreOptions by remember { mutableStateOf(false) }
+    var showArtistMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
 
     ScreenBackground(
@@ -256,8 +240,7 @@ fun ArtistDetailsScreen(
                         }
                     },
                     navigationIcon = {
-                        //back button
-                        IconButton( onClick = navigateBack ) {
+                        IconButton(onClick = navigateBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(id = R.string.icon_back_nav),
@@ -266,7 +249,7 @@ fun ArtistDetailsScreen(
                         }
                     },
                     actions = {
-                        // search btn
+                        // Search btn
                         IconButton( onClick = navigateToSearch ) {
                             Icon(
                                 imageVector = Icons.Outlined.Search,
@@ -274,11 +257,12 @@ fun ArtistDetailsScreen(
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
-                        // more options btn // temporary placement till figure out if this should be part of header
+
+                        // Artist More Options btn
                         IconButton(
                             onClick = {
                                 showBottomSheet = true
-                                showArtistMoreOptions = true /* onMoreOptionsClick */
+                                showArtistMoreOptions = true
                             }
                         ) {
                             Icon(
@@ -300,7 +284,6 @@ fun ArtistDetailsScreen(
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
-
                 //ArtistDetailsTopAppBar(
                     //navigateBack = navigateBack,
                 //)
@@ -312,13 +295,10 @@ fun ArtistDetailsScreen(
                     navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
                 )*/
             },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
-            contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
-            //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
+            contentColor = contentColorFor(MaterialTheme.colorScheme.background) // MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
         ) { contentPadding ->
             /* // VERSION 1 : call ArtistDetailsContent()
             ArtistDetailsContent(
@@ -343,9 +323,8 @@ fun ArtistDetailsScreen(
             LazyVerticalGrid(
                 columns = GridCells.Fixed(1),
                 modifier = modifier.padding(contentPadding)
-                    .fillMaxSize(),
-                //does not have the initial .padding(horizontal = 12.dp) so that
-                // Albums horizontal pager is not cut into
+                    .fillMaxSize()
+                    // does not have .padding(horizontal = 12.dp) to account for the albums carousel
             ) {
                 // section 1: header item
                 // is within TopAppBar now
@@ -353,6 +332,7 @@ fun ArtistDetailsScreen(
                 //section 2: albums list
                 if (albums.isNotEmpty()) {
                     fullWidthItem {
+                        // this item is only for listing count of albums, so not using sorting or selection here
                         Text(
                             text = """\s[a-z]""".toRegex().replace(
                                 quantityStringResource(R.plurals.albums, albums.size, albums.size)
@@ -364,63 +344,25 @@ fun ArtistDetailsScreen(
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                         )
                     }
+
                     fullWidthItem {
-                        Column(modifier = modifier) {
-                            BoxWithConstraints(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.Transparent)
-                            ) {
-                                val horizontalPadding = (this.maxWidth - 160.dp) / 2
-                                HorizontalPager(
-                                    state = pagerState,
-                                    contentPadding = PaddingValues(
-                                        horizontal = horizontalPadding,
-                                        vertical = 16.dp,
-                                    ),
-                                    pageSpacing = 24.dp,
-                                    pageSize = PageSize.Fixed(160.dp)
-                                ) { page ->
-                                    val album = albums[page]
-                                    FeaturedCarouselItem(
-                                        itemImage = album.artworkUri,//album.artwork!!,
-                                        itemTitle = album.title,
-                                        itemSize = album.songCount,
-                                        onMoreOptionsClick = {
-                                            onArtistAction( ArtistAction.AlbumMoreOptionClicked(album) )
-                                            //ArtistAction.AlbumMoreOptionClicked(album)
-                                            showBottomSheet = true
-                                            showAlbumMoreOptions = true
-                                        },
-                                        //onClick = AlbumMoreOptionsBottomModal(album),
-                                        //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clickable {
-                                                navigateToAlbumDetails(album)
-                                            }
-                                    )
-                                }
-                            }
-                        }
-                        /*FeaturedAlbumsCarousel(
+                        FeaturedAlbumsCarousel(
                             pagerState = pagerState,
                             items = albums,
                             navigateToAlbumDetails = navigateToAlbumDetails,
-                            onMoreOptionsClick = {
-                                onArtistAction( ArtistAction.AlbumMoreOptionClicked(it) )
-                                ArtistAction.AlbumMoreOptionClicked(it)
+                            onMoreOptionsClick = { album: AlbumInfo ->
+                                Log.i(TAG, "Album More Options clicked: ${album.title}")
+                                onArtistAction( ArtistAction.AlbumMoreOptionClicked(album) )
                                 showBottomSheet = true
                                 showAlbumMoreOptions = true
                             },
                             modifier = Modifier.fillMaxWidth()
-                        )*/
+                        )
                     }
                 }
 
                 //section 3: songs list
                 if (songs.isNotEmpty()) {
-
                     // songs header
                     fullWidthItem {
                         SongCountAndSortSelectButtons(
@@ -453,7 +395,9 @@ fun ArtistDetailsScreen(
 
                     // songs list
                     items(songs) { song ->
-                        Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
+                        Box(
+                            Modifier.padding(horizontal = 12.dp, vertical = 0.dp)
+                        ) {
                             SongListItem(
                                 song = song,
                                 onClick = {
@@ -463,164 +407,317 @@ fun ArtistDetailsScreen(
                                 },
                                 onMoreOptionsClick = {
                                     Log.i(TAG, "Song More Option clicked: ${song.title}")
-                                    onArtistAction( ArtistAction.SongMoreOptionClicked( song ) )
+                                    onArtistAction(ArtistAction.SongMoreOptionClicked(song))
                                     showBottomSheet = true
                                     showSongMoreOptions = true
                                 },
-                                //onQueueSong = { },
                                 isListEditable = false,
-                                showArtistName = true,
                                 showAlbumImage = true,
+                                showArtistName = true,
                                 showAlbumTitle = true,
                                 showTrackNumber = false,
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }
                     }
-                    /*items(songs) { song ->
-                        Box(modifier = modifier.padding(/*horizontal = 12.dp, */vertical = 0.dp)) {
-                            Surface(
-                                shape = MaterialTheme.shapes.large,
-                                color = Color.Transparent,
-                                //color = MaterialTheme.colorScheme.surfaceContainer,
-                                onClick = { navigateToPlayer(song) },
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .padding(/*horizontal = 12.dp, */vertical = 8.dp)
-                                        .padding(start = 12.dp),
-                                ) {
-                                    AlbumImage(
-                                        albumImage = 1,
-                                        contentDescription = song.title,
-                                        modifier = Modifier
-                                            .size(56.dp)
-                                            .clip(MaterialTheme.shapes.small)
-                                    )
-
-                                    Column(modifier.weight(1f)) {
-                                        Text(
-                                            text = song.title,
-                                            maxLines = 1,
-                                            minLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
-                                        )
-                                        Row(
-                                            modifier = modifier.padding(horizontal = 10.dp)
-                                        ) {
-                                            Text(
-                                                text = song.artistName,
-                                                maxLines = 1,
-                                                minLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                modifier = Modifier.padding(vertical = 2.dp),
-                                            )
-                                            Text(
-                                                text = " • " + song.albumTitle,
-                                                maxLines = 1,
-                                                minLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                modifier = Modifier.padding(vertical = 2.dp),
-                                            )
-                                            Text(
-                                                text = " • " + song.duration.formatStr(),
-                                                maxLines = 1,
-                                                minLines = 1,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                modifier = Modifier.padding(vertical = 2.dp)//, horizontal = 8.dp),
-                                            )
-                                        }
-                                    }
-
-                                    IconButton( //more options button
-                                        //modifier = Modifier.padding(0.dp),
-                                        onClick = {
-                                            onArtistAction( ArtistAction.SongMoreOptionClicked( song ) )
-                                            showBottomSheet = true
-                                            showSongMoreOptions = true
-                                        }, // pretty sure I need this to be context dependent, might pass something within savedStateHandler? within viewModel??
-                                    ) {
-                                        Icon( //more options icon
-                                            imageVector = Icons.Default.MoreVert,
-                                            contentDescription = stringResource(R.string.icon_more),
-                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }*/
                 }
             }
+
+            // ArtistDetails BottomSheet
             if (showBottomSheet) {
-                // need selection context - sort btn
+                Log.i(TAG, "ArtistDetails Content -> showBottomSheet is TRUE")
+                // bottom sheet context - sort btn
                 if (showSortSheet) {
+                    Log.i(TAG, "ArtistDetails Content -> Song Sort Modal is TRUE")
                     DetailsSortSelectionBottomModal(
                         onDismissRequest = {
                             showBottomSheet = false
                             showSortSheet = false
                         },
-                        coroutineScope = coroutineScope,
+                        sheetState = sheetState,
+                        // need to show selection
+                        onClose = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Hide sheet state")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSortSheet = false
+                                }
+                            }
+                        },
+                        onApply = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Save sheet state - does nothing atm")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSortSheet = false
+                                }
+                            }
+                        },
                         content = "SongInfo",
                         context = "ArtistDetails",
-                        //itemInfo = album,
                     )
                 }
 
-                // need selection context - more option btn
+                // bottom sheet context - album more option btn
                 else if (showAlbumMoreOptions) {
+                    Log.i(TAG, "ArtistDetails Content -> Album More Options is TRUE")
                     AlbumMoreOptionsBottomModal(
                         onDismissRequest = {
                             showBottomSheet = false
                             showAlbumMoreOptions = false
                         },
-                        coroutineScope = coroutineScope,
+                        sheetState = sheetState,
                         album = selectAlbum,
+                        play = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> Play Album clicked :: ${selectAlbum.id}")
+                                onArtistAction(ArtistAction.PlayAlbum(selectAlbum))
+                                sheetState.hide()
+                                navigateToPlayer()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        playNext = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> Play Album Next clicked :: ${selectAlbum.id}")
+                                onArtistAction(ArtistAction.PlayAlbumNext(selectAlbum))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        shuffle = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> Shuffle Album clicked :: ${selectAlbum.id}")
+                                onArtistAction(ArtistAction.ShuffleAlbum(selectAlbum))
+                                sheetState.hide()
+                                navigateToPlayer()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        //addToPlaylist = {},
+                        addToQueue = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> Queue Album clicked :: ${selectAlbum.id}")
+                                onArtistAction(ArtistAction.QueueAlbum(selectAlbum))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        goToAlbum = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> GoToAlbum clicked :: ${selectAlbum.id}")
+                                navigateToAlbumDetails(selectAlbum.id)
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        onClose = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Hide sheet state")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
                         context = "ArtistDetails",
-                        //navigateToArtistDetails = navigateToArtistDetails,
-                        //artist = artist, //I don't think I need to pass this if albumInfo has artistId and artistName
-                        //AlbumDetails context
-                        //navigateToAlbumDetails = navigateTo
                     )
                 }
 
+                // bottom sheet context - song more option btn
                 else if (showSongMoreOptions) {
+                    Log.i(TAG, "ArtistDetails Content -> Song More Options is TRUE")
                     SongMoreOptionsBottomModal(
                         onDismissRequest = {
                             showBottomSheet = false
                             showSongMoreOptions = false
                         },
-                        coroutineScope = coroutineScope,
+                        sheetState = sheetState,
                         song = selectSong,
+                        play = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> PlaySong clicked :: ${selectSong.id}")
+                                onArtistAction(ArtistAction.PlaySong(selectSong))
+                                navigateToPlayer()
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSongMoreOptions = false
+                                }
+                            }
+                        },
+                        playNext = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked :: ${selectSong.id}")
+                                onArtistAction(ArtistAction.PlaySongNext(selectSong))
+                                navigateToPlayer()
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSongMoreOptions = false
+                                }
+                            }
+                        },
+                        //addToPlaylist = {},
+                        addToQueue = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> QueueSong clicked :: ${selectSong.id}")
+                                onArtistAction(ArtistAction.QueueSong(selectSong))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSongMoreOptions = false
+                                }
+                            }
+                        },
+                        goToAlbum = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked :: ${selectSong.albumId}")
+                                navigateToAlbumDetails(selectSong.albumId)
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSongMoreOptions = false
+                                }
+                            }
+                        },
+                        onClose = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Hide sheet state")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSongMoreOptions = false
+                                }
+                            }
+                        },
                         context = "ArtistDetails",
-                        //onQueueSong = { action ->
-                        //                    if (action is AlbumAction.QueueSong) {
-                        //                        coroutineScope.launch {
-                        //                            snackbarHostState.showSnackbar(snackBarText)
-                        //                        }
-                        //                    }
-                        //                    viewModel::onAlbumAction(action)
-                        //                },
-                        navigateToPlayer = navigateToPlayer,
                     )
                 }
 
+                // bottom sheet context - artist more option btn
                 else if (showArtistMoreOptions) {
+                    Log.i(TAG, "ArtistDetails Content -> Artist More Options is TRUE")
                     ArtistMoreOptionsBottomModal(
                         onDismissRequest = {
                             showBottomSheet = false
-                            showSongMoreOptions = false
+                            showArtistMoreOptions = false
                         },
-                        coroutineScope = coroutineScope,
+                        sheetState = sheetState,
                         artist = artist,
+                        play = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> PlaySongs clicked")
+                                onArtistAction(ArtistAction.PlaySongs(songs))
+                                navigateToPlayer()
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showArtistMoreOptions = false
+                                }
+                            }
+                        },
+                        playNext = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> PlaySongsNext clicked")
+                                onArtistAction(ArtistAction.PlaySongsNext(songs))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showArtistMoreOptions = false
+                                }
+                            }
+                        },
+                        shuffle = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> ShuffleSongs clicked")
+                                onArtistAction(ArtistAction.ShuffleSongs(songs))
+                                navigateToPlayer()
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showArtistMoreOptions = false
+                                }
+                            }
+                        },
+                        //addToPlaylist = {},
+                        addToQueue = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> QueueSongs clicked")
+                                onArtistAction(ArtistAction.QueueSongs(songs))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showArtistMoreOptions = false
+                                }
+                            }
+                        },
+                        onClose = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Hide sheet state")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showArtistMoreOptions = false
+                                }
+                            }
+                        },
                         context = "ArtistDetails",
-                        navigateToArtistDetails = {},
-                        navigateToPlayer = navigateToPlayer,
                     )
                 }
             }
@@ -682,9 +779,7 @@ fun ArtistDetailsContent(
     artist: ArtistInfo,
     albums: PersistentList<AlbumInfo>,
     songs: List<SongInfo>,
-    //onQueueSong: (SongInfo) -> Unit,
-    coroutineScope: CoroutineScope,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlayer: (SongInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -711,8 +806,7 @@ fun ArtistDetailsContent(
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
         modifier = modifier.fillMaxSize(),
-        //does not have the initial .padding(horizontal = 12.dp) so that
-        // Albums horizontal pager is not cut into
+        // does not have .padding(horizontal = 12.dp) to account for the albums carousel
     ) {
         //section 1: header item
         fullWidthItem {
@@ -763,8 +857,8 @@ fun ArtistDetailsContent(
 
             fullWidthItem {
                 PlayShuffleButtons(
-                    onPlayClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
-                    onShuffleClick = { /* probably send call to controller, or is it songPlayer? since that's in viewModel */ },
+                    onPlayClick = {},
+                    onShuffleClick = {},
                 )
             }
 
@@ -775,7 +869,6 @@ fun ArtistDetailsContent(
                         song = song,
                         onClick = navigateToPlayer,
                         onMoreOptionsClick = {},
-                        //onQueueSong = { },
                         isListEditable = false,
                         showArtistName = true,
                         showAlbumImage = true,
@@ -803,8 +896,8 @@ fun ArtistDetailsHeaderItem(
         val maxImageSize = this.maxWidth / 2
         //val imageSize = min(maxImageSize, 148.dp)
         Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             /*AlbumImage(
                 modifier = Modifier
@@ -860,7 +953,8 @@ private fun SongCountAndSortSelectButtons(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+        modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
     ) {
         Text(
             text = """\s[a-z]""".toRegex().replace(
@@ -870,7 +964,7 @@ private fun SongCountAndSortSelectButtons(
             },
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp).weight(1f, true) //try without padding?
+            modifier = Modifier.padding(8.dp).weight(1f, true)
         )
 
         // sort icon
@@ -879,7 +973,7 @@ private fun SongCountAndSortSelectButtons(
             modifier = Modifier.semantics(mergeDescendants = true) { }
         ) { // showBottomSheet = true
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
+                imageVector = Icons.AutoMirrored.Filled.Sort,
                 contentDescription = stringResource(R.string.icon_sort),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
@@ -891,7 +985,7 @@ private fun SongCountAndSortSelectButtons(
             modifier = Modifier.semantics(mergeDescendants = true) { }
         ) {
             Icon(
-                imageVector = Icons.Filled.Checklist,//want this to be multi select icon
+                imageVector = Icons.Filled.Checklist,
                 contentDescription = stringResource(R.string.icon_multi_select),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
@@ -908,21 +1002,16 @@ private fun PlayShuffleButtons(
     onShuffleClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier.padding(horizontal = 12.dp).padding(bottom = 8.dp)) {
-        //Row(Modifier.padding(bottom = 8.dp)) { // original version for screens that don't have carousel / don't need to remove horizontal padding on lazyVerticalGrid
+    //Row(Modifier.padding(bottom = 8.dp)) { // original version for screens that don't have carousel
+    Row(
+        modifier
+            .padding(bottom = 8.dp)
+            .padding(horizontal = 12.dp) // added for screens with carousel for additional horizontal padding
+    ) {
         // play btn
         Button(
-            onClick = onPlayClick, //what is the thing that would jump start this step process. would it go thru the viewModel??
-            //step 1: regardless of shuffle being on or off, set shuffle to off
-            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
-            //step 3: set the player to play the first item in queue
-            //step 4: navigateToPlayer(first item)
-            //step 5: start playing
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
-            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
+            onClick = onPlayClick,
+            //did have colors set, colors = buttonColors( container -> primary, content -> background )
             shape = MusicShapes.small,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
@@ -937,18 +1026,7 @@ private fun PlayShuffleButtons(
 
         // shuffle btn
         Button(
-            onClick = onShuffleClick, //what is the thing that would jump start this step process
-            //step 1: regardless of shuffle being on or off, set shuffle to on
-            //step 2?: confirm the shuffle type
-            //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
-            //step 4: set the player to play the first item in queue
-            //step 5: navigateToPlayer(first item)
-            //step 6: start playing
-            //needs to take the songs in the playlist, shuffle the
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
+            onClick = onShuffleClick,
             //did have colors set, colors = buttonColors( container -> primary, content -> background )
             shape = MusicShapes.small,
             modifier = Modifier
@@ -987,15 +1065,14 @@ fun ArtistDetailsScreenPreview() {
             artist = PreviewArtists[0],
             albums = getAlbumsByArtist(113).toPersistentList(),
             songs = getSongsByArtist(113),
-            selectSong = getSongsByArtist(113)[0],
+
+            selectSong = getSongsByArtist(PreviewArtists[0].id)[0],
             selectAlbum = getAlbumsByArtist(113)[0],
             onArtistAction = {},
-
-            navigateToAlbumDetails = {},
+            navigateBack = {},
             navigateToPlayer = {},
             navigateToSearch = {},
-            navigateBack = {},
-            showBackButton = true,
+            navigateToAlbumDetails = {},
         )
     }
 }

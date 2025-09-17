@@ -15,7 +15,7 @@ data class Genre(
     @JvmField val id: Long,
     @JvmField val name: String,
     @JvmField val sort: String,
-    @JvmField val numTracks: Int = -1
+    @JvmField val numTracks: Int = 0
 )
 
 /**

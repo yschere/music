@@ -15,7 +15,7 @@ private const val TAG = "GenreInfo"
 data class GenreInfo(
     var id: Long = 0,
     var name: String = "",
-    val songCount: Int = 0,
+    var songCount: Int = 0,
 )
 
 /**

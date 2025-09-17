@@ -938,7 +938,11 @@ suspend fun ContentResolver.findGenre(id: Long): Genre = queryExt(
     limit = 1,
 ) {
     it.moveToFirst()
-    val result = it.toGenre()
+    val result = it.toGenre(
+        getGenreAudioCount(
+            it.getLong(0)
+        )
+    )
     it.close()
     result
 }

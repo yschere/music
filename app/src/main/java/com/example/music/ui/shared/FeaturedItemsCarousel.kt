@@ -1,6 +1,7 @@
 package com.example.music.ui.shared
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -41,7 +42,7 @@ import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 
-private const val TAG = "Featured Albums Carousel"
+private const val TAG = "Featured Items Carousel"
 private val FEATURED_ITEM_IMAGE_SIZE_DP = 160.dp
 
 /**
@@ -55,16 +56,18 @@ private val FEATURED_ITEM_IMAGE_SIZE_DP = 160.dp
 fun FeaturedAlbumsCarousel(
     pagerState: PagerState,
     items: PersistentList<AlbumInfo>,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    onMoreOptionsClick: (Any) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    onMoreOptionsClick: (AlbumInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    Log.i(TAG, "Featured Albums Carousel START")
     Column(modifier = modifier) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.Transparent)
         ) {
+            Log.i(TAG, "Generating Horizontal pager")
             val horizontalPadding = (this.maxWidth - FEATURED_ITEM_IMAGE_SIZE_DP) / 2
             HorizontalPager(
                 state = pagerState,
@@ -75,19 +78,16 @@ fun FeaturedAlbumsCarousel(
                 pageSpacing = 24.dp,
                 pageSize = PageSize.Fixed(FEATURED_ITEM_IMAGE_SIZE_DP)
             ) { page ->
+                Log.i(TAG, "Generating Carousel Item: $page")
                 val album = items[page]
                 FeaturedCarouselItem(
                     itemTitle = album.title,
-                    itemImage = album.artworkUri,//album.artwork!!,
+                    itemImage = album.artworkUri,
                     itemSize = album.songCount,
                     onMoreOptionsClick = { onMoreOptionsClick(album) },
-                    //onClick = AlbumMoreOptionsBottomModal(album),
-                    //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable {
-                            navigateToAlbumDetails(album)
-                        }
+                        .clickable { navigateToAlbumDetails(album.id) }
                 )
             }
         }
@@ -106,9 +106,10 @@ fun FeaturedPlaylistsCarousel(
     pagerState: PagerState,
     items: PersistentList<PlaylistInfo>,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    onMoreOptionsClick: (PlaylistInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //Log.i(TAG, "Featured Playlist Item function start")
+    //Log.i(TAG, "Featured Playlist Carousel START")
     Column(modifier = modifier) {
         BoxWithConstraints(
             modifier = Modifier
@@ -131,15 +132,10 @@ fun FeaturedPlaylistsCarousel(
                     itemTitle = playlist.name,
                     itemImage = Uri.parse(""), // FixMe: needs Playlist Image generation
                     itemSize = playlist.songCount,
-                    onMoreOptionsClick = {},
-                    //onMoreOptionsClick = { onMoreOptionsClick(playlist) },
-                    //onClick = PlaylistMoreOptionsBottomModal(playlist),
-                    //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
+                    onMoreOptionsClick = { onMoreOptionsClick(playlist) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable {
-                            navigateToPlaylistDetails(playlist)
-                        }
+                        .clickable { navigateToPlaylistDetails(playlist) }
                 )
             }
         }
@@ -151,12 +147,11 @@ fun FeaturedCarouselItem(
     itemTitle: String = "",
     itemImage: Uri,
     itemSize: Int = 0,
-    onMoreOptionsClick: (Any) -> Unit,
-    //onClick: () -> Unit, //pass in either Album or Playlist MoreOptionsModal action here
+    onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //Log.i(TAG, "Featured Carousel Item function start")
-    Column(modifier) {
+    Log.i(TAG, "Featured Carousel Item START: $itemTitle")
+    Column(modifier = modifier) {
         Box(
             contentAlignment = Alignment.BottomStart,
             modifier = Modifier
@@ -192,10 +187,9 @@ fun FeaturedCarouselItem(
         ) {
             Text(
                 text = itemTitle,
-                //style = MaterialTheme.typography.bodySmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium, //MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(4.dp).weight(1f,true)
                 //modifier = Modifier
                     //.padding(top = 8.dp)
@@ -203,7 +197,7 @@ fun FeaturedCarouselItem(
 
             // more options btn
             IconButton(
-                onClick = { onMoreOptionsClick },
+                onClick = onMoreOptionsClick,
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
@@ -223,7 +217,6 @@ private fun PreviewCard() {
             itemTitle = PreviewAlbums[0].title,
             itemImage = Uri.parse(""),//album.artwork!!,
             onMoreOptionsClick = {},
-            //dateLastPlayed = album.dateLastPlayed?.let { lastUpdated(it) },
             modifier = Modifier
                 .size(FEATURED_ITEM_IMAGE_SIZE_DP, FEATURED_ITEM_IMAGE_SIZE_DP + 48.dp)
                 .fillMaxSize()
