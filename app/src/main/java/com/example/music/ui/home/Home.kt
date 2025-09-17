@@ -265,38 +265,6 @@ private fun HomeScreenReady(
         navigator.navigateBack()
     }
 
-    var isActive by remember { mutableStateOf(viewModel.isActive) }
-    val lifecycleOwner = ProcessLifecycleOwner.get()
-    val lifecycleObserver = remember {
-        LifecycleEventObserver { _, event ->
-            Log.i(TAG, "HOME READY -> Lifecycle Event")
-            if (event == Lifecycle.Event.ON_RESUME) {
-                Log.i(TAG, "HOME READY -> Lifecycle resumed")
-                isActive = viewModel.checkActive()
-                Log.i(TAG, "isActive set to $isActive")
-            }
-        }
-    }
-
-    DisposableEffect(lifecycleOwner) {
-        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
-        }
-    }
-
-    LaunchedEffect(key1 = viewModel.isActive, key2 = viewModel.currentSong) {
-        Log.i(TAG, "HOME READY launched effect START")
-        Log.i(TAG, "viewModel isActive: ${viewModel.isActive}")
-        Log.i(TAG, "viewModel checkActive: ${viewModel.checkActive()}")
-        if (viewModel.isActive != viewModel.checkActive() ||
-            viewModel.currentSong.id != viewModel.checkSong()
-        ) {
-            viewModel.getSongControllerState()
-        }
-        Log.i(TAG, "HOME READY launched effect END")
-    }
-
     Surface {
         SupportingPaneScaffold(
             value = navigator.scaffoldValue,
@@ -311,8 +279,6 @@ private fun HomeScreenReady(
                     isActive = viewModel.isActive, // if playback is active
                     isPlaying = viewModel.isPlaying,
                     currentSong = viewModel.currentSong,
-                    refresh = viewModel::refresh,
-                    checkActive = viewModel.checkActive(),
                     onHomeAction = viewModel::onHomeAction,
                     navigateToHome = navigateToHome,
                     navigateToLibrary = navigateToLibrary,
@@ -370,8 +336,6 @@ private fun HomeScreen(
     isActive: Boolean,
     isPlaying: Boolean,
     currentSong: SongInfo,
-    refresh: (Boolean) -> Unit,
-    checkActive: Boolean,
     onHomeAction: (HomeAction) -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
@@ -1010,8 +974,6 @@ private fun PreviewHome() {
             isActive = true,
             isPlaying = true,
             currentSong = PreviewSongs[0],
-            refresh = {},
-            checkActive = false,
             onHomeAction = {},
             navigateToHome = {},
             navigateToLibrary = {},
