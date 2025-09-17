@@ -7,7 +7,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.window.layout.DisplayFeature
@@ -66,10 +65,12 @@ fun MusicApp(
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                     navigateToSettings = { appState.navigateToSettings(backStackEntry) },
-                    navigateToAlbumDetails = { albumId: Long ->
+                    navigateToAlbumDetails = { albumId ->
+                        Log.i(TAG, "id: $albumId")
                         appState.navigateToAlbumDetails(albumId, backStackEntry)
                     },
-                    navigateToArtistDetails = { artistId: Long ->
+                    navigateToArtistDetails = { artistId ->
+                        Log.i(TAG, "id: $artistId")
                         appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
                     navigateToPlaylistDetails = { playlist ->
@@ -79,13 +80,11 @@ fun MusicApp(
             }
 
             //Player Screen Navigation Router
-            composable(Screen.Player.route) { backStackEntry ->
+            composable(Screen.Player.route) { _ ->
                 PlayerScreen(
                     windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
                     displayFeatures = displayFeatures, //used to determine physical properties of display device to accommodate view accordingly
                     navigateBack = appState::navigateBack, //navigation back button
-                    navigateToHome = { appState.navigateToHome(backStackEntry) },
-                    navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
                 )
             }
 
@@ -100,9 +99,11 @@ fun MusicApp(
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                     navigateToSettings = { appState.navigateToSettings(backStackEntry) },
                     navigateToAlbumDetails = { albumId ->
+                        Log.i(TAG, "id: $albumId")
                         appState.navigateToAlbumDetails(albumId, backStackEntry)
                     },
                     navigateToArtistDetails = { artistId ->
+                        Log.i(TAG, "id: $artistId")
                         appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
                     navigateToGenreDetails = { genreId ->
@@ -122,9 +123,11 @@ fun MusicApp(
                 SearchScreen(
                     navigateBack = appState::navigateBack,
                     navigateToAlbumDetails = { album ->
+                        Log.i(TAG, "id: ${album.id}")
                         appState.navigateToAlbumDetails(album.id, backStackEntry)
                     },
                     navigateToArtistDetails = { artist ->
+                        Log.i(TAG, "id: ${artist.id}")
                         appState.navigateToArtistDetails(artist.id, backStackEntry)
                     },
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
@@ -150,6 +153,7 @@ fun MusicApp(
                     //windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
                     navigateBack = appState::navigateBack,
                     navigateToArtistDetails = { artistId ->
+                        Log.i(TAG, "id: $artistId")
                         appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
@@ -164,6 +168,7 @@ fun MusicApp(
                     //windowSizeClass = adaptiveInfo.windowSizeClass,
                     navigateBack = appState::navigateBack,
                     navigateToAlbumDetails = { albumId ->
+                        Log.i(TAG, "id: $albumId")
                         appState.navigateToAlbumDetails(albumId, backStackEntry)
                     },
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
@@ -193,9 +198,11 @@ fun MusicApp(
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                     navigateToAlbumDetails = { albumId ->
+                        Log.i(TAG, "id: $albumId")
                         appState.navigateToAlbumDetails(albumId, backStackEntry)
                     },
                     navigateToArtistDetails = { artistId ->
+                        Log.i(TAG, "id: $artistId")
                         appState.navigateToArtistDetails(artistId, backStackEntry)
                     }
                 )

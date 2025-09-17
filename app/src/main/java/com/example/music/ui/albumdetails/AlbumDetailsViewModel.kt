@@ -83,7 +83,7 @@ class AlbumDetailsViewModel @Inject constructor(
                 albumDetailsFilterResult,
                 selectSong ->
                 Log.i(TAG, "AlbumUiState combine START\n" +
-                    "albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}" +
+                    "albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}\n" +
                     "albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}\n" +
                     "is SongController available: ${songController.isConnected()}\n" +
                     "isReady?: ${!refreshing}")
