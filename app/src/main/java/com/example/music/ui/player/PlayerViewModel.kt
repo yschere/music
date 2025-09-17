@@ -132,8 +132,6 @@ class PlayerViewModel @Inject constructor(
                     onPlayerEvent(it.get(index))
                 }
             }
-            playWhenReady()
-            Log.i(TAG, "viewModelScope launch END")
         }
         Log.i(TAG, "init END")
     }
@@ -254,11 +252,6 @@ class PlayerViewModel @Inject constructor(
     private fun stopTimer() {
         timerJob?.cancel()
         timerJob = null
-    }
-
-    fun playWhenReady() {
-        Log.i(TAG, "Preparing Player - play when ready")
-        songController.preparePlayer()
     }
 
     fun onPlay() {
