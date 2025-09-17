@@ -915,10 +915,11 @@ private fun HomeSongListItemRow(
             }
         }
 
-        IconButton( //more options button
+        // More Options btn
+        IconButton(
             onClick = onMoreOptionsClick,
         ) {
-            Icon( //more options icon
+            Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.icon_more),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,

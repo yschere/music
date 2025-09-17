@@ -1,6 +1,5 @@
 package com.example.music.ui.library
 
-import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -12,9 +11,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -33,7 +30,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -66,7 +62,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -102,6 +97,7 @@ import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -289,6 +285,7 @@ private fun LibraryScreen(
                     libraryGenres = libraryGenres,
                     libraryPlaylists = libraryPlaylists,
                     librarySongs = librarySongs,
+                    isActive = isActive,
 
                     modifier = Modifier.padding(contentPadding),
                     onLibraryAction = { action ->
@@ -368,6 +365,7 @@ private fun LibraryContent(
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
 
+    isActive: Boolean,
     modifier: Modifier = Modifier,
     onLibraryAction: (LibraryAction) -> Unit,
 
@@ -601,7 +599,11 @@ private fun LibraryContent(
             visible = displayButton.value,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 40.dp),
+                .padding(
+                    bottom =
+                        if (isActive) 100.dp
+                        else 40.dp
+                ),
             enter = slideInVertically(
                 // Start the slide from 40 (pixels) above where the content is supposed to go, to
                 // produce a parallax effect
@@ -1127,21 +1129,9 @@ private fun LibraryCategoryTabIndicator(
     )
 }
 
-@Preview
-@Composable
-private fun LibraryTopAppBarPreview() {
-    MusicTheme {
-        LibraryTopAppBar(
-            navigateToSearch = {},
-            onNavigationIconClick = {},
-        )
-    }
-}
-
 private val CompactWindowSizeClass = WindowSizeClass.compute(360f, 780f)
 
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@CompLightPreview
 @Composable
 private fun PreviewLibrary() {
     MusicTheme {
