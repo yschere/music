@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.music.data.database.model.Artist
 import com.example.music.data.database.model.ArtistWithExtraInfo
 import com.example.music.data.mediaresolver.model.Artist as ArtistV2
+import com.example.music.data.util.FLAG
 
 private const val TAG = "ArtistInfo"
 
@@ -27,7 +28,7 @@ data class ArtistInfo(
  * Transform Artist table entry to ArtistInfo domain model
  */
 fun Artist.asExternalModel(): ArtistInfo {
-    Log.i(TAG, "Artist to ArtistInfo external model constructor: \n ${this.id} + ${this.name}")
+    if (FLAG) Log.i(TAG, "Artist to ArtistInfo external model constructor: \n ${this.id} + ${this.name}")
     return ArtistInfo(
         id = id,
         name = name,
@@ -38,7 +39,7 @@ fun Artist.asExternalModel(): ArtistInfo {
  * Transform Artist table entry with Extra Info (albumCount, songCount) to ArtistInfo domain model
  */
 fun ArtistWithExtraInfo.asExternalModel(): ArtistInfo {
-    Log.i(TAG, "ArtistWithExtraInfo to ArtistInfo external model constructor: \n ${this.artist} + ${this.songCount} + ${this.albumCount}")
+    if (FLAG) Log.i(TAG, "ArtistWithExtraInfo to ArtistInfo external model constructor: \n ${this.artist} + ${this.songCount} + ${this.albumCount}")
     return this.artist.asExternalModel().copy(
         albumCount = albumCount,
         songCount = songCount,
@@ -46,7 +47,7 @@ fun ArtistWithExtraInfo.asExternalModel(): ArtistInfo {
 }
 
 fun ArtistV2.asExternalModel(): ArtistInfo {
-    Log.i(TAG, "ArtistV2 to ArtistInfo external model constructor: \n ${this.id} + ${this.name}")
+    if (FLAG) Log.i(TAG, "ArtistV2 to ArtistInfo external model constructor: \n ${this.id} + ${this.name}")
     return ArtistInfo(
         id = this.id,
         name = this.name,

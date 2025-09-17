@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.compose.runtime.Stable
 import androidx.media3.common.MediaItem
 import com.example.music.data.mediaresolver.MediaRepo.Companion.toAlbumArtUri
+import com.example.music.data.util.FLAG
 
 private const val TAG = "MediaResolver Audio"
 
@@ -46,7 +47,7 @@ data class Audio(
  * Transform Cursor to type Audio
  */
 fun Cursor.toAudio(): Audio {
-    Log.i(TAG, "Cursor to Audio: \n" +
+    if (FLAG) Log.i(TAG, "Cursor to Audio: \n" +
             "ID: ${getLong(0)} \n" +
             "Title: ${getString(1)}\n" +
             "File Path: ${getString(3)}\n" +

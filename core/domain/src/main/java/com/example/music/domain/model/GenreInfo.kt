@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.music.data.database.model.Genre
 import com.example.music.data.database.model.GenreWithExtraInfo
 import com.example.music.data.mediaresolver.model.Genre as GenreV2
+import com.example.music.data.util.FLAG
 
 private const val TAG = "GenreInfo"
 
@@ -22,7 +23,7 @@ data class GenreInfo(
  * Transform Genre table entry to GenreInfo domain model
  */
 fun Genre.asExternalModel(): GenreInfo {
-    Log.i(TAG, "Genre to GenreInfo external model constructor: \n ${this.id} + ${this.name}")
+    if (FLAG) Log.i(TAG, "Genre to GenreInfo external model constructor: \n ${this.id} + ${this.name}")
     return GenreInfo(
         id = this.id,
         name = this.name
@@ -33,14 +34,14 @@ fun Genre.asExternalModel(): GenreInfo {
  * Transform Genre table entry with Extra Info (songCount) to GenreInfo domain model
  */
 fun GenreWithExtraInfo.asExternalModel(): GenreInfo {
-    Log.i(TAG, "GenreWithExtraInfo to GenreInfo external model constructor: \n ${this.genre} + ${this.songCount}")
+    if (FLAG) Log.i(TAG, "GenreWithExtraInfo to GenreInfo external model constructor: \n ${this.genre} + ${this.songCount}")
     return this.genre.asExternalModel().copy(
         songCount = songCount
     )
 }
 
 fun GenreV2.asExternalModel(): GenreInfo {
-    Log.i(TAG, "GenreV2 to GenreInfo external model constructor: \n ${this.id} + ${this.name}")
+    if (FLAG) Log.i(TAG, "GenreV2 to GenreInfo external model constructor: \n ${this.id} + ${this.name}")
     return GenreInfo(
         id = this.id,
         name = this.name,
