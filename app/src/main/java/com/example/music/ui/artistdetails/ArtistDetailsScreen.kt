@@ -439,7 +439,7 @@ fun ArtistDetailsScreen(
                         album = selectAlbum,
                         play = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> Play Album clicked")
+                                Log.i(TAG, "Album More Options Modal -> Play Album clicked :: ${selectAlbum.id}")
                                 onArtistAction(ArtistAction.PlayAlbum(selectAlbum))
                                 sheetState.hide()
                                 navigateToPlayer()
@@ -453,7 +453,7 @@ fun ArtistDetailsScreen(
                         },
                         playNext = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> Play Album Next clicked")
+                                Log.i(TAG, "Album More Options Modal -> Play Album Next clicked :: ${selectAlbum.id}")
                                 onArtistAction(ArtistAction.PlayAlbumNext(selectAlbum))
                                 sheetState.hide()
                             }.invokeOnCompletion {
@@ -466,7 +466,7 @@ fun ArtistDetailsScreen(
                         },
                         shuffle = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> Shuffle Album clicked")
+                                Log.i(TAG, "Album More Options Modal -> Shuffle Album clicked :: ${selectAlbum.id}")
                                 onArtistAction(ArtistAction.ShuffleAlbum(selectAlbum))
                                 sheetState.hide()
                                 navigateToPlayer()
@@ -481,8 +481,21 @@ fun ArtistDetailsScreen(
                         //addToPlaylist = {},
                         addToQueue = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> Queue Album clicked")
+                                Log.i(TAG, "Album More Options Modal -> Queue Album clicked :: ${selectAlbum.id}")
                                 onArtistAction(ArtistAction.QueueAlbum(selectAlbum))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        goToAlbum = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> GoToAlbum clicked :: ${selectAlbum.id}")
+                                navigateToAlbumDetails(selectAlbum.id)
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
@@ -520,7 +533,7 @@ fun ArtistDetailsScreen(
                         song = selectSong,
                         play = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> PlaySong clicked")
+                                Log.i(TAG, "Song More Options Modal -> PlaySong clicked :: ${selectSong.id}")
                                 onArtistAction(ArtistAction.PlaySong(selectSong))
                                 navigateToPlayer()
                                 sheetState.hide()
@@ -534,7 +547,7 @@ fun ArtistDetailsScreen(
                         },
                         playNext = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked")
+                                Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked :: ${selectSong.id}")
                                 onArtistAction(ArtistAction.PlaySongNext(selectSong))
                                 navigateToPlayer()
                                 sheetState.hide()
@@ -549,7 +562,7 @@ fun ArtistDetailsScreen(
                         //addToPlaylist = {},
                         addToQueue = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> QueueSong clicked")
+                                Log.i(TAG, "Song More Options Modal -> QueueSong clicked :: ${selectSong.id}")
                                 onArtistAction(ArtistAction.QueueSong(selectSong))
                                 sheetState.hide()
                             }.invokeOnCompletion {
@@ -562,7 +575,7 @@ fun ArtistDetailsScreen(
                         },
                         goToAlbum = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked")
+                                Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked :: ${selectSong.albumId}")
                                 navigateToAlbumDetails(selectSong.albumId)
                                 sheetState.hide()
                             }.invokeOnCompletion {

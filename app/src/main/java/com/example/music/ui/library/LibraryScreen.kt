@@ -446,11 +446,11 @@ private fun LibraryContent(
                         artistCount = libraryArtists.size,
                         state = listState,
                         navigateToArtistDetails = { artist: ArtistInfo ->
-                            Log.i(TAG, "Artist clicked: ${artist.name}")
+                            Log.i(TAG, "Artist clicked: ${artist.name} :: ${artist.id}")
                             navigateToArtistDetails(artist.id)
                         },
                         onArtistMoreOptionsClick = { artist: ArtistInfo ->
-                            Log.i(TAG, "Artist More Option Clicked: ${artist.name}")
+                            Log.i(TAG, "Artist More Option Clicked: ${artist.name} :: ${artist.id}")
                             selectedArtist = artist
                             showBottomSheet = true
                             showArtistMoreOptions = true
@@ -500,11 +500,11 @@ private fun LibraryContent(
                     genreItems(
                         genres = libraryGenres,
                         navigateToGenreDetails = { genre: GenreInfo ->
-                            Log.i(TAG, "Genre clicked: ${genre.name}")
+                            Log.i(TAG, "Genre clicked: ${genre.name} :: ${genre.id}")
                             navigateToGenreDetails(genre.id)
                         },
                         onGenreMoreOptionsClick = { genre: GenreInfo ->
-                            Log.i(TAG, "Genre More Option Clicked: ${genre.name}")
+                            Log.i(TAG, "Genre More Option Clicked: ${genre.name} :: ${genre.id}")
                             selectedGenre = genre
                             showBottomSheet = true
                             showGenreMoreOptions = true
@@ -524,12 +524,12 @@ private fun LibraryContent(
                     songItems(
                         songs = librarySongs,
                         navigateToPlayer = { song: SongInfo ->
-                            Log.i(TAG, "Song clicked: ${song.title}")
+                            Log.i(TAG, "Song clicked: ${song.title} :: ${song.id}")
                             onLibraryAction(LibraryAction.PlaySong(song))
                             navigateToPlayer()
                         },
                         onSongMoreOptionsClick = { song: SongInfo ->
-                            Log.i(TAG, "Song More Option Clicked: ${song.title}")
+                            Log.i(TAG, "Song More Option Clicked: ${song.title} :: ${song.id}")
                             selectedSong = song
                             showBottomSheet = true
                             showSongMoreOptions = true
@@ -560,11 +560,11 @@ private fun LibraryContent(
                     albumItems(
                         albums = libraryAlbums,
                         navigateToAlbumDetails = { album: AlbumInfo ->
-                            Log.i(TAG, "Album clicked: ${album.title}")
+                            Log.i(TAG, "Album clicked: ${album.title} :: ${album.id}")
                             navigateToAlbumDetails(album.id)
                         },
                         onAlbumMoreOptionsClick = { album: AlbumInfo ->
-                            Log.i(TAG, "Album More Option Clicked: ${album.title}")
+                            Log.i(TAG, "Album More Option Clicked: ${album.title} :: ${album.id}")
                             selectedAlbum = album
                             showBottomSheet = true
                             showAlbumMoreOptions = true
@@ -688,7 +688,7 @@ private fun LibraryContent(
                 album = selectedAlbum,
                 play = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Album More Options Modal -> Play Album clicked")
+                        Log.i(TAG, "Album More Options Modal -> Play Album clicked :: ${selectedAlbum.id}")
                         onLibraryAction(LibraryAction.PlayAlbum(selectedAlbum))
                         sheetState.hide()
                         navigateToPlayer()
@@ -702,7 +702,7 @@ private fun LibraryContent(
                 },
                 playNext = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Album More Options Modal -> Play Album Next clicked")
+                        Log.i(TAG, "Album More Options Modal -> Play Album Next clicked :: ${selectedAlbum.id}")
                         onLibraryAction(LibraryAction.PlayAlbumNext(selectedAlbum))
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -715,7 +715,7 @@ private fun LibraryContent(
                 },
                 shuffle = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Album More Options Modal -> Shuffle Album clicked")
+                        Log.i(TAG, "Album More Options Modal -> Shuffle Album clicked :: ${selectedAlbum.id}")
                         onLibraryAction(LibraryAction.ShuffleAlbum(selectedAlbum))
                         sheetState.hide()
                         navigateToPlayer()
@@ -730,7 +730,7 @@ private fun LibraryContent(
                 //addToPlaylist = {},
                 addToQueue = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Album More Options Modal -> Queue Album clicked")
+                        Log.i(TAG, "Album More Options Modal -> Queue Album clicked :: ${selectedAlbum.id}")
                         onLibraryAction(LibraryAction.QueueAlbum(selectedAlbum))
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -743,7 +743,7 @@ private fun LibraryContent(
                 },
                 goToArtist = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Album More Options Modal -> Go To Artist clicked")
+                        Log.i(TAG, "Album More Options Modal -> GoToArtist clicked :: ${selectedAlbum.albumArtistId ?: "null id"}")
                         navigateToArtistDetails(selectedAlbum.albumArtistId ?: 0L) // not a good check, would break if bottom modal didn't have null check too
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -756,7 +756,7 @@ private fun LibraryContent(
                 },
                 goToAlbum = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Album More Options Modal -> Go To Album clicked")
+                        Log.i(TAG, "Album More Options Modal -> GoToAlbum clicked :: ${selectedAlbum.id}")
                         navigateToAlbumDetails(selectedAlbum.id)
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -795,7 +795,7 @@ private fun LibraryContent(
                 artist = selectedArtist,
                 play = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Artist More Options Modal -> Play Artist clicked")
+                        Log.i(TAG, "Artist More Options Modal -> Play Artist clicked :: ${selectedArtist.id}")
                         onLibraryAction(LibraryAction.PlayArtist(selectedArtist))
                         sheetState.hide()
                         navigateToPlayer()
@@ -809,7 +809,7 @@ private fun LibraryContent(
                 },
                 playNext = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Artist More Options Modal -> Play Artist Next clicked")
+                        Log.i(TAG, "Artist More Options Modal -> Play Artist Next clicked :: ${selectedArtist.id}")
                         onLibraryAction(LibraryAction.PlayArtistNext(selectedArtist))
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -822,7 +822,7 @@ private fun LibraryContent(
                 },
                 shuffle = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Artist More Options Modal -> Shuffle Artist clicked")
+                        Log.i(TAG, "Artist More Options Modal -> Shuffle Artist clicked :: ${selectedArtist.id}")
                         onLibraryAction(LibraryAction.ShuffleArtist(selectedArtist))
                         sheetState.hide()
                         navigateToPlayer()
@@ -837,7 +837,7 @@ private fun LibraryContent(
                 //addToPlaylist = {},
                 addToQueue = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Artist More Options Modal -> Queue Artist clicked")
+                        Log.i(TAG, "Artist More Options Modal -> Queue Artist clicked :: ${selectedArtist.id}")
                         onLibraryAction(LibraryAction.QueueArtist(selectedArtist))
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -850,8 +850,8 @@ private fun LibraryContent(
                 },
                 goToArtist = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Artist More Options Modal -> Go To Artist clicked")
-                        navigateToAlbumDetails(selectedArtist.id)
+                        Log.i(TAG, "Artist More Options Modal -> GoToArtist clicked :: ${selectedArtist.id}")
+                        navigateToArtistDetails(selectedArtist.id)
                         sheetState.hide()
                     }.invokeOnCompletion {
                         Log.i(TAG, "set showBottomSheet to FALSE; set ArtistMoreOptions to FALSE")
@@ -889,7 +889,7 @@ private fun LibraryContent(
                 genre = selectedGenre,
                 play = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Genre More Options Modal -> Play Genre clicked")
+                        Log.i(TAG, "Genre More Options Modal -> Play Genre clicked :: ${selectedGenre.id}")
                         onLibraryAction(LibraryAction.PlayGenre(selectedGenre))
                         sheetState.hide()
                         navigateToPlayer()
@@ -916,7 +916,7 @@ private fun LibraryContent(
                 },*/
                 shuffle = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Genre More Options Modal -> Shuffle Genre clicked")
+                        Log.i(TAG, "Genre More Options Modal -> Shuffle Genre clicked :: ${selectedGenre.id}")
                         onLibraryAction(LibraryAction.ShuffleGenre(selectedGenre))
                         sheetState.hide()
                         navigateToPlayer()
@@ -944,7 +944,7 @@ private fun LibraryContent(
                 },*/
                 goToGenre = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Genre More Options Modal -> Go To Genre clicked")
+                        Log.i(TAG, "Genre More Options Modal -> GoToGenre clicked :: ${selectedGenre.id}")
                         navigateToGenreDetails(selectedGenre.id)
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -983,7 +983,7 @@ private fun LibraryContent(
                 song = selectedSong,
                 play = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Song More Options Modal -> PlaySong clicked")
+                        Log.i(TAG, "Song More Options Modal -> PlaySong clicked :: ${selectedSong.id}")
                         onLibraryAction(LibraryAction.PlaySong(selectedSong))
                         navigateToPlayer()
                         sheetState.hide()
@@ -997,7 +997,7 @@ private fun LibraryContent(
                 },
                 playNext = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked")
+                        Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked :: ${selectedSong.id}")
                         onLibraryAction(LibraryAction.PlaySongNext(selectedSong))
                         navigateToPlayer()
                         sheetState.hide()
@@ -1012,7 +1012,7 @@ private fun LibraryContent(
                 //addToPlaylist = {},
                 addToQueue = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Song More Options Modal -> QueueSong clicked")
+                        Log.i(TAG, "Song More Options Modal -> QueueSong clicked :: ${selectedSong.id}")
                         onLibraryAction(LibraryAction.QueueSong(selectedSong))
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -1025,7 +1025,7 @@ private fun LibraryContent(
                 },
                 goToArtist = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Song More Options Modal -> GoToArtist clicked")
+                        Log.i(TAG, "Song More Options Modal -> GoToArtist clicked :: ${selectedSong.artistId}")
                         navigateToArtistDetails(selectedSong.artistId)
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -1038,7 +1038,7 @@ private fun LibraryContent(
                 },
                 goToAlbum = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked")
+                        Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked :: ${selectedSong.albumId}")
                         navigateToAlbumDetails(selectedSong.albumId)
                         sheetState.hide()
                     }.invokeOnCompletion {
