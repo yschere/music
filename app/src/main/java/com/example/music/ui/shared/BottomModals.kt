@@ -559,10 +559,10 @@ fun ArtistMoreOptionsBottomModal(
             artistActions.forEach { item ->
                 ActionOptionRow(item.first, item.second)
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             // if on library.artists
             if (context != "ArtistDetails") {
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
                 ActionOptionRow( Actions.GoToArtist, goToArtist )
             }
 
@@ -636,10 +636,10 @@ fun ComposerMoreOptionsBottomModal(
             composerActions.forEach { item ->
                 ActionOptionRow(item.first, item.second)
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             // if on library.composers
             if (context != "ComposerDetails") {
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
                 ActionOptionRow( Actions.GoToComposer, { navigateToComposerDetails(composer)} )
             }
 
@@ -712,10 +712,10 @@ fun GenreMoreOptionsBottomModal(
             genreActions.forEach { item ->
                 ActionOptionRow(item.first, item.second)
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             // if on library.genres
             if (context != "GenreDetails") {
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
                 ActionOptionRow(Actions.GoToGenre, goToGenre)
             }
 
@@ -793,7 +793,6 @@ fun PlaylistMoreOptionsBottomModal(
             // if on library.playlists
             if (context != "PlaylistDetails") {
                 ActionOptionRow( Actions.GoToPlaylist, goToPlaylist )
-                //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
 
             //ActionOptionRow( Actions.EditPlaylistTags, {} )
