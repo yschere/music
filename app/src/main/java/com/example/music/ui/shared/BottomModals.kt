@@ -1332,7 +1332,7 @@ fun BottomSheetPlayer(
     val sideButtonsModifier = Modifier
         .size(sideButtonSize)
         .background(
-            color = MaterialTheme.colorScheme.primaryContainer,
+            color = MaterialTheme.colorScheme.primary,
             shape = CircleShape
         )
         .semantics { role = Role.Button }
@@ -1340,7 +1340,7 @@ fun BottomSheetPlayer(
     val primaryButtonModifier = Modifier
         .size(playerButtonSize)
         .background(
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = MaterialTheme.colorScheme.primary,
             shape = CircleShape
         )
         .semantics { role = Role.Button }
@@ -1383,8 +1383,8 @@ fun BottomSheetPlayer(
                         imageVector = Icons.Filled.Pause,
                         contentDescription = stringResource(R.string.pb_pause),
                         contentScale = ContentScale.Fit,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-                        modifier = primaryButtonModifier
+                        //colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                        modifier = sideButtonsModifier
                             .padding(8.dp)
                             .clickable { onPausePress() }
                     )
@@ -1394,8 +1394,8 @@ fun BottomSheetPlayer(
                         imageVector = Icons.Filled.PlayArrow,
                         contentDescription = stringResource(R.string.pb_play),
                         contentScale = ContentScale.Fit,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-                        modifier = primaryButtonModifier
+                        //colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                        modifier = sideButtonsModifier
                             .padding(8.dp)
                             .clickable { onPlayPress() }
                     )
