@@ -104,8 +104,6 @@ fun PlayerScreen(
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
     navigateBack: () -> Unit,
-    navigateToHome: () -> Unit,
-    navigateToLibrary: () -> Unit,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     PlayerScreen(
@@ -119,9 +117,6 @@ fun PlayerScreen(
         windowSizeClass = windowSizeClass,
         displayFeatures = displayFeatures,
         navigateBack = navigateBack,
-        navigateToHome = navigateToHome,
-        navigateToLibrary = navigateToLibrary,
-        onStop = viewModel::onStop,
         playerControlActions = PlayerControlActions(
             onPlayPress = viewModel::onPlay,
             onPausePress = viewModel::onPause,
@@ -185,18 +180,9 @@ private fun PlayerScreen(
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
     navigateBack: () -> Unit,
-    navigateToHome: () -> Unit,
-    navigateToLibrary: () -> Unit,
-    onStop: () -> Unit,
     playerControlActions: PlayerControlActions,
     modifier: Modifier = Modifier
 ) {
-    /*DisposableEffect(Unit) {
-        onDispose {
-            onStop()
-        }
-    }*/
-
     val coroutineScope = rememberCoroutineScope()
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -382,9 +368,9 @@ private fun PlayerContentRegular(
     progress: Float,
     timeElapsed: Long,
     hasNext: Boolean,
-    navigateBack: () -> Unit, //call seekToPreviousMediaTime
+    navigateBack: () -> Unit,
     navigateToQueue: () -> Unit,
-    playerControlActions: PlayerControlActions, // call from seek toNextMedium Item
+    playerControlActions: PlayerControlActions,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -606,7 +592,7 @@ private fun SongLyricsSwitch(
 
 @Composable
 private fun PlayerImage(
-    albumImage: Uri, //FixMe: needs to be artwork bitmap or uri
+    albumImage: Uri,
     modifier: Modifier = Modifier
 ) {
     AlbumImage(
@@ -622,7 +608,7 @@ private fun PlayerImage(
 
 @Composable
 private fun PlayerImageBm(
-    albumImage: Bitmap?, //FixMe: needs to be artwork bitmap or uri
+    albumImage: Bitmap?,
     modifier: Modifier = Modifier
 ) {
     AlbumImageBm(
@@ -733,7 +719,6 @@ private fun PlayerButtons(
     playerButtonSize: Dp = 72.dp,
     sideButtonSize: Dp = 48.dp,
 ) {
-
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -755,18 +740,16 @@ private fun PlayerButtons(
             )
             .semantics { role = Role.Button }
 
-        //shuffle button
+        // Shuffle btn
         if (isShuffled) {
             //determined that the current state IS shuffled (isShuffled is true)
             Image(
-                //imageVector = Icons.Default.ShuffleOn,
-                //imageVector = Icons.Outlined.ShuffleOn,
                 imageVector = Icons.Filled.ShuffleOn,
                 contentDescription = stringResource(R.string.pb_shuffle_on),
                 contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = sideButtonsModifier
-                    .clickable(enabled = true, onClick = onShuffle)
+                    .clickable { onShuffle() }
             )
         } else {
             //determined that the current state IS NOT shuffled (isShuffled is false)
@@ -776,51 +759,46 @@ private fun PlayerButtons(
                 contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = sideButtonsModifier
-                    .clickable(enabled = true, onClick = onShuffle)
+                    .clickable { onShuffle() }
             )
         }
 
-        //Image for Skip back to previous button
+        // Skip back to previous btn
         Image(
             imageVector = Icons.Filled.SkipPrevious,
             contentDescription = stringResource(R.string.pb_skip_previous),
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
             modifier = sideButtonsModifier
-                .clickable(enabled = true, onClick = onPrevious)
+                .clickable { onPrevious() }
         )
 
+        // Play and Pause btn
         if (isPlaying) {
             //determined that the current state is playing (isPlaying is true)
             Image(
                 imageVector = Icons.Filled.Pause,
-                //imageVector = Icons.Outlined.Pause,
                 contentDescription = stringResource(R.string.pb_pause),
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = primaryButtonModifier
                     .padding(8.dp)
-                    .clickable {
-                        onPausePress()
-                    }
+                    .clickable { onPausePress() }
             )
         } else {
             //determined that the current state is paused (isPlaying is false)
             Image(
                 imageVector = Icons.Filled.PlayArrow,
-                //imageVector = Icons.Outlined.PlayArrow,
                 contentDescription = stringResource(R.string.pb_play),
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                 modifier = primaryButtonModifier
                     .padding(8.dp)
-                    .clickable {
-                        onPlayPress()
-                    }
+                    .clickable { onPlayPress() }
             )
         }
 
-        //skip to next playable button
+        // Skip to next btn
         Image(
             imageVector = Icons.Filled.SkipNext,
             contentDescription = stringResource(R.string.pb_skip_next),
@@ -831,7 +809,7 @@ private fun PlayerButtons(
                 .alpha(if (hasNext) 1f else 0.25f)
         )
 
-        //repeat button
+        // Repeat btn
         when (repeatState){
             "OFF" -> {
                 Image( //shows unfilled icon (because it is set to off)
@@ -840,7 +818,7 @@ private fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                     modifier = sideButtonsModifier
-                        .clickable(enabled = true, onClick = onRepeat)
+                        .clickable { onRepeat() }
                 )
             }
             "ONE" -> {
@@ -850,7 +828,7 @@ private fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                     modifier = sideButtonsModifier
-                        .clickable(enabled = true, onClick = onRepeat)
+                        .clickable { onRepeat() }
                 )
             }
             "ON" -> {
@@ -860,7 +838,7 @@ private fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                     modifier = sideButtonsModifier
-                        .clickable(enabled = true, onClick = onRepeat)
+                        .clickable { onRepeat() }
                 )
             }
         }
@@ -902,10 +880,7 @@ fun PlayerScreenPreview() {
                 hasNext = true,
                 displayFeatures = emptyList(),
                 windowSizeClass = WindowSizeClass.compute(maxWidth.value, maxHeight.value),
-                navigateToHome = { },
-                navigateToLibrary = { },
                 navigateBack = { },
-                onStop = {},
                 playerControlActions = PlayerControlActions(
                     onPlayPress = {},
                     onPausePress = {},
