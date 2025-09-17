@@ -5,6 +5,7 @@ import com.example.music.data.mediaresolver.MediaRepo
 import javax.inject.Inject
 
 private const val TAG = "Get Total Counts V2"
+
 class GetTotalCountsV2 @Inject constructor(
     private val mediaRepo: MediaRepo,
 ) {

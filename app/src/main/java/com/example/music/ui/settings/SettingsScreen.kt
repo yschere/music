@@ -1,6 +1,5 @@
 package com.example.music.ui.settings
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,7 +66,6 @@ import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
-import com.example.music.domain.model.SongInfo
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
@@ -77,11 +75,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 private const val TAG = "Settings Screen"
-
-/** Changelog:
- *
- * 7/22-23/2025 - Deleted SongPlayer from domain layer.
- */
 
 /**
  * Stateful Composable for the Settings Screen
