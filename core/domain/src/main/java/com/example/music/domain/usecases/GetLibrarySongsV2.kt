@@ -9,7 +9,6 @@ import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.uri
 import javax.inject.Inject
 
-/** logger info for this class */
 private const val TAG = "Get Library Songs V2"
 
 class GetLibrarySongsV2 @Inject constructor(

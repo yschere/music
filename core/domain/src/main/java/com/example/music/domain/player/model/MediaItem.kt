@@ -16,13 +16,6 @@ import com.example.music.data.mediaresolver.model.Audio
 import com.example.music.data.mediaresolver.model.artworkUri
 import com.example.music.data.mediaresolver.model.uri
 
-/** Changelog:
- *
- * 7/22-23/2025 - Corrected uri for media3 MediaItem and SongInfo transform functions to use correct value.
- * Added description for mediaSource.
- * Removed PlayerSong completely
- */
-
 /**
  * Constant for the MIME type extra key in media items.
  */

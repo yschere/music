@@ -10,12 +10,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-/** Changelog:
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
-
-/** logger tag for this class */
 private const val TAG = "Get Song Data V2"
 
 class GetSongDataV2 @Inject constructor(
