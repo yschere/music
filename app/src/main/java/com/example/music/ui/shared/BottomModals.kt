@@ -484,11 +484,11 @@ fun AlbumMoreOptionsBottomModal(
 
             // if album has album artist and not already on ArtistDetails screen
             if (album.albumArtistId != null && context != "ArtistDetails")
-                ActionOptionRow( Actions.GoToAlbumArtist, goToArtist )
+                ActionOptionRow(Actions.GoToAlbumArtist, goToArtist)
 
             // if in artistDetails, in library.Albums,
             if (context != "AlbumDetails")
-                ActionOptionRow( Actions.GoToAlbum, goToAlbum )
+                ActionOptionRow(Actions.GoToAlbum, goToAlbum)
 
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow( Actions.EditAlbumTags, {} )
@@ -788,11 +788,11 @@ fun PlaylistMoreOptionsBottomModal(
             playlistActions.forEach { item ->
                 ActionOptionRow(item.first, item.second)
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             // if on library.playlists
             if (context != "PlaylistDetails") {
-                ActionOptionRow( Actions.GoToPlaylist, goToPlaylist )
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+                ActionOptionRow(Actions.GoToPlaylist, goToPlaylist)
             }
 
             //ActionOptionRow( Actions.EditPlaylistTags, {} )
@@ -870,11 +870,11 @@ fun QueueMoreOptionsBottomModal(
             ) {
                 Text("Now Playing")
             }
-            HorizontalDivider( thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp) )
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            ActionOptionRow( Actions.AddToPlaylist, addToPlaylist )
-            ActionOptionRow( Actions.ClearQueue, clearQueue )
-            ActionOptionRow( Actions.SaveQueueToPlaylist, {} )
+            ActionOptionRow(Actions.AddToPlaylist, addToPlaylist)
+            ActionOptionRow(Actions.ClearQueue, clearQueue)
+            ActionOptionRow(Actions.SaveQueueToPlaylist, {})
 
             Button(
                 onClick = onClose,
@@ -998,7 +998,7 @@ fun LibrarySortSelectionBottomModal(
 
             item {
                 Row {
-                    //cancel/exit btn
+                    // Cancel/Exit btn
                     Button(
                         onClick = onClose,
                         colors = buttonColors(
@@ -1015,7 +1015,7 @@ fun LibrarySortSelectionBottomModal(
                         Text("CANCEL")
                     }
 
-                    //apply btn
+                    // Apply btn
                     Button(
                         onClick = onApply,
                         colors = buttonColors(
@@ -1118,7 +1118,7 @@ fun DetailsSortSelectionBottomModal(
 
             item {
                 Row {
-                    //cancel/exit btn
+                    // Cancel/Exit btn
                     Button(
                         onClick = onClose,
                         colors = buttonColors(
@@ -1135,7 +1135,7 @@ fun DetailsSortSelectionBottomModal(
                         Text("CANCEL")
                     }
 
-                    //apply btn
+                    // Apply btn
                     Button(
                         onClick = onApply,
                         colors = buttonColors(
@@ -1274,7 +1274,7 @@ fun CreatePlaylistBottomModal(
 
             fullWidthItem {
                 Row {
-                    //cancel btn
+                    // Cancel btn
                     Button(
                         onClick = onClose,
                         colors = buttonColors(
@@ -1291,7 +1291,7 @@ fun CreatePlaylistBottomModal(
                         Text("CANCEL")
                     }
 
-                    //create playlist btn
+                    // Create playlist btn
                     Button(
                         onClick = onCreate,
                         enabled = !createEnabled.value,
