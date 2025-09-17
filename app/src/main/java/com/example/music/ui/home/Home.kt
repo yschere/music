@@ -279,6 +279,7 @@ private fun HomeScreenReady(
                     isActive = viewModel.isActive, // if playback is active
                     isPlaying = viewModel.isPlaying,
                     currentSong = viewModel.currentSong,
+
                     onHomeAction = viewModel::onHomeAction,
                     navigateToHome = navigateToHome,
                     navigateToLibrary = navigateToLibrary,
@@ -336,6 +337,7 @@ private fun HomeScreen(
     isActive: Boolean,
     isPlaying: Boolean,
     currentSong: SongInfo,
+
     onHomeAction: (HomeAction) -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
@@ -409,6 +411,7 @@ private fun HomeScreen(
                     featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
                     selectSong = selectSong,
                     selectAlbum = selectAlbum,
+
                     modifier = modifier.padding(contentPadding),
                     onHomeAction = { action ->
                         if (action is HomeAction.QueueSong) {
@@ -955,6 +958,7 @@ private fun PreviewHome() {
         HomeScreen(
             //windowSizeClass = CompactWindowSizeClassLandscape,//CompactWindowSizeClass,
             isLoading = false,
+
             /*featuredLibraryItemsFilterResult = FeaturedLibraryItemsFilterResult(
                 recentPlaylists = PreviewPlaylists,
                 recentlyAddedSongs = PreviewSongs
@@ -974,6 +978,7 @@ private fun PreviewHome() {
             isActive = true,
             isPlaying = true,
             currentSong = PreviewSongs[0],
+
             onHomeAction = {},
             navigateToHome = {},
             navigateToLibrary = {},
