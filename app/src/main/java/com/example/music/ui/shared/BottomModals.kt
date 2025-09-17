@@ -90,7 +90,6 @@ import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 private const val TAG = "Bottom Modal"
 
@@ -1348,17 +1347,17 @@ fun BottomSheetPlayer(
         .semantics { role = Role.Button }
 
     Box(
-        contentAlignment = Alignment.TopCenter,
+        contentAlignment = Alignment.BottomCenter,
         modifier = modifier.fillMaxWidth(),
     ) {
         Surface(
             modifier = modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surfaceContainer,
+            color = MaterialTheme.colorScheme.inversePrimary,
             onClick = { navigateToPlayer() },
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 HeaderImage(song.artworkUri, song.title)
                 Column(Modifier.padding(8.dp).weight(1f)) {
@@ -1388,9 +1387,7 @@ fun BottomSheetPlayer(
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                         modifier = primaryButtonModifier
                             .padding(8.dp)
-                            .clickable {
-                                onPausePress()
-                            }
+                            .clickable { onPausePress() }
                     )
                 } else {
                     //determined that the current state is paused (isPlaying is false)
@@ -1401,9 +1398,7 @@ fun BottomSheetPlayer(
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
                         modifier = primaryButtonModifier
                             .padding(8.dp)
-                            .clickable {
-                                onPlayPress()
-                            }
+                            .clickable { onPlayPress() }
                     )
                 }
                 /*IconButton(
