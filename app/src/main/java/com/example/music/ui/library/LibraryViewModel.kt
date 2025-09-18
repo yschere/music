@@ -327,24 +327,24 @@ class LibraryViewModel @Inject constructor(
     }
 
     fun onPlay() {
-        Log.i(TAG,"Hit play btn on Library Screen.")
+        Log.i(TAG,"Hit play btn")
         songController.play(true)
         _isPlaying = true
     }
 
     fun onPause() {
-        Log.i(TAG, "Hit pause btn on Library Screen")
+        Log.i(TAG, "Hit pause btn")
         songController.pause()
         _isPlaying = false
     }
 
     fun onPrevious() {
-        Log.i(TAG, "Hit previous btn on Library Screen")
+        Log.i(TAG, "Hit previous btn")
         songController.previous()
     }
 
     fun onNext() {
-        Log.i(TAG, "Hit next btn on Library Screen")
+        Log.i(TAG, "Hit next btn")
         songController.next()
     }
 
