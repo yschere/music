@@ -89,7 +89,7 @@ import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
-import com.example.music.ui.shared.BottomSheetPlayer
+import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
 import com.example.music.ui.shared.NavDrawer
@@ -388,7 +388,7 @@ private fun HomeScreen(
                 },
                 bottomBar = {
                     if (isActive){
-                        BottomSheetPlayer(
+                        MiniPlayer(
                             song = currentSong,
                             isPlaying = isPlaying,
                             navigateToPlayer = navigateToPlayer,

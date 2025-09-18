@@ -65,7 +65,7 @@ import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.player.MiniPlayerControlActions
-import com.example.music.ui.shared.BottomSheetPlayer
+import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.GenreMoreOptionsBottomModal
@@ -278,7 +278,7 @@ fun GenreDetailsScreen(
             },
             bottomBar = {
                 if (isActive){
-                    BottomSheetPlayer(
+                    MiniPlayer(
                         song = currentSong,
                         isPlaying = isPlaying,
                         navigateToPlayer = navigateToPlayer,

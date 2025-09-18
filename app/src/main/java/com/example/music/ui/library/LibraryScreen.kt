@@ -89,7 +89,7 @@ import com.example.music.ui.library.song.songItems
 import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
-import com.example.music.ui.shared.BottomSheetPlayer
+import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.GenreMoreOptionsBottomModal
 import com.example.music.ui.shared.LibrarySortSelectionBottomModal
@@ -261,7 +261,7 @@ private fun LibraryScreen(
                 },
                 bottomBar = {
                     if (isActive){
-                        BottomSheetPlayer(
+                        MiniPlayer(
                             song = currentSong,
                             isPlaying = isPlaying,
                             navigateToPlayer = navigateToPlayer,

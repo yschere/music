@@ -72,7 +72,7 @@ import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
-import com.example.music.ui.shared.BottomSheetPlayer
+import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
@@ -291,7 +291,7 @@ fun ArtistDetailsScreen(
             },
             bottomBar = {
                 if (isActive){
-                    BottomSheetPlayer(
+                    MiniPlayer(
                         song = currentSong,
                         isPlaying = isPlaying,
                         navigateToPlayer = navigateToPlayer,
