@@ -13,7 +13,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -38,7 +37,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -69,7 +67,6 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
@@ -84,7 +81,10 @@ import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.getSongsInAlbum
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.testing.PreviewSongs
+import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
+import com.example.music.ui.shared.BottomSheetPlayer
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
@@ -124,12 +124,22 @@ fun AlbumDetailsScreen(
                 album = uiState.album,
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
+                isActive = viewModel.isActive, // if playback is active
+                isPlaying = viewModel.isPlaying,
+                currentSong = viewModel.currentSong,
+
                 onAlbumAction = viewModel::onAlbumAction,
                 navigateBack = navigateBack,
                 navigateToPlayer = navigateToPlayer,
                 navigateToSearch = navigateToSearch,
                 navigateToArtistDetails = navigateToArtistDetails,
                 modifier = Modifier.fillMaxSize(),
+                miniPlayerControlActions = MiniPlayerControlActions(
+                    onPlayPress = viewModel::onPlay,
+                    onPausePress = viewModel::onPause,
+                    onNext = viewModel::onNext,
+                    onPrevious = viewModel::onPrevious
+                )
             )
         } else {
             AlbumDetailsLoadingScreen(
@@ -171,13 +181,21 @@ fun AlbumDetailsScreen(
     album: AlbumInfo,
     songs: List<SongInfo>,
     selectSong: SongInfo,
+    isActive: Boolean,
+    isPlaying: Boolean,
+    currentSong: SongInfo,
+
     onAlbumAction: (AlbumAction) -> Unit,
     navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
+    miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
 ) {
+    Log.i(TAG, "AlbumDetails Screen START\n" +
+        "currentSong? ${currentSong.title}\n" +
+        "isActive? $isActive")
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //use this to hold the little popup text that appears after an onClick event
@@ -282,11 +300,15 @@ fun AlbumDetailsScreen(
                 ) */
             },
             bottomBar = {
-                /* //should show BottomBarPlayer here if a queue session is running or service is running
-                BottomBarPlayer(
-                    song = PreviewSongs[5],
-                    navigateToPlayer = { navigateToPlayerSong(PreviewSongs[5]) },
-                )*/
+                if (isActive){
+                    BottomSheetPlayer(
+                        song = currentSong,
+                        isPlaying = isPlaying,
+                        navigateToPlayer = navigateToPlayer,
+                        onPlayPress = miniPlayerControlActions.onPlayPress,
+                        onPausePress = miniPlayerControlActions.onPausePress,
+                    )
+                }
             },
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
@@ -358,12 +380,18 @@ fun AlbumDetailsScreen(
                     }
                 }
 
-                // Jump to Top of Screen FAB
+                /**
+                 * Scroll to top btn that appears after scrolling down beyond first few items
+                 */
                 AnimatedVisibility(
                     visible = displayButton.value,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 40.dp),
+                        .padding(
+                            bottom =
+                                if (isActive) 100.dp
+                                else 40.dp
+                        ),
                     enter = slideInVertically(
                         // Start the slide from 40 (pixels) above where the content is supposed to go, to
                         // produce a parallax effect
@@ -885,11 +913,21 @@ fun AlbumDetailsScreenPreview() {
             //songs = getSongsInAlbum(307),
 
             selectSong = getSongsInAlbum(PreviewAlbums[2].id)[0],
+            isActive = true,
+            isPlaying = true,
+            currentSong = PreviewSongs[0],
+
             onAlbumAction = {},
             navigateBack = {},
             navigateToPlayer = {},
             navigateToSearch = {},
             navigateToArtistDetails = {},
+            miniPlayerControlActions = MiniPlayerControlActions(
+                onPlayPress = {},
+                onPausePress = {},
+                onNext = {},
+                onPrevious = {},
+            ),
         )
     }
 }
