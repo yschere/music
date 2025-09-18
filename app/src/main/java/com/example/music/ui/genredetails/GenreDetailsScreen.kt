@@ -2,6 +2,7 @@ package com.example.music.ui.genredetails
 
 import android.util.Log
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -21,13 +22,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,7 +51,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -63,11 +58,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
 import com.example.music.designsys.theme.Keyline1
-import com.example.music.designsys.theme.MusicShapes
+import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.testing.PreviewGenres
 import com.example.music.domain.testing.getSongsInGenre
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.testing.PreviewSongs
+import com.example.music.ui.player.MiniPlayerControlActions
+import com.example.music.ui.shared.BottomSheetPlayer
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.GenreMoreOptionsBottomModal
@@ -80,7 +78,6 @@ import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
-import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.launch
 
 private const val TAG = "Genre Details Screen"
@@ -108,6 +105,10 @@ fun GenreDetailsScreen(
                 genre = uiState.genre,
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
+                isActive = viewModel.isActive, // if playback is active
+                isPlaying = viewModel.isPlaying,
+                currentSong = viewModel.currentSong,
+
                 onGenreAction = viewModel::onGenreAction,
                 navigateBack = navigateBack,
                 navigateToPlayer = navigateToPlayer,
@@ -115,6 +116,12 @@ fun GenreDetailsScreen(
                 navigateToAlbumDetails = navigateToAlbumDetails,
                 navigateToArtistDetails = navigateToArtistDetails,
                 modifier = Modifier.fillMaxSize(),
+                miniPlayerControlActions = MiniPlayerControlActions(
+                    onPlayPress = viewModel::onPlay,
+                    onPausePress = viewModel::onPause,
+                    onNext = viewModel::onNext,
+                    onPrevious = viewModel::onPrevious
+                )
             )
         } else {
             GenreDetailsLoadingScreen(
@@ -156,14 +163,22 @@ fun GenreDetailsScreen(
     genre: GenreInfo,
     songs: List<SongInfo>,
     selectSong: SongInfo,
+    isActive: Boolean,
+    isPlaying: Boolean,
+    currentSong: SongInfo,
+
     onGenreAction: (GenreAction) -> Unit,
     navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
+    miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
 ) {
+    Log.i(TAG, "GenreDetails Screen START\n" +
+        "currentSong? ${currentSong.title}\n" +
+        "isActive? $isActive")
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
@@ -177,9 +192,6 @@ fun GenreDetailsScreen(
             appBarScrollBehavior.state.collapsedFraction > 0.8
         }
     }
-
-    val listState = rememberLazyGridState()
-    val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
     val sheetState = rememberModalBottomSheetState(false)
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -206,10 +218,11 @@ fun GenreDetailsScreen(
                             )
                         } else {
                             // if false, bar is expanded so use full header
-                            GenreDetailsHeaderItem(genre, modifier)
+                            GenreDetailsHeaderTitle(genre, modifier)
                         }
                     },
                     navigationIcon = {
+                        // Back btn
                         IconButton(onClick = navigateBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -255,37 +268,30 @@ fun GenreDetailsScreen(
                     scrollBehavior = appBarScrollBehavior,
                 )
                 /*GenreDetailsTopAppBar(
-                    navigateToSearch = navigateToSearch,
                     navigateBack = navigateBack,
-                )*/
+                    navigateToSearch = navigateToSearch,
+                    onMoreOptionsClick = {
+                        showBottomSheet = true
+                        showGenreMoreOptions = true
+                    }
+                ) */
             },
             bottomBar = {
-                /* //should show BottomBarPlayer here if a queue session is running or service is running
-                BottomBarPlayer(
-                    song = PreviewSongs[5],
-                    navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
-                )*/
+                if (isActive){
+                    BottomSheetPlayer(
+                        song = currentSong,
+                        isPlaying = isPlaying,
+                        navigateToPlayer = navigateToPlayer,
+                        onPlayPress = miniPlayerControlActions.onPlayPress,
+                        onPausePress = miniPlayerControlActions.onPausePress,
+                    )
+                }
             },
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
-            //modifier = modifier.fillMaxSize().systemBarsPadding(),
             containerColor = Color.Transparent,
-            contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
-            //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
+            contentColor = contentColorFor(MaterialTheme.colorScheme.background) // MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
         ) { contentPadding ->
-            // original content setter
-            /*GenreDetailsContent(
-                coroutineScope = coroutineScope,
-                genre = genre,
-                songs = songs,
-                selectSong = selectSong,
-                onGenreAction = onGenreAction,
-                navigateToPlayer = navigateToPlayer,
-                navigateToAlbumDetails = navigateToAlbumDetails,
-                navigateToArtistDetails = navigateToArtistDetails,
-                modifier = Modifier.padding(contentPadding)
-            )*/
-
             // GenreDetails Content
             LazyVerticalGrid(
                 columns = GridCells.Fixed(1),
@@ -323,8 +329,10 @@ fun GenreDetailsScreen(
                     )
                 }
 
-                // songs list
-                items(songs) { song ->
+                // Song List
+                items(
+                    items = songs
+                ) { song ->
                     SongListItem(
                         song = song,
                         onClick = {
@@ -572,8 +580,9 @@ fun GenreDetailsScreen(
  */
 @Composable
 fun GenreDetailsTopAppBar(
-    navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
+    navigateToSearch: () -> Unit,
+    onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -583,8 +592,8 @@ fun GenreDetailsTopAppBar(
             .statusBarsPadding()
             .padding(horizontal = 8.dp)
     ) {
-        //back button
-        IconButton( onClick = navigateBack ) {
+        // Back button
+        IconButton(onClick = navigateBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(id = R.string.icon_back_nav),
@@ -595,16 +604,17 @@ fun GenreDetailsTopAppBar(
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
-        // search btn
-        IconButton( onClick = navigateToSearch ) {
+        // Search btn
+        IconButton(onClick = navigateToSearch) {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = stringResource(R.string.icon_search),
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
-        //more options btn // temporary placement till figure out if this should be part of header
-        IconButton(onClick = {}) {
+
+        // Genre More Options btn
+        IconButton(onClick = onMoreOptionsClick) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = stringResource(R.string.icon_more),
@@ -943,8 +953,8 @@ fun GenreDetailsHeaderItem(
         val maxImageSize = this.maxWidth / 2
         //val imageSize = min(maxImageSize, 148.dp)
         Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = genre.name,
@@ -956,6 +966,29 @@ fun GenreDetailsHeaderItem(
                 style = MaterialTheme.typography.headlineMedium
             )
         }
+    }
+}
+
+
+@Composable
+fun GenreDetailsHeaderTitle(
+    genre: GenreInfo,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = genre.name,
+            maxLines = 2,
+            minLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            //color = MaterialTheme.colorScheme.primaryContainer,
+            style = MaterialTheme.typography.headlineMedium
+        )
     }
 }
 
@@ -980,6 +1013,9 @@ fun GenreDetailsScreenPreview() {
             genre = PreviewGenres[3],
             songs = getSongsInGenre(3),
             selectSong = getSongsInGenre(3)[0],
+            isActive = true,
+            isPlaying = true,
+            currentSong = PreviewSongs[0],
 
             onGenreAction = {},
             navigateToPlayer = {},
@@ -987,6 +1023,12 @@ fun GenreDetailsScreenPreview() {
             navigateToAlbumDetails = {},
             navigateToArtistDetails = {},
             navigateBack = {},
+            miniPlayerControlActions = MiniPlayerControlActions(
+                onPlayPress = {},
+                onPausePress = {},
+                onNext = {},
+                onPrevious = {},
+            ),
         )
     }
 }
