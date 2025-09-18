@@ -1383,7 +1383,7 @@ fun BottomSheetPlayer(
                         imageVector = Icons.Filled.Pause,
                         contentDescription = stringResource(R.string.pb_pause),
                         contentScale = ContentScale.Fit,
-                        //colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                         modifier = sideButtonsModifier
                             .padding(8.dp)
                             .clickable { onPausePress() }
@@ -1394,7 +1394,7 @@ fun BottomSheetPlayer(
                         imageVector = Icons.Filled.PlayArrow,
                         contentDescription = stringResource(R.string.pb_play),
                         contentScale = ContentScale.Fit,
-                        //colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                         modifier = sideButtonsModifier
                             .padding(8.dp)
                             .clickable { onPlayPress() }
