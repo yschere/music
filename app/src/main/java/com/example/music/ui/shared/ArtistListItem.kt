@@ -22,9 +22,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.domain.model.ArtistInfo
+import com.example.music.domain.testing.PreviewArtists
+import com.example.music.domain.testing.PreviewGenres
+import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.quantityStringResource
 
 @Composable
@@ -64,7 +68,7 @@ private fun ArtistListItemRow(
             artist = artist.name,
             modifier = Modifier
                 .size(56.dp)
-                .clip(MaterialTheme.shapes.medium) //small
+                .clip(MaterialTheme.shapes.small),
         )
 
         Column(modifier.weight(1f)) {
@@ -78,7 +82,7 @@ private fun ArtistListItemRow(
             )
             Row(
                 horizontalArrangement = Arrangement.Start,
-                modifier = modifier.padding(horizontal = 10.dp)
+                modifier = Modifier.padding(horizontal = 10.dp)
             ) {
                 Text(
                     text = quantityStringResource(R.plurals.albums, artist.albumCount, artist.albumCount) + " • ",
@@ -129,6 +133,19 @@ private fun ArtistListItemIcon(
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewArtistItem() {
+    MusicTheme {
+        ArtistListItem(
+            artist = PreviewArtists[0],
+            navigateToArtistDetails = {},
+            onMoreOptionsClick = {},
+            modifier = Modifier//.padding(horizontal = 12.dp, vertical = 8.dp),
         )
     }
 }

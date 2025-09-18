@@ -2,8 +2,6 @@ package com.example.music.ui.genredetails
 
 import android.util.Log
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -70,16 +68,12 @@ import com.example.music.domain.testing.PreviewGenres
 import com.example.music.domain.testing.getSongsInGenre
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.ui.albumdetails.AlbumDetailsHeader
-import com.example.music.ui.artistdetails.ArtistAction
-import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
-import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.GenreMoreOptionsBottomModal
-
-
+import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.shared.Loading
+import com.example.music.ui.shared.PlayShuffleButtons
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
@@ -87,19 +81,7 @@ import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
-/** Changelog:
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
 
 private const val TAG = "Genre Details Screen"
 
@@ -312,16 +294,17 @@ fun GenreDetailsScreen(
                     .padding(horizontal = 12.dp)
             ) {
                 fullWidthItem {
-                    SongCountAndSortSelectButtons(
-                        songs = songs,
-                        onSelectClick = {
-                            Log.i(TAG, "Multi Select btn clicked")
-                        },
+                    ItemCountAndSortSelectButtons(
+                        id = R.plurals.songs,
+                        itemCount = songs.size,
                         onSortClick = {
                             Log.i(TAG, "Song Sort btn clicked")
                             showBottomSheet = true
                             showSortSheet = true
-                        }
+                        },
+                        onSelectClick = {
+                            Log.i(TAG, "Multi Select btn clicked")
+                        },
                     )
                 }
 
@@ -383,7 +366,7 @@ fun GenreDetailsScreen(
                                 Log.i(TAG, "Hide sheet state")
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set Song Sort to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSortSheet = false
@@ -395,7 +378,7 @@ fun GenreDetailsScreen(
                                 Log.i(TAG, "Save sheet state - does nothing atm")
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set Song Sort to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSortSheet = false
@@ -972,101 +955,6 @@ fun GenreDetailsHeaderItem(
                 //color = MaterialTheme.colorScheme.primaryContainer,
                 style = MaterialTheme.typography.headlineMedium
             )
-        }
-    }
-}
-
-/**
- * Content section 1.3: song count and list sort icons
- */
-@Composable
-private fun SongCountAndSortSelectButtons(
-    songs: List<SongInfo>,
-    onSortClick: () -> Unit,
-    onSelectClick: () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = """\s[a-z]""".toRegex()
-                .replace(quantityStringResource(R.plurals.songs, songs.size, songs.size)) {
-                    it.value.uppercase()
-                },
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp).weight(1f, true)
-        )
-
-        // sort icon
-        IconButton(
-            onClick = onSortClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Sort,
-                contentDescription = stringResource(R.string.icon_sort),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-
-        // multi-select icon
-        IconButton(
-            onClick = onSelectClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Checklist,
-                contentDescription = stringResource(R.string.icon_multi_select),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-    }
-}
-
-/**
- * Content section 1.5: play and shuffle buttons
- */
-@Composable
-private fun PlayShuffleButtons(
-    onPlayClick: () -> Unit,
-    onShuffleClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier.padding(bottom = 8.dp)
-    ) {
-        // play btn
-        Button(
-            onClick = onPlayClick,
-            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
-            shape = MusicShapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PlayArrow,
-                contentDescription = stringResource(R.string.icon_play)
-            )
-            Text("PLAY")
-        }
-
-        // shuffle btn
-        Button(
-            onClick = onShuffleClick,
-            //did have colors set, colors = buttonColors( container -> primary, content -> background )
-            shape = MusicShapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Shuffle,
-                contentDescription = stringResource(R.string.icon_shuffle)
-            )
-            Text("SHUFFLE")
         }
     }
 }

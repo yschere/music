@@ -592,8 +592,7 @@ private fun LibraryContent(
         }
 
         /**
-         * Scroll to top btn for Library Content that appears
-         * after scrolling down beyond first few items
+         * Scroll to top btn that appears after scrolling down beyond first few items
          */
         AnimatedVisibility(
             visible = displayButton.value,

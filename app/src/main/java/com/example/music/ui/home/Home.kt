@@ -58,8 +58,6 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,9 +73,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
@@ -99,6 +94,7 @@ import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.shared.formatString
 import com.example.music.ui.theme.MusicTheme
@@ -815,9 +811,13 @@ private fun HomeContentGrid(
                     }
                 }
             }
-            items(featuredLibraryItemsFilterResult.recentlyAddedSongs) { song ->
-                Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
-                    HomeSongListItem(
+            items(
+                items = featuredLibraryItemsFilterResult.recentlyAddedSongs
+            ) { song ->
+                Box(
+                    Modifier.padding(horizontal = 12.dp, vertical = 0.dp)
+                ) {
+                    SongListItem(
                         song = song,
                         onClick = {
                             Log.i(TAG, "Song Clicked: ${song.title}")
@@ -829,101 +829,14 @@ private fun HomeContentGrid(
                             onHomeAction(HomeAction.SongMoreOptionClicked(song))
                             onSongMoreOptionsClick()
                         },
+                        showArtistName = true,
+                        showAlbumImage = true,
+                        showAlbumTitle = true,
+                        hasBackground = false,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun HomeSongListItem(
-    song: SongInfo,
-    onClick: () -> Unit,
-    onMoreOptionsClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(modifier = modifier.padding(4.dp)) {
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = Color.Transparent, //MaterialTheme.colorScheme.surfaceContainer,
-            onClick = onClick,
-        ) {
-            HomeSongListItemRow(
-                song = song,
-                onMoreOptionsClick = onMoreOptionsClick,
-                modifier = modifier
-            )
-        }
-    }
-}
-
-@Composable
-private fun HomeSongListItemRow(
-    song: SongInfo,
-    onMoreOptionsClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-    ) {
-        AlbumImage(
-            albumImage = song.artworkUri,
-            contentDescription = song.title,
-            modifier = Modifier
-                .size(56.dp)
-                .clip(MaterialTheme.shapes.small)
-        )
-
-        Column(modifier.weight(1f)) {
-            Text(
-                text = song.title,
-                maxLines = 1,
-                minLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
-            )
-            Row(
-                modifier = modifier.padding(horizontal = 10.dp)
-            ) {
-                Text(
-                    text = song.artistName,
-                    maxLines = 1,
-                    minLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-                Text(
-                    text = " • " + song.albumTitle,
-                    maxLines = 1,
-                    minLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-                Text(
-                    text = " • " + song.duration.formatString(),
-                    maxLines = 1,
-                    minLines = 1,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp)//, horizontal = 8.dp),
-                )
-            }
-        }
-
-        // More Options btn
-        IconButton(
-            onClick = onMoreOptionsClick,
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
         }
     }
 }
