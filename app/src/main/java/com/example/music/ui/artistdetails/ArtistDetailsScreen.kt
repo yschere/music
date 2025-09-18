@@ -130,8 +130,6 @@ fun ArtistDetailsScreen(
                 miniPlayerControlActions = MiniPlayerControlActions(
                     onPlayPress = viewModel::onPlay,
                     onPausePress = viewModel::onPause,
-                    onNext = viewModel::onNext,
-                    onPrevious = viewModel::onPrevious
                 )
             )
         } else {
@@ -851,8 +849,6 @@ fun ArtistDetailsScreenPreview() {
             miniPlayerControlActions = MiniPlayerControlActions(
                 onPlayPress = {},
                 onPausePress = {},
-                onNext = {},
-                onPrevious = {},
             ),
         )
     }

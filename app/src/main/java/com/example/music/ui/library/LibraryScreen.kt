@@ -163,8 +163,6 @@ fun LibraryScreen(
             miniPlayerControlActions = MiniPlayerControlActions(
                 onPlayPress = viewModel::onPlay,
                 onPausePress = viewModel::onPause,
-                onNext = viewModel::onNext,
-                onPrevious = viewModel::onPrevious
             ),
         )
     }
@@ -1169,8 +1167,6 @@ private fun PreviewLibrary() {
             miniPlayerControlActions = MiniPlayerControlActions(
                 onPlayPress = {},
                 onPausePress = {},
-                onNext = {},
-                onPrevious = {},
             ),
         )
     }

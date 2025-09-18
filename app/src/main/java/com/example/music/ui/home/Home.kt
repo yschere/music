@@ -289,8 +289,6 @@ private fun HomeScreenReady(
                     miniPlayerControlActions = MiniPlayerControlActions(
                         onPlayPress = viewModel::onPlay,
                         onPausePress = viewModel::onPause,
-                        onNext = viewModel::onNext,
-                        onPrevious = viewModel::onPrevious
                     ),
                 )
             },
@@ -905,8 +903,6 @@ private fun PreviewHome() {
             miniPlayerControlActions = MiniPlayerControlActions(
                 onPlayPress = {},
                 onPausePress = {},
-                onNext = {},
-                onPrevious = {},
             ),
             modifier = Modifier,
         )

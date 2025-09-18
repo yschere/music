@@ -10,6 +10,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -41,18 +42,21 @@ import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SliderDefaults.Thumb
+import androidx.compose.material3.SliderDefaults.Track
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,6 +65,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -72,6 +77,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.window.core.layout.WindowSizeClass
@@ -87,9 +93,11 @@ import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.formatString
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
+import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.isCompact
 import com.example.music.util.isExpanded
 import com.example.music.util.isMedium
+import com.example.music.util.verticalGradientScrim
 import kotlinx.coroutines.launch
 import java.time.Duration
 import kotlin.math.roundToLong
@@ -147,8 +155,15 @@ data class PlayerControlActions(
 data class MiniPlayerControlActions(
     val onPlayPress: () -> Unit,
     val onPausePress: () -> Unit,
+)
+
+data class MiniPlayerExpandedControlActions(
+    val onPlayPress: () -> Unit,
+    val onPausePress: () -> Unit,
     val onNext: () -> Unit,
     val onPrevious: () -> Unit,
+    val onShuffle: () -> Unit,
+    val onRepeat: () -> Unit
 )
 
 /**
@@ -189,16 +204,12 @@ private fun PlayerScreen(
 
     //other screens use ScreenBackground call here and pass the Scaffold as the content for it
     Scaffold(
-        //other screens add their topBar here, since they use LazyVerticalGrid.
+        // other screens add their topBar here, since they use LazyVerticalGrid.
         // Player Screen does not use lazyList/lazyGrid so no need for that here,
         // can show all the elements in one large column with correctly layered components
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = modifier,//.windowInsetsPadding(WindowInsets.navigationBars)
-        //containerColor = Color.Transparent,
-        //other screens add containerColor = Color.Transparent, not needed here since use different
-        // background function
+        containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
     ) { contentPadding ->
         if (currentSong.id != 0L) { // keeping this explicit check for now, don't want to lose context for the FullScreenLoading function below
@@ -250,7 +261,6 @@ private fun PlayerBackground(
     modifier: Modifier,
 ) {
     //how to make this into album artwork
-    //ImageBackgroundColorScrim(
     ImageBackgroundRadialGradientScrim(
         //url = song?.podcastImageUrl,
         imageId = song.title, //FixMe: needs to be artwork bitmap or uri
@@ -399,7 +409,7 @@ private fun PlayerContentRegular(
             Spacer(modifier = Modifier.weight(1f))
             PlayerImageBm(
                 albumImage = currentSong.artworkBitmap,//currentSong.artMap ?: ,//currentSong.artwork!!, //FixMe: change this to bitmap or url when artwork fixed
-                modifier = Modifier.weight(10f)
+                modifier = Modifier.weight(10f).background(Color.Transparent)
             )
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -492,7 +502,7 @@ private fun SongLyricsSwitch(
         want the lyrics button to be disabled if no lyrics found for song (or have X on the side?)
         default is to have song side enabled, but if lyrics side enabled, keep that enabled till song side tapped
     */
-    var hasLyrics by remember { mutableStateOf(false) }
+    val hasLyrics by remember { mutableStateOf(false) }
     var showLyrics by remember { mutableStateOf(false) }
 
     Row(
@@ -524,7 +534,7 @@ private fun SongLyricsSwitch(
             style = MaterialTheme.typography.titleLarge,
             color =
                 if (hasLyrics) MaterialTheme.colorScheme.onSurface
-                else MaterialTheme.colorScheme.onSurfaceVariant,
+                else Color.Gray,
             modifier = Modifier.padding(4.dp)
                 .clickable(
                     enabled = hasLyrics,
@@ -614,9 +624,10 @@ private fun PlayerImageBm(
     AlbumImageBm(
         albumImage = albumImage,
         contentDescription = null,
-        contentScale = ContentScale.Crop,
+        contentScale = ContentScale.Fit,
         modifier = modifier
-            .sizeIn(maxWidth = 500.dp, maxHeight = 500.dp)
+            .size(250.dp)
+            //.sizeIn(maxWidth = 500.dp, maxHeight = 500.dp)
             .aspectRatio(1f)
             .clip(MaterialTheme.shapes.medium)
     )
@@ -658,6 +669,7 @@ private fun SongDetails(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerSlider(
     progress: Float,
@@ -665,18 +677,15 @@ fun PlayerSlider(
     songDuration: Duration?,
     onSeek: (Long) -> Unit
 ) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-        var newElapsed: Long by remember { mutableLongStateOf(timeElapsed) }
+    Column(Modifier.fillMaxWidth()) {
+        var newElapse by remember(progress) { mutableFloatStateOf(progress) }
+        val interactionSource = remember { MutableInteractionSource() }
 
-        Row(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
             Text(
                 text = "${Duration.ofMillis(timeElapsed).formatString()} • ${songDuration?.formatString()}",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
 
@@ -684,27 +693,52 @@ fun PlayerSlider(
             value = progress,
             valueRange = 0f..1f,
             onValueChange = {
-                //taking the float progress, times the duration, then round to Long to get newElapsed
-                newElapsed = (it.times(songDuration!!.toMillis()).roundToLong())
+                newElapse = it
                 Log.i(TAG, "in PlayerSlider -> onValueChange ->\n" +
-                        "newElapsed: $newElapsed")
+                    "newElapsed: $newElapse")
             },
             onValueChangeFinished = {
                 Log.i(TAG, "in PlayerSlider -> onValueChangeFinished ->\n" +
-                        "newElapsed: $newElapsed")
-                onSeek(newElapsed)
+                    "newElapsed: $newElapse")
+                //take the finished float, times the duration, then round to Long to send new progress / timeElapsed
+                onSeek(newElapse.times(songDuration!!.toMillis()).roundToLong())
             },
-            colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.onPrimary,
-                activeTrackColor = MaterialTheme.colorScheme.secondary,
-                inactiveTrackColor = MaterialTheme.colorScheme.primary,
-            ),
+            interactionSource = interactionSource,
+            thumb = { _ ->
+                Thumb(
+                    interactionSource = interactionSource,
+                    modifier = Modifier,
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    enabled = true,
+                    thumbSize = DpSize(
+                        width = 24.dp,
+                        height = 24.dp
+                    ),
+                )
+            },
+            track = { slider ->
+                Track(
+                    sliderState = slider,
+                    modifier = Modifier.height(10.dp),
+                    enabled = true,
+                    colors = SliderDefaults.colors(
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = Color.LightGray,
+                    ),
+                    drawStopIndicator = null,
+                    thumbTrackGapSize = 0.dp,
+                    trackInsideCornerSize = 1.dp,
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
 
 @Composable
-private fun PlayerButtons(
+fun PlayerButtons(
     hasNext: Boolean,
     isPlaying: Boolean,
     isShuffled: Boolean,
@@ -716,7 +750,7 @@ private fun PlayerButtons(
     onShuffle: () -> Unit,
     onRepeat: () -> Unit,
     modifier: Modifier = Modifier,
-    playerButtonSize: Dp = 72.dp,
+    primaryButtonSize: Dp = 72.dp,
     sideButtonSize: Dp = 48.dp,
 ) {
     Row(
@@ -727,15 +761,15 @@ private fun PlayerButtons(
         val sideButtonsModifier = Modifier
             .size(sideButtonSize)
             .background(
-                color = MaterialTheme.colorScheme.primaryContainer,
+                color = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             )
             .semantics { role = Role.Button }
 
         val primaryButtonModifier = Modifier
-            .size(playerButtonSize)
+            .size(primaryButtonSize)
             .background(
-                color = MaterialTheme.colorScheme.onPrimary,
+                color = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             )
             .semantics { role = Role.Button }
@@ -747,17 +781,18 @@ private fun PlayerButtons(
                 imageVector = Icons.Filled.ShuffleOn,
                 contentDescription = stringResource(R.string.pb_shuffle_on),
                 contentScale = ContentScale.Inside,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                 modifier = sideButtonsModifier
                     .clickable { onShuffle() }
             )
-        } else {
+        }
+        else {
             //determined that the current state IS NOT shuffled (isShuffled is false)
             Image(
                 imageVector = Icons.Filled.Shuffle,
                 contentDescription = stringResource(R.string.pb_shuffle_off),
                 contentScale = ContentScale.Inside,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                 modifier = sideButtonsModifier
                     .clickable { onShuffle() }
             )
@@ -768,7 +803,7 @@ private fun PlayerButtons(
             imageVector = Icons.Filled.SkipPrevious,
             contentDescription = stringResource(R.string.pb_skip_previous),
             contentScale = ContentScale.Inside,
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
             modifier = sideButtonsModifier
                 .clickable { onPrevious() }
         )
@@ -780,18 +815,19 @@ private fun PlayerButtons(
                 imageVector = Icons.Filled.Pause,
                 contentDescription = stringResource(R.string.pb_pause),
                 contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                 modifier = primaryButtonModifier
                     .padding(8.dp)
                     .clickable { onPausePress() }
             )
-        } else {
+        }
+        else {
             //determined that the current state is paused (isPlaying is false)
             Image(
                 imageVector = Icons.Filled.PlayArrow,
                 contentDescription = stringResource(R.string.pb_play),
                 contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                 modifier = primaryButtonModifier
                     .padding(8.dp)
                     .clickable { onPlayPress() }
@@ -803,7 +839,7 @@ private fun PlayerButtons(
             imageVector = Icons.Filled.SkipNext,
             contentDescription = stringResource(R.string.pb_skip_next),
             contentScale = ContentScale.Inside,
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
             modifier = sideButtonsModifier
                 .clickable(enabled = hasNext, onClick = onNext)
                 .alpha(if (hasNext) 1f else 0.25f)
@@ -816,7 +852,7 @@ private fun PlayerButtons(
                     imageVector = Icons.Filled.Repeat,
                     contentDescription = stringResource(R.string.pb_repeat_off),
                     contentScale = ContentScale.Inside,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                     modifier = sideButtonsModifier
                         .clickable { onRepeat() }
                 )
@@ -826,7 +862,7 @@ private fun PlayerButtons(
                     imageVector = Icons.Filled.RepeatOneOn,
                     contentDescription = stringResource(R.string.pb_repeat_one_on),
                     contentScale = ContentScale.Inside,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                     modifier = sideButtonsModifier
                         .clickable { onRepeat() }
                 )
@@ -836,7 +872,7 @@ private fun PlayerButtons(
                     imageVector = Icons.Filled.RepeatOn,
                     contentDescription = stringResource(R.string.pb_repeat_on),
                     contentScale = ContentScale.Inside,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                     modifier = sideButtonsModifier
                         .clickable { onRepeat() }
                 )
@@ -865,6 +901,7 @@ fun PlayerButtonsPreview() {
 }
 
 //@Preview
+@SystemLightPreview
 @SystemDarkPreview
 @Composable
 fun PlayerScreenPreview() {
@@ -875,8 +912,8 @@ fun PlayerScreenPreview() {
                 isPlaying = true,
                 isShuffled = true,
                 repeatState = RepeatType.ON,
-                progress = 0f,
-                timeElapsed = 0L,
+                progress =  154604L / ( PreviewSongs[0].duration.toMillis() ) .toFloat(),
+                timeElapsed = 154604L,
                 hasNext = true,
                 displayFeatures = emptyList(),
                 windowSizeClass = WindowSizeClass.compute(maxWidth.value, maxHeight.value),
