@@ -68,8 +68,11 @@ import com.example.music.domain.testing.getSongsByArtist
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.testing.PreviewSongs
+import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
+import com.example.music.ui.shared.BottomSheetPlayer
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
@@ -114,12 +117,22 @@ fun ArtistDetailsScreen(
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
                 selectAlbum = uiState.selectAlbum,
+                isActive = viewModel.isActive, // if playback is active
+                isPlaying = viewModel.isPlaying,
+                currentSong = viewModel.currentSong,
+
                 onArtistAction = viewModel::onArtistAction,
                 navigateBack = navigateBack,
                 navigateToPlayer = navigateToPlayer,
                 navigateToSearch = navigateToSearch,
                 navigateToAlbumDetails = navigateToAlbumDetails,
                 modifier = Modifier.fillMaxSize(),
+                miniPlayerControlActions = MiniPlayerControlActions(
+                    onPlayPress = viewModel::onPlay,
+                    onPausePress = viewModel::onPause,
+                    onNext = viewModel::onNext,
+                    onPrevious = viewModel::onPrevious
+                )
             )
         } else {
             ArtistDetailsLoadingScreen(
@@ -163,13 +176,21 @@ fun ArtistDetailsScreen(
     songs: List<SongInfo>,
     selectSong: SongInfo,
     selectAlbum: AlbumInfo,
+    isActive: Boolean,
+    isPlaying: Boolean,
+    currentSong: SongInfo,
+
     onArtistAction: (ArtistAction) -> Unit,
     navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateToAlbumDetails: (Long) -> Unit,
+    miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
 ) {
+    Log.i(TAG, "ArtistDetails Screen START\n" +
+        "currentSong? ${currentSong.title}\n" +
+        "isActive? $isActive")
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
@@ -269,11 +290,15 @@ fun ArtistDetailsScreen(
                 ) */
             },
             bottomBar = {
-                /* //should show BottomBarPlayer here if a queue session is running or service is running
-                BottomBarPlayer(
-                    song = PreviewSongs[5],
-                    navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
-                )*/
+                if (isActive){
+                    BottomSheetPlayer(
+                        song = currentSong,
+                        isPlaying = isPlaying,
+                        navigateToPlayer = navigateToPlayer,
+                        onPlayPress = miniPlayerControlActions.onPlayPress,
+                        onPausePress = miniPlayerControlActions.onPausePress,
+                    )
+                }
             },
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
@@ -355,8 +380,10 @@ fun ArtistDetailsScreen(
                         )
                     }
 
-                    // songs list
-                    items(songs) { song ->
+                    // Songs List
+                    items(
+                        items = songs
+                    ) { song ->
                         Box(
                             Modifier.padding(horizontal = 12.dp, vertical = 0.dp) // added for screen with carousel for additional horizontal padding
                         ) {
@@ -378,7 +405,7 @@ fun ArtistDetailsScreen(
                                 showArtistName = true,
                                 showAlbumTitle = true,
                                 showTrackNumber = false,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
                     }
@@ -403,7 +430,7 @@ fun ArtistDetailsScreen(
                                 Log.i(TAG, "Hide sheet state")
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set Song Sort to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSortSheet = false
@@ -415,7 +442,7 @@ fun ArtistDetailsScreen(
                                 Log.i(TAG, "Save sheet state - does nothing atm")
                                 sheetState.hide()
                             }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE")
+                                Log.i(TAG, "set showBottomSheet to FALSE; set Song Sort to FALSE")
                                 if(!sheetState.isVisible) {
                                     showBottomSheet = false
                                     showSortSheet = false
@@ -812,11 +839,21 @@ fun ArtistDetailsScreenPreview() {
 
             selectSong = getSongsByArtist(PreviewArtists[0].id)[0],
             selectAlbum = getAlbumsByArtist(113)[0],
+            isActive = true,
+            isPlaying = true,
+            currentSong = PreviewSongs[0],
+
             onArtistAction = {},
             navigateBack = {},
             navigateToPlayer = {},
             navigateToSearch = {},
             navigateToAlbumDetails = {},
+            miniPlayerControlActions = MiniPlayerControlActions(
+                onPlayPress = {},
+                onPausePress = {},
+                onNext = {},
+                onPrevious = {},
+            ),
         )
     }
 }
