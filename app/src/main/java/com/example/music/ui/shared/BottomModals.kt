@@ -2,9 +2,7 @@ package com.example.music.ui.shared
 
 import android.net.Uri
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,15 +19,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,7 +38,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -62,17 +54,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
@@ -84,7 +72,6 @@ import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
-import com.example.music.domain.testing.getSongData
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.fullWidthItem
@@ -600,7 +587,7 @@ fun ComposerMoreOptionsBottomModal(
     shuffle: () -> Unit = {},
     //addToPlaylist: () -> Unit = {},
     addToQueue: () -> Unit = {},
-    navigateToComposerDetails: (ComposerInfo) -> Unit, // if on Library.Composers tab
+    goToComposer: () -> Unit, // if on Library.Composers tab
     onClose: () -> Unit = {},
     context: String = "",
 ) {
@@ -640,7 +627,7 @@ fun ComposerMoreOptionsBottomModal(
             // if on library.composers
             if (context != "ComposerDetails") {
                 HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-                ActionOptionRow( Actions.GoToComposer, { navigateToComposerDetails(composer)} )
+                ActionOptionRow(Actions.GoToComposer, goToComposer)
             }
 
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
@@ -1423,7 +1410,6 @@ fun PreviewMoreOptionsModal() {
                 skipPartiallyExpanded = true,
                 density = Density(1f,1f)
             ),
-            //coroutineScope = rememberCoroutineScope(),
             song = PreviewSongs[0],
         )
     }
