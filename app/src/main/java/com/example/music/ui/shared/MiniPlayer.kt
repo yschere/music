@@ -72,7 +72,7 @@ fun MiniPlayer(
         modifier = modifier.fillMaxWidth(),
     ) {
         Surface(
-            color = MaterialTheme.colorScheme.primaryContainer,
+            color = MaterialTheme.colorScheme.inversePrimary,
             contentColor = MaterialTheme.colorScheme.onSurface,
             onClick = { navigateToPlayer() },
             modifier = modifier.fillMaxWidth(),
@@ -111,7 +111,8 @@ fun MiniPlayer(
                             .padding(4.dp)
                             .clickable { onPausePress() }
                     )
-                } else {
+                }
+                else {
                     //determined that the current state is paused (isPlaying is false)
                     Image(
                         imageVector = Icons.Filled.PlayArrow,
@@ -134,7 +135,7 @@ fun MiniPlayerExpanded(
     hasNext: Boolean = false,
     isPlaying: Boolean = true,
     isShuffled: Boolean,
-    repeatState: String,
+    repeatState: RepeatType,
     navigateToPlayer: () -> Unit,
     //navigateToQueue: () -> Unit = {},
     miniPlayerExpandedControlActions: MiniPlayerExpandedControlActions,
@@ -152,7 +153,7 @@ fun MiniPlayerExpanded(
     ) {
         Surface(
             shape = RoundedCornerShape(topStartPercent = 20, topEndPercent = 20),
-            color = MaterialTheme.colorScheme.primaryContainer,
+            color = MaterialTheme.colorScheme.inversePrimary,
             contentColor = MaterialTheme.colorScheme.onSurface,
             onClick = { navigateToPlayer() },
             modifier = Modifier.fillMaxWidth()
@@ -248,7 +249,7 @@ fun PreviewMiniPlayerExpanded() {
             song = getSongData(6535),
             isPlaying = true,
             isShuffled = false,
-            repeatState = RepeatType.ON.toString(),
+            repeatState = RepeatType.ON,
             miniPlayerExpandedControlActions = MiniPlayerExpandedControlActions(
                 onPlayPress = {},
                 onPausePress = {},
