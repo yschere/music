@@ -17,15 +17,12 @@
 package com.example.music.designsys.component
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-//import com.example.music.designsys.theme.surfaceVariantDark
-//import com.example.music.designsys.theme.surfaceVariantLight
-import com.example.music.designsys.theme.blueLightSet
-import com.example.music.designsys.theme.blueDarkSet
+import com.example.music.designsys.theme.thumbnail_dark
+import com.example.music.designsys.theme.thumbnail_light
 
 @Composable
 internal fun thumbnailPlaceholderDefaultBrush(
@@ -39,10 +36,8 @@ private fun thumbnailPlaceHolderDefaultColor(
     isInDarkMode: Boolean = isSystemInDarkTheme()
 ): Color {
     return if (isInDarkMode) {
-        blueDarkSet.surfaceVariant
-        //surfaceVariantDark //was initially available from designsys because it set as public val. is now commented out
+        thumbnail_dark
     } else {
-        blueLightSet.surfaceVariant
-        //surfaceVariantLight //was initially available from designsys because it set as public val. is now commented out
+        thumbnail_light
     }
 }

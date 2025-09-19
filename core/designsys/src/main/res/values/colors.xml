@@ -2,6 +2,8 @@
 <resources>
     <color name="surface_bright">#FF313233</color>
     <color name="background">#FFFBFCFC</color>
+    <color name="thumbnail_dark">#434343</color>
+    <color name="thumbnail_light">#E9E9E9</color>
 
     <!-- Default Light Color Section -->
     <color name="primary_light">#FF885200</color>

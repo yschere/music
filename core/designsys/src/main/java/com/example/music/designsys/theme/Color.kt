@@ -7,6 +7,14 @@ import androidx.compose.ui.graphics.Color
 import com.example.music.designsys.R
 
 /**
+ * App wide default colors
+ */
+val background = Color(0xFFFBFCFC)
+val surface_bright = Color(0xFF313233)
+val thumbnail_dark = Color(0xFF434343)
+val thumbnail_light = Color(0xFFE9E9E9)
+
+/**
  * Default Light Color Scheme from JetCaster
  */
 @SuppressLint("ResourceAsColor")
