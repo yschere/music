@@ -157,15 +157,6 @@ data class MiniPlayerControlActions(
     val onPausePress: () -> Unit,
 )
 
-data class MiniPlayerExpandedControlActions(
-    val onPlayPress: () -> Unit,
-    val onPausePress: () -> Unit,
-    val onNext: () -> Unit,
-    val onPrevious: () -> Unit,
-    val onShuffle: () -> Unit,
-    val onRepeat: () -> Unit
-)
-
 /**
  * Error Screen
  */
@@ -260,13 +251,11 @@ private fun PlayerBackground(
     song: SongInfo,
     modifier: Modifier,
 ) {
-    //how to make this into album artwork
     ImageBackgroundRadialGradientScrim(
         //url = song?.podcastImageUrl,
         imageId = song.title, //FixMe: needs to be artwork bitmap or uri
-        //color = MaterialTheme.colorScheme.primaryContainer,
         colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),),
-        //colors = listOf(MaterialTheme.colorScheme.onPrimaryContainer,MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.onTertiary),//blueDarkColorSet.primary,
+        //colors = listOf(MaterialTheme.colorScheme.onPrimary,MaterialTheme.colorScheme.onSecondary, MaterialTheme.colorScheme.onTertiary),//blueDarkColorSet.primary,
         modifier = modifier,
     )
 }
@@ -742,7 +731,6 @@ fun PlayerButtons(
     hasNext: Boolean,
     isPlaying: Boolean,
     isShuffled: Boolean,
-    //repeatState: String,
     repeatState: RepeatType,
     onPlayPress: () -> Unit,
     onPausePress: () -> Unit,
@@ -893,7 +881,7 @@ fun PlayerButtonsPreview() {
             hasNext = false,
             isPlaying = true,
             isShuffled = false,
-            repeatState = RepeatType.ONE,//"one",
+            repeatState = RepeatType.ONE,
             onPlayPress = {},
             onPausePress = {},
             onShuffle = {},

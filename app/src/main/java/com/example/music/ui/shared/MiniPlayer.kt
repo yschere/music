@@ -5,7 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,9 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.MaterialTheme
@@ -34,14 +31,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.music.R
-import com.example.music.data.repository.RepeatType
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.getSongData
-import com.example.music.ui.player.MiniPlayerExpandedControlActions
-import com.example.music.ui.player.PlayerButtons
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
-import com.example.music.ui.tooling.CompLightPreview
 
 private const val TAG = "Mini Player"
 
@@ -129,7 +122,7 @@ fun MiniPlayer(
     }
 }
 
-@Composable
+/*@Composable
 fun MiniPlayerExpanded(
     song: SongInfo,
     hasNext: Boolean = false,
@@ -224,7 +217,7 @@ fun MiniPlayerExpanded(
             }
         }
     }
-}
+}*/
 
 //@CompLightPreview
 @CompDarkPreview
@@ -241,7 +234,7 @@ fun PreviewMiniPlayer() {
     }
 }
 
-@CompLightPreview
+/*@CompLightPreview
 @Composable
 fun PreviewMiniPlayerExpanded() {
     MusicTheme {
@@ -258,10 +251,9 @@ fun PreviewMiniPlayerExpanded() {
                 onNext = {},
                 onPrevious = {},
             ),
-
             navigateToPlayer = {},
             //navigateToQueue = {},
             modifier = Modifier,
         )
     }
-}
+}*/

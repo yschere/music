@@ -31,14 +31,6 @@ interface MiniPlayerState {
     val player: Player?
 }
 
-interface ExpandedPlayerState {
-    val currentSong: SongInfo
-    var isPlaying: Boolean
-    val player: Player?
-    var isShuffled: Boolean
-    var repeatState: RepeatType
-}
-
 interface PlayerState {
     val currentMedia: MediaItem?
     var isPlaying: Boolean

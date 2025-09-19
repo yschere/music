@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
-import com.example.music.data.repository.RepeatType
 import com.example.music.domain.usecases.FeaturedLibraryItemsV2
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.AlbumInfo
@@ -19,8 +18,6 @@ import com.example.music.domain.usecases.GetAlbumDetailsV2
 import com.example.music.domain.usecases.GetSongDataV2
 import com.example.music.domain.usecases.GetTotalCountsV2
 import com.example.music.service.SongController
-import com.example.music.ui.player.ExpandedPlayerState
-import com.example.music.ui.player.MiniPlayerExpandedControlActions
 import com.example.music.ui.player.MiniPlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -55,7 +52,7 @@ class HomeViewModel @Inject constructor(
     private val getAlbumDetailsV2: GetAlbumDetailsV2,
     private val getSongDataV2: GetSongDataV2,
     private val songController: SongController
-) : ViewModel(), ExpandedPlayerState {//}, MiniPlayerState {
+) : ViewModel(), MiniPlayerState {
 
     // test version for using MediaStore, uses Album instead of playlist for now
     private val featuredLibraryItems = featuredLibraryItemsV2()
@@ -78,25 +75,12 @@ class HomeViewModel @Inject constructor(
     override val player: Player?
         get() = songController.player
     private var _isPlaying by mutableStateOf(songController.isPlaying)
-    private var _isShuffled by mutableStateOf(songController.isShuffled)
-    private var _repeatState by mutableStateOf(songController.repeatState)
-    val hasNext by mutableStateOf(songController.hasNext)
 
     override var isPlaying
         get() = _isPlaying
         set(value) {
             if (value) songController.play(true)
             else songController.pause()
-        }
-    override var isShuffled: Boolean
-        get() = _isShuffled
-        set(value) {
-            _isShuffled = value
-        }
-    override var repeatState: RepeatType
-        get() = _repeatState
-        set(value) {
-            _repeatState = value
         }
 
     // Holds our view state which the UI collects via [state]
@@ -223,18 +207,6 @@ class HomeViewModel @Inject constructor(
             Player.EVENT_TRACKS_CHANGED -> {
                 songController.logTrackNumber()
             }
-
-            // Event for checking if the repeat state has changed
-            Player.EVENT_REPEAT_MODE_CHANGED -> {
-                _repeatState = songController.repeatState
-                Log.d(TAG, "repeatState set to ${repeatState.name}")
-            }
-
-            // Event for checking if the shuffle mode is enabled
-            Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED -> {
-                _isShuffled = songController.isShuffled
-                Log.d(TAG, "isShuffled set to $isShuffled")
-            }
         }
     }
 
@@ -273,40 +245,6 @@ class HomeViewModel @Inject constructor(
         Log.i(TAG, "Hit pause btn")
         songController.pause()
         _isPlaying = false
-    }
-
-    fun onPrevious() {
-        Log.i(TAG, "Hit previous btn")
-        songController.previous()
-    }
-
-    fun onNext() {
-        Log.i(TAG, "Hit next btn")
-        songController.next()
-    }
-
-    fun onShuffle() {
-        Log.i(TAG, "Hit shuffle btn")
-        songController.onShuffle()
-        _isShuffled = songController.isShuffled
-    }
-
-    fun onRepeat() {
-        Log.i(TAG, "Hit repeat btn")
-        songController.onRepeat()
-        _repeatState = songController.repeatState
-    }
-
-    fun onMiniPlayerAction(action: MiniPlayerAction) {
-        Log.i(TAG, "onMiniPlayerAction - $action")
-        when (action) {
-            is MiniPlayerAction.Play -> onPlay()
-            is MiniPlayerAction.Pause -> onPause()
-            is MiniPlayerAction.Next -> onNext()
-            is MiniPlayerAction.Previous -> onPrevious()
-            is MiniPlayerAction.Repeat -> onRepeat()
-            is MiniPlayerAction.Shuffle -> onShuffle()
-        }
     }
 
     fun onHomeAction(action: HomeAction) {
@@ -397,15 +335,6 @@ class HomeViewModel @Inject constructor(
  *  - Discover shows chips of genres in library (currently pulling form domainTesting/PreviewData.kt)
  *  - Within the selected genre, shows list of albums within that genre (currently pulling from domainTesting/PreviewData.kt)
  */
-
-sealed interface MiniPlayerAction {
-    data object Play : MiniPlayerAction
-    data object Pause : MiniPlayerAction
-    data object Next : MiniPlayerAction
-    data object Previous : MiniPlayerAction
-    data object Repeat : MiniPlayerAction
-    data object Shuffle : MiniPlayerAction
-}
 
 @Immutable
 sealed interface HomeAction {

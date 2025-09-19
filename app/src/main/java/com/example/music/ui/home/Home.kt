@@ -2,9 +2,7 @@ package com.example.music.ui.home
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -12,20 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerValue
@@ -35,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -60,10 +52,8 @@ import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaf
 import androidx.compose.material3.adaptive.occludingVerticalHingeBounds
 import androidx.compose.material3.adaptive.separatingVerticalHingeBounds
 import androidx.compose.material3.contentColorFor
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,13 +62,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -86,31 +72,24 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
-import com.example.music.data.repository.RepeatType
-import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.MusicShapes
+import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
+import com.example.music.domain.model.PlaylistInfo
+import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
-import com.example.music.domain.model.AlbumInfo
-import com.example.music.domain.model.PlaylistInfo
-import com.example.music.domain.model.SongInfo
-import com.example.music.ui.player.ExpandedPlayerState
 import com.example.music.ui.player.MiniPlayerControlActions
-import com.example.music.ui.player.MiniPlayerExpandedControlActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
-import com.example.music.ui.shared.CustomDragHandle
-import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
-import com.example.music.ui.shared.MiniPlayerExpanded
+import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
-import com.example.music.ui.shared.formatString
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.fullWidthItem
@@ -287,26 +266,10 @@ private fun HomeScreenReady(
                     selectSong = uiState.selectSong,
                     selectAlbum = uiState.selectAlbum,
                     currentSong = viewModel.currentSong,
-                    hasNext = viewModel.hasNext,
                     isActive = viewModel.isActive, // if playback is active
                     isPlaying = viewModel.isPlaying,
-                    isShuffled = viewModel.isShuffled,
-                    repeatState = viewModel.repeatState,
 
                     onHomeAction = viewModel::onHomeAction,
-                    onMiniPlayerAction = viewModel::onMiniPlayerAction,
-                    miniPlayerExpandedControlActions = MiniPlayerExpandedControlActions(
-                        onPlayPress = viewModel::onPlay,
-                        onPausePress = viewModel::onPause,
-                        onNext = viewModel::onNext,
-                        onPrevious = viewModel::onPrevious,
-                        onShuffle = viewModel::onShuffle,
-                        onRepeat = viewModel::onRepeat
-                    ),
-                    /* miniPlayerControlActions = MiniPlayerControlActions(
-                        onPlayPress = viewModel::onPlay,
-                        onPausePress = viewModel::onPause,
-                    ), */
                     navigateToHome = navigateToHome,
                     navigateToLibrary = navigateToLibrary,
                     navigateToPlayer = navigateToPlayer,
@@ -315,6 +278,10 @@ private fun HomeScreenReady(
                     navigateToAlbumDetails = navigateToAlbumDetails,
                     navigateToArtistDetails = navigateToArtistDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
+                    miniPlayerControlActions = MiniPlayerControlActions(
+                        onPlayPress = viewModel::onPlay,
+                        onPausePress = viewModel::onPause,
+                    ),
                     modifier = Modifier.fillMaxSize(),
                 )
             },
@@ -356,14 +323,10 @@ private fun HomeScreen(
     selectSong: SongInfo,
     selectAlbum: AlbumInfo,
     currentSong: SongInfo,
-    hasNext: Boolean,
     isActive: Boolean,
     isPlaying: Boolean,
-    isShuffled: Boolean,
-    repeatState: RepeatType,
 
     onHomeAction: (HomeAction) -> Unit,
-    onMiniPlayerAction: (MiniPlayerAction) -> Unit,
 
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
@@ -373,8 +336,7 @@ private fun HomeScreen(
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    miniPlayerExpandedControlActions: MiniPlayerExpandedControlActions,
-    //miniPlayerControlActions: MiniPlayerControlActions,
+    miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
 ) {
     Log.i(TAG, "Home Screen START\n" +
@@ -397,145 +359,62 @@ private fun HomeScreen(
         ScreenBackground(
             modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
         ) {
-            if (isActive) {
-                val sheetState = rememberStandardBottomSheetState(
-                    initialValue = SheetValue.PartiallyExpanded,
-                    skipHiddenState = true,
-                )
-                val scaffoldState = rememberBottomSheetScaffoldState(
-                    sheetState, snackbarHostState
-                )
-
-                BottomSheetScaffold(
-                    sheetContent = {
-                        if (sheetState.currentValue == SheetValue.Expanded) {
-                            MiniPlayerExpanded(
-                                song = currentSong,
-                                hasNext = hasNext,
-                                isPlaying = isPlaying,
-                                isShuffled = isShuffled,
-                                repeatState = repeatState,
-                                navigateToPlayer = navigateToPlayer,
-                                miniPlayerExpandedControlActions = miniPlayerExpandedControlActions,
-                                //modifier = Modifier,
-                            )
-                        }
-                        else if (sheetState.currentValue == SheetValue.PartiallyExpanded) {
-                            MiniPlayer(
-                                song = currentSong,
-                                isPlaying = isPlaying,
-                                navigateToPlayer = navigateToPlayer,
-                                onPlayPress = miniPlayerExpandedControlActions.onPlayPress,
-                                onPausePress = miniPlayerExpandedControlActions.onPausePress,
-                            )
-                        }
-                    },
-                    modifier = modifier,
-                    scaffoldState = scaffoldState,
-                    //sheetPeekHeight = 64.dp,
-                    sheetMaxWidth = BottomSheetDefaults.SheetMaxWidth,
-//                    sheetShape =
-//                        if (sheetState.currentValue == SheetValue.Expanded) RoundedCornerShape(topStartPercent = 20, topEndPercent = 20)
-//                        else RectangleShape,
-                    sheetContainerColor = MaterialTheme.colorScheme.inversePrimary,
-                    sheetContentColor = MaterialTheme.colorScheme.onSurface,
-                    sheetDragHandle = null,
-                    /*sheetDragHandle = {
-                        if (sheetState.currentValue == SheetValue.Expanded) CustomDragHandle()
-                        else null
-                    },*/
-                    sheetSwipeEnabled = true,
-                    topBar = {
-                        HomeTopAppBar(
-                            navigateToSearch = navigateToSearch,
-                            onNavigationIconClick = {
-                                coroutineScope.launch {
-                                    drawerState.apply {
-                                        if (isClosed) open() else close()
-                                    }
-                                }
-                            },
-                        )
-                        if (isLoading) {
-                            LinearProgressIndicator(
-                                Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-                            )
-                        }
-                    },
-                    snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-                    containerColor = Color.Transparent,
-                    contentColor = contentColorFor(MaterialTheme.colorScheme.background)
-                ) { contentPadding ->
-                    // Main Content
-                    HomeContent(
-                        coroutineScope = coroutineScope,
-                        featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
-                        selectSong = selectSong,
-                        selectAlbum = selectAlbum,
-                        modifier = modifier.padding(contentPadding),
-                        onHomeAction = { action ->
-                            if (action is HomeAction.QueueSong) {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(snackBarText)
+            Scaffold(
+                topBar = {
+                    HomeTopAppBar(
+                        navigateToSearch = navigateToSearch,
+                        onNavigationIconClick = {
+                            coroutineScope.launch {
+                                drawerState.apply {
+                                    if (isClosed) open() else close()
                                 }
                             }
-                            onHomeAction(action)
                         },
-                        navigateToLibrary = navigateToLibrary,
-                        navigateToPlayer = navigateToPlayer,
-                        navigateToAlbumDetails = navigateToAlbumDetails,
-                        navigateToArtistDetails = navigateToArtistDetails,
-                        navigateToPlaylistDetails = navigateToPlaylistDetails,
                     )
-                }
-            }
-            else {
-                Scaffold(
-                    topBar = {
-                        HomeTopAppBar(
-                            navigateToSearch = navigateToSearch,
-                            onNavigationIconClick = {
-                                coroutineScope.launch {
-                                    drawerState.apply {
-                                        if (isClosed) open() else close()
-                                    }
-                                }
-                            },
+                    if (isLoading) {
+                        LinearProgressIndicator(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
                         )
-                        if (isLoading) {
-                            LinearProgressIndicator(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp)
-                            )
-                        }
-                    },
-                    snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-                    containerColor = Color.Transparent,
-                    contentColor = contentColorFor(MaterialTheme.colorScheme.background) //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
-                ) { contentPadding ->
-                    // Main Content
-                    HomeContent(
-                        coroutineScope = coroutineScope,
-                        featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
-                        selectSong = selectSong,
-                        selectAlbum = selectAlbum,
-                        modifier = modifier.padding(contentPadding),
-                        onHomeAction = { action ->
-                            if (action is HomeAction.QueueSong) {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(snackBarText)
-                                }
+                    }
+                },
+                bottomBar = {
+                    if (isActive) {
+                        MiniPlayer(
+                            song = currentSong,
+                            isPlaying = isPlaying,
+                            navigateToPlayer = navigateToPlayer,
+                            onPlayPress = miniPlayerControlActions.onPlayPress,
+                            onPausePress = miniPlayerControlActions.onPausePress,
+                        )
+                    }
+                },
+                snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+                containerColor = Color.Transparent,
+                contentColor = contentColorFor(MaterialTheme.colorScheme.background) //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
+            ) { contentPadding ->
+                // Main Content
+                HomeContent(
+                    coroutineScope = coroutineScope,
+                    featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
+                    selectSong = selectSong,
+                    selectAlbum = selectAlbum,
+                    modifier = modifier.padding(contentPadding),
+                    onHomeAction = { action ->
+                        if (action is HomeAction.QueueSong) {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(snackBarText)
                             }
-                            onHomeAction(action)
-                        },
-                        navigateToLibrary = navigateToLibrary,
-                        navigateToPlayer = navigateToPlayer,
-                        navigateToAlbumDetails = navigateToAlbumDetails,
-                        navigateToArtistDetails = navigateToArtistDetails,
-                        navigateToPlaylistDetails = navigateToPlaylistDetails,
-                    )
-                }
+                        }
+                        onHomeAction(action)
+                    },
+                    navigateToLibrary = navigateToLibrary,
+                    navigateToPlayer = navigateToPlayer,
+                    navigateToAlbumDetails = navigateToAlbumDetails,
+                    navigateToArtistDetails = navigateToArtistDetails,
+                    navigateToPlaylistDetails = navigateToPlaylistDetails,
+                )
             }
         }
     }
@@ -1003,14 +882,10 @@ private fun PreviewHome() {
             selectSong = PreviewSongs[0],
             selectAlbum = PreviewAlbums[0],
             currentSong = PreviewSongs[0],
-            hasNext = false,
             isActive = true,
             isPlaying = true,
-            isShuffled = false,
-            repeatState = RepeatType.OFF,
 
             onHomeAction = {},
-            onMiniPlayerAction = {},
             navigateToHome = {},
             navigateToLibrary = {},
             navigateToPlayer = {},
@@ -1019,18 +894,10 @@ private fun PreviewHome() {
             navigateToAlbumDetails = {},
             navigateToArtistDetails = {},
             navigateToPlaylistDetails = {},
-            miniPlayerExpandedControlActions = MiniPlayerExpandedControlActions(
+            miniPlayerControlActions = MiniPlayerControlActions(
                 onPlayPress = {},
                 onPausePress = {},
-                onNext = {},
-                onPrevious = {},
-                onShuffle = {},
-                onRepeat = {},
             ),
-            /*miniPlayerControlActions = MiniPlayerControlActions(
-                onPlayPress = {},
-                onPausePress = {},
-            ),*/
             modifier = Modifier,
         )
     }
