@@ -2,8 +2,12 @@ package com.example.music.ui.home
 
 import android.util.Log
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.Player
 import com.example.music.domain.usecases.FeaturedLibraryItemsV2
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.AlbumInfo
@@ -11,9 +15,12 @@ import com.example.music.domain.model.PlaylistInfo
 import com.example.music.data.util.combine
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.usecases.GetAlbumDetailsV2
+import com.example.music.domain.usecases.GetSongDataV2
 import com.example.music.domain.usecases.GetTotalCountsV2
 import com.example.music.service.SongController
+import com.example.music.ui.player.MiniPlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,14 +29,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-/** Changelog:
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
 
 private const val TAG = "Home View Model"
 
@@ -50,45 +49,46 @@ data class HomeScreenUiState(
 class HomeViewModel @Inject constructor(
     featuredLibraryItemsV2: FeaturedLibraryItemsV2,
     getTotalCountsV2: GetTotalCountsV2,
+
     private val getAlbumDetailsV2: GetAlbumDetailsV2,
+    private val getSongDataV2: GetSongDataV2,
     private val songController: SongController
-) : ViewModel() {
-    /* ------ Current running UI needs:  ------
-        objects: FeaturedLibraryItemsFilterResult, which contains
-            Recent Playlists: list of most recently played playlists, limit passed as int 5
-            Recently Added Songs: list of most recently added songs to library, limit passed as int 10
-        means of retrieving object: FeaturedLibraryItemsUseCase
-     */
+) : ViewModel(), MiniPlayerState {
 
     // test version for using MediaStore, uses Album instead of playlist for now
     private val featuredLibraryItems = featuredLibraryItemsV2()
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     // Holds the song, album to show in more options modal
-    private val selectedSong = MutableStateFlow<SongInfo?>(null)
-    private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
+    private val selectedSong = MutableStateFlow(SongInfo())
+    private val selectedAlbum = MutableStateFlow(AlbumInfo())
+
+    // bottom player section
+    override var currentSong by mutableStateOf(SongInfo())
+    private var _isActive by mutableStateOf(songController.isActive)
+    var isActive
+        get() = _isActive
+        set(value) {
+            _isActive = songController.isActive
+            refresh(value)
+        }
+
+    override val player: Player?
+        get() = songController.player
+    private var _isPlaying by mutableStateOf(songController.isPlaying)
+
+    override var isPlaying
+        get() = _isPlaying
+        set(value) {
+            if (value) songController.play(true)
+            else songController.pause()
+        }
 
     // Holds our view state which the UI collects via [state]
     private val _state = MutableStateFlow(HomeScreenUiState())
 
     // Holds the view state if the UI is refreshing for new data
     private val refreshing = MutableStateFlow(false)
-
-    /* ------ Objects used in previous iterations:  ------
-    private val _featuredLibraryItems = MutableStateFlow<FeaturedLibraryItemsFilterResult?>(null)
-
-    private val featuredLibraryItems1 = MutableStateFlow(FeaturedLibraryItemsUseCase(songRepo, playlistRepo))
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    private val featuredLibraryItems3 = featuredLibraryItemsUseCase()
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    private val featuredPlaylists = playlistRepo.sortPlaylistsByDateLastPlayedDesc(5)
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    private val featuredSongs = songRepo.sortSongsByDateLastPlayedDesc(10)
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-    */
 
     val state: StateFlow<HomeScreenUiState>
         get() = _state
@@ -98,6 +98,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             Log.i(TAG, "viewModelScope launch START")
             val counts = getTotalCountsV2()
+            Log.i(TAG, "SongController status:\n" +
+                "isActive?: $isActive\n" +
+                "player?: ${player?.playbackState}\n")
 
             combine(
                 refreshing,
@@ -116,14 +119,17 @@ class HomeViewModel @Inject constructor(
                     "libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}\n" +
                     "is SongController available: ${songController.isConnected()}")
 
+                getSongControllerState()
+
                 HomeScreenUiState(
                     isLoading = refreshing,
                     featuredLibraryItemsFilterResult = libraryItems,
                     totals = counts,
-                    selectSong = selectSong ?: SongInfo(),
-                    selectAlbum = selectAlbum ?: AlbumInfo(),
+                    selectSong = selectSong,
+                    selectAlbum = selectAlbum,
                 )
             }.catch { throwable ->
+                Log.i(TAG, "Error Caught: ${throwable.message}")
                 emit(
                     HomeScreenUiState(
                         isLoading = false,
@@ -134,8 +140,84 @@ class HomeViewModel @Inject constructor(
                 _state.value = it
             }
         }
+
+        viewModelScope.launch {
+            songController.events.collect {
+                Log.d(TAG, "get SongController Player Event(s)")
+
+                // if events is empty, take these actions to generate the needed values for populating the Player Screen
+                if (it == null) {
+                    Log.d(TAG, "init: running start up events to initialize HomeVM")
+                    getSongControllerState()
+                    onPlayerEvent(event = Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)
+                    onPlayerEvent(event = Player.EVENT_REPEAT_MODE_CHANGED)
+                    onPlayerEvent(event = Player.EVENT_IS_LOADING_CHANGED)
+                    onPlayerEvent(event = Player.EVENT_MEDIA_ITEM_TRANSITION)
+                    onPlayerEvent(event = Player.EVENT_IS_PLAYING_CHANGED)
+                    return@collect
+                }
+                // else, repeat the onPlayerEvent call to enact each event
+                repeat(it.size()) { index ->
+                    onPlayerEvent(it.get(index))
+                }
+            }
+        }
+
         refresh(force = false)
         Log.i(TAG, "init END")
+    }
+
+    private fun onPlayerEvent(event: Int) {
+        when (event) {
+            // Event for checking if the SongController is loaded and ready to read
+            Player.EVENT_IS_LOADING_CHANGED -> {
+                val loaded = songController.loaded
+                if (loaded.equals(true)) {
+                    refreshing.value = false
+                    isActive = songController.isActive
+                }
+                Log.d(TAG, "isLoading changed:\n" +
+                    "isPlaying set to $isPlaying\n" +
+                    "isActive set to $isActive")
+            }
+
+            // Event for checking if SongController is playing
+            Player.EVENT_IS_PLAYING_CHANGED -> {
+                _isPlaying = songController.isPlaying
+                isActive = songController.isActive
+                Log.d(TAG, "isPlaying changed:\n" +
+                    "isPlaying set to $isPlaying" +
+                    "isActive set to $isActive")
+            }
+
+            // Event for checking if the current media item has changed
+            Player.EVENT_MEDIA_ITEM_TRANSITION -> {
+                val mediaItem = songController.currentSong
+                viewModelScope.launch {
+                    var id = mediaItem?.mediaId
+                    while (id == null) {
+                        delay(100)
+                        id = mediaItem?.mediaId
+                    }
+                    currentSong = getSongDataV2(id.toLong())
+                    Log.d(TAG, "Current Song set to ${currentSong.title}")
+                    songController.logTrackNumber()
+                }
+            }
+
+            Player.EVENT_TRACKS_CHANGED -> {
+                songController.logTrackNumber()
+            }
+        }
+    }
+
+    private suspend fun getSongControllerState() {
+        val id = songController.currentSong?.mediaId
+        if (id != null) {
+            currentSong = getSongDataV2(id.toLong())
+        }
+        _isPlaying = songController.isPlaying
+        isActive = songController.isActive
     }
 
     fun refresh(force: Boolean = true) {
@@ -152,6 +234,18 @@ class HomeViewModel @Inject constructor(
             Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
+    }
+
+    fun onPlay() {
+        Log.i(TAG,"Hit play btn")
+        songController.play(true)
+        _isPlaying = true
+    }
+
+    fun onPause() {
+        Log.i(TAG, "Hit pause btn")
+        songController.pause()
+        _isPlaying = false
     }
 
     fun onHomeAction(action: HomeAction) {

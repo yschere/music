@@ -2,39 +2,27 @@ package com.example.music.ui.shared
 
 import android.net.Uri
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,11 +38,8 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.contentColorFor
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,17 +54,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
@@ -91,11 +72,8 @@ import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
-import com.example.music.domain.testing.getSongData
 import com.example.music.ui.library.LibraryCategory
-import com.example.music.ui.player.PlayerSlider
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
@@ -609,7 +587,7 @@ fun ComposerMoreOptionsBottomModal(
     shuffle: () -> Unit = {},
     //addToPlaylist: () -> Unit = {},
     addToQueue: () -> Unit = {},
-    navigateToComposerDetails: (ComposerInfo) -> Unit, // if on Library.Composers tab
+    goToComposer: () -> Unit, // if on Library.Composers tab
     onClose: () -> Unit = {},
     context: String = "",
 ) {
@@ -649,7 +627,7 @@ fun ComposerMoreOptionsBottomModal(
             // if on library.composers
             if (context != "ComposerDetails") {
                 HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-                ActionOptionRow( Actions.GoToComposer, { navigateToComposerDetails(composer)} )
+                ActionOptionRow(Actions.GoToComposer, goToComposer)
             }
 
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
@@ -1322,399 +1300,6 @@ fun CreatePlaylistBottomModal(
     }
 }
 
-// TODO: determine if this should remain using PlayerSong or be changed to SongInfo
-//  initial idea is to remain as is - 4/2/2025
-//  making it SongInfo - 7/23/2025
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BottomSheet(
-    song: SongInfo,
-    isPlaying: Boolean,
-    onPlayPress: () -> Unit,
-    onPausePress: () -> Unit,
-    onNext: () -> Unit,
-    onPrevious: () -> Unit,
-    navigateToPlayer: () -> Unit = {},
-    //navigateToQueue: () -> Unit = {},
-    sheetState: BottomSheetScaffoldState = rememberBottomSheetScaffoldState(),
-    /*SheetState(
-        skipPartiallyExpanded = false,
-        density = Density(1f,1f),
-        initialValue = if (isActive) SheetValue.PartiallyExpanded else SheetValue.Hidden,
-        skipHiddenState = isActive,
-    )*/
-    modifier: Modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
-    content: @Composable () -> Unit = {},
-) {
-    /**
-     * Goal: to create the bottom bar that will appear when a song is in play while the user is in the app
-     * will only show when in play, otherwise is not visible nor interact-able
-     */
-    /*val sheetState = rememberBottomSheetScaffoldState(
-        SheetState(
-            skipPartiallyExpanded = false,
-            density = Density(1f,1f),
-            initialValue = if (isPlaying) SheetValue.PartiallyExpanded else SheetValue.Hidden,
-            skipHiddenState = isPlaying,
-        ),
-    )*/
-    BottomSheetScaffold(
-        sheetContent = {
-            /*if (sheetState.bottomSheetState.hasPartiallyExpandedState)
-                BottomSheetPlayer(
-                    song = song,
-                    isPlaying = isPlaying,
-                    navigateToPlayer = navigateToPlayer,
-                    //navigateToQueue = navigateToQueue,
-                    onPlayPress = onPlayPress,
-                    onPausePress = onPausePress,
-                    modifier = modifier,
-                )
-            else if (sheetState.bottomSheetState.hasExpandedState)
-                */BottomSheetFullPlayer(
-                    song = song,
-                    isPlaying = isPlaying,
-                    navigateToPlayer = navigateToPlayer,
-                    //navigateToQueue = navigateToQueue,
-                    onPlayPress = onPlayPress,
-                    onPausePress = onPausePress,
-                    onNext = onNext,
-                    onPrevious = onPrevious,
-                    modifier = modifier,
-                )
-        },
-        //modifier = modifier,//Modifier.windowInsetsPadding(WindowInsets.navigationBars),
-        scaffoldState = BottomSheetScaffoldState(
-            bottomSheetState = sheetState.bottomSheetState,//SheetState(initialValue = SheetValue.Expanded, skipPartiallyExpanded = true, density = Density(1f,1f)),
-            snackbarHostState = sheetState.snackbarHostState,//SnackbarHostState(),
-        ),
-        sheetPeekHeight = 0.dp,
-        sheetMaxWidth = Dp.Unspecified,
-        sheetShape = MusicShapes.extraSmall,
-        sheetContainerColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        //sheetContentColor
-        //sheetTonalElevation
-        //sheetShadowElevation
-        sheetDragHandle = {
-            if (sheetState.bottomSheetState.hasExpandedState) {
-                CustomDragHandle()
-            }
-        },
-        sheetSwipeEnabled = false,
-        topBar = { /* // screen's top app bar
-            HomeTopAppBar(
-                navigateToSearch = navigateToSearch,
-                onNavigationIconClick = {
-                    coroutineScope.launch {
-                        drawerState.apply {
-                            if (isClosed) open() else close()
-                        }
-                    }
-                },
-            )
-            if (isLoading) {
-                LinearProgressIndicator(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
-        }*/ },
-        //snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-        containerColor = Color.Transparent,
-        contentColor = contentColorFor(MaterialTheme.colorScheme.background), //MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
-    ) { //content with paddingValues
-        content()
-    }
-}
-
-// TODO: same concern as BottomSheet above
-@Composable
-fun BottomSheetPlayer(
-    song: SongInfo,
-    isPlaying: Boolean = true,
-    navigateToPlayer: () -> Unit,
-    //navigateToQueue: () -> Unit = {},
-    onPlayPress: () -> Unit = {},
-    onPausePress: () -> Unit = {},
-    modifier: Modifier = Modifier,
-    playerButtonSize: Dp = 72.dp,
-    sideButtonSize: Dp = 48.dp,
-) {
-    Log.i(TAG, "Song: ${song.title}\n" +
-            "has Artist?: ${song.artistName}\n" +
-            "has artwork?: ${song.artworkUri}\n")
-
-    val sideButtonsModifier = Modifier
-        .size(sideButtonSize)
-        .background(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = CircleShape
-        )
-        .semantics { role = Role.Button }
-
-    val primaryButtonModifier = Modifier
-        .size(playerButtonSize)
-        .background(
-            color = MaterialTheme.colorScheme.onPrimary,
-            shape = CircleShape
-        )
-        .semantics { role = Role.Button }
-
-    Box(
-        contentAlignment = Alignment.TopCenter,
-        modifier = modifier.fillMaxWidth(),
-    ) {
-        Surface(
-            modifier = modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            onClick = { navigateToPlayer() },
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 8.dp)
-            ) {
-                HeaderImage(song.artworkUri, song.title)
-                Column(Modifier.padding(8.dp).weight(1f)) {
-                    Text(
-                        text = song.title,
-                        maxLines = 1,
-                        minLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.basicMarquee()
-                    )
-                    Text(
-                        text = song.setSubtitle(),
-                        maxLines = 1,
-                        minLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                //Spacer(modifier = Modifier.weight(1f))
-                if (isPlaying) {
-                    //determined that the current state is playing (isPlaying is true)
-                    Image(
-                        imageVector = Icons.Filled.Pause,
-                        contentDescription = stringResource(R.string.pb_pause),
-                        contentScale = ContentScale.Fit,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-                        modifier = primaryButtonModifier
-                            .padding(8.dp)
-                            .clickable {
-                                onPausePress()
-                            }
-                    )
-                } else {
-                    //determined that the current state is paused (isPlaying is false)
-                    Image(
-                        imageVector = Icons.Filled.PlayArrow,
-                        contentDescription = stringResource(R.string.pb_play),
-                        contentScale = ContentScale.Fit,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-                        modifier = primaryButtonModifier
-                            .padding(8.dp)
-                            .clickable {
-                                onPlayPress()
-                            }
-                    )
-                }
-                /*IconButton(
-                    onClick = {}
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.QueueMusic,
-                        contentDescription = stringResource(R.string.icon_queue),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = sideButtonsModifier
-                            .padding(8.dp)
-                            .clickable {
-                                navigateToQueue()
-                            }
-                    )
-                }*/
-            }
-        }
-    }
-}
-
-// TODO: same concern as above
-@Composable
-fun BottomSheetFullPlayer(
-    song: SongInfo,
-    isPlaying: Boolean = true,
-    navigateToPlayer: () -> Unit,
-    //navigateToQueue: () -> Unit = {},
-    onPlayPress: () -> Unit = {},
-    onPausePress: () -> Unit = {},
-    onNext: () -> Unit = {},
-    onPrevious: () -> Unit = {},
-    modifier: Modifier = Modifier,
-    playerButtonSize: Dp = 72.dp,
-    sideButtonSize: Dp = 48.dp,
-) {
-    Log.i(TAG, "Song: ${song.title}\n" +
-        "has Artist?: ${song.artistName}\n" +
-        "has artwork?: ${song.artworkUri}\n")
-    val sideButtonsModifier = Modifier
-        .size(sideButtonSize)
-        .background(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = CircleShape
-        )
-        .semantics { role = Role.Button }
-
-    val primaryButtonModifier = Modifier
-        .size(playerButtonSize)
-        .background(
-            color = MaterialTheme.colorScheme.onPrimary,
-            shape = CircleShape
-        )
-        .semantics { role = Role.Button }
-
-    Box(
-        contentAlignment = Alignment.TopCenter,
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            onClick = navigateToPlayer,
-        ) {
-            Column {
-                //track info row
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                ) {
-                    HeaderImage(song.artworkUri, song.title)
-                    Column(Modifier.padding(8.dp).weight(1f)) {
-                        Text(
-                            text = song.title,
-                            maxLines = 1,
-                            minLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.basicMarquee()
-                        )
-                        Text(
-                            text = song.setSubtitle(),
-                            maxLines = 1,
-                            minLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-
-                    /*IconButton(
-                        onClick = {}
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.QueueMusic,
-                            contentDescription = stringResource(R.string.icon_queue),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = sideButtonsModifier
-                                .padding(8.dp)
-                                .clickable {
-                                    navigateToQueue()
-                                }
-                        )
-                    }*/
-
-                    //player buttons row
-                    BottomSheetPlayerButtons(
-                        //removed private modifier to borrow this fun for BottomModals
-                        //hasNext = true,
-                        isPlaying = isPlaying,
-                        onPlayPress = onPlayPress,
-                        onPausePress = onPausePress,
-                        onNext = onNext,
-                        onPrevious = onPrevious,
-                        modifier = Modifier,
-                        primaryButtonModifier = primaryButtonModifier,
-                        sideButtonsModifier = sideButtonsModifier,
-                        //need a state saver to handle button interactions
-                    )
-
-                    //slider row
-                    /*PlayerSlider(
-                        progress = 0f,
-                        timeElapsed = 0L,
-                        songDuration = song.duration,
-                        onSeek = {},
-                    )*/
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun BottomSheetPlayerButtons(
-    //hasNext: Boolean = false,
-    isPlaying: Boolean = true,
-    onPlayPress: () -> Unit = {},
-    onPausePress: () -> Unit = {},
-    onNext: () -> Unit = {},
-    onPrevious: () -> Unit = {},
-    modifier: Modifier = Modifier,
-    sideButtonsModifier: Modifier,
-    primaryButtonModifier: Modifier,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        //Image for Skip back to previous button
-        Image(
-            imageVector = Icons.Filled.SkipPrevious,
-            contentDescription = stringResource(R.string.pb_skip_previous),
-            contentScale = ContentScale.Inside,
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-            modifier = sideButtonsModifier
-                .clickable(enabled = true, onClick = onPrevious)
-                //.clickable(enabled = isPlaying, onClick = onPrevious)
-                //.alpha(if (isPlaying) 1f else 0.25f)
-        )
-
-        if (isPlaying) {
-            //determined that the current state is playing (isPlaying is true)
-            Image(
-                imageVector = Icons.Filled.Pause,
-                contentDescription = stringResource(R.string.pb_pause),
-                contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-                modifier = primaryButtonModifier
-                    .padding(8.dp)
-                    .clickable { onPausePress() }
-            )
-        } else {
-            //determined that the current state is paused (isPlaying is false)
-            Image(
-                imageVector = Icons.Filled.PlayArrow,
-                contentDescription = stringResource(R.string.pb_play),
-                contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-                modifier = primaryButtonModifier
-                    .padding(8.dp)
-                    .clickable { onPlayPress() }
-            )
-        }
-
-        //skip to next playable button
-        Image(
-            imageVector = Icons.Filled.SkipNext,
-            contentDescription = stringResource(R.string.pb_skip_next),
-            contentScale = ContentScale.Inside,
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
-            modifier = sideButtonsModifier
-                .clickable(enabled = true, onClick = onNext)
-                //.alpha(if (hasNext) 1f else 0.25f)
-        )
-    }
-}
-
 @Composable
 fun RadioGroupSet(
     radioOptions: List<String>,
@@ -1751,10 +1336,10 @@ fun RadioGroupSet(
                 Text(
                     text = text,
                     color =
-                        if (text == selectedOption)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onBackground,
+                    if (text == selectedOption)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onBackground,
                     //style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(start = 16.dp)
                 )
@@ -1786,7 +1371,7 @@ fun RadioGroupSet(
     * playlist page (from all playlists to selected playlist): on individual song context - play next, add to queue, add to playlist, edit playlist, remove from playlist, delete(?), view tags(?)
  */
 
-@CompLightPreview
+//@CompLightPreview
 @Composable
 fun PreviewRadioButtons() {
     MusicTheme {
@@ -1825,44 +1410,7 @@ fun PreviewMoreOptionsModal() {
                 skipPartiallyExpanded = true,
                 density = Density(1f,1f)
             ),
-            //coroutineScope = rememberCoroutineScope(),
             song = PreviewSongs[0],
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-//@SystemLightPreview
-@Composable
-fun PreviewBottomSheet() {
-    MusicTheme {
-        BottomSheet(
-            song = PreviewSongs[0],
-            isPlaying = false,
-            onPlayPress = {},
-            onPausePress = {},
-            onNext = {},
-            onPrevious = {},
-            navigateToPlayer = {},
-            sheetState = rememberBottomSheetScaffoldState(),
-            modifier = Modifier,
-            content = {},
-        )
-    }
-}
-
-//@CompLightPreview
-//@CompDarkPreview
-@Composable
-fun PreviewBottomBarPlayer() {
-    MusicTheme {
-        BottomSheetPlayer(
-            song = getSongData(6535),
-            isPlaying = true,
-            navigateToPlayer = {},
-            //navigateToQueue = {},
-            onPlayPress = {},
-            onPausePress = {},
         )
     }
 }

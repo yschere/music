@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -45,12 +46,15 @@ fun SongListItem(
     showAlbumImage: Boolean = false,
     showAlbumTitle: Boolean = false,
     showTrackNumber: Boolean = false,
+    hasBackground: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.padding(4.dp)) {
         Surface(
             shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainer,
+            color =
+                if (hasBackground) MaterialTheme.colorScheme.surfaceContainer
+                else Color.Transparent,
             onClick = { onClick(song) },
         ) {
             SongListItemRow(
@@ -146,7 +150,7 @@ private fun SongListItemRow(
                 //artworkBitmap = song.artworkBitmap,
                 modifier = Modifier
                     .size(56.dp)
-                    .clip(MaterialTheme.shapes.small)
+                    .clip(MaterialTheme.shapes.small),
             )
         }
 
@@ -163,7 +167,7 @@ private fun SongListItemRow(
             )
             Row(
                 horizontalArrangement = Arrangement.Start,
-                modifier = modifier.padding(horizontal = 10.dp)
+                modifier = Modifier.padding(horizontal = 10.dp)
             ) {
                 Text(
                     text = song.setSubText(showAlbumTitle, showArtistName),

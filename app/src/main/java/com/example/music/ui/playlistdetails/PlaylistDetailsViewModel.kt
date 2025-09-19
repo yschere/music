@@ -21,20 +21,6 @@ import javax.inject.Inject
 
 private const val TAG = "Playlist Details View Model"
 
-/** Changelog:
- *
- * ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
- * THIS WILL REPLACE NEED FOR ASSISTED INJECTION AND CHANGE INTERACTION WITH UISTATE
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 4/5/2025 - Testing out accessing Songs through MediaStore with GetPlaylistDetailsV2
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
-
 data class PlaylistUiState(
     val isReady: Boolean = false,
     val errorMessage: String? = null,
@@ -45,8 +31,9 @@ data class PlaylistUiState(
 @HiltViewModel
 class PlaylistDetailsViewModel @Inject constructor(
     getPlaylistDetailsV2: GetPlaylistDetailsV2,
+    savedStateHandle: SavedStateHandle,
+
     private val songController: SongController,
-    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _playlistId: String = savedStateHandle.get<String>(Screen.ARG_PLAYLIST_ID)!!

@@ -5,6 +5,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.runtime.Stable
 import com.example.music.data.mediaresolver.MediaRepo.Companion.toAlbumArtUri
+import com.example.music.data.util.FLAG
 
 private const val TAG = "MediaResolver Album"
 
@@ -27,7 +28,7 @@ data class Album(
  * Transform Cursor to type Album
  */
 fun Cursor.toAlbum(): Album {
-    Log.i(TAG, "Cursor to Album: \n" +
+    if (FLAG) Log.i(TAG, "Cursor to Album: \n" +
         "ID: ${getLong(0)} \n" +
         "Title: ${getString(1) ?: MediaStore.UNKNOWN_STRING}\n" +
         "Artist: ${getString(3) ?: MediaStore.UNKNOWN_STRING}"

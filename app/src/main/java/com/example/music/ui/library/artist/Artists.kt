@@ -8,15 +8,11 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.music.R
 import com.example.music.domain.model.ArtistInfo
-import com.example.music.domain.testing.PreviewArtists
 import com.example.music.ui.shared.ArtistListItem
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
-import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.StickyHeader
 import com.example.music.util.fullWidthItem
 import com.example.music.util.stickyHeader
@@ -137,18 +133,5 @@ fun LazyGridScope.artistItems(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-    }
-}
-
-@Preview
-@Composable
-fun ArtistListItemPreview() {
-    MusicTheme {
-        ArtistListItem(
-            artist = PreviewArtists[0],
-            navigateToArtistDetails = {},
-            onMoreOptionsClick = {},
-            modifier = Modifier,
-        )
     }
 }

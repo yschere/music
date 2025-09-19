@@ -31,18 +31,6 @@ import javax.inject.Inject
 import kotlin.random.Random
 import kotlin.reflect.KProperty
 
-/** Changelog:
- *
- * 4/??/2025 - Moved from domain module to app module, so it can access MediaService
- * without creating a compiler dependency error. And moved the MediaController to here
- * so that it can be used as the controller for the MediaPlayer within MediaService.
- *
- * 7/22-23/2025 - Adjusted play() functions logic so that excess queue logic is removed.
- * Added get functions to separate PlayerUiState's reliance on songControllerState.
- * Changed the queue, play, mediaItem functions to use SongInfo.
- * Removed PlayerSong completely
- */
-
 private const val TAG = "SongControllerImpl"
 
 @OptIn(UnstableApi::class)
@@ -95,6 +83,8 @@ class SongControllerImpl @Inject constructor(
         }.flowOn(Dispatchers.Main)
     override val loaded: Flow<Boolean>
         get() = events.map { currentSong != null }
+    override val isActive: Boolean
+        get() = (mediaController?.playbackState == Player.STATE_READY) || (mediaController?.playbackState == Player.STATE_BUFFERING)
 
     override val isShuffled: Boolean
         get() = mediaController?.shuffleModeEnabled ?: false
@@ -182,9 +172,6 @@ class SongControllerImpl @Inject constructor(
         Log.d(TAG, "MediaController isPlaying is set to ${mediaController.isPlaying}\n" +
                 "Current Media Controller item is ${item?.title}")
 
-        /* // there's 4 playback states to check for: idle, buffering, ready, ended
-        // ideally, if we're in here that means the app requested to play something, so should be in buffering
-        // want to wait for the media controller to finish buffering, then when it is ready, get to play/pause */
         coroutineScope.launch {
             while (mediaController.playbackState == Player.STATE_BUFFERING) {
                 delay(1000)
@@ -259,7 +246,6 @@ class SongControllerImpl @Inject constructor(
         mediaController.shuffleModeEnabled = true
         tempPlayOrder = songs
         setMediaItems(songs)
-        //setMediaItems(songs.shuffled(Random))
 
         Log.d(TAG, "Current media controller state before apply is ${mediaController.playbackState}.")
         mediaController.apply {

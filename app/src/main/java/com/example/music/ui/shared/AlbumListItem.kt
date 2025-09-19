@@ -154,14 +154,14 @@ fun AlbumItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp)//horizontal = 12.dp, vertical = 8.dp //.background(MaterialTheme.colorScheme.background),
+        modifier = Modifier.padding(8.dp),
     ) {
         AlbumImage(
             albumImage = album.artworkUri,
             contentDescription = album.title,
-            modifier = modifier
+            modifier = Modifier
                 .size(56.dp)
-                .clip(MaterialTheme.shapes.small), //medium
+                .clip(MaterialTheme.shapes.small),
         )
 
         Column(modifier.weight(1f)){

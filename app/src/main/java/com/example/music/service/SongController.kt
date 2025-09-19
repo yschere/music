@@ -7,25 +7,7 @@ import com.example.music.domain.model.SongInfo
 import kotlinx.coroutines.flow.Flow
 import java.time.Duration
 
-/** Changelog:
- *
- * 7/22-23/2025 - Revised currentSong and queue to be MediaItem based.
- * Changed the queue, play, mediaItem functions to use SongInfo.
- * Removed PlayerSong completely
- */
-
 val DefaultPlaybackSpeed: Duration = Duration.ofSeconds(1)
-
-/*data class SongControllerState(
-    val currentSong: MediaItem? = null,
-    //val playbackSpeed: Duration = DefaultPlaybackSpeed,
-    val isPlaying: Boolean = false, //tracks the current playing state
-    val timeElapsed: Duration = Duration.ZERO,
-    //val isShuffled: Boolean = false,
-    //val repeatState: RepeatType = RepeatType.OFF,
-    val hasNext: Boolean = false,
-    //val shuffleType: ShuffleType = ShuffleType.ONCE,
-)*/
 
 /**
  * Interface wrapper for a Media Controller to define high-level functions for
@@ -78,6 +60,11 @@ interface SongController {
      * A reflection of the loaded state for SongController
      */
     val loaded: Flow<Boolean>
+
+    /**
+     * A reflection of when SongController is "in use"
+     */
+    val isActive: Boolean
 
     /**
      * If the queued media items list are in shuffled order.

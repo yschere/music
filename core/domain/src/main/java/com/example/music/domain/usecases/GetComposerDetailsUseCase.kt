@@ -2,6 +2,7 @@ package com.example.music.domain.usecases
 
 import android.util.Log
 import com.example.music.data.repository.ComposerRepo
+import com.example.music.data.util.FLAG
 import com.example.music.domain.model.ComposerDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
@@ -9,12 +10,6 @@ import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
 private const val TAG = "GetComposerDetailsUseCase"
-
-/** Changelog:
- * 4/2/2025 - Removing SongInfo to PlayerSong conversion. PlayerSong is no longer
- * needed to display Song data in LazyList or LazyGrid in the UI, as SongInfo has
- * been updated to support this.
- */
 
 /**
  * Use case to retrieve data for [ComposerDetailsFilterResult] domain model for ComposerDetailsScreen UI.
@@ -47,7 +42,7 @@ class GetComposerDetailsUseCase @Inject constructor(
             ComposerDetailsFilterResult(
                 composer.asExternalModel(),
                 songs.map{
-                    Log.i(TAG, "Fetched song:" +
+                    if (FLAG) Log.i(TAG, "Fetched song:" +
                         "ID: ${it.id}\n" +
                         "Title: ${it.title}")
                     it.asExternalModel()

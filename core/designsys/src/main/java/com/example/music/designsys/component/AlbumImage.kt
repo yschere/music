@@ -20,7 +20,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -33,35 +32,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-//import androidx.glance.GlanceModifier
-//import androidx.glance.background
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.music.designsys.R
-import com.example.music.designsys.theme.MusicShapes
-import com.example.music.designsys.theme.MusicTypography
-import com.example.music.designsys.theme.blueDarkSet
-import com.example.music.designsys.theme.blueLightSet
-//import android.media.ImageReader
 
 @Composable
 fun AlbumImage(
-    //albumImage: Int = 0,
-    //albumImageSt: String,
-    //albumImage: Bitmap,
     albumImage: Uri,
     contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
-    placeholderBrush: Brush = thumbnailPlaceholderDefaultBrush(),
+    placeholderBrush: Brush = thumbnailPlaceholderDefaultBrush(Color.Transparent),
 ) {
     if (LocalInspectionMode.current) {
         Box(modifier = modifier.background(MaterialTheme.colorScheme.primary))
@@ -105,9 +93,7 @@ fun AlbumImage(
         }
 
         Image(
-            //painter = painterResource(R.drawable.bpicon2),
-            //painter = painterResource(albumImage), //trying to use drawable from res folder
-            painter = imageLoader, //uses coil imageLoader
+            painter = imageLoader,
             contentDescription = contentDescription,
             contentScale = contentScale,
             modifier = modifier.size(24.dp),
@@ -121,7 +107,7 @@ fun AlbumImageBm(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
-    placeholderBrush: Brush = thumbnailPlaceholderDefaultBrush(),
+    placeholderBrush: Brush = thumbnailPlaceholderDefaultBrush(Color.Transparent),
 ) {
     if (LocalInspectionMode.current) {
         Box(modifier = modifier.background(MaterialTheme.colorScheme.primary))
@@ -165,118 +151,10 @@ fun AlbumImageBm(
         }
 
         Image(
-            //painter = painterResource(R.drawable.bpicon2),
-            //painter = painterResource(albumImage), //trying to use drawable from res folder
-            painter = imageLoader, //uses coil imageLoader
+            painter = imageLoader,
             contentDescription = contentDescription,
             contentScale = contentScale,
             modifier = modifier.size(24.dp),
         )
     }
 }
-
-//keeping commented out until able to understand glance with compose better
-//connected to glancewidget and core designsys
-//@Composable
-//fun AlbumImage_Widget(
-//    albumImage: Int = 0,
-//    //albumImage: String,
-//    contentDescription: String?,
-//    modifier: GlanceModifier = GlanceModifier,
-//    contentScale: ContentScale = ContentScale.Crop,
-//    placeholderBrush: Brush = thumbnailPlaceholderDefaultBrush(),
-//) {
-//    if (LocalInspectionMode.current) {
-//        Box(modifier = modifier.background(MaterialTheme.colorScheme.primary))
-//        return
-//    }
-//
-//    var imagePainterState by remember {
-//        mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty)
-//    }
-//
-//    val imageLoader = rememberAsyncImagePainter(
-//        model = ImageRequest.Builder(LocalContext.current)
-//            .data(albumImage)
-//            .crossfade(true)
-//            .build(),
-//        contentScale = contentScale,
-//        onState = { state -> imagePainterState = state }
-//    )
-//
-//    Box(
-//        modifier = modifier,
-//        contentAlignment = Alignment.Center
-//    ) {
-//        when (imagePainterState) {
-//            is AsyncImagePainter.State.Loading,
-//            is AsyncImagePainter.State.Error -> {
-//                Image(
-//                    painter = painterResource(id = R.drawable.img_empty),
-//                    contentDescription = null,
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                )
-//            }
-//            else -> {
-//                Box(
-//                    modifier = Modifier
-//                        .background(placeholderBrush)
-//                        .fillMaxSize()
-//
-//                )
-//            }
-//        }
-//
-//        Image(
-//            painter = painterResource(R.drawable.bpicon2),
-//            //painter = painterResource(albumImage), //trying to use drawable from res folder
-//            //painter = imageLoader, //uses coil imageLoader
-//            contentDescription = contentDescription,
-//            contentScale = contentScale,
-//            modifier = modifier.size(24.dp),
-//        )
-//    }
-//}
-
-//@Composable
-//fun LocalTheme(
-//    darkMode: Boolean = isSystemInDarkTheme(),
-//    content: @Composable () -> Unit
-//) {
-//    if (darkMode) {
-//        MaterialTheme(
-//            colorScheme = blueDarkColorSet,
-//            typography = MusicTypography,
-//            shapes = MusicShapes,
-//            content = content
-//        )
-//    } else {
-//        MaterialTheme(
-//            colorScheme = blueLightColorSet,
-//            typography = MusicTypography,
-//            shapes = MusicShapes,
-//            content = content
-//        )
-//    }
-//}
-//
-//@Preview
-//@Composable
-//fun AlbumImagePreview() {
-//    LocalTheme {
-//        AlbumImage(
-//            1,
-//            "strings",
-//        )
-//    }
-//
-//}
-///*
-//    albumImage: Int = 0,
-//    //albumImage: String,
-//    contentDescription: String?,
-//    modifier: Modifier = Modifier,
-//    contentScale: ContentScale = ContentScale.Crop,
-//    placeholderBrush: Brush = thumbnailPlaceholderDefaultBrush(),
-// */

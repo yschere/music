@@ -2,14 +2,7 @@ package com.example.music.ui.home
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
-//import androidx.compose.foundation.background
-//import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-//import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-//import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -17,19 +10,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-//import androidx.compose.foundation.pager.HorizontalPager
-//import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.MoreVert
-//import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
@@ -40,8 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -70,20 +55,16 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -91,23 +72,24 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
-import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.MusicShapes
+import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
+import com.example.music.domain.model.PlaylistInfo
+import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
-import com.example.music.domain.model.AlbumInfo
-import com.example.music.domain.model.PlaylistInfo
-import com.example.music.domain.model.SongInfo
+import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
+import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
-import com.example.music.ui.shared.formatStr
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.fullWidthItem
@@ -120,22 +102,6 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
-/** Changelog:
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 4/11/2025 - Connected search implementation in HomeViewModel and domain's SearchQueryV2 to
- * the HomeScreen in HomeTopAppBarV2
- *
- * 4/13/2025 - Further revised search implementation in app so that it is on a separate screen
- * SearchScreen / SearchQueryViewModel, and now tapping the Search Icon in the TopAppBar
- * will navigate to SearchScreen view. Removed HomeTopAppBarV2.
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
-
 private const val TAG = "Home Screen"
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -147,7 +113,6 @@ private fun <T> ThreePaneScaffoldNavigator<T>.isMainPaneHidden(): Boolean {
  * Copied from `calculatePaneScaffoldDirective()` in [PaneScaffoldDirective], with modifications to
  * only show 1 pane horizontally if either width or height size class is compact.
  */
-//@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun calculateScaffoldDirective(
     windowAdaptiveInfo: WindowAdaptiveInfo,
     verticalHingePolicy: HingePolicy = HingePolicy.AvoidSeparating
@@ -228,6 +193,7 @@ fun MainScreen(
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    Log.i(TAG, "Main Screen START")
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     Box {
@@ -280,6 +246,7 @@ private fun HomeScreenReady(
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    Log.i(TAG, "Home Screen Ready START")
     val navigator = rememberSupportingPaneScaffoldNavigator<String>(
         scaffoldDirective = calculateScaffoldDirective(currentWindowAdaptiveInfo())
     )
@@ -298,6 +265,10 @@ private fun HomeScreenReady(
                     totals = uiState.totals,
                     selectSong = uiState.selectSong,
                     selectAlbum = uiState.selectAlbum,
+                    currentSong = viewModel.currentSong,
+                    isActive = viewModel.isActive, // if playback is active
+                    isPlaying = viewModel.isPlaying,
+
                     onHomeAction = viewModel::onHomeAction,
                     navigateToHome = navigateToHome,
                     navigateToLibrary = navigateToLibrary,
@@ -307,6 +278,10 @@ private fun HomeScreenReady(
                     navigateToAlbumDetails = navigateToAlbumDetails,
                     navigateToArtistDetails = navigateToArtistDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
+                    miniPlayerControlActions = MiniPlayerControlActions(
+                        onPlayPress = viewModel::onPlay,
+                        onPausePress = viewModel::onPause,
+                    ),
                     modifier = Modifier.fillMaxSize(),
                 )
             },
@@ -339,7 +314,7 @@ private fun HomeScreenReady(
  * Composable for Home Screen and its properties needed to render the
  * components of the page.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeScreen(
     isLoading: Boolean,
@@ -347,7 +322,12 @@ private fun HomeScreen(
     totals: List<Int>,
     selectSong: SongInfo,
     selectAlbum: AlbumInfo,
+    currentSong: SongInfo,
+    isActive: Boolean,
+    isPlaying: Boolean,
+
     onHomeAction: (HomeAction) -> Unit,
+
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToPlayer: () -> Unit,
@@ -356,16 +336,12 @@ private fun HomeScreen(
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
 ) {
-    // Effect that changes the home category selection when there are no subscribed podcasts
-    //FixMe: repurpose this for RecentPlaylists, so that if there's no recent playlists as featured playlists, have a defaulted view
-    LaunchedEffect(key1 = featuredLibraryItemsFilterResult.recentAlbums) {//featuredLibraryItemsFilterResult.recentPlaylists) {
-        if (featuredLibraryItemsFilterResult.recentAlbums.isEmpty()) {//recentPlaylists.isEmpty()) {
-            onHomeAction(HomeAction.EmptyLibraryView(PlaylistInfo()))
-        }
-    }
-
+    Log.i(TAG, "Home Screen START\n" +
+        "currentSong? ${currentSong.title}\n" +
+        "isActive? $isActive")
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //FixMe: update the snackBar selection to properly convey action taken
@@ -404,15 +380,19 @@ private fun HomeScreen(
                     }
                 },
                 bottomBar = {
-                    /* //should show BottomBarPlayer here if a queue session is running or service is running
-                    BottomBarPlayer(
-                        song = PreviewSongs[5],
-                        navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
-                    )*/
+                    if (isActive) {
+                        MiniPlayer(
+                            song = currentSong,
+                            isPlaying = isPlaying,
+                            navigateToPlayer = navigateToPlayer,
+                            onPlayPress = miniPlayerControlActions.onPlayPress,
+                            onPausePress = miniPlayerControlActions.onPausePress,
+                        )
+                    }
                 },
                 snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 containerColor = Color.Transparent,
-                contentColor = contentColorFor(MaterialTheme.colorScheme.background)  //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
+                contentColor = contentColorFor(MaterialTheme.colorScheme.background) //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
             ) { contentPadding ->
                 // Main Content
                 HomeContent(
@@ -502,20 +482,10 @@ private fun HomeContent(
     Log.i(TAG, "HomeContent START")
     val pLists = featuredLibraryItemsFilterResult.recentAlbums.toPersistentList()
     val pagerState = rememberPagerState { pLists.size }
-    LaunchedEffect(pagerState, pLists) {
-        snapshotFlow { pagerState.currentPage }
-            .collect {
-            //this would be used to collect info for action that
-            // will need the current context to be redrawn to display result
-                //val playlist = pLists.getOrNull(it)
-                //playlist?.let { it1 -> HomeAction.LibraryPlaylistSelected(it1) }
-                    //?.let { it2 -> onHomeAction(it2) }
-            }//crashes the app on Home screen redraw
-    } //this section is called on every redraw for Home Screen
 
     val sheetState = rememberModalBottomSheetState(false,)
     var showBottomSheet by remember { mutableStateOf(false) }
-    var showAlbumMoreOptions by remember { mutableStateOf(false) } // if bottom modal content is for album details more options
+    var showAlbumMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
 
     HomeContentGrid(
@@ -777,7 +747,7 @@ private fun HomeContentGrid(
                             .padding(horizontal = 16.dp),
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
 
-                    ) {
+                        ) {
                         Text(
                             text = "More",
                             //color = MaterialTheme.colorScheme.onPrimary,
@@ -833,9 +803,13 @@ private fun HomeContentGrid(
                     }
                 }
             }
-            items(featuredLibraryItemsFilterResult.recentlyAddedSongs) { song ->
-                Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
-                    HomeSongListItem(
+            items(
+                items = featuredLibraryItemsFilterResult.recentlyAddedSongs
+            ) { song ->
+                Box(
+                    Modifier.padding(horizontal = 12.dp, vertical = 0.dp)
+                ) {
+                    SongListItem(
                         song = song,
                         onClick = {
                             Log.i(TAG, "Song Clicked: ${song.title}")
@@ -847,100 +821,14 @@ private fun HomeContentGrid(
                             onHomeAction(HomeAction.SongMoreOptionClicked(song))
                             onSongMoreOptionsClick()
                         },
+                        showArtistName = true,
+                        showAlbumImage = true,
+                        showAlbumTitle = true,
+                        hasBackground = false,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun HomeSongListItem(
-    song: SongInfo,
-    onClick: () -> Unit,
-    onMoreOptionsClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(modifier = modifier.padding(4.dp)) {
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = Color.Transparent, //MaterialTheme.colorScheme.surfaceContainer,
-            onClick = onClick,
-        ) {
-            HomeSongListItemRow(
-                song = song,
-                onMoreOptionsClick = onMoreOptionsClick,
-                modifier = modifier
-            )
-        }
-    }
-}
-
-@Composable
-private fun HomeSongListItemRow(
-    song: SongInfo,
-    onMoreOptionsClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-    ) {
-        AlbumImage(
-            albumImage = song.artworkUri,
-            contentDescription = song.title,
-            modifier = Modifier
-                .size(56.dp)
-                .clip(MaterialTheme.shapes.small)
-        )
-
-        Column(modifier.weight(1f)) {
-            Text(
-                text = song.title,
-                maxLines = 1,
-                minLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
-            )
-            Row(
-                modifier = modifier.padding(horizontal = 10.dp)
-            ) {
-                Text(
-                    text = song.artistName,
-                    maxLines = 1,
-                    minLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-                Text(
-                    text = " • " + song.albumTitle,
-                    maxLines = 1,
-                    minLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-                Text(
-                    text = " • " + song.duration.formatStr(),
-                    maxLines = 1,
-                    minLines = 1,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp)//, horizontal = 8.dp),
-                )
-            }
-        }
-
-        IconButton( //more options button
-            onClick = onMoreOptionsClick,
-        ) {
-            Icon( //more options icon
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
         }
     }
 }
@@ -976,6 +864,7 @@ private fun PreviewHome() {
         HomeScreen(
             //windowSizeClass = CompactWindowSizeClassLandscape,//CompactWindowSizeClass,
             isLoading = false,
+
             /*featuredLibraryItemsFilterResult = FeaturedLibraryItemsFilterResult(
                 recentPlaylists = PreviewPlaylists,
                 recentlyAddedSongs = PreviewSongs
@@ -992,6 +881,10 @@ private fun PreviewHome() {
             ),
             selectSong = PreviewSongs[0],
             selectAlbum = PreviewAlbums[0],
+            currentSong = PreviewSongs[0],
+            isActive = true,
+            isPlaying = true,
+
             onHomeAction = {},
             navigateToHome = {},
             navigateToLibrary = {},
@@ -1001,6 +894,10 @@ private fun PreviewHome() {
             navigateToAlbumDetails = {},
             navigateToArtistDetails = {},
             navigateToPlaylistDetails = {},
+            miniPlayerControlActions = MiniPlayerControlActions(
+                onPlayPress = {},
+                onPausePress = {},
+            ),
             modifier = Modifier,
         )
     }

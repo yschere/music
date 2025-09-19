@@ -25,37 +25,36 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
-import com.example.music.domain.model.ArtistInfo
-import com.example.music.domain.testing.PreviewArtists
+import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.testing.PreviewGenres
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.quantityStringResource
 
 @Composable
-fun ArtistListItem(
-    artist: ArtistInfo,
-    navigateToArtistDetails: (ArtistInfo) -> Unit,
+fun GenreListItem(
+    genre: GenreInfo,
+    navigateToGenreDetails: (GenreInfo) -> Unit,
     onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.padding(4.dp)) {
         Surface(
             shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            onClick = { navigateToArtistDetails(artist) },
+            color = MaterialTheme.colorScheme.surfaceContainer, //MaterialTheme.colorScheme.background,
+            onClick = { navigateToGenreDetails(genre) },
         ) {
-            ArtistListItemRow(
-                artist = artist,
+            GenreListItemRow(
+                genre = genre,
                 onMoreOptionsClick = onMoreOptionsClick,
-                modifier = Modifier
+                modifier = Modifier//.padding(4.dp),
             )
         }
     }
 }
 
 @Composable
-private fun ArtistListItemRow(
-    artist: ArtistInfo,
+private fun GenreListItemRow(
+    genre: GenreInfo,
     onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -64,8 +63,8 @@ private fun ArtistListItemRow(
         modifier = Modifier.padding(8.dp),
     ) {
 
-        ArtistListItemIcon(
-            artist = artist.name,
+        GenreListItemIcon(
+            genre = genre.name,
             modifier = Modifier
                 .size(56.dp)
                 .clip(MaterialTheme.shapes.small),
@@ -73,7 +72,7 @@ private fun ArtistListItemRow(
 
         Column(modifier.weight(1f)) {
             Text(
-                text = artist.name,
+                text = genre.name,
                 maxLines = 1,
                 minLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -85,18 +84,9 @@ private fun ArtistListItemRow(
                 modifier = Modifier.padding(horizontal = 10.dp)
             ) {
                 Text(
-                    text = quantityStringResource(R.plurals.albums, artist.albumCount, artist.albumCount) + " • ",
+                    text = quantityStringResource(R.plurals.songs, genre.songCount, genre.songCount),
                     maxLines = 1,
                     minLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-                Text(
-                    text = quantityStringResource(R.plurals.songs, artist.songCount, artist.songCount),
-                    maxLines = 1,
-                    minLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(vertical = 2.dp),
                 )
@@ -115,11 +105,11 @@ private fun ArtistListItemRow(
 }
 
 /**
- * Composable for drawing the Artist Item Icon to contain the first initial of an artist's name
+ * Composable for drawing the Genre Item Icon to contain the first initial of a genre's name
  */
 @Composable
-private fun ArtistListItemIcon(
-    artist: String,
+private fun GenreListItemIcon(
+    genre: String,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -127,7 +117,7 @@ private fun ArtistListItemIcon(
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
     ) {
         Text(
-            text = artist[0].toString(),
+            text = genre[0].toString(),
             minLines = 1,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary,
@@ -139,11 +129,11 @@ private fun ArtistListItemIcon(
 
 @Preview
 @Composable
-fun PreviewArtistItem() {
+fun PreviewGenreItem() {
     MusicTheme {
-        ArtistListItem(
-            artist = PreviewArtists[0],
-            navigateToArtistDetails = {},
+        GenreListItem(
+            genre = PreviewGenres[0],
+            navigateToGenreDetails = {},
             onMoreOptionsClick = {},
             modifier = Modifier//.padding(horizontal = 12.dp, vertical = 8.dp),
         )

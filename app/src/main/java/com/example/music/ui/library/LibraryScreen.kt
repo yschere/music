@@ -1,6 +1,5 @@
 package com.example.music.ui.library
 
-import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -12,9 +11,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -33,7 +30,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -66,7 +62,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -91,8 +86,10 @@ import com.example.music.ui.library.composer.composerItems
 import com.example.music.ui.library.genre.genreItems
 import com.example.music.ui.library.playlist.playlistItems
 import com.example.music.ui.library.song.songItems
+import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
+import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.GenreMoreOptionsBottomModal
 import com.example.music.ui.shared.LibrarySortSelectionBottomModal
@@ -100,20 +97,10 @@ import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
-/** Changelog:
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
 
 private const val TAG = "Library Screen"
 
@@ -137,6 +124,7 @@ fun LibraryScreen(
     navigateToPlayer: () -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
+    Log.i(TAG, "Library Screen START")
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
@@ -156,6 +144,9 @@ fun LibraryScreen(
             libraryPlaylists = uiState.libraryPlaylists,
             librarySongs = uiState.librarySongs,
             totals = uiState.totals,
+            isActive = viewModel.isActive, // if playback is active
+            isPlaying = viewModel.isPlaying,
+            currentSong = viewModel.currentSong,
 
             onLibraryAction = viewModel::onLibraryAction,
             navigateToHome = navigateToHome,
@@ -168,7 +159,11 @@ fun LibraryScreen(
             navigateToComposerDetails = navigateToComposerDetails,
             navigateToGenreDetails = navigateToGenreDetails,
             navigateToPlaylistDetails = navigateToPlaylistDetails,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            miniPlayerControlActions = MiniPlayerControlActions(
+                onPlayPress = viewModel::onPlay,
+                onPausePress = viewModel::onPause,
+            ),
         )
     }
 }
@@ -203,8 +198,11 @@ private fun LibraryScreen(
     libraryGenres: List<GenreInfo>,
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
-
     totals: List<Int>,
+    isActive: Boolean,
+    isPlaying: Boolean,
+    currentSong: SongInfo,
+
     onLibraryAction: (LibraryAction) -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
@@ -216,8 +214,12 @@ private fun LibraryScreen(
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToGenreDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
 ) {
+    Log.i(TAG, "Library Screen START\n" +
+            "currentSong? ${currentSong.title}\n" +
+            "isActive? $isActive")
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //FixMe: update the snackBar selection to properly convey action taken
@@ -256,11 +258,15 @@ private fun LibraryScreen(
                     }
                 },
                 bottomBar = {
-                    /* //should show BottomBarPlayer here if a queue session is running or service is running
-                    BottomBarPlayer(
-                        song = PreviewPlayerSongs[5],
-                        navigateToPlayerSong = { navigateToPlayerSong(PreviewPlayerSongs[5]) },
-                    )*/
+                    if (isActive){
+                        MiniPlayer(
+                            song = currentSong,
+                            isPlaying = isPlaying,
+                            navigateToPlayer = navigateToPlayer,
+                            onPlayPress = miniPlayerControlActions.onPlayPress,
+                            onPausePress = miniPlayerControlActions.onPausePress,
+                        )
+                    }
                 },
                 snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 containerColor = Color.Transparent,
@@ -277,6 +283,7 @@ private fun LibraryScreen(
                     libraryGenres = libraryGenres,
                     libraryPlaylists = libraryPlaylists,
                     librarySongs = librarySongs,
+                    isActive = isActive,
 
                     modifier = Modifier.padding(contentPadding),
                     onLibraryAction = { action ->
@@ -287,12 +294,12 @@ private fun LibraryScreen(
                         }
                         onLibraryAction(action)
                     },
+                    navigateToPlayer = navigateToPlayer,
                     navigateToAlbumDetails = navigateToAlbumDetails,
                     navigateToArtistDetails = navigateToArtistDetails,
                     navigateToComposerDetails = navigateToComposerDetails,
                     navigateToGenreDetails = navigateToGenreDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
-                    navigateToPlayer = navigateToPlayer,
                 )
             }
         }
@@ -356,6 +363,7 @@ private fun LibraryContent(
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
 
+    isActive: Boolean,
     modifier: Modifier = Modifier,
     onLibraryAction: (LibraryAction) -> Unit,
 
@@ -582,14 +590,17 @@ private fun LibraryContent(
         }
 
         /**
-         * Scroll to top btn for Library Content that appears
-         * after scrolling down beyond first few items
+         * Scroll to top btn that appears after scrolling down beyond first few items
          */
         AnimatedVisibility(
             visible = displayButton.value,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 40.dp),
+                .padding(
+                    bottom =
+                        if (isActive) 100.dp
+                        else 40.dp
+                ),
             enter = slideInVertically(
                 // Start the slide from 40 (pixels) above where the content is supposed to go, to
                 // produce a parallax effect
@@ -1115,21 +1126,9 @@ private fun LibraryCategoryTabIndicator(
     )
 }
 
-@Preview
-@Composable
-private fun LibraryTopAppBarPreview() {
-    MusicTheme {
-        LibraryTopAppBar(
-            navigateToSearch = {},
-            onNavigationIconClick = {},
-        )
-    }
-}
-
 private val CompactWindowSizeClass = WindowSizeClass.compute(360f, 780f)
 
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@CompLightPreview
 @Composable
 private fun PreviewLibrary() {
     MusicTheme {
@@ -1150,6 +1149,9 @@ private fun PreviewLibrary() {
                 PreviewArtists.size,
                 PreviewAlbums.size,
                 PreviewPlaylists.size),
+            isActive = true,
+            isPlaying = true,
+            currentSong = PreviewSongs[0],
 
             onLibraryAction = {},
             navigateToHome = {},
@@ -1162,6 +1164,10 @@ private fun PreviewLibrary() {
             navigateToComposerDetails = {},
             navigateToGenreDetails = {},
             navigateToPlaylistDetails = {},
+            miniPlayerControlActions = MiniPlayerControlActions(
+                onPlayPress = {},
+                onPausePress = {},
+            ),
         )
     }
 }

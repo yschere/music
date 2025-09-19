@@ -4,6 +4,7 @@ import android.database.Cursor
 import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.runtime.Stable
+import com.example.music.data.util.FLAG
 
 private const val TAG = "MediaResolver Artist"
 
@@ -23,7 +24,7 @@ data class Artist(
  * Transform Cursor to type Artist
  */
 fun Cursor.toArtist(): Artist {
-    Log.i(TAG, "Cursor to Artist: \n" +
+    if (FLAG) Log.i(TAG, "Cursor to Artist: \n" +
         "ID: ${getLong(0)}\n" +
         "Name: ${getString(1) ?: MediaStore.UNKNOWN_STRING}"
     )

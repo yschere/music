@@ -1,20 +1,24 @@
 package com.example.music.ui.artistdetails
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.music.data.mediaresolver.model.Artist
+import androidx.media3.common.Player
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.usecases.GetAlbumDetailsV2
-//import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetArtistDetailsV2
+import com.example.music.domain.usecases.GetSongDataV2
 import com.example.music.service.SongController
 import com.example.music.ui.Screen
-import com.example.music.ui.albumdetails.AlbumAction
+import com.example.music.ui.player.MiniPlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,18 +28,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-/** Changelog:
- * ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
- * As of 2/10/2025, this version is in remote branch and working on
- * PlaylistDetailsScreen, PlaylistDetailsViewModel
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 7/22-23/2025 - Deleted SongPlayer from domain layer.
- */
 
 private const val TAG = "Artist Details View Model"
 
@@ -55,10 +47,12 @@ data class ArtistUiState (
 @HiltViewModel
 class ArtistDetailsViewModel @Inject constructor(
     getArtistDetailsV2: GetArtistDetailsV2,
-    private val getAlbumDetailsV2: GetAlbumDetailsV2,
-    private val songController: SongController,
     savedStateHandle: SavedStateHandle,
-) : ViewModel() {
+
+    private val getAlbumDetailsV2: GetAlbumDetailsV2,
+    private val getSongDataV2: GetSongDataV2,
+    private val songController: SongController,
+) : ViewModel(), MiniPlayerState {
 
     private val _artistId: String = savedStateHandle.get<String>(Screen.ARG_ARTIST_ID)!!
     private val artistId = _artistId.toLong()
@@ -69,6 +63,26 @@ class ArtistDetailsViewModel @Inject constructor(
 
     private val selectedSong = MutableStateFlow<SongInfo?>(null)
     private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
+
+    // bottom player section
+    override var currentSong by mutableStateOf(SongInfo())
+    private var _isActive by mutableStateOf(songController.isActive)
+    var isActive
+        get() = _isActive
+        set(value) {
+            _isActive = songController.isActive
+            refresh(value)
+        }
+
+    override val player: Player?
+        get() = songController.player
+    private var _isPlaying by mutableStateOf(songController.isPlaying)
+    override var isPlaying
+        get() = _isPlaying
+        set(value) {
+            if (value) songController.play(true)
+            else songController.pause()
+        }
 
     private val _state = MutableStateFlow(ArtistUiState())
 
@@ -81,6 +95,11 @@ class ArtistDetailsViewModel @Inject constructor(
         Log.i(TAG, "init START --- artistId: $artistId")
         viewModelScope.launch {
             Log.i(TAG, "viewModelScope launch START")
+
+            Log.i(TAG, "SongController status:\n" +
+                    "isActive?: $isActive\n" +
+                    "player?: ${player?.playbackState}\n")
+
             combine(
                 refreshing,
                 getArtistDetailsData,
@@ -98,6 +117,8 @@ class ArtistDetailsViewModel @Inject constructor(
                     "is SongController available: ${songController.isConnected()}\n" +
                     "isReady?: ${!refreshing}")
 
+                getSongControllerState()
+
                 ArtistUiState(
                     isReady = !refreshing,
                     artist = artistDetailsFilterResult.artist,
@@ -107,6 +128,7 @@ class ArtistDetailsViewModel @Inject constructor(
                     selectAlbum = selectAlbum ?: AlbumInfo(),
                 )
             }.catch { throwable ->
+                Log.i(TAG, "Error Caught: ${throwable.message}")
                 emit(
                     ArtistUiState(
                         isReady = true,
@@ -117,8 +139,82 @@ class ArtistDetailsViewModel @Inject constructor(
                 _state.value = it
             }
         }
+
+        viewModelScope.launch {
+            songController.events.collect {
+                Log.d(TAG, "get SongController Player Event(s)")
+
+                // if events is empty, take these actions to generate the needed values for populating the Player Screen
+                if (it == null) {
+                    Log.d(TAG, "init: running start up events to initialize LibraryVM")
+                    getSongControllerState()
+                    onPlayerEvent(event = Player.EVENT_IS_LOADING_CHANGED)
+                    onPlayerEvent(event = Player.EVENT_MEDIA_ITEM_TRANSITION)
+                    onPlayerEvent(event = Player.EVENT_IS_PLAYING_CHANGED)
+                    return@collect
+                }
+                // else, repeat the onPlayerEvent call to enact each event
+                repeat(it.size()) { index ->
+                    onPlayerEvent(it.get(index))
+                }
+            }
+        }
+
         refresh(force = false)
         Log.i(TAG, "init END")
+    }
+
+    private fun onPlayerEvent(event: Int) {
+        when (event) {
+            // Event for checking if the SongController is loaded and ready to read
+            Player.EVENT_IS_LOADING_CHANGED -> {
+                val loaded = songController.loaded
+                if (loaded.equals(true)) {
+                    refreshing.value = false
+                    isActive = songController.isActive
+                }
+                Log.d(TAG, "isLoading changed:\n" +
+                    "isPlaying set to $isPlaying\n" +
+                    "isActive set to $isActive")
+            }
+
+            // Event for checking if SongController is playing
+            Player.EVENT_IS_PLAYING_CHANGED -> {
+                _isPlaying = songController.isPlaying
+                isActive = songController.isActive
+                Log.d(TAG, "isPlaying changed:\n" +
+                    "isPlaying set to $isPlaying" +
+                    "isActive set to $isActive")
+            }
+
+            // Event for checking if the current media item has changed
+            Player.EVENT_MEDIA_ITEM_TRANSITION -> {
+                val mediaItem = songController.currentSong
+                viewModelScope.launch {
+                    var id = mediaItem?.mediaId
+                    while (id == null) {
+                        delay(100)
+                        id = mediaItem?.mediaId
+                    }
+                    currentSong = getSongDataV2(id.toLong())
+                    Log.d(TAG, "Current Song set to ${currentSong.title}")
+                    songController.logTrackNumber()
+                }
+            }
+
+            Player.EVENT_TRACKS_CHANGED -> {
+                songController.logTrackNumber()
+            }
+        }
+    }
+
+    private suspend fun getSongControllerState() {
+        val id = songController.currentSong?.mediaId
+        if (id != null) {
+            currentSong = getSongDataV2(id.toLong())
+        }
+        _isPlaying = songController.isPlaying
+        isActive = songController.isActive
     }
 
     fun refresh(force: Boolean = true) {
@@ -135,6 +231,18 @@ class ArtistDetailsViewModel @Inject constructor(
             Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
+    }
+
+    fun onPlay() {
+        Log.i(TAG,"Hit play btn")
+        songController.play(true)
+        _isPlaying = true
+    }
+
+    fun onPause() {
+        Log.i(TAG, "Hit pause btn")
+        songController.pause()
+        _isPlaying = false
     }
 
     fun onArtistAction(action: ArtistAction) {
