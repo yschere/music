@@ -8,17 +8,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
-import com.example.music.data.mediaresolver.model.Artist
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.usecases.GetAlbumDetailsV2
-//import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.usecases.GetArtistDetailsV2
 import com.example.music.domain.usecases.GetSongDataV2
 import com.example.music.service.SongController
 import com.example.music.ui.Screen
-import com.example.music.ui.albumdetails.AlbumAction
 import com.example.music.ui.player.MiniPlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -50,11 +47,11 @@ data class ArtistUiState (
 @HiltViewModel
 class ArtistDetailsViewModel @Inject constructor(
     getArtistDetailsV2: GetArtistDetailsV2,
+    savedStateHandle: SavedStateHandle,
 
     private val getAlbumDetailsV2: GetAlbumDetailsV2,
     private val getSongDataV2: GetSongDataV2,
     private val songController: SongController,
-    savedStateHandle: SavedStateHandle,
 ) : ViewModel(), MiniPlayerState {
 
     private val _artistId: String = savedStateHandle.get<String>(Screen.ARG_ARTIST_ID)!!
@@ -246,16 +243,6 @@ class ArtistDetailsViewModel @Inject constructor(
         Log.i(TAG, "Hit pause btn")
         songController.pause()
         _isPlaying = false
-    }
-
-    fun onPrevious() {
-        Log.i(TAG, "Hit previous btn")
-        songController.previous()
-    }
-
-    fun onNext() {
-        Log.i(TAG, "Hit next btn")
-        songController.next()
     }
 
     fun onArtistAction(action: ArtistAction) {

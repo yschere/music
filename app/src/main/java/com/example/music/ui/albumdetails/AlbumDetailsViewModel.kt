@@ -28,18 +28,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** Changelog:
- * ---- TEST VERSION USING SAVEDSTATEHANDLE TO REPLICATE PLAYER SCREEN NAVIGATION
- * As of 2/10/2025, this version is in remote branch and working on
- * PlaylistDetailsScreen, PlaylistDetailsViewModel
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 7/22-23/2025 - Deleted SongPlayer from domain layer.
- */
-
 private const val TAG = "Album Details View Model"
 
 data class AlbumUiState (
@@ -58,10 +46,10 @@ data class AlbumUiState (
 @HiltViewModel
 class AlbumDetailsViewModel @Inject constructor(
     getAlbumDetailsV2: GetAlbumDetailsV2,
+    savedStateHandle: SavedStateHandle,
 
     private val getSongDataV2: GetSongDataV2,
     private val songController: SongController,
-    savedStateHandle: SavedStateHandle,
 ) : ViewModel(), MiniPlayerState {
 
     private val _albumId: String = savedStateHandle.get<String>(Screen.ARG_ALBUM_ID)!!
@@ -247,16 +235,6 @@ class AlbumDetailsViewModel @Inject constructor(
         Log.i(TAG, "Hit pause btn")
         songController.pause()
         _isPlaying = false
-    }
-
-    fun onPrevious() {
-        Log.i(TAG, "Hit previous btn")
-        songController.previous()
-    }
-
-    fun onNext() {
-        Log.i(TAG, "Hit next btn")
-        songController.next()
     }
 
     fun onAlbumAction(action: AlbumAction) {

@@ -43,6 +43,7 @@ data class GenreUiState (
 class GenreDetailsViewModel @Inject constructor(
     getGenreDetailsV2: GetGenreDetailsV2,
     savedStateHandle: SavedStateHandle,
+
     private val getSongDataV2: GetSongDataV2,
     private val songController: SongController,
 ) : ViewModel(), MiniPlayerState {
@@ -229,16 +230,6 @@ class GenreDetailsViewModel @Inject constructor(
         Log.i(TAG, "Hit pause btn")
         songController.pause()
         _isPlaying = false
-    }
-
-    fun onPrevious() {
-        Log.i(TAG, "Hit previous btn")
-        songController.previous()
-    }
-
-    fun onNext() {
-        Log.i(TAG, "Hit next btn")
-        songController.next()
     }
 
     fun onGenreAction(action: GenreAction) {

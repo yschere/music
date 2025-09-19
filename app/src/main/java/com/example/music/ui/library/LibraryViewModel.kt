@@ -61,14 +61,14 @@ data class LibraryScreenUiState(
  */
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    getLibrarySongsV2: GetLibrarySongsV2,
-    getLibraryPlaylistsUseCase: GetLibraryPlaylistsUseCase,
-    getLibraryGenresV2: GetLibraryGenresV2,
-    getLibraryComposersUseCase: GetLibraryComposersUseCase,
-    getLibraryArtistsV2: GetLibraryArtistsV2,
-    getLibraryAlbumsV2: GetLibraryAlbumsV2,
-    getTotalCountsV2: GetTotalCountsV2,
     getAppPreferences: GetAppPreferencesUseCase,
+    getLibraryAlbumsV2: GetLibraryAlbumsV2,
+    getLibraryArtistsV2: GetLibraryArtistsV2,
+    getLibraryComposersUseCase: GetLibraryComposersUseCase,
+    getLibraryGenresV2: GetLibraryGenresV2,
+    getLibraryPlaylistsUseCase: GetLibraryPlaylistsUseCase,
+    getLibrarySongsV2: GetLibrarySongsV2,
+    getTotalCountsV2: GetTotalCountsV2,
 
     private val getAlbumDetailsV2: GetAlbumDetailsV2,
     private val getArtistDetailsV2: GetArtistDetailsV2,
@@ -336,16 +336,6 @@ class LibraryViewModel @Inject constructor(
         Log.i(TAG, "Hit pause btn")
         songController.pause()
         _isPlaying = false
-    }
-
-    fun onPrevious() {
-        Log.i(TAG, "Hit previous btn")
-        songController.previous()
-    }
-
-    fun onNext() {
-        Log.i(TAG, "Hit next btn")
-        songController.next()
     }
 
     fun onLibraryAction(action: LibraryAction) {

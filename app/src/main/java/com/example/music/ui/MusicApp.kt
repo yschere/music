@@ -22,16 +22,6 @@ import com.example.music.ui.playlistdetails.PlaylistDetailsScreen
 import com.example.music.ui.search.SearchScreen
 import com.example.music.ui.settings.SettingsScreen
 
-/** Changelog:
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong. For MusicApp, this means
- * removing the navigateToPlayerSong(PlayerSong) navigation link
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
-
 private const val TAG = "Music App Navigation"
 
 /**
@@ -107,6 +97,7 @@ fun MusicApp(
                         appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
                     navigateToGenreDetails = { genreId ->
+                        Log.i(TAG, "id: $genreId")
                         appState.navigateToGenreDetails(genreId, backStackEntry)
                     },
                     navigateToComposerDetails = { composer ->
