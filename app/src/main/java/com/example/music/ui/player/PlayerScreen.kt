@@ -430,7 +430,7 @@ private fun PlayerContentRegular(
                     hasNext = hasNext, // Question: should uiState have access to queue or should it be able to return a boolean here that viewmodel asks to songController?
                     isPlaying = isPlaying,
                     isShuffled = isShuffled,
-                    repeatState = repeatState.name,
+                    repeatState = repeatState,
                     onPlayPress = playerControlActions.onPlayPress,
                     onPausePress = playerControlActions.onPausePress,
                     onNext = playerControlActions.onNext,
@@ -742,7 +742,8 @@ fun PlayerButtons(
     hasNext: Boolean,
     isPlaying: Boolean,
     isShuffled: Boolean,
-    repeatState: String,
+    //repeatState: String,
+    repeatState: RepeatType,
     onPlayPress: () -> Unit,
     onPausePress: () -> Unit,
     onNext: () -> Unit,
@@ -847,7 +848,8 @@ fun PlayerButtons(
 
         // Repeat btn
         when (repeatState){
-            "OFF" -> {
+            RepeatType.OFF -> {
+            //"OFF" -> {
                 Image( //shows unfilled icon (because it is set to off)
                     imageVector = Icons.Filled.Repeat,
                     contentDescription = stringResource(R.string.pb_repeat_off),
@@ -857,7 +859,8 @@ fun PlayerButtons(
                         .clickable { onRepeat() }
                 )
             }
-            "ONE" -> {
+            RepeatType.ONE -> {
+            //"ONE" -> {
                 Image( //shows the icon with 1 in center (because its set to repeat one song only)
                     imageVector = Icons.Filled.RepeatOneOn,
                     contentDescription = stringResource(R.string.pb_repeat_one_on),
@@ -867,7 +870,8 @@ fun PlayerButtons(
                         .clickable { onRepeat() }
                 )
             }
-            "ON" -> {
+            RepeatType.ON -> {
+            //"ON" -> {
                 Image( //shows the icon as the filled version (because its set to on)
                     imageVector = Icons.Filled.RepeatOn,
                     contentDescription = stringResource(R.string.pb_repeat_on),
@@ -889,7 +893,7 @@ fun PlayerButtonsPreview() {
             hasNext = false,
             isPlaying = true,
             isShuffled = false,
-            repeatState = "one",
+            repeatState = RepeatType.ONE,//"one",
             onPlayPress = {},
             onPausePress = {},
             onShuffle = {},
