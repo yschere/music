@@ -22,7 +22,7 @@ import kotlin.math.min
 import kotlin.math.pow
 
 /**
- * Applies a radial gradient scrim in the foreground.
+ * Applies a monochromatic radial gradient scrim in the foreground emanating from any offset.
  */
 fun Modifier.radialGradientScrimAnyOffset(color: Color, xOffset: Int, yOffset: Int): Modifier {
     val radialGradient = object : ShaderBrush() {
@@ -31,38 +31,9 @@ fun Modifier.radialGradientScrimAnyOffset(color: Color, xOffset: Int, yOffset: I
             val smallerDimension = min(size.height, size.width)
             return RadialGradientShader(
                 center = size.center.copy(x = size.width / xOffset, y = size.height / yOffset),
-                colors = listOf(color, Color.Transparent), //colors + Color.Transparent, //for param colors, would need to change color stops to match amount of colors
+                colors = listOf(color, Color.Transparent),
                 radius = smallerDimension * 1.5f,
-                colorStops = listOf(0f, 0.9f) //colorStops = listOf(0.25f, 0.5f, 0.75f)//listOf(0.3f, 0.7f)
-            )
-        }
-    }
-    return this.background(radialGradient)
-}
-
-fun Modifier.radialGradientScrimAnyColorsOffset(colors: List<Color>, xOffset: Int, yOffset: Int): Modifier {
-    val colorStops = when(colors.size) {
-        1 -> {
-            listOf(0.3f, 0.7f)
-        }
-        2 -> {
-            listOf(0.25f, 0.5f, 0.75f)
-        }
-        3 -> {
-            listOf(0.2f, 0.4f, 0.6f, 0.8f)
-        }
-        else -> {
-            listOf(0f, 0.9f)
-        }
-    }
-    val radialGradient = object : ShaderBrush() {
-        override fun createShader(size: Size): Shader {
-            val largerDimension = max(size.height, size.width)
-            return RadialGradientShader(
-                center = size.center.copy(x = size.width / xOffset, y = size.height / yOffset),
-                colors = colors + Color.Transparent, //for param colors, would need to change color stops to match amount of colors
-                radius = (largerDimension / (colors.size + 1)) * colors.size, //largerDimension / 2
-                colorStops = colorStops //colorStops = listOf(0.25f, 0.5f, 0.75f)//listOf(0.3f, 0.7f)
+                colorStops = getColorStops(0) // forcing else branch
             )
         }
     }
@@ -70,7 +41,25 @@ fun Modifier.radialGradientScrimAnyColorsOffset(colors: List<Color>, xOffset: In
 }
 
 /**
- * Applies a radial gradient scrim in the foreground emanating from the top
+ * Applies a multicolor radial gradient scrim in the foreground emanating from any offset.
+ */
+fun Modifier.radialGradientScrimAnyColorsOffset(colors: List<Color>, xOffset: Int, yOffset: Int): Modifier {
+    val radialGradient = object : ShaderBrush() {
+        override fun createShader(size: Size): Shader {
+            val largerDimension = max(size.height, size.width)
+            return RadialGradientShader(
+                center = size.center.copy(x = size.width / xOffset, y = size.height / yOffset),
+                colors = colors + Color.Transparent,
+                radius = (largerDimension / (colors.size + 1)) * colors.size, //largerDimension / 2
+                colorStops = getColorStops(colors.size + 1) // adding Transparent color means +1 to og size
+            )
+        }
+    }
+    return this.background(radialGradient)
+}
+
+/**
+ * Applies a monochromatic radial gradient scrim in the foreground emanating from the top
  * center quarter of the element.
  */
 fun Modifier.radialGradientScrimCentered(color: Color): Modifier {
@@ -80,8 +69,8 @@ fun Modifier.radialGradientScrimCentered(color: Color): Modifier {
             return RadialGradientShader(
                 center = size.center.copy(y = size.height / 4),
                 colors = listOf(color, Color.Transparent),
-                radius = largerDimension / 2,
-                colorStops = listOf(0f, 0.9f)
+                radius = largerDimension / 3,
+                colorStops = getColorStops(0) // forcing else branch
             )
         }
     }
@@ -89,7 +78,8 @@ fun Modifier.radialGradientScrimCentered(color: Color): Modifier {
 }
 
 /**
- * Applies a radial gradient scrim in the foreground emanating from the bottom right of the element.
+ * Applies a multicolor radial gradient scrim in the foreground emanating from the bottom
+ * right of the element.
  */
 fun Modifier.radialGradientScrimBottomRight(colors: List<Color>,): Modifier {
     val radialGradient = object : ShaderBrush() {
@@ -97,9 +87,9 @@ fun Modifier.radialGradientScrimBottomRight(colors: List<Color>,): Modifier {
             val largerDimension = max(size.height, size.width)
             return RadialGradientShader(
                 center = size.center.copy(x = size.width, y = size.height),
-                colors = colors + Color.Transparent,//listOf(color, Color.Transparent),
-                radius = largerDimension * 1.5f,
-                colorStops = listOf(0.25f, 0.5f, 0.75f)//listOf(0.3f, 0.7f)
+                colors = colors + Color.Transparent,
+                radius = largerDimension * 1.75f,
+                colorStops = getColorStops(colors.size + 1)
             )
         }
     }
@@ -196,3 +186,16 @@ private class VerticalGradientModifier(
         drawContent()
     }
 }
+
+/**
+ * Defines the possible color stops for radial gradient scrims.
+ */
+private fun getColorStops(size: Int): List<Float> =
+    when (size) {
+        1 -> listOf(0.5f)
+        2 -> listOf(0.3f, 0.7f)
+        3 -> listOf(0.25f, 0.5f, 0.75f)
+        4 -> listOf(0.2f, 0.4f, 0.6f, 0.8f)
+        5 -> listOf(0.20f, 0.35f, 0.50f, 0.65f, 0.80f)
+        else -> listOf(0f, 0.9f)
+    }
