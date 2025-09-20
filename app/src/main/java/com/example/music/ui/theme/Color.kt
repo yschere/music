@@ -90,23 +90,23 @@ val surfaceBrightBlueDark = Color(0xFF38383E)
 
 // Cool Tones Light Color Section
 val primaryLight = Color(0xFF6D538B)
-val onPrimaryLight = Color(0xFFFFFFFF)
+val onPrimaryLight = Color(0xFFEADDF6) // 0xFFEFE2FA
 val primaryContainerLight = Color(0xFFEFDBFF)
 val onPrimaryContainerLight = Color(0xFF270D43)
 
 val secondaryLight = Color(0xFF256489)
-val onSecondaryLight = Color(0xFFFFFFFF)
-val secondaryContainerLight = Color(0xFFC9E6FF)
+val onSecondaryLight = Color(0xFFCADCF5) // 0xFFD8E7FA
+val secondaryContainerLight = Color(0xFFA5CBEE) // 0xFFC9E6FF
 val onSecondaryContainerLight = Color(0xFF001E2F)
 
 val tertiaryLight = Color(0xFF2A6A47)
-val onTertiaryLight = Color(0xFFFFFFFF)
-val tertiaryContainerLight = Color(0xFFAFF2C4)
+val onTertiaryLight = Color(0xFFC7F8D6) // 0xFFCBF8D9
+val tertiaryContainerLight = Color(0xFFA4E7B9) // 0xFFAFF2C4
 val onTertiaryContainerLight = Color(0xFF002110)
 
 val errorLight = Color(0xFFBA1A1A)
-val onErrorLight = Color(0xFFFFFFFF)
-val errorContainerLight = Color(0xFFFFDAD6)
+val onErrorLight = Color(0xFFF1CDCD) // 0xFFFFFFFF
+val errorContainerLight = Color(0xFFEEB4B0) // 0xFFFFDAD6
 val onErrorContainerLight = Color(0xFF410002)
 
 val backgroundLight = Color(0xFFFFF7FF)
