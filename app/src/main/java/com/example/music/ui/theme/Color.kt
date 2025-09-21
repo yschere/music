@@ -126,8 +126,8 @@ val scrimLight = Color(0xFF000000)
 
 val inverseSurfaceLight = Color(0xFF1D1A20)
 val inverseOnSurfaceLight = Color(0xFFF6EEF6)
-val inversePrimaryLight = Color(0xFFD9BAFA)
-val inversePrimaryLight2 = Color(0xFFFFF7FF) // unique color
+val inversePrimaryLight = Color(0xFFFFF7FF) // unique color
+val inversePrimaryLight2 = Color(0xFFD9BAFA)
 
 
 // Cool Tones Dark Color Section
@@ -168,5 +168,6 @@ val scrimDark = Color(0xFF000000)
 
 val inverseSurfaceDark = Color(0xFFE8E0E8)
 val inverseOnSurfaceDark = Color(0xFF332F35)
-val inversePrimaryDark = Color(0xFF6D538B)
-val inversePrimaryDark2 = Color(0xFF160B2A) // unique color
+val inversePrimaryDark = Color(0xFF160B2A) // unique color
+val inversePrimaryDark2 = Color(0xFF6D538B)
+
