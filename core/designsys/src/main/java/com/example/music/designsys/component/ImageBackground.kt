@@ -21,8 +21,9 @@ import android.net.Uri
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
@@ -172,10 +173,12 @@ fun ImageBackground_Bm(
                     drawContent()
                     overlay()
                 }
-            },
-//        alignment = Alignment.Center,
-//        alpha = 0.6f,
-//        clipToBounds = true,
+            }
+            .blur(
+                radiusX = 5.dp,
+                radiusY = 5.dp,
+                edgeTreatment = BlurredEdgeTreatment.Rectangle
+            ),
     )
 }
 
@@ -259,9 +262,11 @@ fun ImageBackground_Uri(
                     drawContent()
                     overlay()
                 }
-            },
-//        alignment = Alignment.Center,
-//        alpha = 0.6f,
-//        clipToBounds = true,
+            }
+            .blur(
+                radiusX = 5.dp,
+                radiusY = 5.dp,
+                edgeTreatment = BlurredEdgeTreatment.Rectangle
+            ),
     )
 }
