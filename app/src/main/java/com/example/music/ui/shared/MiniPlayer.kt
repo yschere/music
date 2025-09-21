@@ -70,7 +70,7 @@ fun MiniPlayer(
         modifier = modifier.fillMaxWidth(),
     ) {
         Surface(
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.45f), // Color.Transparent,
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.45f),
             contentColor = MaterialTheme.colorScheme.onSurface,
             onClick = { navigateToPlayer() },
             modifier = modifier.fillMaxWidth()
