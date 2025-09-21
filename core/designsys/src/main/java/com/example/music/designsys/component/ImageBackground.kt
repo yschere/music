@@ -35,7 +35,7 @@ import coil.compose.AsyncImage
 
 @Composable
 fun ImageBackgroundColorScrim(
-    imageId: String?,
+    imageId: String?, // imageId originally named url for image url
     color: Color,
     modifier: Modifier = Modifier,
 ) {
@@ -50,7 +50,7 @@ fun ImageBackgroundColorScrim(
 
 @Composable
 fun ImageBackgroundRadialGradientScrim(
-    imageId: String?, //FixMe: this needs to be either bitmap or uri
+    imageId: String?, // imageId originally named url for image url
     colors: List<Color>,
     modifier: Modifier = Modifier,
 ) {
@@ -73,12 +73,12 @@ fun ImageBackgroundRadialGradientScrim(
  */
 @Composable
 fun ImageBackground(
-    imageId: String?,
+    imageId: String?, // imageId originally named url for image url
     overlay: DrawScope.() -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AsyncImage(
-        model = imageId,
+        model = imageId, // imageId originally named url
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = modifier
@@ -99,6 +99,9 @@ fun ImageBackground(
  *
  **********************************************************************************************/
 
+/**
+ * Draws an image background with a color filter.
+ */
 @Composable
 fun ImageBackgroundColorScrim_Bm(
     imageId: Bitmap?,
@@ -116,6 +119,9 @@ fun ImageBackgroundColorScrim_Bm(
     )
 }
 
+/**
+ * Draws an image background with a multicolor filter from top left to bottom right.
+ */
 @Composable
 fun ImageBackgroundRadialGradientScrim_Bm(
     imageId: Bitmap?,
@@ -128,19 +134,12 @@ fun ImageBackgroundRadialGradientScrim_Bm(
         imageDescription = imageDescription,
         modifier = modifier,
         overlay = {
-            // trying to change center away from bottom left corner
-//            val brush = Brush.radialGradient(
-//                colors = colors,
-//                center = Offset((size.width * 0.25f), (size.height * 0.6f) ),
-//                radius = size.height * 1.3f
-//            )
-            //original brush
             val brush = Brush.radialGradient(
                 colors = colors,
                 center = Offset((0F), (size.height)),
                 radius = size.width * 3F
             )
-            drawRect(brush, blendMode = BlendMode.Multiply)
+            drawRect(brush, blendMode = BlendMode.Modulate)
             /** original is Multiply;
              *  Modulate returns same result as multiply;
              *  Xor returns inverse values;
@@ -157,6 +156,93 @@ fun ImageBackgroundRadialGradientScrim_Bm(
 @Composable
 fun ImageBackground_Bm(
     imageId: Bitmap?,
+    imageDescription: String,
+    overlay: DrawScope.() -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AsyncImage(
+        model = imageId,
+        contentDescription = imageDescription,
+        contentScale = ContentScale.Crop,
+        modifier = modifier
+//            .sizeIn(maxWidth = 300.dp, maxHeight = 300.dp)
+            .fillMaxWidth()
+            .drawWithCache {
+                onDrawWithContent {
+                    drawContent()
+                    overlay()
+                }
+            },
+//        alignment = Alignment.Center,
+//        alpha = 0.6f,
+//        clipToBounds = true,
+    )
+}
+
+
+/***********************************************************************************************
+ *
+ * **********  IMAGE BACKGROUND USING URI ***********
+ *
+ **********************************************************************************************/
+
+/**
+ * Draws an image background with a color filter.
+ */
+@Composable
+fun ImageBackgroundColorScrim_Uri(
+    imageId: Uri?,
+    imageDescription: String,
+    color: Color = Color.Transparent,
+    modifier: Modifier = Modifier,
+) {
+    ImageBackground_Uri(
+        imageId = imageId,
+        imageDescription = imageDescription,
+        modifier = modifier,
+        overlay = {
+            drawRect(color)
+        }
+    )
+}
+
+/**
+ * Draws an image background with a multicolor filter from top left to bottom right.
+ */
+@Composable
+fun ImageBackgroundRadialGradientScrim_Uri(
+    imageId: Uri?,
+    imageDescription: String,
+    colors: List<Color>,
+    modifier: Modifier = Modifier,
+) {
+    ImageBackground_Uri(
+        imageId = imageId,
+        imageDescription = imageDescription,
+        modifier = modifier,
+        overlay = {
+            val brush = Brush.radialGradient(
+                colors = colors,
+                center = Offset((0F), (size.height)),
+                radius = size.width * 3F
+            )
+            drawRect(brush, blendMode = BlendMode.Modulate)
+            /** original is Multiply;
+             *  Modulate returns same result as multiply;
+             *  Xor returns inverse values;
+             *  SrcOver returns brush behind 'destination' gradient scrim, showing ImageBgRadial over PlayerContentRegular column modifier scrims
+             *  DstOver returns scrim without brush
+             */
+        }
+    )
+}
+
+/**
+ * Displays an image scaled 150% overlaid by [overlay]
+ */
+@Composable
+fun ImageBackground_Uri(
+    imageId: Uri?,
     imageDescription: String,
     overlay: DrawScope.() -> Unit,
     modifier: Modifier = Modifier,
