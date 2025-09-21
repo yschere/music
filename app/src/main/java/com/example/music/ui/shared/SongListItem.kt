@@ -170,7 +170,10 @@ private fun SongListItemRow(
                 modifier = Modifier.padding(horizontal = 10.dp)
             ) {
                 Text(
-                    text = song.setSubText(showAlbumTitle, showArtistName),
+                    text = song.setSubText(
+                        showArtistName = showArtistName,
+                        showAlbumTitle = showAlbumTitle
+                    ),
                     maxLines = 1,
                     minLines = 1,
                     overflow = TextOverflow.Ellipsis,
