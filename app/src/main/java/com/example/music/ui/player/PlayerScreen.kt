@@ -259,21 +259,21 @@ private fun PlayerBackground(
     song: SongInfo,
     modifier: Modifier,
 ) {
-    // YEEESSSSSSS IT FUCKING WORKSSSSSSSSS
-//    ImageBackgroundColorScrim_Bm(
-//        imageId = song.artworkBitmap,
-//        imageDescription = song.title,
-//        //color = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
-//        modifier = modifier,
-//    )
-
-    ImageBackgroundRadialGradientScrim_Bm(
+    ImageBackgroundColorScrim_Bm(
         imageId = song.artworkBitmap,
         imageDescription = song.title,
-        colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.tertiaryContainer),
-        //colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.tertiary, MaterialTheme.colorScheme.onSecondary),
+        color = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.65f),
+        //color = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
         modifier = modifier,
     )
+
+//    ImageBackgroundRadialGradientScrim_Bm(
+//        imageId = song.artworkBitmap,
+//        imageDescription = song.title,
+//        colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.tertiaryContainer),
+//        //colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.tertiary, MaterialTheme.colorScheme.onSecondary),
+//        modifier = modifier,
+//    )
 }
 
 //combines player content with background
