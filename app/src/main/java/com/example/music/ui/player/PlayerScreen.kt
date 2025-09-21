@@ -86,7 +86,10 @@ import com.example.music.R
 import com.example.music.data.repository.RepeatType
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
+import com.example.music.designsys.component.ImageBackgroundColorScrim
+import com.example.music.designsys.component.ImageBackgroundColorScrim_Bm
 import com.example.music.designsys.component.ImageBackgroundRadialGradientScrim
+import com.example.music.designsys.component.ImageBackgroundRadialGradientScrim_Bm
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.shared.Error
@@ -97,6 +100,9 @@ import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.isCompact
 import com.example.music.util.isExpanded
 import com.example.music.util.isMedium
+import com.example.music.util.radialGradientScrimCentered
+import com.example.music.util.radialMultiGradientScrimAnyParams
+import com.example.music.util.radialMultiGradientScrimBottomRight
 import com.example.music.util.verticalGradientScrim
 import kotlinx.coroutines.launch
 import java.time.Duration
@@ -105,7 +111,7 @@ import kotlin.math.roundToLong
 private const val TAG = "Player Screen"
 
 /**
- * Stateless version of Player Screen
+ * Stateful version of Player Screen
  */
 @Composable
 fun PlayerScreen(
@@ -141,7 +147,7 @@ fun PlayerScreen(
     }*/
 }
 
-//wrapper for default class of possible control actions
+//wrappers for default class of possible control actions
 data class PlayerControlActions(
     val onPlayPress: () -> Unit,
     val onPausePress: () -> Unit,
@@ -151,7 +157,6 @@ data class PlayerControlActions(
     val onShuffle: () -> Unit,
     val onRepeat: () -> Unit
 )
-
 data class MiniPlayerControlActions(
     val onPlayPress: () -> Unit,
     val onPausePress: () -> Unit,
@@ -246,16 +251,27 @@ private fun FullScreenLoading(
 }
 //full screen circular progress - loading screen
 
+/**
+ * Draw a background image using the currently playing song's artwork cover
+ */
 @Composable
 private fun PlayerBackground(
     song: SongInfo,
     modifier: Modifier,
 ) {
-    ImageBackgroundRadialGradientScrim(
-        //url = song?.podcastImageUrl,
-        imageId = song.title, //FixMe: needs to be artwork bitmap or uri
-        colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),),
-        //colors = listOf(MaterialTheme.colorScheme.onPrimary,MaterialTheme.colorScheme.onSecondary, MaterialTheme.colorScheme.onTertiary),//blueDarkColorSet.primary,
+    // YEEESSSSSSS IT FUCKING WORKSSSSSSSSS
+//    ImageBackgroundColorScrim_Bm(
+//        imageId = song.artworkBitmap,
+//        imageDescription = song.title,
+//        //color = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
+//        modifier = modifier,
+//    )
+
+    ImageBackgroundRadialGradientScrim_Bm(
+        imageId = song.artworkBitmap,
+        imageDescription = song.title,
+        colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.tertiaryContainer),
+        //colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.tertiary, MaterialTheme.colorScheme.onSecondary),
         modifier = modifier,
     )
 }
@@ -278,7 +294,10 @@ fun PlayerContentWithBackground(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
         PlayerBackground(
             song = currentSong,
             modifier = Modifier.fillMaxSize()
@@ -374,12 +393,16 @@ private fun PlayerContentRegular(
 ) {
     Column(
         modifier = modifier
+//            .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
-            //.radialGradientScrimBottomRight( colors = listOf(MaterialTheme.colorScheme.onPrimary, MaterialTheme.colorScheme.background) )
-            //.radialGradientScrimCentered( color = MaterialTheme.colorScheme.onPrimary )
-            //.verticalGradientScrim( color = MaterialTheme.colorScheme.onPrimary, startYPercentage = 1f, endYPercentage = 0f )
-            //.radialGradientScrimAnyOffset( color = MaterialTheme.colorScheme.onPrimary, xOffset = 2, yOffset = 3 )
-            //.radialGradientScrimAnyColorsOffset( colors = listOf(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onPrimary), xOffset = 2, yOffset = 2  )
+//            .radialGradientScrimBottomRight( colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onSecondary) )
+//            .radialGradientScrimBottomRight( colors = listOf(MaterialTheme.colorScheme.onPrimary, MaterialTheme.colorScheme.onSecondary) )
+//            .radialGradientScrimBottomRight( colors = listOf(MaterialTheme.colorScheme.onPrimary, MaterialTheme.colorScheme.background) )
+//            .radialGradientScrimCentered( color = MaterialTheme.colorScheme.onPrimary )
+//            .verticalGradientScrim( color = MaterialTheme.colorScheme.onPrimary, startYPercentage = 1f, endYPercentage = 0f )
+//            .radialGradientScrimAnyOffset( color = MaterialTheme.colorScheme.onPrimaryContainer, xOffset = 2, yOffset = 3 )
+//            .radialGradientScrimAnyOffset( color = MaterialTheme.colorScheme.onPrimary, xOffset = 2, yOffset = 3 )
+//            .radialGradientScrimAnyColorsOffset( colors = listOf(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onPrimary), xOffset = 2, yOffset = 2  )
             .systemBarsPadding()//why is this getting called again when it was passed into the column around PlayerContentRegular?
             .padding(horizontal = 8.dp)
     ) {
@@ -672,7 +695,13 @@ fun PlayerSlider(
 
         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
             Text(
-                text = "${Duration.ofMillis(timeElapsed).formatString()} • ${songDuration?.formatString()}",
+                text = Duration.ofMillis(timeElapsed).formatString(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = "${songDuration?.formatString()}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
