@@ -1,25 +1,8 @@
-/*
- * Copyright 2024 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.music.designsys.component
 
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
@@ -34,53 +17,23 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
-@Composable
-fun ImageBackgroundColorScrim(
-    imageId: String?, // imageId originally named url for image url
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
-    ImageBackground(
-        imageId = imageId,
-        modifier = modifier,
-        overlay = {
-            drawRect(color)
-        }
-    )
-}
-
-@Composable
-fun ImageBackgroundRadialGradientScrim(
-    imageId: String?, // imageId originally named url for image url
-    colors: List<Color>,
-    modifier: Modifier = Modifier,
-) {
-    ImageBackground(
-        imageId = imageId,
-        modifier = modifier,
-        overlay = {
-            val brush = Brush.radialGradient(
-                colors = colors,
-                center = Offset((0f), (size.height)),
-                radius = size.width * 2.5f
-            )
-            drawRect(brush, blendMode = BlendMode.Multiply)
-        }
-    )
-}
-
 /**
- * Displays an image scaled 150% overlaid by [overlay]
+ * Sends an image request and returns the image scaled 150% overlaid by [overlay] with a blur modifier
+ * @param imageId Nullable [String] : represents the image's unique identifier
+ * @param imageDescription Nullable [String] : describes the image
+ * @param overlay [DrawScope] -> [Unit] : defines the filter overlay to draw onto the image
+ * @param modifier [Modifier] : defines the modifiers to apply to image
  */
 @Composable
-fun ImageBackground(
-    imageId: String?, // imageId originally named url for image url
+internal fun ImageBackground(
+    imageId: Any?,
+    imageDescription: String? = null,
     overlay: DrawScope.() -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AsyncImage(
-        model = imageId, // imageId originally named url
-        contentDescription = null,
+        model = imageId,
+        contentDescription = imageDescription,
         contentScale = ContentScale.Crop,
         modifier = modifier
             .fillMaxWidth()
@@ -90,6 +43,71 @@ fun ImageBackground(
                     overlay()
                 }
             }
+            .blur(
+                radiusX = 5.dp,
+                radiusY = 5.dp,
+                edgeTreatment = BlurredEdgeTreatment.Rectangle
+            ),
+    )
+}
+
+
+/***********************************************************************************************
+ *
+ * **********  IMAGE BACKGROUND USING URL STRING ***********
+ *
+ **********************************************************************************************/
+
+/**
+ * Draws an image background with a color filter.
+ * @param imageId Nullable [String] : represents the image's url
+ * @param imageDescription Nullable [String] : describes the image
+ * @param color [Color] : defines the color to apply to filter
+ * @param modifier [Modifier] : defines any modifiers to apply to image
+ */
+@Composable
+fun ImageBackgroundColorFilter(
+    imageId: String?,
+    imageDescription: String? = null,
+    color: Color = Color.Transparent,
+    modifier: Modifier = Modifier,
+) {
+    ImageBackground(
+        imageId = imageId,
+        imageDescription = imageDescription,
+        modifier = modifier,
+        overlay = {
+            drawRect(color)
+        }
+    )
+}
+
+/**
+ * Draws an image background with a multicolor radial gradient filter centered on the bottom left.
+ * @param imageId Nullable [String] : represents the image's url
+ * @param imageDescription Nullable [String] : describes the image
+ * @param colors [List] of [Color] : defines the colors to apply to filter
+ * @param modifier [Modifier] : defines any modifiers to apply to image
+ */
+@Composable
+fun ImageBackgroundRadialGradientFilter(
+    imageId: String?,
+    imageDescription: String? = null,
+    colors: List<Color>,
+    modifier: Modifier = Modifier,
+) {
+    ImageBackground(
+        imageId = imageId,
+        imageDescription = imageDescription,
+        modifier = modifier,
+        overlay = {
+            val brush = Brush.radialGradient(
+                colors = colors,
+                center = Offset((0f), (size.height)),
+                radius = size.width * 2.5f
+            )
+            drawRect(brush, blendMode = BlendMode.Modulate)
+        }
     )
 }
 
@@ -102,15 +120,19 @@ fun ImageBackground(
 
 /**
  * Draws an image background with a color filter.
+ * @param imageId Nullable [String] : represents the image's bitmap
+ * @param imageDescription Nullable [String] : describes the image
+ * @param color [Color] : defines the color to apply to filter
+ * @param modifier [Modifier] : defines any modifiers to apply to image
  */
 @Composable
-fun ImageBackgroundColorScrim_Bm(
+fun ImageBackgroundColorFilter_Bm(
     imageId: Bitmap?,
-    imageDescription: String,
+    imageDescription: String? = null,
     color: Color = Color.Transparent,
     modifier: Modifier = Modifier,
 ) {
-    ImageBackground_Bm(
+    ImageBackground(
         imageId = imageId,
         imageDescription = imageDescription,
         modifier = modifier,
@@ -121,16 +143,20 @@ fun ImageBackgroundColorScrim_Bm(
 }
 
 /**
- * Draws an image background with a multicolor filter from top left to bottom right.
+ * Draws an image background with a multicolor radial gradient filter centered on the bottom left.
+ * @param imageId Nullable [String] : represents the image's bitmap
+ * @param imageDescription Nullable [String] : describes the image
+ * @param colors [List] of [Color] : defines the colors to apply to filter
+ * @param modifier [Modifier] : defines any modifiers to apply to image
  */
 @Composable
-fun ImageBackgroundRadialGradientScrim_Bm(
+fun ImageBackgroundRadialGradientFilter_Bm(
     imageId: Bitmap?,
-    imageDescription: String,
+    imageDescription: String? = null,
     colors: List<Color>,
     modifier: Modifier = Modifier,
 ) {
-    ImageBackground_Bm(
+    ImageBackground(
         imageId = imageId,
         imageDescription = imageDescription,
         modifier = modifier,
@@ -141,44 +167,7 @@ fun ImageBackgroundRadialGradientScrim_Bm(
                 radius = size.width * 3F
             )
             drawRect(brush, blendMode = BlendMode.Modulate)
-            /** original is Multiply;
-             *  Modulate returns same result as multiply;
-             *  Xor returns inverse values;
-             *  SrcOver returns brush behind 'destination' gradient scrim, showing ImageBgRadial over PlayerContentRegular column modifier scrims
-             *  DstOver returns scrim without brush
-             */
         }
-    )
-}
-
-/**
- * Displays an image scaled 150% overlaid by [overlay]
- */
-@Composable
-fun ImageBackground_Bm(
-    imageId: Bitmap?,
-    imageDescription: String,
-    overlay: DrawScope.() -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    AsyncImage(
-        model = imageId,
-        contentDescription = imageDescription,
-        contentScale = ContentScale.Crop,
-        modifier = modifier
-//            .sizeIn(maxWidth = 300.dp, maxHeight = 300.dp)
-            .fillMaxWidth()
-            .drawWithCache {
-                onDrawWithContent {
-                    drawContent()
-                    overlay()
-                }
-            }
-            .blur(
-                radiusX = 5.dp,
-                radiusY = 5.dp,
-                edgeTreatment = BlurredEdgeTreatment.Rectangle
-            ),
     )
 }
 
@@ -191,15 +180,19 @@ fun ImageBackground_Bm(
 
 /**
  * Draws an image background with a color filter.
+ * @param imageId Nullable [String] : represents the image's Uri
+ * @param imageDescription Nullable [String] : describes the image
+ * @param color [Color] : defines the color to apply to filter
+ * @param modifier [Modifier] : defines any modifiers to apply to image
  */
 @Composable
-fun ImageBackgroundColorScrim_Uri(
+fun ImageBackgroundColorFilter_Uri(
     imageId: Uri?,
-    imageDescription: String,
+    imageDescription: String? = null,
     color: Color = Color.Transparent,
     modifier: Modifier = Modifier,
 ) {
-    ImageBackground_Uri(
+    ImageBackground(
         imageId = imageId,
         imageDescription = imageDescription,
         modifier = modifier,
@@ -210,16 +203,20 @@ fun ImageBackgroundColorScrim_Uri(
 }
 
 /**
- * Draws an image background with a multicolor filter from top left to bottom right.
+ * Draws an image background with a multicolor radial gradient filter centered on the bottom left.
+ * @param imageId Nullable [String] : represents the image's Uri
+ * @param imageDescription Nullable [String] : describes the image
+ * @param colors [List] of [Color] : defines the colors to apply to filter
+ * @param modifier [Modifier] : defines any modifiers to apply to image
  */
 @Composable
-fun ImageBackgroundRadialGradientScrim_Uri(
+fun ImageBackgroundRadialGradientFilter_Uri(
     imageId: Uri?,
-    imageDescription: String,
+    imageDescription: String? = null,
     colors: List<Color>,
     modifier: Modifier = Modifier,
 ) {
-    ImageBackground_Uri(
+    ImageBackground(
         imageId = imageId,
         imageDescription = imageDescription,
         modifier = modifier,
@@ -230,43 +227,6 @@ fun ImageBackgroundRadialGradientScrim_Uri(
                 radius = size.width * 3F
             )
             drawRect(brush, blendMode = BlendMode.Modulate)
-            /** original is Multiply;
-             *  Modulate returns same result as multiply;
-             *  Xor returns inverse values;
-             *  SrcOver returns brush behind 'destination' gradient scrim, showing ImageBgRadial over PlayerContentRegular column modifier scrims
-             *  DstOver returns scrim without brush
-             */
         }
-    )
-}
-
-/**
- * Displays an image scaled 150% overlaid by [overlay]
- */
-@Composable
-fun ImageBackground_Uri(
-    imageId: Uri?,
-    imageDescription: String,
-    overlay: DrawScope.() -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    AsyncImage(
-        model = imageId,
-        contentDescription = imageDescription,
-        contentScale = ContentScale.Crop,
-        modifier = modifier
-//            .sizeIn(maxWidth = 300.dp, maxHeight = 300.dp)
-            .fillMaxWidth()
-            .drawWithCache {
-                onDrawWithContent {
-                    drawContent()
-                    overlay()
-                }
-            }
-            .blur(
-                radiusX = 5.dp,
-                radiusY = 5.dp,
-                edgeTreatment = BlurredEdgeTreatment.Rectangle
-            ),
     )
 }
