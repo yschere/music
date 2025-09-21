@@ -89,32 +89,33 @@ val surfaceBrightBlueDark = Color(0xFF38383E)
 
 
 // Cool Tones Light Color Section
-val primaryLight = Color(0xFF6D538B)
-val onPrimaryLight = Color(0xFFEADDF6) // 0xFFEFE2FA
-val primaryContainerLight = Color(0xFFEFDBFF)
-val onPrimaryContainerLight = Color(0xFF270D43)
+val primaryLight = Color(0xFF6D538B) // or 109,83,139 // 0xFF543B72 or 84,59,114
+val onPrimaryLight = Color(0xFFEADDF6) // white -> // or 234,221,246 // 0xFFEFE2FA or 239,226,250
+val primaryContainerLight = Color(0xFFEFDBFF) // or 239,219,255 // 0xFF6D538B or 109,83,139
+val onPrimaryContainerLight = Color(0xFF270D43) // or 39,13,67 // 0xFFE8CFFF or 232,207,255
 
-val secondaryLight = Color(0xFF256489)
-val onSecondaryLight = Color(0xFFCADCF5) // 0xFFD8E7FA
-val secondaryContainerLight = Color(0xFFA5CBEE) // 0xFFC9E6FF
-val onSecondaryContainerLight = Color(0xFF001E2F)
+val secondaryLight = Color(0xFF256489) // or 37,100,137 // 0xFF004C6E or 0,76,110
+val onSecondaryLight = Color(0xFFCADCF5) // white -> // or 202,220,245 // 0xFFD8E7FA or 216,231,250
+val secondaryContainerLight = Color(0xFFA5CBEE)  // 0xFFC9E6FF or 201,230,255 -> // or 165,203,228 // 0xFF256489 or 37,100,137
+val onSecondaryContainerLight = Color(0xFF001E2F) // or 0,30,47 // 0xFFB4DEFF or 180,222,255
 
-val tertiaryLight = Color(0xFF2A6A47)
-val onTertiaryLight = Color(0xFFC7F8D6) // 0xFFCBF8D9
-val tertiaryContainerLight = Color(0xFFA4E7B9) // 0xFFAFF2C4
-val onTertiaryContainerLight = Color(0xFF002110)
+val tertiaryLight = Color(0xFF2A6A47) // or 42,106,71 // 0xFF0A5131 or 10,81,49
+val onTertiaryLight = Color(0xFFC7F8D6) // white -> // or 199,248,214 // 0xFFCBF8D9 or 203,248,217
+val tertiaryContainerLight = Color(0xFFA4E7B9) // 0xFFAFF2C4 or 175,242,196 -> // or 164,231,185 // 0xFF2A6A47 or 47,106,71
+val onTertiaryContainerLight = Color(0xFF002110) // or 0,33,16 // 0xFFA5E7BB or 165,231,187
 
-val errorLight = Color(0xFFBA1A1A)
-val onErrorLight = Color(0xFFF1CDCD) // 0xFFFFFFFF
-val errorContainerLight = Color(0xFFEEB4B0) // 0xFFFFDAD6
-val onErrorContainerLight = Color(0xFF410002)
+val errorLight = Color(0xFFBA1A1A) // or 186,26,26 // 0xFF93000A or 147,0,10
+val onErrorLight = Color(0xFFF1CDCD)
+val errorContainerLight = Color(0xFFEEB4B0) // 0xFFFFDAD6 or 255,218,214 -> // or 238,180,176 // 0xFFBA1A1A or 186,26,26
+val onErrorContainerLight = Color(0xFF410002) // or 65,0,2 // 0xFFFFCDC7 or 255,205,199
 
 val backgroundLight = Color(0xFFFFF7FF)
 val onBackgroundLight = Color(0xFF1D1A20)
 
 val surfaceLight = Color(0xFFFFF7FF)
 val onSurfaceLight = Color(0xFF1D1A20)
-
+val surfaceDimLight = Color(0xFFDFD8E0)
+val surfaceBrightLight = Color(0xFFFFF7FF)
 val surfaceVariantLight = Color(0xFFE9E0EB)
 val onSurfaceVariantLight = Color(0xFF4A454E)
 
@@ -125,39 +126,38 @@ val scrimLight = Color(0xFF000000)
 
 val inverseSurfaceLight = Color(0xFF1D1A20)
 val inverseOnSurfaceLight = Color(0xFFF6EEF6)
-val inversePrimaryLight = Color(0xFFFFF7FF)
-
-val surfaceDimLight = Color(0xFFDFD8E0)
-val surfaceBrightLight = Color(0xFFFFF7FF)
+val inversePrimaryLight = Color(0xFFD9BAFA)
+val inversePrimaryLight2 = Color(0xFFFFF7FF) // unique color
 
 
 // Cool Tones Dark Color Section
 val primaryDark = Color(0xFFD9BAFA)
 val onPrimaryDark = Color(0xFF3D2459)
-val primaryContainerDark = Color(0xFF553B71)
-val onPrimaryContainerDark = Color(0xFFEFDBFF)
+val primaryContainerDark = Color(0xFF553B71) // 0xFF6D538B or 239,219,255
+val onPrimaryContainerDark = Color(0xFFEFDBFF) // 0xFFE8CFFF or 232,207,255
 
 val secondaryDark = Color(0xFF94CDF7)
 val onSecondaryDark = Color(0xFF00344D)
-val secondaryContainerDark = Color(0xFF004C6E)
-val onSecondaryContainerDark = Color(0xFFC9E6FF)
+val secondaryContainerDark = Color(0xFF004C6E) // 0xFF256489 or 37,100,137
+val onSecondaryContainerDark = Color(0xFFC9E6FF) // 0xFFB4DEFF or 201,230,255
 
 val tertiaryDark = Color(0xFF93D5AA)
 val onTertiaryDark = Color(0xFF00391F)
-val tertiaryContainerDark = Color(0xFF0B5130)
-val onTertiaryContainerDark = Color(0xFFAFF2C4)
+val tertiaryContainerDark = Color(0xFF0B5130) // 0xFF2A6A47 or 42,106,71
+val onTertiaryContainerDark = Color(0xFFAFF2C4) // 0xFFA5E7BB or 165,231,187
 
 val errorDark = Color(0xFFFFB4AB)
 val onErrorDark = Color(0xFF690005)
-val errorContainerDark = Color(0xFF93000A)
-val onErrorContainerDark = Color(0xFFFFDAD6)
+val errorContainerDark = Color(0xFF93000A) // 0xFFBA1A1A or 186,26,26
+val onErrorContainerDark = Color(0xFFFFDAD6) // 0xFFFFCDC7 or 255,205,199
 
 val backgroundDark = Color(0xFF151218)
 val onBackgroundDark = Color(0xFFE8E0E8)
 
 val surfaceDark = Color(0xFF151218)
 val onSurfaceDark = Color(0xFFE8E0E8)
-
+val surfaceDimDark = Color(0xFF151218)
+val surfaceBrightDark = Color(0xFF3C383E)
 val surfaceVariantDark = Color(0xFF4A454E)
 val onSurfaceVariantDark = Color(0xFFCCC4CF)
 
@@ -168,7 +168,5 @@ val scrimDark = Color(0xFF000000)
 
 val inverseSurfaceDark = Color(0xFFE8E0E8)
 val inverseOnSurfaceDark = Color(0xFF332F35)
-val inversePrimaryDark = Color(0xFF160B2A)
-
-val surfaceDimDark = Color(0xFF151218)
-val surfaceBrightDark = Color(0xFF3C383E)
+val inversePrimaryDark = Color(0xFF6D538B)
+val inversePrimaryDark2 = Color(0xFF160B2A) // unique color
