@@ -78,8 +78,9 @@ class MainActivity : ComponentActivity() {
         startService(Intent(this@MainActivity, MediaService::class.java))
 
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.auto(Color.Transparent.toArgb(),Color.Transparent.toArgb()),//.auto(scrimLight, scrimDark),
-            navigationBarStyle = SystemBarStyle.auto(scrimLight.toArgb(), scrimDark.toArgb())
+            statusBarStyle = SystemBarStyle.auto(Color.Transparent.toArgb(),Color.Transparent.toArgb()),
+            navigationBarStyle = SystemBarStyle//.auto(scrimLight.toArgb(), scrimDark.toArgb()) //default, applies translucent scrim when in dark mode
+                .light(Color.Transparent.toArgb(), Color.Transparent.toArgb()) //sets navigation bar to be transparent, overrides defaulted scrim
         )
         Log.i(TAG, "edge to edge enabled")
 
