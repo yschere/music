@@ -86,9 +86,7 @@ import com.example.music.R
 import com.example.music.data.repository.RepeatType
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
-import com.example.music.designsys.component.ImageBackgroundColorScrim
 import com.example.music.designsys.component.ImageBackgroundColorScrim_Bm
-import com.example.music.designsys.component.ImageBackgroundRadialGradientScrim
 import com.example.music.designsys.component.ImageBackgroundRadialGradientScrim_Bm
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
@@ -395,14 +393,6 @@ private fun PlayerContentRegular(
         modifier = modifier
 //            .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
-//            .radialGradientScrimBottomRight( colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onSecondary) )
-//            .radialGradientScrimBottomRight( colors = listOf(MaterialTheme.colorScheme.onPrimary, MaterialTheme.colorScheme.onSecondary) )
-//            .radialGradientScrimBottomRight( colors = listOf(MaterialTheme.colorScheme.onPrimary, MaterialTheme.colorScheme.background) )
-//            .radialGradientScrimCentered( color = MaterialTheme.colorScheme.onPrimary )
-//            .verticalGradientScrim( color = MaterialTheme.colorScheme.onPrimary, startYPercentage = 1f, endYPercentage = 0f )
-//            .radialGradientScrimAnyOffset( color = MaterialTheme.colorScheme.onPrimaryContainer, xOffset = 2, yOffset = 3 )
-//            .radialGradientScrimAnyOffset( color = MaterialTheme.colorScheme.onPrimary, xOffset = 2, yOffset = 3 )
-//            .radialGradientScrimAnyColorsOffset( colors = listOf(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onPrimary), xOffset = 2, yOffset = 2  )
             .systemBarsPadding()//why is this getting called again when it was passed into the column around PlayerContentRegular?
             .padding(horizontal = 8.dp)
     ) {
