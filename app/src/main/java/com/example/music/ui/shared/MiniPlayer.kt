@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -35,6 +36,10 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.getSongData
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
+import com.example.music.ui.tooling.CompLightPreview
+import com.example.music.util.horizontalGradientScrim
+import com.example.music.util.radialMultiGradientScrimAnyOffset
+import com.example.music.util.radialMultiGradientScrimBottomRight
 
 private const val TAG = "Mini Player"
 
@@ -65,10 +70,16 @@ fun MiniPlayer(
         modifier = modifier.fillMaxWidth(),
     ) {
         Surface(
-            color = MaterialTheme.colorScheme.inversePrimary,
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.45f),
             contentColor = MaterialTheme.colorScheme.onSurface,
             onClick = { navigateToPlayer() },
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth()
+//                .horizontalGradientScrim(MaterialTheme.colorScheme.primaryContainer)
+                .radialMultiGradientScrimAnyOffset(
+                    colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.secondaryContainer),
+                    xOffset = 1f,
+                    yOffset = 0.5f,
+                ),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -99,7 +110,7 @@ fun MiniPlayer(
                         imageVector = Icons.Filled.Pause,
                         contentDescription = stringResource(R.string.pb_pause),
                         contentScale = ContentScale.Fit,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                         modifier = playButtonModifier
                             .padding(4.dp)
                             .clickable { onPausePress() }
@@ -111,7 +122,7 @@ fun MiniPlayer(
                         imageVector = Icons.Filled.PlayArrow,
                         contentDescription = stringResource(R.string.pb_play),
                         contentScale = ContentScale.Fit,
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                         modifier = playButtonModifier
                             .padding(4.dp)
                             .clickable { onPlayPress() }
@@ -219,7 +230,7 @@ fun MiniPlayerExpanded(
     }
 }*/
 
-//@CompLightPreview
+@CompLightPreview
 @CompDarkPreview
 @Composable
 fun PreviewMiniPlayer() {

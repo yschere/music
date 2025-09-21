@@ -6,13 +6,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.ui.graphics.Color
 import com.example.music.designsys.theme.lightDefaultSet
 import com.example.music.designsys.theme.darkDefaultSet
 
-//public final val inversePrimary: Color
-//
 //Color to be used as a "primary" color in places where the inverse color scheme is needed, such as the button on a SnackBar
 @SuppressLint("ResourceAsColor")
 val blueLightColorSet = lightColorScheme(
