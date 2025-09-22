@@ -8,6 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
+/**
+ * Composable for Loading Screen: full screen with circular progress indicator
+ */
 @Composable
 fun Loading(
     modifier: Modifier = Modifier

@@ -24,11 +24,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.ui.tooling.CompLightPreview
-import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
 
@@ -101,6 +99,7 @@ fun AlbumItemCard(
                 text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
                 maxLines = 1,
                 minLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(10.dp)
@@ -124,7 +123,7 @@ fun AlbumItemCard(
                 modifier = Modifier.padding(4.dp).weight(1f,true)
             )
 
-            // More Options button
+            // More Options btn
             MoreOptionsBtn(onClick = onMoreOptionsClick)
         }
     }
@@ -151,7 +150,7 @@ fun AlbumItemRow(
                 .clip(MaterialTheme.shapes.medium),
         )
 
-        Column(modifier.weight(1f)){
+        Column(modifier.weight(1f)) {
             Text(
                 text = album.title,
                 maxLines = 1,
@@ -183,7 +182,7 @@ fun AlbumItemRow(
             }
         }
 
-        // More Options button
+        // More Options btn
         MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
