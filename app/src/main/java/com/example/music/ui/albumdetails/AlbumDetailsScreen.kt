@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -103,7 +102,7 @@ fun AlbumDetailsScreen(
     if (uiState.errorMessage != null) {
         AlbumDetailsError(onRetry = viewModel::refresh)
     }
-    Surface {
+    Surface(color = Color.Transparent) {
         if (uiState.isReady) {
             AlbumDetailsScreen(
                 album = uiState.album,
@@ -163,9 +162,9 @@ fun AlbumDetailsScreen(
     album: AlbumInfo,
     songs: List<SongInfo>,
     selectSong: SongInfo,
+    currentSong: SongInfo,
     isActive: Boolean,
     isPlaying: Boolean,
-    currentSong: SongInfo,
 
     onAlbumAction: (AlbumAction) -> Unit,
     navigateBack: () -> Unit,
@@ -202,10 +201,9 @@ fun AlbumDetailsScreen(
     var showSongMoreOptions by remember { mutableStateOf( false ) }
 
     ScreenBackground(
-        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        modifier = modifier
     ) {
         Scaffold(
-            contentWindowInsets = WindowInsets.systemBarsIgnoringVisibility,
             topBar = {
                 LargeTopAppBar(
                     title = {
@@ -271,13 +269,14 @@ fun AlbumDetailsScreen(
                         navigateToPlayer = navigateToPlayer,
                         onPlayPress = miniPlayerControlActions.onPlayPress,
                         onPausePress = miniPlayerControlActions.onPausePress,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                     )
                 }
             },
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
-            contentColor = contentColorFor(MaterialTheme.colorScheme.background) // MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
+            contentColor = contentColorFor(MaterialTheme.colorScheme.background)
         ) { contentPadding ->
             // AlbumDetails Content
             Box(Modifier.fillMaxSize()) {
@@ -680,8 +679,8 @@ fun AlbumDetailsHeaderLargeAlbumCover(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(R.drawable.bpicon),
+            AlbumImage(
+                albumImage = album.artworkUri,
                 contentDescription = album.title,
                 modifier = Modifier
                     .size(imageSize)
