@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -44,51 +45,56 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 
+/**
+ * Icon for showing if a song is in the favorites list. NOT IN USE
+ */
 @Composable
-fun ToggleFollowPodcastIconButton(
-    isFollowed: Boolean,
+fun ToggleFavoriteBtn(
+    isFave: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val clickLabel = stringResource(if (isFollowed) R.string.pb_play else R.string.pb_pause)
-    IconButton(
+    val clickLabel = stringResource(
+        if (isFave) R.string.icon_fave_remove
+        else R.string.icon_fave_add
+    )
+    DrawIconBtn(
+        icon = when {
+            isFave -> Icons.Default.Check
+            else -> Icons.Default.Add
+        },
+        description = when {
+            isFave -> stringResource(R.string.icon_is_fave)
+            else -> stringResource(R.string.icon_is_not_fave)
+        },
         onClick = onClick,
-        modifier = modifier.semantics {
-            onClick(label = clickLabel, action = null)
-        }
-    ) {
-        Icon(
-            imageVector = when {
-                isFollowed -> Icons.Default.Check
-                else -> Icons.Default.Add
-            },
-            contentDescription = when {
-                isFollowed -> stringResource(R.string.pb_play)
-                else -> stringResource(R.string.pb_pause)
-            },
-            tint = animateColorAsState(
-                when {
-                    isFollowed -> MaterialTheme.colorScheme.onPrimary
-                    else -> MaterialTheme.colorScheme.primary
-                }, label = "tint"
-            ).value,
-            modifier = Modifier
-                .shadow(
-                    elevation = animateDpAsState(if (isFollowed) 0.dp else 1.dp, label = "shadow").value,
-                    shape = MaterialTheme.shapes.small
-                )
-                .background(
-                    color = animateColorAsState(
-                        when {
-                            isFollowed -> MaterialTheme.colorScheme.primary
-                            else -> MaterialTheme.colorScheme.surfaceContainerHighest
-                        }, label = "background"
-                    ).value,
-                    shape = CircleShape
-                )
-                .padding(4.dp)
-        )
-    }
+        btnModifier = modifier.semantics { onClick(label = clickLabel, action = null) },
+        iconModifier = Modifier
+            .shadow(
+                elevation = animateDpAsState(
+                    if (isFave) 0.dp
+                    else 1.dp,
+                    label = "shadow"
+                ).value,
+                shape = MaterialTheme.shapes.small
+            )
+            .background(
+                color = animateColorAsState(
+                    when {
+                        isFave -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.surfaceContainerHighest
+                    }, label = "background"
+                ).value,
+                shape = CircleShape
+            )
+            .padding(4.dp),
+        tint = animateColorAsState(
+            when {
+                isFave -> MaterialTheme.colorScheme.onPrimary
+                else -> MaterialTheme.colorScheme.primary
+            }, label = "tint"
+        ).value,
+    )
 }
 
 /**
@@ -106,8 +112,8 @@ fun BoxScope.ScrollToTopFAB(
             .align(Alignment.BottomCenter)
             .padding(
                 bottom =
-                    if (isActive) 100.dp
-                    else 40.dp
+                    if (isActive) 120.dp
+                    else 60.dp
             ),
         enter = slideInVertically(
             // Start the slide from 40 (pixels) above where the content is supposed to go, to
@@ -121,18 +127,15 @@ fun BoxScope.ScrollToTopFAB(
         ) + fadeIn(initialAlpha = 0.3f),
         exit = slideOutVertically() + shrinkVertically() + fadeOut() + scaleOut(targetScale = 1.2f),
     ) {
-        IconButton(
+        DrawIconBtn(
+            icon = Icons.Filled.KeyboardDoubleArrowUp,
+            description = stringResource(R.string.icon_scroll_to_top),
             onClick = onClick,
-            modifier = Modifier
+            btnModifier = Modifier
                 .clip(MaterialTheme.shapes.extraLarge)
-                .background(MaterialTheme.colorScheme.primary)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.KeyboardDoubleArrowUp,
-                contentDescription = stringResource(R.string.icon_scroll_to_top),
-                tint = MaterialTheme.colorScheme.inversePrimary,
-            )
-        }
+                .background(MaterialTheme.colorScheme.primary),
+            tint = MaterialTheme.colorScheme.inversePrimary,
+        )
     }
 }
 
@@ -195,6 +198,28 @@ fun SearchBtn(
  **********************************************************************************************/
 
 @Composable
+fun CreatePlaylistBtn(
+    onClick: () -> Unit,
+) {
+    DrawIconBtn(
+        icon = Icons.Filled.Add,
+        description = stringResource(R.string.icon_create_new_playlist),
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun AddToPlaylistBtn(
+    onClick: () -> Unit,
+) {
+    DrawIconBtn(
+        icon = Icons.Filled.Add,
+        description = stringResource(R.string.icon_add_to_playlist),
+        onClick = onClick,
+    )
+}
+
+@Composable
 fun MoreOptionsBtn(
     onClick: () -> Unit,
 ) {
@@ -228,7 +253,8 @@ fun MultiSelectBtn(
     DrawIconBtn(
         icon = Icons.Filled.Checklist,
         description = stringResource(R.string.icon_multi_select),
-        onClick = onClick
+        onClick = onClick,
+        btnModifier = modifier,
     )
 }
 
@@ -240,21 +266,29 @@ fun SortBtn(
     DrawIconBtn(
         icon = Icons.AutoMirrored.Filled.Sort,
         description = stringResource(R.string.icon_sort),
-        onClick = onClick
+        onClick = onClick,
+        btnModifier = modifier,
     )
 }
 
 @Composable
 private fun DrawIconBtn(
     icon: ImageVector,
-    description: String?,
-    onClick: () -> Unit,
+    description: String? = null,
+    onClick: () -> Unit = {},
+    btnModifier: Modifier = Modifier,
+    iconModifier: Modifier = Modifier,
+    tint: Color = MaterialTheme.colorScheme.onPrimaryContainer
 ) {
-    IconButton(onClick = onClick) {
+    IconButton(
+        onClick = onClick,
+        modifier = btnModifier,
+    ) {
         Icon(
             imageVector = icon,
             contentDescription = description,
-            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            tint = tint,
+            modifier = iconModifier,
         )
     }
 }

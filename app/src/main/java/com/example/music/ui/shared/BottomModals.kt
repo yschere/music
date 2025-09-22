@@ -1,7 +1,6 @@
 package com.example.music.ui.shared
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
@@ -64,7 +64,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.ComposerInfo
@@ -209,7 +208,7 @@ fun MoreOptionModalHeader(
 
 /**
  * More Options Modal Header - Header Item Image
- * used for SongInfo, PlayerSong, AlbumInfo (maybe should also be fore PlaylistInfo)
+ * used for SongInfo, AlbumInfo
  */
 @Composable
 fun HeaderImage(
@@ -217,12 +216,12 @@ fun HeaderImage(
     contentDescription: String = "",
 ) {
     AlbumImage(
-        albumImage = artworkUri, //when this is working, it should be the artwork
-        contentDescription = contentDescription, //song.artwork or song.title when this is working
+        albumImage = artworkUri,
+        contentDescription = contentDescription,
         contentScale = ContentScale.Crop,
         modifier = Modifier
             .size(56.dp)
-            .clip(MusicShapes.medium) // or extraSmall
+            .clip(MaterialTheme.shapes.small)
     )
 }
 
@@ -237,7 +236,7 @@ fun HeaderInitial(
     Box(
         modifier = Modifier
             .size(56.dp)
-            .clip(MusicShapes.medium)
+            .clip(MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
         Text(
             text = name[0].toString(),
@@ -311,9 +310,54 @@ fun CustomDragHandle() {
             .padding(vertical = 12.dp)
             .width(30.dp)
             .height(4.dp)
-            .clip(MusicShapes.small)
+            .clip(shapes.small)
             .background(MaterialTheme.colorScheme.onBackground)
     )
+}
+
+@Composable
+fun CloseModalBtn(
+    onClick: () -> Unit,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        colors = buttonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        shape = CircleShape,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(10.dp)
+    ) {
+        Text(text)
+    }
+}
+
+@Composable
+fun ApplyModalBtn(
+    onClick: () -> Unit,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        colors = buttonColors(
+            contentColor = MaterialTheme.colorScheme.background,
+            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        shape = CircleShape,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(10.dp)
+    ) {
+        Text(text)
+    }
 }
 
 /**
@@ -400,21 +444,10 @@ fun SongMoreOptionsBottomModal(
                 //ActionOptionRow( Pair(Actions.RemoveFromQueue) {} )
             //ActionOptionRow( Pair(Actions.DeleteFromLibrary) {} ) */
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
@@ -480,21 +513,10 @@ fun AlbumMoreOptionsBottomModal(
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow( Actions.EditAlbumTags, {} )
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
@@ -556,21 +578,10 @@ fun ArtistMoreOptionsBottomModal(
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow( Actions.EditArtistTags, {} ) //onClick action in the lambda
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
@@ -633,21 +644,10 @@ fun ComposerMoreOptionsBottomModal(
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow( Actions.EditComposerTags, {} )
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
@@ -709,21 +709,10 @@ fun GenreMoreOptionsBottomModal(
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow(Actions.EditGenreTags, {})
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
@@ -789,21 +778,10 @@ fun PlaylistMoreOptionsBottomModal(
             //ActionOptionRow( Actions.ExportPlaylist, {} )
             //ActionOptionRow( Actions.DeletePlaylist, {} )
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
@@ -863,21 +841,10 @@ fun QueueMoreOptionsBottomModal(
             ActionOptionRow(Actions.ClearQueue, clearQueue)
             ActionOptionRow(Actions.SaveQueueToPlaylist, {})
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
@@ -912,8 +879,7 @@ fun LibrarySortSelectionBottomModal(
             item {
                 Text(
                     text = "Sort by",
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     textAlign = TextAlign.Left,
                     style = MaterialTheme.typography.titleLarge,
                 )
@@ -985,38 +951,16 @@ fun LibrarySortSelectionBottomModal(
 
             item {
                 Row {
-                    // Cancel/Exit btn
-                    Button(
+                    CloseModalBtn(
                         onClick = onClose,
-                        colors = buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("CANCEL")
-                    }
-
-                    // Apply btn
-                    Button(
+                        text = "CANCEL",
+                        modifier = Modifier.weight(0.5f)
+                    )
+                    ApplyModalBtn(
                         onClick = onApply,
-                        colors = buttonColors(
-                            contentColor = MaterialTheme.colorScheme.background,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("APPLY")
-                    }
+                        text = "APPLY",
+                        modifier = Modifier.weight(0.5f)
+                    )
                 }
             }
         }
@@ -1105,38 +1049,16 @@ fun DetailsSortSelectionBottomModal(
 
             item {
                 Row {
-                    // Cancel/Exit btn
-                    Button(
+                    CloseModalBtn(
                         onClick = onClose,
-                        colors = buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("CANCEL")
-                    }
-
-                    // Apply btn
-                    Button(
+                        text = "CANCEL",
+                        modifier = Modifier.weight(0.5f)
+                    )
+                    ApplyModalBtn(
                         onClick = onApply,
-                        colors = buttonColors(
-                            contentColor = MaterialTheme.colorScheme.background,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("APPLY")
-                    }
+                        text = "APPLY",
+                        modifier = Modifier.weight(0.5f)
+                    )
                 }
             }
         }
@@ -1261,39 +1183,17 @@ fun CreatePlaylistBottomModal(
 
             fullWidthItem {
                 Row {
-                    // Cancel btn
-                    Button(
+                    CloseModalBtn(
                         onClick = onClose,
-                        colors = buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("CANCEL")
-                    }
-
-                    // Create playlist btn
-                    Button(
+                        text = "CANCEL",
+                        modifier = Modifier.weight(0.5f)
+                    )
+                    ApplyModalBtn(
                         onClick = onCreate,
-                        enabled = !createEnabled.value,
-                        colors = buttonColors(
-                            contentColor = MaterialTheme.colorScheme.background,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("CREATE")
-                    }
+                        //enabled = !createEnabled.value,
+                        text = "CREATE",
+                        modifier = Modifier.weight(0.5f)
+                    )
                 }
             }
         }
