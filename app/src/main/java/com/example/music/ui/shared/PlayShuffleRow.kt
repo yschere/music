@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.music.R
-import com.example.music.designsys.theme.MusicShapes
 
 /**
  * Content section: Play Items and Shuffle Items buttons
@@ -32,7 +31,6 @@ fun PlayShuffleButtons(
         // Play btn
         Button(
             onClick = onPlayClick,
-            shape = MusicShapes.small,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .weight(0.5f)
@@ -47,7 +45,6 @@ fun PlayShuffleButtons(
         // Shuffle btn
         Button(
             onClick = onShuffleClick,
-            shape = MusicShapes.small,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .weight(0.5f)

@@ -1,15 +1,6 @@
 package com.example.music.ui.library
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -26,14 +17,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -57,9 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -67,7 +50,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.music.R
-import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewComposers
@@ -98,6 +80,9 @@ import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompLightPreview
+import com.example.music.util.NavDrawerBtn
+import com.example.music.util.ScrollToTopFAB
+import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -270,7 +255,7 @@ private fun LibraryScreen(
                 },
                 snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 containerColor = Color.Transparent,
-                contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
+                contentColor = contentColorFor(MaterialTheme.colorScheme.background)
             ) { contentPadding ->
                 // Main Content
                 LibraryContent(
@@ -315,33 +300,21 @@ private fun LibraryTopAppBar(
     onNavigationIconClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp)
-    ) {
-        // nav drawer btn
-        IconButton( onClick = onNavigationIconClick ) {
-            Icon(
-                imageVector = Icons.Outlined.Menu,
-                contentDescription = stringResource(R.string.icon_nav_drawer),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+   Row(
+       verticalAlignment = Alignment.CenterVertically,
+       modifier = Modifier
+           .fillMaxWidth()
+           .statusBarsPadding()
+           .padding(horizontal = 8.dp)
+   ) {
+       // nav drawer btn
+       NavDrawerBtn(onClick = onNavigationIconClick)
 
-        Spacer(Modifier.weight(1f))
+       Spacer(Modifier.weight(1f))
 
-        // search btn
-        IconButton( onClick = navigateToSearch ) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.icon_search),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-    }
+       // search btn
+       SearchBtn(onClick = navigateToSearch)
+   }
 }
 
 /**
@@ -589,47 +562,15 @@ private fun LibraryContent(
             }
         }
 
-        /**
-         * Scroll to top btn that appears after scrolling down beyond first few items
-         */
-        AnimatedVisibility(
-            visible = displayButton.value,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(
-                    bottom =
-                        if (isActive) 100.dp
-                        else 40.dp
-                ),
-            enter = slideInVertically(
-                // Start the slide from 40 (pixels) above where the content is supposed to go, to
-                // produce a parallax effect
-                initialOffsetY = { -40 }
-            ) + expandVertically(
-                expandFrom = Alignment. Top
-            ) + scaleIn(
-                // Animate scale from 0f to 1f using the top center as the pivot point.
-                transformOrigin = TransformOrigin(0.5f, 0f)
-            ) + fadeIn(initialAlpha = 0.3f),
-            exit = slideOutVertically() + shrinkVertically() + fadeOut() + scaleOut(targetScale = 1.2f),
-        ) {
-            IconButton(
-                onClick = {
-                    coroutineScope.launch {
-                        listState.animateScrollToItem(0)
-                    }
-                },
-                modifier = Modifier
-                    .clip(MusicShapes.small)
-                    .background(MaterialTheme.colorScheme.primary)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardDoubleArrowUp,
-                    contentDescription = stringResource(R.string.icon_scroll_to_top),
-                    tint = MaterialTheme.colorScheme.background,
-                )
+        ScrollToTopFAB(
+            displayButton = displayButton,
+            isActive = isActive,
+            onClick = {
+                coroutineScope.launch {
+                    listState.animateScrollToItem(0)
+                }
             }
-        }
+        )
     }
 
     // Library BottomSheet

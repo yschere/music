@@ -1,17 +1,7 @@
 package com.example.music.ui.albumdetails
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -32,14 +22,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -63,7 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -76,7 +58,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.getSongsInAlbum
 import com.example.music.domain.model.AlbumInfo
@@ -96,6 +77,10 @@ import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.SystemDarkPreview
+import com.example.music.util.BackNavBtn
+import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.ScrollToTopFAB
+import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
@@ -162,13 +147,12 @@ private fun AlbumDetailsError(
 }
 
 /**
- * Loading Screen
+ * Loading Screen with circular progress indicator in center
  */
 @Composable
 private fun AlbumDetailsLoadingScreen(
     modifier: Modifier = Modifier
 ) { Loading(modifier = modifier) }
-//full screen circular progress - loading screen
 
 /**
  * Stateless version of Album Details Screen
@@ -241,38 +225,20 @@ fun AlbumDetailsScreen(
                         }
                     },
                     navigationIcon = {
-                        //Back btn
-                        IconButton(onClick = navigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.icon_back_nav),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
+                        // Back btn
+                        BackNavBtn(onClick = navigateBack)
                     },
                     actions = {
                         // Search btn
-                        IconButton(onClick = navigateToSearch) {
-                            Icon(
-                                imageVector = Icons.Outlined.Search,
-                                contentDescription = stringResource(R.string.icon_search),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
+                        SearchBtn(onClick = navigateToSearch)
 
                         // Album More Options btn
-                        IconButton(
+                        MoreOptionsBtn(
                             onClick = {
                                 showBottomSheet = true
                                 showAlbumMoreOptions = true
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.icon_more),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
+                        )
                     },
                     collapsedHeight = 48.dp,//TopAppBarDefaults.LargeAppBarCollapsedHeight, // is 64.dp
                     expandedHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 76.dp,//200.dp, // for Header
@@ -353,8 +319,9 @@ fun AlbumDetailsScreen(
                         )
                     }
 
-                    //section 2: songs list
-                    items(songs) { song ->
+                    items(
+                        items = songs
+                    ) { song ->
                         SongListItem(
                             song = song,
                             onClick = {
@@ -378,48 +345,16 @@ fun AlbumDetailsScreen(
                     }
                 }
 
-                /**
-                 * Scroll to top btn that appears after scrolling down beyond first few items
-                 */
-                AnimatedVisibility(
-                    visible = displayButton.value,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(
-                            bottom =
-                                if (isActive) 100.dp
-                                else 40.dp
-                        ),
-                    enter = slideInVertically(
-                        // Start the slide from 40 (pixels) above where the content is supposed to go, to
-                        // produce a parallax effect
-                        initialOffsetY = { -40 }
-                    ) + expandVertically(
-                        expandFrom = Alignment. Top
-                    ) + scaleIn(
-                        // Animate scale from 0f to 1f using the top center as the pivot point.
-                        transformOrigin = TransformOrigin(0.5f, 0f)
-                    ) + fadeIn(initialAlpha = 0.3f),
-                    exit = slideOutVertically() + shrinkVertically() + fadeOut() + scaleOut(targetScale = 1.2f),
-                ) {
-                    IconButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Scroll to Top btn clicked")
-                                listState.animateScrollToItem(0)
-                            }
-                        },
-                        modifier = Modifier
-                            .clip(MusicShapes.small)
-                            .background(MaterialTheme.colorScheme.primary)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.KeyboardDoubleArrowUp,
-                            contentDescription = stringResource(R.string.icon_scroll_to_top),
-                            tint = MaterialTheme.colorScheme.background,
-                        )
+                ScrollToTopFAB(
+                    displayButton = displayButton,
+                    isActive = isActive,
+                    onClick = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Scroll to Top btn clicked")
+                            listState.animateScrollToItem(0)
+                        }
                     }
-                }
+                )
             }
 
             // AlbumDetails BottomSheet
@@ -660,34 +595,16 @@ fun AlbumDetailsTopAppBar(
             .padding(horizontal = 8.dp)
     ) {
         // Back btn
-        IconButton(onClick = navigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(id = R.string.icon_back_nav),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        BackNavBtn(onClick = navigateBack)
 
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
         // Search btn
-        IconButton(onClick = navigateToSearch) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.icon_search),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        SearchBtn(onClick = navigateToSearch)
 
         // Album More Options btn
-        IconButton(onClick = onMoreOptionsClick) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
 
@@ -756,7 +673,7 @@ fun AlbumDetailsHeaderLargeAlbumCover(
 ) {
     BoxWithConstraints(
         contentAlignment = Alignment.Center,
-        modifier = modifier.fillMaxWidth()//.padding(16.dp)
+        modifier = modifier.fillMaxWidth()
     ) {
         val maxImageSize = this.maxWidth * 0.6f
         val imageSize = max( maxImageSize, 148.dp )

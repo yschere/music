@@ -15,11 +15,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,15 +25,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
-import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
@@ -45,10 +36,7 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -58,6 +46,7 @@ import androidx.compose.material3.SliderDefaults.Track
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -95,10 +84,14 @@ import com.example.music.designsys.component.ImageBackgroundRadialGradientFilter
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.shared.Error
+import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.formatString
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
+import com.example.music.util.BackNavBtn
+import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.QueueBtn
 import com.example.music.util.isCompact
 import com.example.music.util.isExpanded
 import com.example.music.util.isMedium
@@ -199,7 +192,7 @@ private fun PlayerScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = modifier, // Note: no window insets padding to modifier so player screen's image background draws behind system bars
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        contentColor = contentColorFor(MaterialTheme.colorScheme.background)
     ) { contentPadding ->
         if (currentSong.id != 0L) { // keeping this explicit check for now, don't want to lose context for the FullScreenLoading function below
             PlayerContentWithBackground(
@@ -222,26 +215,18 @@ private fun PlayerScreen(
                 contentPadding = contentPadding,
             )
         } else {
-            FullScreenLoading()
+            PlayerLoadingScreen(modifier = Modifier.fillMaxSize())
         }
     }
 }
 
 /**
- * Loading Screen: full screen with circular progress indicator
+ * Loading Screen with circular progress indicator in center
  */
 @Composable
-private fun FullScreenLoading(
+private fun PlayerLoadingScreen(
     modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-    ) {
-        CircularProgressIndicator()
-    }
-}
+) { Loading(modifier = modifier) }
 
 /**
  * Draw a background image using the current song's artwork cover. Image will be
@@ -463,34 +448,16 @@ private fun PlayerTopAppBar(
         modifier = Modifier.fillMaxWidth()
     ) {
         // Back btn
-        IconButton(onClick = navigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.icon_back_nav),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        BackNavBtn(onClick = navigateBack)
 
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
         // navigateToQueue btn
-        IconButton(onClick = navigateToQueue) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.QueueMusic,
-                contentDescription = stringResource(R.string.icon_queue),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        QueueBtn(onClick = navigateToQueue)
 
         // More Options btn
-        IconButton(onClick = onMoreOptionsClick) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
 
@@ -620,7 +587,7 @@ private fun PlayerImage(
         modifier = modifier
             .sizeIn(maxWidth = 500.dp, maxHeight = 500.dp)
             .aspectRatio(1f)
-            .clip(MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.extraLarge)
     )
 }
 
@@ -640,7 +607,7 @@ private fun PlayerImageBm(
             .size(250.dp)
             //.sizeIn(maxWidth = 500.dp, maxHeight = 500.dp)
             .aspectRatio(1f)
-            .clip(MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.extraLarge)
     )
 }
 

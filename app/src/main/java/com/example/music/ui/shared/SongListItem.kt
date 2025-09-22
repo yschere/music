@@ -8,11 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.Reorder
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,10 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
 import com.example.music.domain.model.SongInfo
@@ -32,6 +25,8 @@ import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.CompLightPreview
+import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.ReorderItemBtn
 
 /**
  * Original Song List Item
@@ -115,17 +110,10 @@ private fun SongListItemRow(
         // list edit-ability would most likely be for queue list and playlist, when editing list is selected
         if (isListEditable) { // Check if this means songs is meant to be in an editable/movable list
             //Box(modifier = modifier.size(56.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)))
-            IconButton(
+            ReorderItemBtn(
                 onClick = {},
-                enabled = true,
-                modifier = Modifier.padding(start = 0.dp)//size(56.dp),
-            ) {
-                Icon( // reorder song icon
-                    imageVector = Icons.Outlined.Reorder,
-                    contentDescription = stringResource(R.string.icon_reorder) + " for song " + song.title,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+                title = song.title,
+            )
         }
 
         //show the track number of the song
@@ -184,13 +172,7 @@ private fun SongListItemRow(
         }
 
         // More Options btn
-        IconButton(onClick = onMoreOptionsClick) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
 

@@ -62,7 +62,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.Keyline1
-import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.getPlaylistSongs
 import com.example.music.domain.model.PlaylistInfo
@@ -601,7 +600,7 @@ private fun PlayShuffleButtons(
                 showThemeSheet = false
             }*/
             //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
-            shape = MusicShapes.small,
+            shape = MaterialTheme.shapes.small,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .weight(0.5f)
@@ -628,7 +627,7 @@ private fun PlayShuffleButtons(
                 showThemeSheet = false
             }*/
             //did have colors set, colors = buttonColors( container -> primary, content -> background )
-            shape = MusicShapes.small,
+            shape = MaterialTheme.shapes.small,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .weight(0.5f)

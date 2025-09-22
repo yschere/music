@@ -19,14 +19,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -58,7 +51,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
 import com.example.music.designsys.theme.Keyline1
-import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.testing.PreviewGenres
 import com.example.music.domain.testing.getSongsInGenre
 import com.example.music.domain.model.GenreInfo
@@ -77,6 +69,9 @@ import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemLightPreview
+import com.example.music.util.BackNavBtn
+import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
@@ -144,13 +139,12 @@ private fun GenreDetailsError(
 }
 
 /**
- * Loading Screen
+ * Loading Screen with circular progress indicator in center
  */
 @Composable
 private fun GenreDetailsLoadingScreen(
     modifier: Modifier = Modifier
 ) { Loading(modifier = modifier) }
-//full screen circular progress - loading screen
 
 /**
  * Stateless Composable for Genre Details Screen
@@ -221,37 +215,19 @@ fun GenreDetailsScreen(
                     },
                     navigationIcon = {
                         // Back btn
-                        IconButton(onClick = navigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.icon_back_nav),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
+                        BackNavBtn(onClick = navigateBack)
                     },
                     actions = {
                         // Search btn
-                        IconButton(onClick = navigateToSearch) {
-                            Icon(
-                                imageVector = Icons.Outlined.Search,
-                                contentDescription = stringResource(R.string.icon_search),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
+                        SearchBtn(onClick = navigateToSearch)
 
-                        // Genre More Options btn
-                        IconButton(
+                        // Artist More Options
+                        MoreOptionsBtn(
                             onClick = {
                                 showBottomSheet = true
                                 showGenreMoreOptions = true
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.icon_more),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
+                        )
                     },
                     collapsedHeight = 48.dp,//TopAppBarDefaults.LargeAppBarCollapsedHeight, // is 64.dp
                     expandedHeight = 120.dp,//80.dp,//TopAppBarDefaults.LargeAppBarExpandedHeight,//200.dp, // for Header
@@ -288,7 +264,7 @@ fun GenreDetailsScreen(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
-            contentColor = contentColorFor(MaterialTheme.colorScheme.background) // MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
+            contentColor = contentColorFor(MaterialTheme.colorScheme.background)
         ) { contentPadding ->
             // GenreDetails Content
             LazyVerticalGrid(
@@ -327,7 +303,6 @@ fun GenreDetailsScreen(
                     )
                 }
 
-                // Song List
                 items(
                     items = songs
                 ) { song ->
@@ -591,34 +566,16 @@ fun GenreDetailsTopAppBar(
             .padding(horizontal = 8.dp)
     ) {
         // Back button
-        IconButton(onClick = navigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(id = R.string.icon_back_nav),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        BackNavBtn(onClick = navigateBack)
 
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
         // Search btn
-        IconButton(onClick = navigateToSearch) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.icon_search),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        SearchBtn(onClick = navigateToSearch)
 
         // Genre More Options btn
-        IconButton(onClick = onMoreOptionsClick) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
 

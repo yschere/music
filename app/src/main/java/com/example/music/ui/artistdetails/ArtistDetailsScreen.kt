@@ -82,6 +82,9 @@ import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
+import com.example.music.util.BackNavBtn
+import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
@@ -152,13 +155,12 @@ private fun ArtistDetailsError(
 }
 
 /**
- * Loading Screen
+ * Loading Screen with circular progress indicator in center
  */
 @Composable
 private fun ArtistDetailsLoadingScreen(
     modifier: Modifier = Modifier
 ) { Loading(modifier = modifier) }
-//full screen circular progress - loading screen
 
 /**
  * Stateless version of Artist Details Screen
@@ -231,37 +233,19 @@ fun ArtistDetailsScreen(
                     },
                     navigationIcon = {
                         // Back btn
-                        IconButton(onClick = navigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.icon_back_nav),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
+                        BackNavBtn(onClick = navigateBack)
                     },
                     actions = {
                         // Search btn
-                        IconButton(onClick = navigateToSearch) {
-                            Icon(
-                                imageVector = Icons.Outlined.Search,
-                                contentDescription = stringResource(R.string.icon_search),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
+                        SearchBtn(onClick = navigateToSearch)
 
                         // Artist More Options
-                        IconButton(
+                        MoreOptionsBtn(
                             onClick = {
                                 showBottomSheet = true
                                 showArtistMoreOptions = true
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.icon_more),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
+                        )
                     },
                     collapsedHeight = 48.dp,//TopAppBarDefaults.LargeAppBarCollapsedHeight, // is 64.dp
                     expandedHeight = 120.dp,//80.dp,//TopAppBarDefaults.LargeAppBarExpandedHeight,//200.dp, // for Header
@@ -298,7 +282,7 @@ fun ArtistDetailsScreen(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
-            contentColor = contentColorFor(MaterialTheme.colorScheme.background) // MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
+            contentColor = contentColorFor(MaterialTheme.colorScheme.background)
         ) { contentPadding ->
             val albs = albums.toPersistentList()
             val pagerState = rememberPagerState { albs.size }
@@ -726,34 +710,16 @@ fun ArtistDetailsTopAppBar(
             .padding(horizontal = 8.dp)
     ) {
         // Back button
-        IconButton(onClick = navigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(id = R.string.icon_back_nav),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        BackNavBtn(onClick = navigateBack)
 
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
         // Search btn
-        IconButton(onClick = navigateToSearch) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.icon_search),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        SearchBtn(onClick = navigateToSearch)
 
-        // Artist More Options btn
-        IconButton(onClick = onMoreOptionsClick) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        // Artist More Options
+        MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
 

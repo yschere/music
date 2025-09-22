@@ -26,8 +26,8 @@ fun LazyListScope.artistItems(
     artists: List<ArtistInfo>,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     onArtistMoreOptionsClick: (ArtistInfo) -> Unit,
-    onSortClick: () -> Unit,
-    onSelectClick: () -> Unit
+    onSortClick: () -> Unit = {},
+    onSelectClick: () -> Unit = {}
 ) {
     Log.i(TAG, "Lazy List START")
 
@@ -78,7 +78,7 @@ fun LazyGridScope.artistItems(
 
     // Artist List
     items(
-        artists,
+        items = artists,
         span = { GridItemSpan(maxLineSpan) }
     ) { artist ->
         ArtistListItem(

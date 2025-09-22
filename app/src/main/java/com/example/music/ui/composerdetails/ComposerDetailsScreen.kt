@@ -1,7 +1,6 @@
 package com.example.music.ui.composerdetails
 
 import android.util.Log
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -18,17 +17,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -44,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -52,20 +39,24 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
 import com.example.music.designsys.theme.Keyline1
-import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewComposers
 import com.example.music.domain.testing.getSongsByComposer
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.ui.shared.Error
+import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.shared.Loading
+import com.example.music.ui.shared.MiniPlayer
+import com.example.music.ui.shared.PlayShuffleButtons
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
+import com.example.music.util.BackNavBtn
+import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
-import com.example.music.util.quantityStringResource
 
 private const val TAG = "Composer Details Screen"
 
@@ -77,8 +68,6 @@ fun ComposerDetailsScreen(
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit = {},
-    //showBackButton: Boolean,
-    //modifier: Modifier = Modifier,
     viewModel: ComposerDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -92,11 +81,9 @@ fun ComposerDetailsScreen(
             ComposerDetailsScreen(
                 composer = uiState.composer,
                 songs = uiState.songs,
-                //onQueueSong = viewModel::onQueueSong,
                 navigateToPlayer = navigateToPlayer,
                 navigateToSearch = navigateToSearch,
                 navigateBack = navigateBack,
-                //showBackButton = showBackButton,
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
@@ -122,13 +109,12 @@ private fun ComposerDetailsError(
 }
 
 /**
- * Loading Screen
+ * Loading Screen with circular progress indicator in center
  */
 @Composable
 private fun ComposerDetailsLoadingScreen(
     modifier: Modifier = Modifier
 ) { Loading(modifier = modifier) }
-//full screen circular progress - loading screen
 
 /**
  * Stateless Composable for Composer Details Screen
@@ -138,11 +124,9 @@ private fun ComposerDetailsLoadingScreen(
 fun ComposerDetailsScreen(
     composer: ComposerInfo,
     songs: List<SongInfo>,
-    //onQueueSong: (SongInfo) -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
     navigateBack: () -> Unit,
-    //showBackButton: Boolean,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -160,31 +144,14 @@ fun ComposerDetailsScreen(
                     navigateBack = navigateBack,
                 )
             },
-            bottomBar = {
-                /* //should show BottomBarPlayer here if a queue session is running or service is running
-                BottomBarPlayer(
-                    song = PreviewSongs[5],
-                    navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
-                )*/
-            },
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
-            //modifier = modifier.fillMaxSize().systemBarsPadding(),
+            bottomBar = {},
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             containerColor = Color.Transparent,
-            contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
-            //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
+            contentColor = contentColorFor(MaterialTheme.colorScheme.background)
         ) { contentPadding ->
             ComposerDetailsContent(
                 composer = composer,
                 songs = songs,
-                //pSongs = pSongs,
-                /*onQueueSong = {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(snackBarText)
-                    }
-                    onQueueSong(it)
-                },*/
                 navigateToPlayer = navigateToPlayer,
                 modifier = Modifier.padding(contentPadding)
             )
@@ -209,33 +176,16 @@ fun ComposerDetailsTopAppBar(
             .padding(horizontal = 8.dp)
     ) {
         //back button
-        IconButton( onClick = navigateBack ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(id = R.string.icon_back_nav),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        BackNavBtn(onClick = navigateBack)
 
         //right align objects after this space
         Spacer(Modifier.weight(1f))
 
-        // search btn
-        IconButton( onClick = navigateToSearch ) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.icon_search),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-        //more options btn // temporary placement till figure out if this should be part of header
-        IconButton(onClick = {}) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        // Search btn
+        SearchBtn(onClick = navigateToSearch)
+
+        // Composer More Options btn
+        MoreOptionsBtn(onClick = {})
     }
 }
 
@@ -246,18 +196,15 @@ fun ComposerDetailsTopAppBar(
 fun ComposerDetailsContent(
     composer: ComposerInfo,
     songs: List<SongInfo>,
-    //onQueueSong: (SongInfo) -> Unit,
     navigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
-        modifier = modifier.fillMaxSize(),
-        //does not have the initial .padding(horizontal = 12.dp) that Playlist Details
-        // has because of the possible future where Albums shown in a horizontal pager
-        // aka it mimics ArtistDetails
+        modifier = modifier.fillMaxSize()
+            .padding(horizontal = 12.dp),
     ) {
-        //section 1: header item
+        // Header Item
         fullWidthItem {
             ComposerDetailsHeaderItem(
                 composer = composer,
@@ -266,18 +213,16 @@ fun ComposerDetailsContent(
             )
         }
 
-        //section 2: songs list
+        // Song List
         if (songs.isNotEmpty()) {
-
-            // songs header
             fullWidthItem {
-                SongCountAndSortSelectButtons(
-                    songs = songs,
+                ItemCountAndSortSelectButtons(
+                    id = R.plurals.composers,
+                    itemCount = songs.size,
                     onSortClick = {},
                     onSelectClick = {}
                 )
             }
-
 
             fullWidthItem {
                 PlayShuffleButtons(
@@ -294,31 +239,29 @@ fun ComposerDetailsContent(
                 )
             }
 
-            // songs list
-            items(songs) { song ->
-                Box(Modifier.padding(horizontal = 12.dp, vertical = 0.dp)) {
-                    SongListItem(
-                        song = song,
-                        onClick = {
-                            Log.i(TAG, "Song clicked: ${song.title}")
-                            //onComposerAction(ComposerAction.PlaySong(song))
-                            //navigateToPlayerV2()
-                        },
-                        onMoreOptionsClick = {
-                            Log.i(TAG, "Song More Option clicked: ${song.title}")
-                            //onComposerAction(ComposerAction.SongMoreOptionClicked(song))
-                            //showBottomSheet = true
-                            //showSongMoreOptions = true
-                        },
-                        //onQueueSong = { },
-                        modifier = Modifier.fillMaxWidth(),
-                        isListEditable = false,
-                        showAlbumTitle = true,
-                        showArtistName = true,
-                        showAlbumImage = true,
-                        showTrackNumber = false,
-                    )
-                }
+            items(
+                items = songs
+            ) { song ->
+                SongListItem(
+                    song = song,
+                    onClick = {
+                        Log.i(TAG, "Song clicked: ${song.title}")
+                        //onComposerAction(ComposerAction.PlaySong(song))
+                        //navigateToPlayer()
+                    },
+                    onMoreOptionsClick = {
+                        Log.i(TAG, "Song More Option clicked: ${song.title}")
+                        //onComposerAction(ComposerAction.SongMoreOptionClicked(song))
+                        //showBottomSheet = true
+                        //showSongMoreOptions = true
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    isListEditable = false,
+                    showAlbumTitle = true,
+                    showArtistName = true,
+                    showAlbumImage = true,
+                    showTrackNumber = false,
+                )
             }
         }
     }
@@ -341,14 +284,6 @@ fun ComposerDetailsHeaderItem(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            /*AlbumImage(
-                modifier = Modifier
-                    //.size(widthConstraint, 200.dp)
-                    .fillMaxSize()
-                    .clip(MaterialTheme.shapes.large),
-                albumImage = R.drawable.bpicon,//album.artwork!!,//album.imageUrl or album.artwork when that is fixed
-                contentDescription = "composer Image"
-            )*/
             Text(
                 text = composer.name,
                 maxLines = 2,
@@ -358,117 +293,6 @@ fun ComposerDetailsHeaderItem(
                 //color = MaterialTheme.colorScheme.primaryContainer,
                 style = MaterialTheme.typography.headlineMedium
             )
-        }
-    }
-}
-
-// section 1.3: song count and list sort icons
-@Composable
-private fun SongCountAndSortSelectButtons(
-    songs: List<SongInfo>,
-    onSortClick: () -> Unit,
-    onSelectClick: () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
-    ) {
-        Text(
-            text = """\s[a-z]""".toRegex().replace(
-                quantityStringResource(R.plurals.songs, songs.size, songs.size)
-            ) {
-                it.value.uppercase()
-            },
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp).weight(1f, true)
-        )
-
-        // sort icon
-        IconButton(
-            onClick = onSortClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) { // showBottomSheet = true
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
-                contentDescription = stringResource(R.string.icon_sort),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-
-        // multi-select icon
-        IconButton(
-            onClick = onSelectClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Checklist,//want this to be multi select icon
-                contentDescription = stringResource(R.string.icon_multi_select),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-    }
-}
-
-// section 1.5: shuffle and play buttons
-@Composable
-private fun PlayShuffleButtons(
-    onPlayClick: () -> Unit,
-    onShuffleClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(modifier.padding(horizontal = 12.dp).padding(bottom = 8.dp)) {
-        //Row(Modifier.padding(bottom = 8.dp)) { // original version for screens that don't have carousel / don't need to remove horizontal padding on lazyVerticalGrid
-        // play btn
-        Button(
-            onClick = onPlayClick, //what is the thing that would jump start this step process. would it go thru the viewModel??
-            //step 1: regardless of shuffle being on or off, set shuffle to off
-            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
-            //step 3: set the player to play the first item in queue
-            //step 4: navigateToPlayer(first item)
-            //step 5: start playing
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
-            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
-            shape = MusicShapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PlayArrow,
-                contentDescription = stringResource(R.string.icon_play)
-            )
-            Text("PLAY")
-        }
-
-        // shuffle btn
-        Button(
-            onClick = onShuffleClick, //what is the thing that would jump start this step process
-            //step 1: regardless of shuffle being on or off, set shuffle to on
-            //step 2?: confirm the shuffle type
-            //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
-            //step 4: set the player to play the first item in queue
-            //step 5: navigateToPlayer(first item)
-            //step 6: start playing
-            //needs to take the songs in the playlist, shuffle the
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
-            //did have colors set, colors = buttonColors( container -> primary, content -> background )
-            shape = MusicShapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Shuffle,
-                contentDescription = stringResource(R.string.icon_shuffle)
-            )
-            Text("SHUFFLE")
         }
     }
 }

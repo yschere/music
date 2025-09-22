@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,6 +63,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -72,7 +74,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
-import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.PlaylistInfo
@@ -92,6 +93,8 @@ import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
+import com.example.music.util.NavDrawerBtn
+import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
 import com.example.music.util.isCompact
 import com.example.music.util.quantityStringResource
@@ -285,27 +288,8 @@ private fun HomeScreenReady(
                     modifier = Modifier.fillMaxSize(),
                 )
             },
-            //FixMe: when navigateTo___Details determined, need to update this. it's based on PodcastDetailsViewModel
-            supportingPane = {
-                /*val playlistId = navigator.currentDestination?.content
-                if (!playlistId.isNullOrEmpty()) {
-                    val playlistDetailsViewModel = hiltViewModel<PlaylistDetailsViewModel, PlaylistDetailsViewModel.PlaylistDetailsViewModelFactory>(
-                            key = playlistId
-                        ) { it.create(playlistId.toLong()) }
-                    PlaylistDetailsScreen(
-                        viewModel = playlistDetailsViewModel,
-                        navigateToPlayer = navigateToPlayer,
-                        navigateToPlayerSong = navigateToPlayerSong,
-                        navigateBack = {
-                            if (navigator.canNavigateBack()) {
-                                navigator.navigateBack()
-                            }
-                        },
-                        //showBackButton = navigator.isMainPaneHidden(),
-                    )
-                }*/
-            },
-            modifier = Modifier.fillMaxSize()
+            supportingPane = {},
+                modifier = Modifier.fillMaxSize()
         )
     }
 }
@@ -314,7 +298,7 @@ private fun HomeScreenReady(
  * Composable for Home Screen and its properties needed to render the
  * components of the page.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+ @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeScreen(
     isLoading: Boolean,
@@ -392,7 +376,7 @@ private fun HomeScreen(
                 },
                 snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 containerColor = Color.Transparent,
-                contentColor = contentColorFor(MaterialTheme.colorScheme.background) //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
+                contentColor = contentColorFor(MaterialTheme.colorScheme.background)
             ) { contentPadding ->
                 // Main Content
                 HomeContent(
@@ -433,22 +417,10 @@ private fun HomeTopAppBar(
     TopAppBar(
         title = {},
         navigationIcon = {
-            IconButton(onClick = onNavigationIconClick) {
-                Icon(
-                    imageVector = Icons.Outlined.Menu,
-                    contentDescription = stringResource(R.string.icon_nav_drawer),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+            NavDrawerBtn(onClick = onNavigationIconClick)
         },
         actions = {
-            IconButton( onClick = navigateToSearch ) {
-                Icon(
-                    imageVector = Icons.Outlined.Search,
-                    contentDescription = stringResource(R.string.icon_search),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+            SearchBtn(onClick = navigateToSearch)
         },
         expandedHeight = TopAppBarExpandedHeight,
         windowInsets = TopAppBarDefaults.windowInsets,
@@ -734,23 +706,22 @@ private fun HomeContentGrid(
                         text = stringResource(R.string.recent_playlists),
                         minLines = 1,
                         maxLines = 1,
-                        style = MaterialTheme.typography.titleLarge,//headlineSmall,
-                        modifier = Modifier.padding(16.dp)//.fillMaxWidth()
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(16.dp)
                     )
 
                     Spacer(Modifier.weight(1f))
 
                     Button(
-                        onClick = navigateToLibrary,// { /*onMoreOptionsClick*/ } //navigateToLibrary -> Playlists -> sortBy DateLastAccessed Desc
-                        shape = MusicShapes.extraLarge,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp),
+                        onClick = navigateToLibrary, //navigateToLibrary -> Playlists -> sortBy DateLastAccessed Desc
+                        modifier = Modifier.padding(horizontal = 16.dp),
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
-
-                        ) {
+                        colors = ButtonDefaults.buttonColors(
+                            contentColor = MaterialTheme.colorScheme.inversePrimary,
+                        )
+                    ) {
                         Text(
                             text = "More",
-                            //color = MaterialTheme.colorScheme.onPrimary,
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
@@ -781,23 +752,22 @@ private fun HomeContentGrid(
                         text = stringResource(R.string.recent_songs),
                         minLines = 1,
                         maxLines = 1,
-                        style = MaterialTheme.typography.titleLarge,//headlineSmall,
-                        modifier = Modifier.padding(16.dp)//.fillMaxWidth()
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(16.dp)
                     )
 
                     Spacer(Modifier.weight(1f))
 
                     Button(
-                        onClick = navigateToLibrary,// { /*onMoreOptionsClick*/ } //navigateToLibrary -> Songs -> sortBy DateCreated Desc
-                        shape = MusicShapes.extraLarge,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp),
+                        onClick = navigateToLibrary, //navigateToLibrary -> Songs -> sortBy DateCreated Desc
+                        modifier = Modifier.padding(horizontal = 16.dp),
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
-
-                        ) {
+                        colors = ButtonDefaults.buttonColors(
+                            contentColor = MaterialTheme.colorScheme.inversePrimary,
+                        )
+                    ) {
                         Text(
                             text = "More",
-                            //color = MaterialTheme.colorScheme.onPrimary,
                             style = MaterialTheme.typography.titleMedium
                         )
                     }

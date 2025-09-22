@@ -3,7 +3,6 @@ package com.example.music.ui.shared
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,10 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,17 +24,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.MusicShapes
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 
@@ -165,42 +160,36 @@ fun FeaturedCarouselItem(
                     .size(FEATURED_ITEM_IMAGE_SIZE_DP)
                     .clip(MaterialTheme.shapes.medium),
             )
+
+            // Song Count in bottom left of album image
             Text(
                 text = quantityStringResource(R.plurals.songs, itemSize, itemSize),
                 maxLines = 1,
                 minLines = 1,
-                overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(10.dp)
-                    .border(1.dp,color = Color.Transparent, shape = MusicShapes.small)
                     .background(
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        shape = MusicShapes.small
+                        shape = CircleShape
                     )
                     .padding(4.dp)
             )
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 text = itemTitle,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium, //MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.titleMedium, //titleSmall,
                 modifier = Modifier.padding(4.dp).weight(1f,true)
             )
 
             // More Options btn
-            IconButton(onClick = onMoreOptionsClick) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.icon_more),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+            MoreOptionsBtn(onClick = onMoreOptionsClick)
         }
     }
 }

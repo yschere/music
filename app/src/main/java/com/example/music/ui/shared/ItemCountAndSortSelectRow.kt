@@ -19,6 +19,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.util.MultiSelectBtn
+import com.example.music.util.SortBtn
 import com.example.music.util.quantityStringResource
 
 /**
@@ -49,27 +51,9 @@ fun ItemCountAndSortSelectButtons(
         )
 
         // Sort btn
-        IconButton(
-            onClick = onSortClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Sort,
-                contentDescription = stringResource(R.string.icon_sort),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        SortBtn(onClick = onSortClick)
 
         // Multi-Select btn
-        IconButton(
-            onClick = onSelectClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Checklist,
-                contentDescription = stringResource(R.string.icon_multi_select),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        MultiSelectBtn(onClick = onSelectClick)
     }
 }

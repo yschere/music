@@ -23,8 +23,8 @@ fun LazyListScope.genreItems(
     genres: List<GenreInfo>,
     navigateToGenreDetails: (GenreInfo) -> Unit,
     onGenreMoreOptionsClick: (GenreInfo) -> Unit,
-    onSortClick: () -> Unit,
-    onSelectClick: () -> Unit,
+    onSortClick: () -> Unit = {},
+    onSelectClick: () -> Unit = {},
 ) {
     Log.i(TAG, "Lazy List START")
 
@@ -58,8 +58,8 @@ fun LazyGridScope.genreItems(
     genres: List<GenreInfo>,
     navigateToGenreDetails: (GenreInfo) -> Unit,
     onGenreMoreOptionsClick: (GenreInfo) -> Unit,
-    onSortClick: () -> Unit,
-    onSelectClick: () -> Unit,
+    onSortClick: () -> Unit = {},
+    onSelectClick: () -> Unit = {},
 ) {
     Log.i(TAG, "Lazy Grid START")
 
