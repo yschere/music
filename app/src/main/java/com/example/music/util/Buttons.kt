@@ -1,26 +1,43 @@
 package com.example.music.util
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
-import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Reorder
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
@@ -74,67 +91,170 @@ fun ToggleFollowPodcastIconButton(
     }
 }
 
+/**
+ * Scroll to top floating action btn that appears after scrolling down beyond first few items
+ */
+@Composable
+fun BoxScope.ScrollToTopFAB(
+    displayButton: State<Boolean>,
+    isActive: Boolean,
+    onClick: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = displayButton.value,
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .padding(
+                bottom =
+                    if (isActive) 100.dp
+                    else 40.dp
+            ),
+        enter = slideInVertically(
+            // Start the slide from 40 (pixels) above where the content is supposed to go, to
+            // produce a parallax effect
+            initialOffsetY = { -40 }
+        ) + expandVertically(
+            expandFrom = Alignment.Top
+        ) + scaleIn(
+            // Animate scale from 0f to 1f using the top center as the pivot point.
+            transformOrigin = TransformOrigin(0.5f, 0f)
+        ) + fadeIn(initialAlpha = 0.3f),
+        exit = slideOutVertically() + shrinkVertically() + fadeOut() + scaleOut(targetScale = 1.2f),
+    ) {
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier
+                .clip(MaterialTheme.shapes.extraLarge)
+                .background(MaterialTheme.colorScheme.primary)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.KeyboardDoubleArrowUp,
+                contentDescription = stringResource(R.string.icon_scroll_to_top),
+                tint = MaterialTheme.colorScheme.inversePrimary,
+            )
+        }
+    }
+}
+
+
+/***********************************************************************************************
+ *
+ * ********** Navigation / Top App Bar Icon buttons **********
+ *
+ **********************************************************************************************/
 
 @Composable
-fun JumpToTopFAB(
+fun BackNavBtn(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = FloatingActionButtonDefaults.smallShape,
-    containerColor: Color = FloatingActionButtonDefaults.containerColor,
-    contentColor: Color = contentColorFor(containerColor),
-//    elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
-//    interactionSource: MutableInteractionSource? = null,
-    content: @Composable () -> Unit
 ) {
-    Icon(
-        Icons.Filled.KeyboardDoubleArrowUp,
-        //Icons.Filled.VerticalAlignTop,
-        contentDescription = "Jump to top of screen",
-        modifier = modifier.clip(shape).size(40.dp),
-        //modifier = Modifier.size(FloatingActionButtonDefaults.SmallIconSize),
+    DrawIconBtn(
+        icon = Icons.AutoMirrored.Filled.ArrowBack,
+        description = stringResource(id = R.string.icon_back_nav),
+        onClick = onClick
+    )
+}
+
+@Composable
+fun NavDrawerBtn(
+    onClick: () -> Unit,
+) {
+    DrawIconBtn(
+        icon = Icons.Outlined.Menu,
+        description = stringResource(R.string.icon_nav_drawer),
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun QueueBtn(
+    onClick: () -> Unit,
+) {
+    DrawIconBtn(
+        icon = Icons.AutoMirrored.Filled.QueueMusic,
+        description = stringResource(R.string.icon_queue),
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun SearchBtn(
+    onClick: () -> Unit,
+) {
+    DrawIconBtn(
+        icon = Icons.Outlined.Search,
+        description = stringResource(R.string.icon_search),
+        onClick = onClick,
     )
 }
 
 
+/***********************************************************************************************
+ *
+ * ********** Screen Content Icon buttons **********
+ *
+ **********************************************************************************************/
 
-//likely the section where the Floating Action Button is placed in a Composable
-//
-//    val listState = rememberLazyListState()
-//    // The FAB is initially shown. Upon scrolling past the first item we hide the FAB by using a
-//    // remembered derived state to minimize unnecessary compositions.
-//    val fabVisible by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
-//
-//    Scaffold(
-//        floatingActionButton = {
-//            SmallFloatingActionButton(
-//                modifier =
-//                Modifier.animateFloatingActionButton(
-//                    visible = fabVisible,
-//                    alignment = Alignment.BottomEnd
-//                ),
-//                onClick = { /* do something */ },
-//            ) {
-//                Icon(
-//                    Icons.Filled.KeyboardDoubleArrowUp,
-//                    //Icons.Filled.VerticalAlignTop,
-//                    contentDescription = "Jump to top of screen",
-//                    modifier = modifier.clip(shape).size(),
-//                    //modifier = Modifier.size(FloatingActionButtonDefaults.SmallIconSize),
-//                )
-//            }
-//        },
-//        floatingActionButtonPosition = FabPosition.End,
-//    ) {
-//        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-//            for (index in 0 until 100) {
-//                item { Text(text = "List item - $index", modifier = Modifier.padding(24.dp)) }
-//            }
-//        }
-//    }
+@Composable
+fun MoreOptionsBtn(
+    onClick: () -> Unit,
+) {
+    DrawIconBtn(
+        icon = Icons.Default.MoreVert,
+        description = stringResource(R.string.icon_more),
+        onClick = onClick,
+    )
+}
 
-/*
-//visibility logic for button that is supposed to be visible once not at top of the list
-AnimatedVisibility(visible = !isAtTopOfList) {
-        ScrollToTopButton()
-    }
+/**
+ * TODO: not sure if this should be icon button yet
  */
+@Composable
+fun ReorderItemBtn(
+    onClick: () -> Unit,
+    title: String,
+) {
+    DrawIconBtn(
+        icon = Icons.Outlined.Reorder,
+        description = stringResource(R.string.icon_reorder) + " for song " + title,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun MultiSelectBtn(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier.semantics(mergeDescendants = true){},
+) {
+    DrawIconBtn(
+        icon = Icons.Filled.Checklist,
+        description = stringResource(R.string.icon_multi_select),
+        onClick = onClick
+    )
+}
+
+@Composable
+fun SortBtn(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier.semantics(mergeDescendants = true){},
+) {
+    DrawIconBtn(
+        icon = Icons.AutoMirrored.Filled.Sort,
+        description = stringResource(R.string.icon_sort),
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun DrawIconBtn(
+    icon: ImageVector,
+    description: String?,
+    onClick: () -> Unit,
+) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = icon,
+            contentDescription = description,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+    }
+}
