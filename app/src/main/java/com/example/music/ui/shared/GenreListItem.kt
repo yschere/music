@@ -36,7 +36,7 @@ fun GenreListItem(
     Box(modifier = modifier.padding(4.dp)) {
         Surface(
             shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainer, //MaterialTheme.colorScheme.background,
+            color = MaterialTheme.colorScheme.surfaceContainer,
             onClick = { navigateToGenreDetails(genre) },
         ) {
             GenreListItemRow(

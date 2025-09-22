@@ -221,7 +221,7 @@ fun HeaderImage(
         contentScale = ContentScale.Crop,
         modifier = Modifier
             .size(56.dp)
-            .clip(MaterialTheme.shapes.small)
+            .clip(shapes.small)
     )
 }
 
@@ -236,7 +236,7 @@ fun HeaderInitial(
     Box(
         modifier = Modifier
             .size(56.dp)
-            .clip(MaterialTheme.shapes.small)
+            .clip(shapes.small)
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
         Text(
             text = name[0].toString(),
@@ -998,8 +998,7 @@ fun DetailsSortSelectionBottomModal(
             item {
                 Text(
                     text = "Sort by",
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     textAlign = TextAlign.Left,
                     style = MaterialTheme.typography.titleLarge,
                 )
