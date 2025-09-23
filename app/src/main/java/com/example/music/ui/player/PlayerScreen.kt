@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SliderDefaults.Thumb
@@ -46,7 +47,11 @@ import androidx.compose.material3.SliderDefaults.Track
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -85,6 +90,7 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.Loading
+import com.example.music.ui.shared.PlayerMoreOptionsBottomModal
 import com.example.music.ui.shared.formatString
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
@@ -166,9 +172,21 @@ private fun PlayerScreenError(
     )
 }
 
+
+data class PlayerModalActions(
+    val onDismissRequest: () -> Unit,
+    //val addToPlaylist: () -> Unit = {},
+    val goToArtist: () -> Unit,
+    val goToAlbum: () -> Unit,
+    val clearQueue: () -> Unit,
+    val saveQueue: () -> Unit,
+    val onClose: () -> Unit,
+)
+
 /**
  * Stateless version of Player Screen
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayerScreen(
     currentSong: SongInfo,
@@ -184,11 +202,30 @@ private fun PlayerScreen(
     playerControlActions: PlayerControlActions,
     modifier: Modifier = Modifier
 ) {
+    Log.i(TAG, "Player Screen START\n" +
+        "currentSong: $currentSong")
+
     val coroutineScope = rememberCoroutineScope()
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
     val snackbarHostState = remember { SnackbarHostState() }
-    
+
+    val sheetState = rememberModalBottomSheetState(false)
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     Scaffold(
+        topBar = {
+            PlayerTopAppBar(
+                navigateBack = navigateBack,
+                navigateToQueue = {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(snackBarText)
+                    }
+                },
+                onMoreOptionsClick = {
+                    showBottomSheet = true
+                },
+            )
+        },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = modifier, // Note: no window insets padding to modifier so player screen's image background draws behind system bars
         containerColor = Color.Transparent,
@@ -205,13 +242,75 @@ private fun PlayerScreen(
                 hasNext = hasNext,
                 windowSizeClass = windowSizeClass,
                 displayFeatures = displayFeatures,
-                navigateBack = navigateBack,
-                navigateToQueue = {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(snackBarText)
-                    }
-                },
                 playerControlActions = playerControlActions,
+                playerModalActions = PlayerModalActions(
+                    onDismissRequest = {
+                        showBottomSheet = false
+                    },
+                    goToArtist = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Player More Options -> Go to Artist clicked :: ${currentSong.artistId}")
+                            //navigateToArtistDetails(currentSong.artistId)
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showBottomSheet to FALSE")
+                            if(!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    },
+                    goToAlbum = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Player More Options -> Go to Album clicked :: ${currentSong.albumId}")
+                            //navigateToAlbumDetails(currentSong.albumId)
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showBottomSheet to FALSE")
+                            if(!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    },
+                    clearQueue = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Player More Options -> Clear Queue clicked")
+                            //onPlayerAction(PlayerAction.ClearQueue())
+                            //navigateToAlbumDetails(currentSong.albumId)
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showBottomSheet to FALSE")
+                            if(!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    },
+                    saveQueue = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Player More Options -> Save Queue clicked")
+                            //onPlayerAction(PlayerAction.SaveQueue())
+                            //navigateToAlbumDetails(currentSong.albumId)
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showBottomSheet to FALSE")
+                            if(!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    },
+                    onClose = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Hide sheet state")
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showBottomSheet to FALSE")
+                            if(!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    },
+                ),
+                sheetState = sheetState,
+                showBottomSheet = showBottomSheet,
                 contentPadding = contentPadding,
             )
         } else {
@@ -229,6 +328,42 @@ private fun PlayerLoadingScreen(
 ) { Loading(modifier = modifier) }
 
 /**
+ * Composable for Player Screen's Top App Bar.
+ * FixMe: determine expected functionality for queue icon onClick
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PlayerTopAppBar(
+    //queue: List<SongInfo>,
+    navigateBack: () -> Unit,
+    navigateToQueue: () -> Unit,
+    onMoreOptionsClick: () -> Unit = {},
+){
+    TopAppBar(
+        title = {},
+        navigationIcon = {
+            // Back btn
+            BackNavBtn(onClick = navigateBack)
+        },
+        actions = {
+            // navigateToQueue btn
+            QueueBtn(onClick = navigateToQueue)
+
+            // Current Song More Options btn
+            MoreOptionsBtn(onClick = onMoreOptionsClick)
+        },
+        colors = TopAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Transparent,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        scrollBehavior = pinnedScrollBehavior(),
+    )
+}
+
+/**
  * Draw a background image using the current song's artwork cover. Image will be
  * scaled up by 150% and blurred with provided color(s) as a filter.
  */
@@ -244,17 +379,18 @@ private fun PlayerBackground(
         modifier = modifier,
     )
 
-//    ImageBackgroundRadialGradientFilter_Bm(
-//        imageId = currentSong.artworkBitmap,
-//        imageDescription = currentSong.title,
-//        colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.tertiaryContainer),
-//        modifier = modifier,
-//    )
+    /*ImageBackgroundRadialGradientFilter_Bm(
+        imageId = currentSong.artworkBitmap,
+        imageDescription = currentSong.title,
+        colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.tertiaryContainer),
+        modifier = modifier,
+    )*/
 }
 
 /**
  * Composable that begins drawing the background and foreground content of the Player Screen
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerContentWithBackground(
     currentSong: SongInfo,
@@ -266,9 +402,10 @@ fun PlayerContentWithBackground(
     hasNext: Boolean,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
-    navigateBack: () -> Unit,
-    navigateToQueue: () -> Unit,
     playerControlActions: PlayerControlActions,
+    playerModalActions: PlayerModalActions,
+    sheetState: SheetState,
+    showBottomSheet: Boolean,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
@@ -289,9 +426,10 @@ fun PlayerContentWithBackground(
             hasNext = hasNext,
             windowSizeClass = windowSizeClass,
             displayFeatures = displayFeatures,
-            navigateBack = navigateBack,
-            navigateToQueue = navigateToQueue,
             playerControlActions = playerControlActions,
+            playerModalActions = playerModalActions,
+            sheetState = sheetState,
+            showBottomSheet = showBottomSheet,
             modifier = Modifier.padding(contentPadding)
         )
     }
@@ -301,6 +439,7 @@ fun PlayerContentWithBackground(
  * Composable for determining Player Screen layout based on window sizing and device orientation.
  * TODO: Define the layouts for the different window size classes
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerContent(
     currentSong: SongInfo,
@@ -312,9 +451,10 @@ fun PlayerContent(
     hasNext: Boolean,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
-    navigateBack: () -> Unit,
-    navigateToQueue: () -> Unit,
     playerControlActions: PlayerControlActions,
+    playerModalActions: PlayerModalActions,
+    sheetState: SheetState,
+    showBottomSheet: Boolean,
     modifier: Modifier = Modifier
 ) {
     //val foldingFeature = displayFeatures.filterIsInstance<FoldingFeature>().firstOrNull()
@@ -334,7 +474,7 @@ fun PlayerContent(
 
     // else, use default. currently set as the version that would be under isCompact
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         PlayerContentRegular (
             currentSong = currentSong,
@@ -344,10 +484,11 @@ fun PlayerContent(
             progress = progress,
             timeElapsed = timeElapsed,
             hasNext = hasNext,
-            navigateBack = navigateBack,
-            navigateToQueue = navigateToQueue,
             playerControlActions = playerControlActions,
-            modifier = Modifier
+            playerModalActions = playerModalActions,
+            sheetState = sheetState,
+            showBottomSheet = showBottomSheet,
+            modifier = modifier
         )
     }
 }
@@ -357,6 +498,7 @@ fun PlayerContent(
  * Landscape mode is not denied, but the layout does not dynamically adjust to a better layout
  * for it.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayerContentRegular(
     currentSong: SongInfo,
@@ -366,9 +508,10 @@ private fun PlayerContentRegular(
     progress: Float,
     timeElapsed: Long,
     hasNext: Boolean,
-    navigateBack: () -> Unit,
-    navigateToQueue: () -> Unit,
     playerControlActions: PlayerControlActions,
+    playerModalActions: PlayerModalActions,
+    sheetState: SheetState,
+    showBottomSheet: Boolean,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -376,10 +519,6 @@ private fun PlayerContentRegular(
             .fillMaxSize()
             .padding(horizontal = 8.dp)
     ) {
-        PlayerTopAppBar(
-            navigateBack = navigateBack,
-            navigateToQueue = navigateToQueue,
-        )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(horizontal = 8.dp)
@@ -430,34 +569,21 @@ private fun PlayerContentRegular(
             Spacer(modifier = Modifier.weight(1f))
         }
     }
-}
-
-/**
- * Top App Bar for Player Screen
- * FixMe: determine expected functionality for queue icon onClick
- */
-@Composable
-private fun PlayerTopAppBar(
-    //queue: List<SongInfo>,
-    navigateBack: () -> Unit,
-    navigateToQueue: () -> Unit,
-    onMoreOptionsClick: () -> Unit = {},
-){
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        // Back btn
-        BackNavBtn(onClick = navigateBack)
-
-        //right align objects after this space
-        Spacer(Modifier.weight(1f))
-
-        // navigateToQueue btn
-        QueueBtn(onClick = navigateToQueue)
-
-        // More Options btn
-        MoreOptionsBtn(onClick = onMoreOptionsClick)
+    if (showBottomSheet) {
+        Log.i(TAG, "Player Screen Content -> Player More Options is TRUE")
+        PlayerMoreOptionsBottomModal(
+            onDismissRequest = playerModalActions.onDismissRequest,
+            sheetState = sheetState,
+            song = currentSong,
+            //playNext = {},
+            //addToFavorites = {},
+            //addToPlaylist = {},
+            goToArtist = playerModalActions.goToArtist,
+            goToAlbum = playerModalActions.goToAlbum,
+            clearQueue = playerModalActions.clearQueue,
+            saveQueue = playerModalActions.saveQueue,
+            onClose = playerModalActions.onClose,
+        )
     }
 }
 
@@ -537,8 +663,8 @@ private fun SongLyricsSwitch(
                 text = "Song",
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines =
-                if (hasLyrics) Int.MAX_VALUE
-                else 3,
+                    if (hasLyrics) Int.MAX_VALUE
+                    else 3,
                 overflow = TextOverflow.Ellipsis,
                 onTextLayout = { result ->
                     showLyrics = result.hasVisualOverflow
