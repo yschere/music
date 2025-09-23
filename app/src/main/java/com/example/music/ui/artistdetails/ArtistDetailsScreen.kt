@@ -198,7 +198,7 @@ fun ArtistDetailsScreen(
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
-    val sheetState = rememberModalBottomSheetState(false,)
+    val sheetState = rememberModalBottomSheetState(false)
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSortSheet by remember { mutableStateOf(false) }
     var showAlbumMoreOptions by remember { mutableStateOf(false) }
@@ -210,18 +210,7 @@ fun ArtistDetailsScreen(
     ) {
         Scaffold(
             topBar = {
-                ArtistDetailsTopAppBar(
-                    artist = artist,
-                    navigateBack = navigateBack,
-                    navigateToSearch = navigateToSearch,
-                    onMoreOptionsClick = {
-                        showBottomSheet = true
-                        showArtistMoreOptions = true
-                    },
-                    isCollapsed = isCollapsed,
-                    appBarScrollBehavior = appBarScrollBehavior,
-                )
-                /*LargeTopAppBar(
+                LargeTopAppBar(
                     title = {
                         // if true, bar is collapsed so use album title as title
                         if ( isCollapsed.value ) {
@@ -264,7 +253,7 @@ fun ArtistDetailsScreen(
                         actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
-                )*/
+                )
                 /*ArtistDetailsTopAppBar(
                     navigateBack = navigateBack,
                     navigateToSearch = navigateToSearch,
@@ -313,6 +302,7 @@ fun ArtistDetailsScreen(
                                 },
                                 textAlign = TextAlign.Left,
                                 style = MaterialTheme.typography.titleMedium,
+                                // adding 12.dp horizontal padding for screen with carousel
                                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
                             )
                         }
@@ -347,7 +337,8 @@ fun ArtistDetailsScreen(
                                 onSelectClick = {
                                     Log.i(TAG, "Multi Select btn clicked")
                                 },
-                                modifier = Modifier.padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
+                                // adding 12.dp horizontal padding for screen with carousel
+                                modifier = Modifier.padding(horizontal = 12.dp)
                             )
                         }
 
@@ -363,16 +354,14 @@ fun ArtistDetailsScreen(
                                     onArtistAction(ArtistAction.ShuffleSongs(songs))
                                     navigateToPlayer()
                                 },
-                                modifier = Modifier.padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
+                                // adding 12.dp horizontal padding for screen with carousel
+                                modifier = Modifier.padding(horizontal = 12.dp)
                             )
                         }
 
-                        items(
-                            items = songs
-                        ) { song ->
-                            Box(
-                                Modifier.padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
-                            ) {
+                        items(items = songs) { song ->
+                            // adding 12.dp horizontal padding for screen with carousel
+                            Box(Modifier.padding(horizontal = 12.dp)) {
                                 SongListItem(
                                     song = song,
                                     onClick = {
@@ -726,45 +715,6 @@ fun ArtistDetailsTopAppBar(
     appBarScrollBehavior: TopAppBarScrollBehavior,
     modifier: Modifier = Modifier
 ) {
-    LargeTopAppBar(
-        title = {
-            // if true, bar is collapsed so use album title as title
-            if ( isCollapsed.value ) {
-                Text(
-                    text = artist.name,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.basicMarquee()
-                )
-            } else {
-                // if false, bar is expanded so use full header
-                ArtistDetailsHeaderTitle(artist)
-            }
-        },
-        navigationIcon = {
-            // Back btn
-            BackNavBtn(onClick = navigateBack)
-        },
-        actions = {
-            // Search btn
-            SearchBtn(onClick = navigateToSearch)
-
-            // Artist More Options
-            MoreOptionsBtn(onClick = onMoreOptionsClick)
-        },
-        collapsedHeight = 48.dp,//TopAppBarDefaults.LargeAppBarCollapsedHeight, // is 64.dp
-        expandedHeight = 120.dp,//80.dp,//TopAppBarDefaults.LargeAppBarExpandedHeight,//200.dp, // for Header
-        windowInsets = TopAppBarDefaults.windowInsets,
-        colors = TopAppBarColors(
-            containerColor = Color.Transparent,
-            scrolledContainerColor = Color.Transparent,
-            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        ),
-        scrollBehavior = appBarScrollBehavior,
-    )
     /*Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
