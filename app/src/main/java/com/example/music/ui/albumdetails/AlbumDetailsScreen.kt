@@ -1,7 +1,6 @@
 package com.example.music.ui.albumdetails
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -46,7 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -108,9 +106,9 @@ fun AlbumDetailsScreen(
                 album = uiState.album,
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
+                currentSong = viewModel.currentSong,
                 isActive = viewModel.isActive, // if playback is active
                 isPlaying = viewModel.isPlaying,
-                currentSong = viewModel.currentSong,
 
                 onAlbumAction = viewModel::onAlbumAction,
                 navigateBack = navigateBack,
@@ -156,7 +154,7 @@ private fun AlbumDetailsLoadingScreen(
 /**
  * Stateless version of Album Details Screen
  */
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumDetailsScreen(
     album: AlbumInfo,
@@ -194,7 +192,7 @@ fun AlbumDetailsScreen(
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
-    val sheetState = rememberModalBottomSheetState(false,)
+    val sheetState = rememberModalBottomSheetState(false)
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSortSheet by remember { mutableStateOf(false) }
     var showAlbumMoreOptions by remember { mutableStateOf(false) }

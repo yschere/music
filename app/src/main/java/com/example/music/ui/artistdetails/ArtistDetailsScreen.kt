@@ -6,28 +6,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -37,10 +27,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -84,6 +76,7 @@ import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.BackNavBtn
 import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.ScrollToTopFAB
 import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
@@ -109,7 +102,7 @@ fun ArtistDetailsScreen(
     if (uiState.errorMessage != null) {
         ArtistDetailsError(onRetry = viewModel::refresh)
     }
-    Surface {
+    Surface(color = Color.Transparent) {
         if (uiState.isReady) {
             ArtistDetailsScreen(
                 artist = uiState.artist,
@@ -117,9 +110,9 @@ fun ArtistDetailsScreen(
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
                 selectAlbum = uiState.selectAlbum,
+                currentSong = viewModel.currentSong,
                 isActive = viewModel.isActive, // if playback is active
                 isPlaying = viewModel.isPlaying,
-                currentSong = viewModel.currentSong,
 
                 onArtistAction = viewModel::onArtistAction,
                 navigateBack = navigateBack,
@@ -165,7 +158,7 @@ private fun ArtistDetailsLoadingScreen(
 /**
  * Stateless version of Artist Details Screen
  */
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistDetailsScreen(
     artist: ArtistInfo,
@@ -173,9 +166,9 @@ fun ArtistDetailsScreen(
     songs: List<SongInfo>,
     selectSong: SongInfo,
     selectAlbum: AlbumInfo,
+    currentSong: SongInfo,
     isActive: Boolean,
     isPlaying: Boolean,
-    currentSong: SongInfo,
 
     onArtistAction: (ArtistAction) -> Unit,
     navigateBack: () -> Unit,
@@ -202,6 +195,9 @@ fun ArtistDetailsScreen(
         }
     }
 
+    val listState = rememberLazyGridState()
+    val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
+
     val sheetState = rememberModalBottomSheetState(false,)
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSortSheet by remember { mutableStateOf(false) }
@@ -210,12 +206,22 @@ fun ArtistDetailsScreen(
     var showSongMoreOptions by remember { mutableStateOf( false ) }
 
     ScreenBackground(
-        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        modifier = modifier
     ) {
         Scaffold(
-            contentWindowInsets = WindowInsets.systemBarsIgnoringVisibility,
             topBar = {
-                LargeTopAppBar(
+                ArtistDetailsTopAppBar(
+                    artist = artist,
+                    navigateBack = navigateBack,
+                    navigateToSearch = navigateToSearch,
+                    onMoreOptionsClick = {
+                        showBottomSheet = true
+                        showArtistMoreOptions = true
+                    },
+                    isCollapsed = isCollapsed,
+                    appBarScrollBehavior = appBarScrollBehavior,
+                )
+                /*LargeTopAppBar(
                     title = {
                         // if true, bar is collapsed so use album title as title
                         if ( isCollapsed.value ) {
@@ -258,7 +264,7 @@ fun ArtistDetailsScreen(
                         actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
-                )
+                )*/
                 /*ArtistDetailsTopAppBar(
                     navigateBack = navigateBack,
                     navigateToSearch = navigateToSearch,
@@ -276,6 +282,7 @@ fun ArtistDetailsScreen(
                         navigateToPlayer = navigateToPlayer,
                         onPlayPress = miniPlayerControlActions.onPlayPress,
                         onPausePress = miniPlayerControlActions.onPausePress,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                     )
                 }
             },
@@ -286,108 +293,121 @@ fun ArtistDetailsScreen(
         ) { contentPadding ->
             val albs = albums.toPersistentList()
             val pagerState = rememberPagerState { albs.size }
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(1),
-                modifier = modifier.padding(contentPadding)
-                    .fillMaxSize()
-                    // does not have .padding(horizontal = 12.dp) to account for the albums carousel
-            ) {
-                // Albums Section
-                if (albums.isNotEmpty()) {
-                    fullWidthItem {
-                        // this item is only for listing count of albums, so not using sorting or selection here
-                        Text(
-                            text = """\s[a-z]""".toRegex().replace(
-                                quantityStringResource(R.plurals.albums, albums.size, albums.size)
-                            ) {
-                                it.value.uppercase()
-                            },
-                            textAlign = TextAlign.Left,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
-                        )
-                    }
 
-                    fullWidthItem {
-                        FeaturedAlbumsCarousel(
-                            pagerState = pagerState,
-                            items = albums,
-                            navigateToAlbumDetails = navigateToAlbumDetails,
-                            onMoreOptionsClick = { album: AlbumInfo ->
-                                Log.i(TAG, "Album More Options clicked: ${album.title}")
-                                onArtistAction( ArtistAction.AlbumMoreOptionClicked(album) )
-                                showBottomSheet = true
-                                showAlbumMoreOptions = true
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-
-                // Song Section
-                if (songs.isNotEmpty()) {
-                    fullWidthItem {
-                        ItemCountAndSortSelectButtons(
-                            id = R.plurals.songs,
-                            itemCount = songs.size,
-                            onSortClick = {
-                                Log.i(TAG, "Song Sort btn clicked")
-                                showBottomSheet = true
-                                showSortSheet = true
-                            },
-                            onSelectClick = {
-                                Log.i(TAG, "Multi Select btn clicked")
-                            },
-                            modifier = Modifier.padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
-                        )
-                    }
-
-                    fullWidthItem {
-                        PlayShuffleButtons(
-                            onPlayClick = {
-                                Log.i(TAG, "Play Songs btn clicked")
-                                onArtistAction(ArtistAction.PlaySongs(songs))
-                                navigateToPlayer()
-                            },
-                            onShuffleClick = {
-                                Log.i(TAG, "Shuffle Songs btn clicked")
-                                onArtistAction(ArtistAction.ShuffleSongs(songs))
-                                navigateToPlayer()
-                            },
-                            modifier = Modifier.padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
-                        )
-                    }
-
-                    // Songs List
-                    items(
-                        items = songs
-                    ) { song ->
-                        Box(
-                            Modifier.padding(horizontal = 12.dp, vertical = 0.dp) // added for screen with carousel for additional horizontal padding
-                        ) {
-                            SongListItem(
-                                song = song,
-                                onClick = {
-                                    Log.i(TAG, "Song clicked: ${song.title}")
-                                    onArtistAction(ArtistAction.PlaySong(song))
-                                    navigateToPlayer()
+            Box(Modifier.fillMaxSize()) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(1),
+                    modifier = modifier.padding(contentPadding)
+                        .fillMaxSize()
+                        // does not have .padding(horizontal = 12.dp) to account for the albums carousel
+                ) {
+                    // Albums Section
+                    if (albums.isNotEmpty()) {
+                        fullWidthItem {
+                            // this item is only for listing count of albums, so not using sorting or selection here
+                            Text(
+                                text = """\s[a-z]""".toRegex().replace(
+                                    quantityStringResource(R.plurals.albums, albums.size, albums.size)
+                                ) {
+                                    it.value.uppercase()
                                 },
-                                onMoreOptionsClick = {
-                                    Log.i(TAG, "Song More Option clicked: ${song.title}")
-                                    onArtistAction(ArtistAction.SongMoreOptionClicked(song))
+                                textAlign = TextAlign.Left,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                            )
+                        }
+
+                        fullWidthItem {
+                            FeaturedAlbumsCarousel(
+                                pagerState = pagerState,
+                                items = albums,
+                                navigateToAlbumDetails = navigateToAlbumDetails,
+                                onMoreOptionsClick = { album: AlbumInfo ->
+                                    Log.i(TAG, "Album More Options clicked: ${album.title}")
+                                    onArtistAction(ArtistAction.AlbumMoreOptionClicked(album))
                                     showBottomSheet = true
-                                    showSongMoreOptions = true
+                                    showAlbumMoreOptions = true
                                 },
-                                isListEditable = false,
-                                showAlbumImage = true,
-                                showArtistName = true,
-                                showAlbumTitle = true,
-                                showTrackNumber = false,
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
                     }
+
+                    // Song Section
+                    if (songs.isNotEmpty()) {
+                        fullWidthItem {
+                            ItemCountAndSortSelectButtons(
+                                id = R.plurals.songs,
+                                itemCount = songs.size,
+                                onSortClick = {
+                                    Log.i(TAG, "Song Sort btn clicked")
+                                    showBottomSheet = true
+                                    showSortSheet = true
+                                },
+                                onSelectClick = {
+                                    Log.i(TAG, "Multi Select btn clicked")
+                                },
+                                modifier = Modifier.padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
+                            )
+                        }
+
+                        fullWidthItem {
+                            PlayShuffleButtons(
+                                onPlayClick = {
+                                    Log.i(TAG, "Play Songs btn clicked")
+                                    onArtistAction(ArtistAction.PlaySongs(songs))
+                                    navigateToPlayer()
+                                },
+                                onShuffleClick = {
+                                    Log.i(TAG, "Shuffle Songs btn clicked")
+                                    onArtistAction(ArtistAction.ShuffleSongs(songs))
+                                    navigateToPlayer()
+                                },
+                                modifier = Modifier.padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
+                            )
+                        }
+
+                        items(
+                            items = songs
+                        ) { song ->
+                            Box(
+                                Modifier.padding(horizontal = 12.dp) // added for screen with carousel for additional horizontal padding
+                            ) {
+                                SongListItem(
+                                    song = song,
+                                    onClick = {
+                                        Log.i(TAG, "Song clicked: ${song.title}")
+                                        onArtistAction(ArtistAction.PlaySong(song))
+                                        navigateToPlayer()
+                                    },
+                                    onMoreOptionsClick = {
+                                        Log.i(TAG, "Song More Option clicked: ${song.title}")
+                                        onArtistAction(ArtistAction.SongMoreOptionClicked(song))
+                                        showBottomSheet = true
+                                        showSongMoreOptions = true
+                                    },
+                                    isListEditable = false,
+                                    showAlbumImage = true,
+                                    showArtistName = true,
+                                    showAlbumTitle = true,
+                                    showTrackNumber = false,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
                 }
+
+                ScrollToTopFAB(
+                    displayButton = displayButton,
+                    isActive = isActive,
+                    onClick = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Scroll to Top btn clicked")
+                            listState.animateScrollToItem(0)
+                        }
+                    }
+                )
             }
 
             // ArtistDetails BottomSheet
@@ -695,14 +715,57 @@ fun ArtistDetailsScreen(
 /**
  * Composable for Artist Details Screen's Top App Bar.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistDetailsTopAppBar(
+    artist: ArtistInfo,
     navigateBack: () -> Unit,
     navigateToSearch: () -> Unit,
     onMoreOptionsClick: () -> Unit,
+    isCollapsed: State<Boolean>,
+    appBarScrollBehavior: TopAppBarScrollBehavior,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    LargeTopAppBar(
+        title = {
+            // if true, bar is collapsed so use album title as title
+            if ( isCollapsed.value ) {
+                Text(
+                    text = artist.name,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.basicMarquee()
+                )
+            } else {
+                // if false, bar is expanded so use full header
+                ArtistDetailsHeaderTitle(artist)
+            }
+        },
+        navigationIcon = {
+            // Back btn
+            BackNavBtn(onClick = navigateBack)
+        },
+        actions = {
+            // Search btn
+            SearchBtn(onClick = navigateToSearch)
+
+            // Artist More Options
+            MoreOptionsBtn(onClick = onMoreOptionsClick)
+        },
+        collapsedHeight = 48.dp,//TopAppBarDefaults.LargeAppBarCollapsedHeight, // is 64.dp
+        expandedHeight = 120.dp,//80.dp,//TopAppBarDefaults.LargeAppBarExpandedHeight,//200.dp, // for Header
+        windowInsets = TopAppBarDefaults.windowInsets,
+        colors = TopAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Transparent,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        scrollBehavior = appBarScrollBehavior,
+    )
+    /*Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
@@ -718,9 +781,9 @@ fun ArtistDetailsTopAppBar(
         // Search btn
         SearchBtn(onClick = navigateToSearch)
 
-        // Artist More Options
+        // Artist More Options btn
         MoreOptionsBtn(onClick = onMoreOptionsClick)
-    }
+    }*/
 }
 
 @Composable
