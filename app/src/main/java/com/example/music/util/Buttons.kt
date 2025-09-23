@@ -45,55 +45,28 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 
+/***********************************************************************************************
+ *
+ * ********** Screen Content Floating Action Buttons **********
+ *
+ **********************************************************************************************/
+
 /**
- * Icon for showing if a song is in the favorites list. NOT IN USE
+ * Add Songs to Playlist btn, shown specifically when viewing PlaylistDetails of a playlist with no songs
  */
 @Composable
-fun ToggleFavoriteBtn(
-    isFave: Boolean,
+fun AddToPlaylistFAB(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier.semantics(mergeDescendants = true){},
 ) {
-    val clickLabel = stringResource(
-        if (isFave) R.string.icon_fave_remove
-        else R.string.icon_fave_add
-    )
     DrawIconBtn(
-        icon = when {
-            isFave -> Icons.Default.Check
-            else -> Icons.Default.Add
-        },
-        description = when {
-            isFave -> stringResource(R.string.icon_is_fave)
-            else -> stringResource(R.string.icon_is_not_fave)
-        },
+        icon = Icons.Filled.Add,
+        description = stringResource(R.string.icon_add_to_playlist),
         onClick = onClick,
-        btnModifier = modifier.semantics { onClick(label = clickLabel, action = null) },
-        iconModifier = Modifier
-            .shadow(
-                elevation = animateDpAsState(
-                    if (isFave) 0.dp
-                    else 1.dp,
-                    label = "shadow"
-                ).value,
-                shape = MaterialTheme.shapes.small
-            )
-            .background(
-                color = animateColorAsState(
-                    when {
-                        isFave -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.surfaceContainerHighest
-                    }, label = "background"
-                ).value,
-                shape = CircleShape
-            )
-            .padding(4.dp),
-        tint = animateColorAsState(
-            when {
-                isFave -> MaterialTheme.colorScheme.onPrimary
-                else -> MaterialTheme.colorScheme.primary
-            }, label = "tint"
-        ).value,
+        btnModifier = modifier
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary),
+        tint = MaterialTheme.colorScheme.inversePrimary,
     )
 }
 
@@ -142,7 +115,7 @@ fun BoxScope.ScrollToTopFAB(
 
 /***********************************************************************************************
  *
- * ********** Navigation / Top App Bar Icon buttons **********
+ * ********** Screen Navigation Icon Buttons **********
  *
  **********************************************************************************************/
 
@@ -193,7 +166,7 @@ fun SearchBtn(
 
 /***********************************************************************************************
  *
- * ********** Screen Content Icon buttons **********
+ * ********** Inline Screen Content Icon Buttons **********
  *
  **********************************************************************************************/
 
@@ -268,6 +241,59 @@ fun SortBtn(
         description = stringResource(R.string.icon_sort),
         onClick = onClick,
         btnModifier = modifier,
+    )
+}
+
+
+/**
+ * Icon for showing if a song is in the favorites list. NOT IN USE
+ */
+@Composable
+fun ToggleFavoriteBtn(
+    isFave: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val clickLabel = stringResource(
+        if (isFave) R.string.icon_fave_remove
+        else R.string.icon_fave_add
+    )
+    DrawIconBtn(
+        icon = when {
+            isFave -> Icons.Default.Check
+            else -> Icons.Default.Add
+        },
+        description = when {
+            isFave -> stringResource(R.string.icon_is_fave)
+            else -> stringResource(R.string.icon_is_not_fave)
+        },
+        onClick = onClick,
+        btnModifier = modifier.semantics { onClick(label = clickLabel, action = null) },
+        iconModifier = Modifier
+            .shadow(
+                elevation = animateDpAsState(
+                    if (isFave) 0.dp
+                    else 1.dp,
+                    label = "shadow"
+                ).value,
+                shape = MaterialTheme.shapes.small
+            )
+            .background(
+                color = animateColorAsState(
+                    when {
+                        isFave -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.surfaceContainerHighest
+                    }, label = "background"
+                ).value,
+                shape = CircleShape
+            )
+            .padding(4.dp),
+        tint = animateColorAsState(
+            when {
+                isFave -> MaterialTheme.colorScheme.onPrimary
+                else -> MaterialTheme.colorScheme.primary
+            }, label = "tint"
+        ).value,
     )
 }
 
