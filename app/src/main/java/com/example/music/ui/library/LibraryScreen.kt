@@ -3,7 +3,6 @@ package com.example.music.ui.library
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -30,6 +28,11 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabPosition
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarDefaults.TopAppBarExpandedHeight
+import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -40,7 +43,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -71,11 +73,13 @@ import com.example.music.ui.library.song.songItems
 import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
+import com.example.music.ui.shared.CreatePlaylistBottomModal
 import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.GenreMoreOptionsBottomModal
 import com.example.music.ui.shared.LibrarySortSelectionBottomModal
 import com.example.music.ui.shared.NavDrawer
+import com.example.music.ui.shared.PlaylistMoreOptionsBottomModal
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
@@ -116,7 +120,7 @@ fun LibraryScreen(
         Text(text = uiState.errorMessage!!)
         LibraryScreenError(onRetry = viewModel::refresh)
     }
-    Surface {
+    Surface(color = Color.Transparent) {
         LibraryScreen(
             windowSizeClass = windowSizeClass,
             isLoading = uiState.isLoading,
@@ -220,7 +224,7 @@ private fun LibraryScreen(
         coroutineScope,
     ) {
         ScreenBackground(
-            modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
+            modifier = modifier
         ) {
             Scaffold(
                 topBar = {
@@ -250,6 +254,7 @@ private fun LibraryScreen(
                             navigateToPlayer = navigateToPlayer,
                             onPlayPress = miniPlayerControlActions.onPlayPress,
                             onPausePress = miniPlayerControlActions.onPausePress,
+                            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                         )
                     }
                 },
@@ -294,27 +299,32 @@ private fun LibraryScreen(
 /**
  * Composable for Library Screen's Top App Bar.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LibraryTopAppBar(
     navigateToSearch: () -> Unit,
     onNavigationIconClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-   Row(
-       verticalAlignment = Alignment.CenterVertically,
-       modifier = Modifier
-           .fillMaxWidth()
-           .statusBarsPadding()
-           .padding(horizontal = 8.dp)
-   ) {
-       // nav drawer btn
-       NavDrawerBtn(onClick = onNavigationIconClick)
-
-       Spacer(Modifier.weight(1f))
-
-       // search btn
-       SearchBtn(onClick = navigateToSearch)
-   }
+    TopAppBar(
+        title = {},
+        navigationIcon = {
+            NavDrawerBtn(onClick = onNavigationIconClick)
+        },
+        actions = {
+            SearchBtn(onClick = navigateToSearch)
+        },
+        expandedHeight = TopAppBarExpandedHeight,
+        windowInsets = TopAppBarDefaults.windowInsets,
+        colors = TopAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Transparent,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        scrollBehavior = pinnedScrollBehavior(),
+    )
 }
 
 /**
@@ -354,14 +364,20 @@ private fun LibraryContent(
     val sheetState = rememberModalBottomSheetState(false,)
     var showBottomSheet by remember { mutableStateOf(false) }
     var showSortSheet by remember { mutableStateOf(false) }
+    var showCreatePlaylist by remember { mutableStateOf(false) }
+
     var showAlbumMoreOptions by remember { mutableStateOf(false) }
     var showArtistMoreOptions by remember { mutableStateOf(false) }
+    var showComposerMoreOptions by remember { mutableStateOf(false) }
     var showGenreMoreOptions by remember { mutableStateOf(false) }
+    var showPlaylistMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf(false) }
 
     var selectedAlbum by remember { mutableStateOf(AlbumInfo()) }
     var selectedArtist by remember { mutableStateOf(ArtistInfo()) }
+    var selectedComposer by remember { mutableStateOf(ComposerInfo()) }
     var selectedGenre by remember { mutableStateOf(GenreInfo()) }
+    var selectedPlaylist by remember { mutableStateOf(PlaylistInfo()) }
     var selectedSong by remember { mutableStateOf(SongInfo()) }
 
     val groupedAlbumItems = libraryAlbums.groupBy { it.title.first() }
@@ -462,8 +478,24 @@ private fun LibraryContent(
                 LibraryCategory.Composers -> {
                     composerItems(
                         composers = libraryComposers,
-                        coroutineScope = coroutineScope,
-                        navigateToComposerDetails = navigateToComposerDetails,
+                        navigateToComposerDetails = { composer: ComposerInfo ->
+                            Log.i(TAG, "Composer clicked: ${composer.name} :: ${composer.id}")
+                            navigateToComposerDetails(composer)
+                        },
+                        onComposerMoreOptionsClick = { composer: ComposerInfo ->
+                            Log.i(TAG, "Composer More Option clicked: ${composer.name} :: ${composer.id}")
+                            selectedComposer = composer
+                            showBottomSheet = true
+                            showComposerMoreOptions = true
+                        },
+                        onSortClick = {
+                            Log.i(TAG, "Composer Sort btn clicked")
+                            showBottomSheet = true
+                            showSortSheet = true
+                        },
+                        onSelectClick = {
+                            Log.i(TAG, "Composer Multi Select btn clicked")
+                        },
                     )
                 }
 
@@ -535,7 +567,7 @@ private fun LibraryContent(
                             navigateToAlbumDetails(album.id)
                         },
                         onAlbumMoreOptionsClick = { album: AlbumInfo ->
-                            Log.i(TAG, "Album More Option Clicked: ${album.title} :: ${album.id}")
+                            Log.i(TAG, "Album More Option clicked: ${album.title} :: ${album.id}")
                             selectedAlbum = album
                             showBottomSheet = true
                             showAlbumMoreOptions = true
@@ -554,9 +586,29 @@ private fun LibraryContent(
                 LibraryCategory.Playlists -> {
                     playlistItems(
                         playlists = libraryPlaylists,
-                        navigateToPlaylistDetails = navigateToPlaylistDetails,
-                        coroutineScope = coroutineScope,
-                        modifier = modifier
+                        navigateToPlaylistDetails = { playlist: PlaylistInfo ->
+                            Log.i(TAG, "Playlist clicked: ${playlist.name} :: ${playlist.id}")
+                            navigateToPlaylistDetails(playlist)
+                        },
+                        onPlaylistMoreOptionsClick = { playlist: PlaylistInfo ->
+                            Log.i(TAG, "Playlist More Option clicked: ${playlist.name} :: ${playlist.id}")
+                            selectedPlaylist = playlist
+                            showBottomSheet = true
+                            showPlaylistMoreOptions = true
+                        },
+                        onPlusClick = {
+                            Log.i(TAG, "Create Playlist btn clicked")
+                            showBottomSheet = true
+                            showCreatePlaylist = true
+                        },
+                        onSortClick = {
+                            Log.i(TAG, "Playlist Sort btn clicked")
+                            showBottomSheet = true
+                            showSortSheet = true
+                        },
+                        onSelectClick = {
+                            Log.i(TAG, "Playlist Multi Select btn clicked")
+                        },
                     )
                 }
             }
@@ -909,6 +961,137 @@ private fun LibraryContent(
             )
         }
 
+        // bottom sheet context - genre more option btn
+        else if (showPlaylistMoreOptions) {
+            Log.i(TAG, "Library Content -> Playlist More Options is TRUE")
+            PlaylistMoreOptionsBottomModal(
+                onDismissRequest = {
+                    showBottomSheet = false
+                    showPlaylistMoreOptions = false
+                },
+                sheetState = sheetState,
+                playlist = selectedPlaylist,
+                play = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Playlist More Options Modal -> Play Playlist clicked :: ${selectedPlaylist.id}")
+                        //onLibraryAction(LibraryAction.PlayPlaylist(selectedPlaylist))
+                        navigateToPlayer()
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showPlaylistMoreOptions = false
+                        }
+                    }
+                },
+                playNext = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Playlist More Options Modal -> Play Playlist Next clicked :: ${selectedPlaylist.id}")
+                        //onLibraryAction(LibraryAction.PlayPlaylistNext(selectedPlaylist))
+                        navigateToPlayer()
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showPlaylistMoreOptions = false
+                        }
+                    }
+                },
+                shuffle = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Playlist More Options Modal -> Shuffle Playlist clicked :: ${selectedPlaylist.id}")
+                        //onLibraryAction(LibraryAction.ShufflePlaylist(selectedPlaylist))
+                        navigateToPlayer()
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showPlaylistMoreOptions = false
+                        }
+                    }
+                },
+                addToQueue = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Playlist More Options Modal -> Queue Playlist clicked :: ${selectedPlaylist.id}")
+                        //onLibraryAction(LibraryAction.QueuePlaylist(selectedPlaylist))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showPlaylistMoreOptions = false
+                        }
+                    }
+                },
+                goToPlaylist = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Playlist More Options Modal -> GoToPlaylist clicked :: ${selectedPlaylist.id}")
+                        navigateToPlaylistDetails(selectedPlaylist)
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showPlaylistMoreOptions = false
+                        }
+                    }
+                },
+                onClose = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Hide sheet state")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showPlaylistMoreOptions = false
+                        }
+                    }
+                },
+                context = "Library",
+            )
+        }
+
+        // bottom sheet context - create playlist prompt
+        else if (showCreatePlaylist) {
+            Log.i(TAG, "Library Content -> Create Playlist is TRUE")
+            CreatePlaylistBottomModal(
+                onDismissRequest = {
+                    showBottomSheet = false
+                    showCreatePlaylist = false
+                },
+                sheetState = sheetState,
+                coroutineScope = coroutineScope,
+                onClose = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Hide sheet state")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set showCreatePlaylist to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showCreatePlaylist = false
+                        }
+                    }
+                },
+                onCreate = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Create Playlist clicked; does nothing right now")
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE; set showCreatePlaylist to FALSE")
+                        if(!sheetState.isVisible) {
+                            showBottomSheet = false
+                            showCreatePlaylist = false
+                        }
+                    }
+                },
+            )
+        }
+
         // bottom sheet context - song more option btn
         else if (showSongMoreOptions) {
             Log.i(TAG, "Library Content -> Song More Options is TRUE")
@@ -1090,9 +1273,9 @@ private fun PreviewLibrary() {
                 PreviewArtists.size,
                 PreviewAlbums.size,
                 PreviewPlaylists.size),
+            currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,
-            currentSong = PreviewSongs[0],
 
             onLibraryAction = {},
             navigateToHome = {},
