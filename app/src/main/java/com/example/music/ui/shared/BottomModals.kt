@@ -786,6 +786,67 @@ fun PlaylistMoreOptionsBottomModal(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PlayerMoreOptionsBottomModal(
+    onDismissRequest: () -> Unit,
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+
+    song: SongInfo,
+    //addToPlaylist: () -> Unit = {},
+    goToArtist: () -> Unit = {},
+    goToAlbum: () -> Unit = {},
+    clearQueue: () -> Unit = {},
+    saveQueue: () -> Unit = {},
+    onClose: () -> Unit = {},
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground,
+        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
+        dragHandle = { CustomDragHandle() },
+        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+    ) {
+        Column (
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier,
+        ) {
+            MoreOptionModalHeader(song.title, song)
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+
+            val songActions = arrayListOf(
+                //Pair(Actions.PlayItemNext, {}),
+                Pair(Actions.AddToPlaylist, {}),
+                Pair(Actions.GoToArtist, goToArtist),
+                Pair(Actions.GoToAlbum, goToAlbum),
+            )
+
+            songActions.forEach { item ->
+                ActionOptionRow(item.first, item.second)
+            }
+
+            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+
+            val queueActions = arrayListOf(
+                Pair(Actions.ClearQueue, clearQueue),
+                Pair(Actions.SaveQueueToPlaylist, saveQueue)
+            )
+            queueActions.forEach { item ->
+                ActionOptionRow(item.first, item.second)
+            }
+            //// need lists and for each to lay out each modal action
+
+            CloseModalBtn(
+                onClick = onClose,
+                text = "CLOSE"
+            )
+        }
+    }
+}
+
 /**
  * Preemptively adding this since will likely need more options for the queue
  * just not sure how or in what capacity
