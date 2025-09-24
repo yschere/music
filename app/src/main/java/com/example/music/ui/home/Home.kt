@@ -641,8 +641,7 @@ private fun HomeContentGrid(
                 //FeaturedPlaylistsCarousel(
                     pagerState = pagerState,
                     items = featuredLibraryItemsFilterResult.recentAlbums.toPersistentList(),//recentPlaylists.toPersistentList(),
-                    //navigateToPlaylistDetails = navigateToPlaylistDetails,
-                    navigateToAlbumDetails = navigateToAlbumDetails,
+                    onClick = navigateToAlbumDetails,
                     onMoreOptionsClick = { album: AlbumInfo ->
                         onHomeAction( HomeAction.AlbumMoreOptionClicked(album) )
                         onAlbumMoreOptionsClick()

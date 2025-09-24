@@ -41,17 +41,18 @@ private const val TAG = "Featured Items Carousel"
 private val FEATURED_ITEM_IMAGE_SIZE_DP = 160.dp
 
 /**
- * Composable for Featured Albums Carousel. Displays a horizontal pager for the items given
- * @param pagerState [PagerState]
- * @param items [PersistentList] of [AlbumInfo]
- * @param navigateToAlbumDetails [AlbumInfo] -> [Unit]
- * @param modifier [Modifier]
+ * Composable for Featured Albums Carousel. Displays a horizontal pager for the albums given
+ * @param pagerState defines the state of the pager
+ * @param items the list of items to define per page
+ * @param onClick actions to perform when clicking on a pager item
+ * @param onMoreOptionsClick actions to perform when clicking on a pager item's MoreOptions btn
+ * @param modifier defines any modifiers to apply to carousel
  */
 @Composable
 fun FeaturedAlbumsCarousel(
     pagerState: PagerState,
     items: PersistentList<AlbumInfo>,
-    navigateToAlbumDetails: (Long) -> Unit,
+    onClick: (Long) -> Unit,
     onMoreOptionsClick: (AlbumInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -73,7 +74,7 @@ fun FeaturedAlbumsCarousel(
                 pageSpacing = 24.dp,
                 pageSize = PageSize.Fixed(FEATURED_ITEM_IMAGE_SIZE_DP)
             ) { page ->
-                Log.i(TAG, "Generating Carousel Item: $page")
+                Log.i(TAG, "Generating Album Carousel Item: $page")
                 val album = items[page]
                 FeaturedCarouselItem(
                     itemTitle = album.title,
@@ -82,7 +83,7 @@ fun FeaturedAlbumsCarousel(
                     onMoreOptionsClick = { onMoreOptionsClick(album) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable { navigateToAlbumDetails(album.id) }
+                        .clickable { onClick(album.id) }
                 )
             }
         }
@@ -91,20 +92,21 @@ fun FeaturedAlbumsCarousel(
 
 /**
  * Composable for Featured Playlists Carousel. Displays a horizontal pager for the items given
- * @param pagerState [PagerState]
- * @param items [PersistentList] of [PlaylistInfo]
- * @param navigateToPlaylistDetails ([PlaylistInfo]) -> [Unit]
- * @param modifier [Modifier]
+ * @param pagerState defines the state of the pager
+ * @param items the list of items to define per page
+ * @param onClick actions to perform when clicking on a pager item
+ * @param onMoreOptionsClick actions to perform when clicking on a pager item's MoreOptions btn
+ * @param modifier defines any modifiers to apply to carousel
  */
 @Composable
 fun FeaturedPlaylistsCarousel(
     pagerState: PagerState,
     items: PersistentList<PlaylistInfo>,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    onClick: (PlaylistInfo) -> Unit,
     onMoreOptionsClick: (PlaylistInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //Log.i(TAG, "Featured Playlist Carousel START")
+    Log.i(TAG, "Featured Playlist Carousel START")
     Column(modifier = modifier) {
         BoxWithConstraints(
             modifier = Modifier
@@ -122,7 +124,7 @@ fun FeaturedPlaylistsCarousel(
                 pageSize = PageSize.Fixed(FEATURED_ITEM_IMAGE_SIZE_DP)
             ) { page ->
                 val playlist = items[page]
-                //Log.i(TAG, "Horizontal Pager - playlists layout for playlist ${playlist.id}")
+                Log.i(TAG, "Generating Playlist Carousel Item: $page")
                 FeaturedCarouselItem(
                     itemTitle = playlist.name,
                     itemImage = Uri.parse(""), // FixMe: needs Playlist Image generation
@@ -130,7 +132,7 @@ fun FeaturedPlaylistsCarousel(
                     onMoreOptionsClick = { onMoreOptionsClick(playlist) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable { navigateToPlaylistDetails(playlist) }
+                        .clickable { onClick(playlist) }
                 )
             }
         }
@@ -138,7 +140,7 @@ fun FeaturedPlaylistsCarousel(
 }
 
 @Composable
-fun FeaturedCarouselItem(
+private fun FeaturedCarouselItem(
     itemTitle: String = "",
     itemImage: Uri,
     itemSize: Int = 0,
