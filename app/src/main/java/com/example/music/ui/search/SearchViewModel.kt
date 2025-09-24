@@ -3,6 +3,8 @@ package com.example.music.ui.search
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.model.ArtistInfo
 //import com.example.music.domain.player.SongPlayer
 import com.example.music.domain.model.SearchQueryFilterV2
 import com.example.music.domain.model.SongInfo
@@ -16,16 +18,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** Changelog:
- * 4/11/2025 - Created this file to separate View and ViewModel for SearchQuery
- *
- * 4/13/2025 - Finished revisions to view model to better support
- * SearchScreen.
- *
- * 7/22-23/2025 - Deleted SongPlayer from domain layer.
- */
-
-/** logger tag for this class */
 private const val TAG = "Search View Model"
 
 @HiltViewModel
@@ -50,9 +42,9 @@ class SearchQueryViewModel @Inject constructor(
         get() = _queryText
 
     init {
-        Log.i(TAG, "query string: ${queryText.value}")
+        Log.i(TAG, "init START --- query string: ${queryText.value}")
         viewModelScope.launch {
-            Log.i(TAG, "init viewModelScope launch start")
+            Log.i(TAG, "viewModelScope launch START")
             queryText.collectLatest { query ->
                 if (query.blankOrEmpty()) {
                     _state.update { SearchUiState.Idle }
@@ -151,6 +143,23 @@ sealed interface SearchFieldState {
     data object EmptyActive : SearchFieldState
     data object WithInputActive : SearchFieldState
 }
+
+data class SearchActions (
+    val updateQuery: (String) -> Unit, // onSearchInputChanged
+    val changeFieldState: () -> Unit, // onSearchFieldClicked
+    val resetUiState: () -> Unit, // onChevronClicked
+    val clearQuery: () -> Unit, // onClearInputClicked
+    val sendQuery: () -> Unit, // onSendQuery
+)
+
+data class ResultActions (
+    val onSongClicked: (SongInfo) -> Unit,
+    //val onSongMoreOptionsClicked: () -> Unit,
+    val onArtistClicked: (ArtistInfo) -> Unit,
+    //val onArtistMoreOptionsClicked: () -> Unit,
+    val onAlbumClicked: (AlbumInfo) -> Unit,
+    //val onAlbumMoreOptionsClicked: () -> Unit,
+)
 
 // search screen states:
 //// want this to be affected by field actions?

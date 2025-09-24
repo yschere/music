@@ -1,22 +1,16 @@
 package com.example.music.ui.search
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import android.util.Log
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,11 +18,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
@@ -37,7 +31,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -52,36 +45,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.music.R
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
-import com.example.music.domain.model.SongInfo
-import com.example.music.domain.model.SearchQueryFilterV2
+import com.example.music.ui.shared.AlbumListItem
+import com.example.music.ui.shared.ArtistListItem
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.ScreenBackground
-import com.example.music.ui.theme.MusicTheme
-import com.example.music.ui.tooling.SystemLightPreview
+import com.example.music.ui.shared.SongListItem
 
-/** Changelog:
- * 4/11/2025 - Removed SearchQueryViewModel from this file to become
- * a separate file. Moved both that file and this one to own package
- * under ui as ui.search
- *
- * 4/13/2025 - Finished revisions to screen to support MediaStore
- * querying for songs, artists, albums. Intended to be the screen
- * reachable by tapping on the Search Icon of other screens in app.
- * SearchBar is in the TopAppBar, and the contents of the screen
- * are the returned results of the search query.
- *
- * FixMe: further update so that the returned list items are standardized
- *  to match the rest of the app's list item views
- */
+private const val TAG = "Search Screen"
 
 /**
- * Composable for the Search Screen of the app.
+ * Stateful version of Search Screen.
  */
 @Composable
 fun SearchScreen(
@@ -100,7 +79,7 @@ fun SearchScreen(
     // contains the state of the string text in the SearchBar
     val queryText = viewModel.queryText.collectAsState().value
 
-    Surface {
+    Surface(color = Color.Transparent) {
         SearchScreenReady(
             uiState = uiState,
             fieldState = fieldState,
@@ -143,53 +122,70 @@ fun SearchScreenReady(
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     viewModel: SearchQueryViewModel,
+    modifier: Modifier = Modifier,
 ) {
     //val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     //val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
     ScreenBackground(
-        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        modifier = modifier
     ) {
         Scaffold(
-            snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState)
-            },
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding(),
+            topBar = {},
+            contentWindowInsets = WindowInsets.systemBars,
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             containerColor = Color.Transparent,
             contentColor = contentColorFor(MaterialTheme.colorScheme.background)
         ) { contentPadding ->
-
             SearchContent(
                 navigateBack = navigateBack,
                 uiState = uiState,
                 searchFieldState = fieldState,
                 queryText = queryText,
-
-                // update the viewModel queryText
-                onSearchInputChanged = { input -> viewModel.updateQuery(input) },
-
-                // activate? thing to do when user click on field and make it active
-                onSearchFieldClicked = { viewModel.changeFieldState() },
-
-                // clear the query text and reset ui state // full screen reset
-                onChevronClicked = { viewModel.resetUiState() },
-
-                // clear the query text but still using field
-                onClearInputClicked = { viewModel.clearQuery() },
-
-                // send query
-                onSendQuery = { viewModel.sendQuery() },
-
-                // actions to do when user taps/clicks on results
-                onSongClicked = { item ->
-                    viewModel.onPlaySong(item)
-                    navigateToPlayer()
-                },
-                onArtistClicked = { item -> navigateToArtistDetails(item) },
-                onAlbumClicked = { item -> navigateToAlbumDetails(item) },
+                searchActions = SearchActions(
+                    updateQuery = viewModel::updateQuery, // onSearchInputChanged
+                    changeFieldState = viewModel::changeFieldState, // onSearchFieldClicked
+                    resetUiState = viewModel::resetUiState, // onChevronClicked
+                    clearQuery = viewModel::clearQuery, // onClearInputClicked
+                    sendQuery = viewModel::sendQuery, // onSendQuery
+                ),
+                resultActions = ResultActions(
+                    onSongClicked = { item ->
+                        Log.i(TAG, "Song clicked: ${item.title}")
+                        viewModel.onPlaySong(item)
+                        navigateToPlayer()
+                    },
+                    /*onSongMoreOptionsClicked = { item: SongInfo ->
+                        Log.i(TAG, "Song More Options clicked: ${item.title}")
+                        onSearchAction(SearchAction.SongMoreOptionClicked(item))
+                        showBottomSheet = true
+                        showSongMoreOptions = true
+                        //play, playNext, add to queue, add to playlist, go to artist, go to album
+                    },*/
+                    onArtistClicked = { item ->
+                        Log.i(TAG, "Artist clicked: ${item.name}")
+                        navigateToArtistDetails(item)
+                    },
+                    /*onArtistMoreOptionsClicked = { item: ArtistInfo ->
+                        Log.i(TAG, "Artist More Options clicked: ${item.name}")
+                        onSearchAction(SearchAction.ArtistMoreOptionClicked(item))
+                        showBottomSheet = true
+                        showArtistMoreOptions = true
+                        //play, playNext, shuffle, add to queue, add to playlist, go to artist
+                    },*/
+                    onAlbumClicked = { item ->
+                        Log.i(TAG, "Album clicked: ${item.title}")
+                        navigateToAlbumDetails(item)
+                    },
+                    /*onAlbumMoreOptionsClicked = { item: AlbumInfo ->
+                        Log.i(TAG, "Album More Options clicked: ${item.title}")
+                        onSearchAction(SearchAction.AlbumMoreOptionClicked(item))
+                        showBottomSheet = true
+                        showAlbumMoreOptions = true
+                        //play, playnext, shuffle, add to queue, add to playlist, go to album
+                    },*/
+                ),
                 modifier = Modifier.padding(contentPadding),
             )
         }
@@ -202,35 +198,23 @@ fun SearchContent(
     uiState: SearchUiState,
     searchFieldState: SearchFieldState,
     queryText: String,
-    onSearchInputChanged: (String) -> Unit,
-    onSearchFieldClicked: () -> Unit,
-    onChevronClicked: () -> Unit,
-    onClearInputClicked: () -> Unit,
-    onSendQuery: () -> Unit,
-
-    onSongClicked: (SongInfo) -> Unit,
-    onArtistClicked: (ArtistInfo) -> Unit,
-    onAlbumClicked: (AlbumInfo) -> Unit,
+    searchActions: SearchActions,
+    resultActions: ResultActions,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 4.dp)
+            .systemBarsPadding()
+            .padding(horizontal = 12.dp)
     ) {
         SearchField(
             navigateBack,
             uiState,
             searchFieldState,
             queryText,
-            onSearchInputChanged = onSearchInputChanged,
-            onSearchFieldClicked = onSearchFieldClicked,
-            onChevronClicked = onChevronClicked,
-            onClearInputClicked = onClearInputClicked,
-            onSendQuery = onSendQuery,
-            onSongClicked = onSongClicked,
-            onAlbumClicked = onAlbumClicked,
-            onArtistClicked = onArtistClicked,
+            searchActions,
+            resultActions,
         )
     }
 }
@@ -242,51 +226,52 @@ fun SearchField(
     uiState: SearchUiState,
     searchFieldState: SearchFieldState,
     queryText: String,
-    onSearchInputChanged: (String) -> Unit,
-    onSearchFieldClicked: () -> Unit,
-    onChevronClicked: () -> Unit,
-    onClearInputClicked: () -> Unit,
-    onSendQuery: () -> Unit,
-    onSongClicked: (SongInfo) -> Unit,
-    onArtistClicked: (ArtistInfo) -> Unit,
-    onAlbumClicked: (AlbumInfo) -> Unit,
+    searchActions: SearchActions,
+    resultActions: ResultActions,
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
 
     SearchBar(
         inputField = {
             SearchBarDefaults.InputField(
                 query = queryText,
-                onQueryChange = { onSearchInputChanged(it) },
+                onQueryChange = { searchActions.updateQuery(it) },
                 onSearch = {
-                    onSendQuery()
+                    searchActions.sendQuery()
                     isExpanded = true
                 },
                 expanded = isExpanded,
                 onExpandedChange = { isExpanded = it },
                 enabled = true,
-                placeholder = {
-                    Row {
+                placeholder = { Text(stringResource(id = R.string.icon_search)) },
+                leadingIcon = {
+                    if (isExpanded) {
+                        IconButton(onClick = navigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(id = R.string.icon_back_nav),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
+                    } else {
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = stringResource(R.string.icon_search),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
-                        Text(stringResource(id = R.string.icon_search))
                     }
-                },
-                leadingIcon = {
-                    IconButton(onClick = navigateBack) {
+                    /*IconButton(onClick = navigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(id = R.string.icon_back_nav),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
-                    }
+                    }*/
                 },
                 trailingIcon = {
                     IconButton (
-                        onClick = onChevronClicked
+                        onClick = searchActions.resetUiState
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Clear,
@@ -295,12 +280,8 @@ fun SearchField(
                         )
                     }
                 },
-                interactionSource = null,
+                interactionSource = interactionSource,
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.colors(
-                    //focusedTextColor =
-                    //unfocusedTextColor =
-                )
             )
         },
         expanded = isExpanded,
@@ -309,8 +290,7 @@ fun SearchField(
             containerColor = Color.Transparent,
             dividerColor = Color.Black,
         ),
-        modifier = Modifier
-            .semantics { traversalIndex = 0f },
+        modifier = Modifier.semantics { traversalIndex = 0f }
     ) {
         Column(
             modifier = Modifier
@@ -328,87 +308,148 @@ fun SearchField(
                 SearchUiState.NoResults -> {
                     Text(
                         text = "Nothing found,\nplease try a different search",
+                        textAlign = TextAlign.Center,
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
-                            .padding(top = 8.dp)
+                            .padding(16.dp)
                     )
                 }
 
                 is SearchUiState.SearchResultsFound -> {
                     if (queryText != "" && uiState.results.songs.isNotEmpty()) {
-                        Text(
-                            text = "Songs",
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
-                        uiState.results.songs.forEach { result ->
-                            ListItem(
-                                headlineContent = { Text(result.title) },
-                                modifier = Modifier
-                                    .clickable {
-                                        isExpanded = false
-                                        onSongClicked(result)
-                                    }
-                                    .fillMaxWidth()
+                        Spacer(Modifier.padding(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Songs",
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(16.dp),
+                            )
+                            Spacer(Modifier.weight(1f))
+                            Button(
+                                onClick = {},
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                contentPadding = ButtonDefaults.TextButtonContentPadding,
+                                colors = ButtonDefaults.buttonColors(
+                                    contentColor = MaterialTheme.colorScheme.inversePrimary,
+                                )
+                            ) {
+                                Text(
+                                    text = "More",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+                        uiState.results.songs.forEach { song ->
+                            SongListItem(
+                                song = song,
+                                onClick = { resultActions.onSongClicked(song) },
+                                onMoreOptionsClick = {
+                                    //onSongMoreOptionClicked(song)
+                                },
+                                showArtistName = true,
+                                showAlbumTitle = true,
+                                showAlbumImage = true,
                             )
                         }
                     } else if (queryText != "" && uiState.results.songs.isEmpty()) {
+                        Spacer(Modifier.padding(8.dp))
                         Text(
                             text = "No Songs Found",
-                            modifier = Modifier.padding(vertical = 4.dp),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(16.dp),
                         )
                     }
 
                     if (queryText != "" && uiState.results.artists.isNotEmpty()) {
-                        Text(
-                            text = "Artists",
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
-                        uiState.results.artists.forEach { result ->
-                            ListItem(
-                                headlineContent = { Text(result.name) },
-                                modifier = Modifier
-                                    .clickable {
-                                        isExpanded = false
-                                        onArtistClicked(result)
-                                    }
-                                    .fillMaxWidth()
+                        Spacer(Modifier.padding(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Artists",
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(16.dp),
+                            )
+                            Spacer(Modifier.weight(1f))
+                            Button(
+                                onClick = {},
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                contentPadding = ButtonDefaults.TextButtonContentPadding,
+                                colors = ButtonDefaults.buttonColors(
+                                    contentColor = MaterialTheme.colorScheme.inversePrimary,
+                                )
+                            ) {
+                                Text(
+                                    text = "More",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+                        uiState.results.artists.forEach { artist ->
+                            ArtistListItem(
+                                artist = artist,
+                                navigateToArtistDetails = { resultActions.onArtistClicked(artist) },
+                                onMoreOptionsClick = {
+                                    //onArtistMoreOptionsClicked(artist)
+                                },
                             )
                         }
-                    } else if (queryText != "" && uiState.results.artists.size == 0) {
+                    } else if (queryText != "" && uiState.results.artists.isEmpty()) {
+                        Spacer(Modifier.padding(8.dp))
                         Text(
                             text = "No Artists Found",
-                            modifier = Modifier.padding(vertical = 4.dp),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(16.dp),
                         )
                     }
 
                     if (queryText != "" && uiState.results.albums.isNotEmpty()) {
-                        Text(
-                            text = "Albums",
-                            modifier = Modifier.padding(vertical = 4.dp),)
-                        uiState.results.albums.forEach { result ->
-                            ListItem(
-                                headlineContent = { Text(result.title) },
-                                modifier = Modifier
-                                    .clickable {
-                                        isExpanded = false
-                                        onAlbumClicked(result)
-                                    }
-                                    .fillMaxWidth()
+                        Spacer(Modifier.padding(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Albums",
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(16.dp),
+                            )
+                            Spacer(Modifier.weight(1f))
+                            Button(
+                                onClick = {},
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                contentPadding = ButtonDefaults.TextButtonContentPadding,
+                                colors = ButtonDefaults.buttonColors(
+                                    contentColor = MaterialTheme.colorScheme.inversePrimary,
+                                )
+                            ) {
+                                Text(
+                                    text = "More",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+                        uiState.results.albums.forEach { album ->
+                            AlbumListItem(
+                                album = album,
+                                navigateToAlbumDetails = { resultActions.onAlbumClicked(album) },
+                                onMoreOptionsClick = {
+                                    //onAlbumMoreOptionsClicked(album)
+                                },
+                                cardOrRow = false,
                             )
                         }
-                    } else if (queryText != "" && uiState.results.albums.size == 0) {
+                    } else if (queryText != "" && uiState.results.albums.isEmpty()) {
+                        Spacer(Modifier.padding(8.dp))
                         Text(
                             text = "No Albums Found",
-                            modifier = Modifier.padding(vertical = 4.dp),)
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(16.dp),
+                        )
                     }
                 }
 
-                else -> {
-                    Spacer(modifier = Modifier.fillMaxSize())
-                }
+                else -> { Spacer(modifier = Modifier.fillMaxSize()) }
             }
 
-            // state logic
+            /* // state logic
             // when ui state is idle, change nothing? keep as is
             // when ui state is loading, have loading bar indicator
             // when ui state is error, show error()
@@ -419,115 +460,10 @@ fun SearchField(
             // when ui state is results found, set field to inactive/idle
             // when ui state is loading, set field to idle
             // all other ui state, do nothing to field
+             */
         }
     }
 }
-
-@Composable
-private fun SearchResultsList(
-    items: SearchQueryFilterV2,
-    onSongClicked: (SongInfo) -> Unit,
-    onArtistClicked: (ArtistInfo) -> Unit,
-    onAlbumClicked: (AlbumInfo) -> Unit,
-) {
-    LazyColumn {
-        itemsIndexed(items = items.songs) { index, searchResult ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSongClicked.invoke(searchResult) }
-            ) {
-                Spacer(
-                    modifier = Modifier.height(height = if(index == 0) 16.dp else 4.dp)
-                )
-                Text(
-                    text = searchResult.title,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                Spacer( modifier = Modifier.height(4.dp) )
-                Text(
-                    text = searchResult.artistName,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    fontSize = 12.sp
-                )
-                Spacer( modifier = Modifier.height(8.dp) )
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .padding(start = 16.dp)
-                        .background(MaterialTheme.colorScheme.background.copy(alpha = 0.2f))
-                )
-                Spacer( modifier = Modifier.height(4.dp) )
-            }
-        }
-
-        /*itemsIndexed(items = items.artists) { index, searchResult ->
-            Column(
-                modifier = Modifier.fillMaxWidth().clickable { onArtistClicked.invoke(searchResult) }
-            ) {
-                Spacer(
-                    modifier = Modifier.height(height = if(index == 0) 16.dp else 4.dp)
-                )
-                Text(
-                    text = searchResult.name,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                Spacer( modifier = Modifier.height(4.dp) )
-                Text(
-                    text = "${searchResult.albumCount} albums | ${searchResult.songCount} songs",
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    fontSize = 12.sp
-                )
-                Spacer( modifier = Modifier.height(8.dp) )
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .padding(start = 16.dp)
-                        .background(MaterialTheme.colorScheme.background.copy(alpha=0.2f))
-                )
-                Spacer( modifier = Modifier.height(4.dp) )
-            }
-        }*/
-
-        /*itemsIndexed(items = items.albums) { index, searchResult ->
-            Column(
-                modifier = Modifier.fillMaxWidth().clickable { onAlbumClicked.invoke(searchResult) }
-            ) {
-                Spacer(
-                    modifier = Modifier.height(height = if(index == 0) 16.dp else 4.dp)
-                )
-                Text(
-                    text = searchResult.title,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                Spacer( modifier = Modifier.height(4.dp) )
-                Text(
-                    text = "${searchResult.songCount} songs",
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    fontSize = 12.sp
-                )
-                Spacer( modifier = Modifier.height(8.dp) )
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .padding(start = 16.dp)
-                        .background(MaterialTheme.colorScheme.background.copy(alpha=0.2f))
-                )
-                Spacer( modifier = Modifier.height(4.dp) )
-            }
-        }*/
-    }
-}
-
 
 /*
 @HiltViewModel(assistedFactory = SearchQueryViewModel.Factory::class)
