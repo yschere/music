@@ -6,17 +6,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -181,6 +184,7 @@ fun ArtistDetailsScreen(
     Log.i(TAG, "ArtistDetails Screen START\n" +
         "currentSong? ${currentSong.title}\n" +
         "isActive? $isActive")
+
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
@@ -216,25 +220,19 @@ fun ArtistDetailsScreen(
                         if ( isCollapsed.value ) {
                             Text(
                                 text = artist.name,
-                                maxLines = 3,
-                                overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.headlineMedium,
                                 modifier = Modifier.basicMarquee()
                             )
                         } else {
                             // if false, bar is expanded so use full header
-                            ArtistDetailsHeaderTitle(artist)
+                            ArtistDetailsHeader(artist)
                         }
                     },
                     navigationIcon = {
-                        // Back btn
                         BackNavBtn(onClick = navigateBack)
                     },
                     actions = {
-                        // Search btn
                         SearchBtn(onClick = navigateToSearch)
-
-                        // Artist More Options
                         MoreOptionsBtn(
                             onClick = {
                                 showBottomSheet = true
@@ -249,19 +247,11 @@ fun ArtistDetailsScreen(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
                         actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
-                /*ArtistDetailsTopAppBar(
-                    navigateBack = navigateBack,
-                    navigateToSearch = navigateToSearch,
-                    onMoreOptionsClick = {
-                        showBottomSheet = true
-                        showArtistMoreOptions = true
-                    }
-                ) */
             },
             bottomBar = {
                 if (isActive){
@@ -286,6 +276,7 @@ fun ArtistDetailsScreen(
             Box(Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(1),
+                    state = listState,
                     modifier = modifier.padding(contentPadding)
                         .fillMaxSize()
                         // does not have .padding(horizontal = 12.dp) to account for the albums carousel
@@ -311,7 +302,7 @@ fun ArtistDetailsScreen(
                             FeaturedAlbumsCarousel(
                                 pagerState = pagerState,
                                 items = albums,
-                                navigateToAlbumDetails = navigateToAlbumDetails,
+                                onClick = navigateToAlbumDetails,
                                 onMoreOptionsClick = { album: AlbumInfo ->
                                     Log.i(TAG, "Album More Options clicked: ${album.title}")
                                     onArtistAction(ArtistAction.AlbumMoreOptionClicked(album))
@@ -701,97 +692,54 @@ fun ArtistDetailsScreen(
     }
 }
 
-/**
- * Composable for Artist Details Screen's Top App Bar.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ArtistDetailsTopAppBar(
-    artist: ArtistInfo,
-    navigateBack: () -> Unit,
-    navigateToSearch: () -> Unit,
-    onMoreOptionsClick: () -> Unit,
-    isCollapsed: State<Boolean>,
-    appBarScrollBehavior: TopAppBarScrollBehavior,
-    modifier: Modifier = Modifier
-) {
-    /*Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp)
-    ) {
-        // Back button
-        BackNavBtn(onClick = navigateBack)
-
-        //right align objects after this space
-        Spacer(Modifier.weight(1f))
-
-        // Search btn
-        SearchBtn(onClick = navigateToSearch)
-
-        // Artist More Options btn
-        MoreOptionsBtn(onClick = onMoreOptionsClick)
-    }*/
-}
 
 @Composable
-fun ArtistDetailsHeaderItem(
+fun ArtistDetailsHeader_Constraints(
     artist: ArtistInfo,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(
-        modifier = modifier.padding(Keyline1)
+        modifier = modifier.padding(16.dp)
     ) {
-        //val widthConstraint = this.maxWidth
-        val maxImageSize = this.maxWidth / 2
-        //val imageSize = min(maxImageSize, 148.dp)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.sizeIn(maxHeight = this.maxHeight)
         ) {
-            Text(
-                text = artist.name,
-                maxLines = 2,
-                minLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                //color = MaterialTheme.colorScheme.primaryContainer,
-                style = MaterialTheme.typography.headlineMedium
-            )
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = artist.name,
+                    maxLines = 2,
+                    minLines = 1,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+            }
         }
     }
 }
 
 @Composable
-fun ArtistDetailsHeaderTitle(
+fun ArtistDetailsHeader(
     artist: ArtistInfo,
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxWidth(),
     ) {
         Text(
             text = artist.name,
             maxLines = 2,
             minLines = 1,
-            overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
-            //color = MaterialTheme.colorScheme.primaryContainer,
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineMedium,
         )
     }
-}
-
-//@Preview
-@Composable
-fun ArtistDetailsHeaderItemPreview() {
-    ArtistDetailsHeaderItem(
-        artist = PreviewArtists[0],
-    )
 }
 
 @SystemDarkPreview
