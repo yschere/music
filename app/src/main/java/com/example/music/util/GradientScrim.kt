@@ -29,13 +29,13 @@ import kotlin.math.pow
 
 /**
  * Applies a monochromatic radial gradient scrim in the foreground with full parameter freedom.
- * @param color [Color] : Base color to apply to the gradient
- * @param colorStops [List] of [Float] : The list of color stops to draw per color
- * @param maxDimension [Boolean] : Determines if radius will be based on the max dimension side (true)
+ * @param color base color to apply to the gradient
+ * @param colorStops list of color stops to draw per color
+ * @param maxDimension determines if radius will be based on the max dimension side (true)
  * or the min dimension side (false)
- * @param radius [Float] : Multiplier against the dimension determined by maxDimension
- * @param xOffset [Float] : Multiplier against the width to determine the x-axis of the radial center
- * @param yOffset [Float] : Multiplier against the height to determine the y-axis of the radial center
+ * @param radius multiplier against the dimension determined by maxDimension
+ * @param xOffset multiplier against the width to determine the x-axis of the radial center
+ * @param yOffset multiplier against the height to determine the y-axis of the radial center
  */
 fun Modifier.radialMonoGradientScrimAnyParams(
     color: Color = Color.Gray,
@@ -63,14 +63,14 @@ fun Modifier.radialMonoGradientScrimAnyParams(
 
 /**
  * Applies a multicolor radial gradient scrim in the foreground with full parameter freedom.
- * @param colors [List] of [Color] : List of colors to apply to the gradient
- * @param colorStops Nullable [List] of [Float] : The list of color stops to draw per color
- * @param maxDimension [Boolean] : Determines if radius will be based on the max dimension side (true)
+ * @param colors list of colors to apply to the gradient
+ * @param colorStops list of color stops to draw per color
+ * @param maxDimension determines if radius will be based on the max dimension side (true)
  * or the min dimension side (false)
- * @param alpha [Float] : Alpha value to apply to the gradient
- * @param radius [Float] : Multiplier against the dimension determined by maxDimension
- * @param xOffset [Float] : Multiplier against the width to determine the x-axis of the radial center
- * @param yOffset [Float] : Multiplier against the height to determine the y-axis of the radial center
+ * @param alpha alpha value to apply to the gradient
+ * @param radius multiplier against the dimension determined by maxDimension
+ * @param xOffset multiplier against the width to determine the x-axis of the radial center
+ * @param yOffset multiplier against the height to determine the y-axis of the radial center
  */
 fun Modifier.radialMultiGradientScrimAnyParams(
     colors: List<Color> = listOf(Color.Gray, Color.Transparent),
@@ -100,7 +100,7 @@ fun Modifier.radialMultiGradientScrimAnyParams(
 /**
  * Applies a monochromatic radial gradient scrim in the foreground emanating from the top
  * center quarter of the element.
- * @param color [Color] : Base color to apply to the gradient
+ * @param color base color to apply to the gradient
  */
 fun Modifier.radialGradientScrimCentered(
     color: Color = Color.Gray
@@ -122,9 +122,9 @@ fun Modifier.radialGradientScrimCentered(
 /**
  * Applies a multicolor radial gradient scrim in the foreground emanating from the bottom
  * right of the element.
- * @param colors [List] of [Color] : List of colors to apply to the gradient.
+ * @param colors list of colors to apply to the gradient.
  * Appends Transparent to blend the top left corner with the background
- * @param alpha [Float] : Alpha value to apply to the gradient
+ * @param alpha alpha value to apply to the gradient
  */
 fun Modifier.radialMultiGradientScrimBottomRight(
     colors: List<Color>,
@@ -147,12 +147,12 @@ fun Modifier.radialMultiGradientScrimBottomRight(
 /**
  * Applies a multicolor radial gradient scrim in the foreground emanating from any location using
  * offset multipliers.
- * @param colors [List] of [Color] : List of colors to apply to the gradient
- * @param alpha [Float] : Alpha value to apply to the gradient
- * @param maxDimension [Boolean] : Determines if radius will be based on the max dimension side (true)
+ * @param colors list of colors to apply to the gradient
+ * @param alpha alpha value to apply to the gradient
+ * @param maxDimension determines if radius will be based on the max dimension side (true)
  * or the min dimension side (false)
- * @param xOffset [Float] : Multiplier against the width to determine the x-axis of the radial center
- * @param yOffset [Float] : Multiplier against the height to determine the y-axis of the radial center
+ * @param xOffset multiplier against the width to determine the x-axis of the radial center
+ * @param yOffset multiplier against the height to determine the y-axis of the radial center
  */
 fun Modifier.radialMultiGradientScrimAnyOffset(
     colors: List<Color>,
@@ -179,6 +179,7 @@ fun Modifier.radialMultiGradientScrimAnyOffset(
 
 /**
  * Defines some possible color stops for radial gradient scrims.
+ * @param size amount of colors to apply stops to. Min amount defined is 1, max amount defined is 5.
  */
 private fun getColorStops(size: Int): List<Float> =
     when (size) {

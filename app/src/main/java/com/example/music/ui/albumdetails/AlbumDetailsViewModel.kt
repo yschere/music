@@ -58,7 +58,7 @@ class AlbumDetailsViewModel @Inject constructor(
     private val getAlbumDetailsData = getAlbumDetailsV2(albumId)
             .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    private val selectedSong = MutableStateFlow<SongInfo?>(null)
+    private val selectedSong = MutableStateFlow(SongInfo())
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -94,7 +94,7 @@ class AlbumDetailsViewModel @Inject constructor(
 
             Log.i(TAG, "SongController status:\n" +
                 "isActive?: $isActive\n" +
-                "player?: ${player?.playbackState}\n")
+                "player?: ${player?.playbackState}")
 
             combine(
                 refreshing,
@@ -117,7 +117,7 @@ class AlbumDetailsViewModel @Inject constructor(
                     album = albumDetailsFilterResult.album,
                     artist = albumDetailsFilterResult.artist,
                     songs = albumDetailsFilterResult.songs,
-                    selectSong = selectSong ?: SongInfo(),
+                    selectSong = selectSong,
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")
@@ -136,9 +136,9 @@ class AlbumDetailsViewModel @Inject constructor(
             songController.events.collect {
                 Log.d(TAG, "get SongController Player Event(s)")
 
-                // if events is empty, take these actions to generate the needed values for populating the Player Screen
+                // if events is empty, take these actions to generate initial MiniPlayer values
                 if (it == null) {
-                    Log.d(TAG, "init: running start up events to initialize AlbumDetailsVM")
+                    Log.d(TAG, "init: running start up events to initialize MiniPlayer")
                     getSongControllerState()
                     onPlayerEvent(event = Player.EVENT_IS_LOADING_CHANGED)
                     onPlayerEvent(event = Player.EVENT_MEDIA_ITEM_TRANSITION)
@@ -265,7 +265,7 @@ class AlbumDetailsViewModel @Inject constructor(
         songController.play(song)
     }
     private fun onPlaySongNext(song: SongInfo) {
-        Log.i(TAG, "onQueueSongNext -> ${song.title}")
+        Log.i(TAG, "onPlaySongNext -> ${song.title}")
         songController.addToQueueNext(song)
     }
     private fun onQueueSong(song: SongInfo) {
@@ -276,40 +276,18 @@ class AlbumDetailsViewModel @Inject constructor(
     private fun onPlaySongs(songs: List<SongInfo>) {
         Log.i(TAG, "onPlaySongs -> ${songs.size}")
         songController.play(songs)
-        /* //what is the thing that would jump start this step process. would it go thru the viewModel??
-        //step 1: regardless of shuffle being on or off, set shuffle to off
-        //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
-        //step 3: set the player to play the first item in queue
-        //step 4: navigateToPlayer(first item)
-        //step 5: start playing
-        coroutineScope.launch {
-            sheetState.hide()
-            showThemeSheet = false
-        }*/
     }
     private fun onPlaySongsNext(songs: List<SongInfo>) {
-        Log.i(TAG, "onQueueSongsNext - ${songs.size}")
+        Log.i(TAG, "onPlaySongsNext - ${songs.size}")
         songController.addToQueueNext(songs)
-    }
-    private fun onQueueSongs(songs: List<SongInfo>) {
-        Log.i(TAG, "onQueueSongs -> ${songs.size}")
-        songController.addToQueue(songs)
     }
     private fun onShuffleSongs(songs: List<SongInfo>) {
         Log.i(TAG, "onShuffleSongs -> ${songs.size}")
         songController.shuffle(songs)
-        /* //what is the thing that would jump start this step process
-        //step 1: regardless of shuffle being on or off, set shuffle to on
-        //step 2?: confirm the shuffle type
-        //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
-        //step 4: set the player to play the first item in queue
-        //step 5: navigateToPlayer(first item)
-        //step 6: start playing
-        //needs to take the songs in the playlist, shuffle the
-        coroutineScope.launch {
-            sheetState.hide()
-            showThemeSheet = false
-        }*/
+    }
+    private fun onQueueSongs(songs: List<SongInfo>) {
+        Log.i(TAG, "onQueueSongs -> ${songs.size}")
+        songController.addToQueue(songs)
     }
 }
 

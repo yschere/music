@@ -5,7 +5,6 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -175,6 +174,7 @@ fun AlbumDetailsScreen(
     Log.i(TAG, "AlbumDetails Screen START\n" +
         "currentSong? ${currentSong.title}\n" +
         "isActive? $isActive")
+
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //use this to hold the little popup text that appears after an onClick event
@@ -825,9 +825,9 @@ fun AlbumDetailsScreenPreview() {
             //songs = getSongsInAlbum(307),
 
             selectSong = getSongsInAlbum(PreviewAlbums[2].id)[0],
+            currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,
-            currentSong = PreviewSongs[0],
 
             onAlbumAction = {},
             navigateBack = {},

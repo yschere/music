@@ -23,19 +23,15 @@ sealed class Screen(val route: String) {
     object Home : Screen("home") {
         fun createRoute() = "home"
     }
-
     object Library : Screen("library") {
         fun createRoute() = "library"
     }
-
     object Player : Screen("player") {
         fun createRoute() = "player"
     }
-
     object Search : Screen("search") {
         fun createRoute() = "search"
     }
-
     object Settings : Screen("settings") {
         fun createRoute() = "settings"
     }
@@ -43,19 +39,15 @@ sealed class Screen(val route: String) {
     object AlbumDetails : Screen("album/{$ARG_ALBUM_ID}") {
         fun createRoute(albumId: Long) = "album/$albumId"
     }
-
     object ArtistDetails : Screen("artist/{$ARG_ARTIST_ID}") {
         fun createRoute(artistId: Long) = "artist/$artistId"
     }
-
     object ComposerDetails : Screen("composer/{$ARG_COMPOSER_ID}") {
         fun createRoute(composerId: Long) = "composer/$composerId"
     }
-
     object GenreDetails : Screen("genre/{$ARG_GENRE_ID}") {
         fun createRoute(genreId: Long) = "genre/$genreId"
     }
-
     object PlaylistDetails : Screen("playlist/{$ARG_PLAYLIST_ID}") {
         fun createRoute(playlistId: Long) = "playlist/$playlistId"
     }
@@ -92,35 +84,13 @@ sealed class Screen(val route: String) {
     }
 
     /*  multiple screens needed for this
-        home screen -> should have context-less navigation (accessed on app launch, from NavDrawer)
-        library screen -> should have context-less navigation (accessed from NavDrawer)
-        player screen -> needs context of currentSong !null for navigation (accessed from songSelect, bottom bar while currentSong !null)
-        settings screen -> should have context-less navigation (accessed from NavDrawer)
-
-        all playlists screen -> should have context-less navigation (accessed on library)
-        all artists screen -> should have context-less navigation (accessed on library)
-        all albums screen -> should have context-less navigation (accessed on library)
-        all songs screen -> should have context-less navigation (accessed on library)
-        all genres screen -> should have context-less navigation (accessed on library)
-        all composers screen -> should have context-less navigation (accessed on library)
-
-        selected playlist/playlistDetails screen -> needs context of selected item (accessed from home and library.playlists onClick)
-        selected artist/artistDetails screen -> needs context of selected item (accessed from library.artists onClick)
-        selected album/albumDetails screen -> needs context of selected item (accessed from artistDetail, library.albums onClick)
-        selected genre/genreDetails screen -> needs context of selected item (accessed from library.genres onClick)
-        selected composer/composerDetails screen -> needs context of selected item (accessed from library.composers onClick)
-
         edit song tags screen -> needs context of selected item
-        item options screen -> needs context of selected item (access from moreOptionsbtn onClick -> show in bottomModal)
 
         need to figure out if popups are separate screen or context popup for:
-        add to queue(?) DECIDED: own screen w/ own nav route
         multi-select(?) - undecided if it should be its own screen w/ route or if its some fragment? not sure how to access this since the full song list is within library context
         add to playlist - same issue/principle as multi-select, they both need access to song list with checkbox/selection support
         edit playlist - tangentially same issue as add/multi-select
         delete playlist - want this to be a modal with an are you sure CtA/confirmation
-        sort options DECIDED: bottom modal sheet
-        search DECIDED: own screen w/ own nav route
      */
 }
 

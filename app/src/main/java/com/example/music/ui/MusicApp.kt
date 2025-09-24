@@ -69,20 +69,11 @@ fun MusicApp(
                 )
             }
 
-            //Player Screen Navigation Router
-            composable(Screen.Player.route) { _ ->
-                PlayerScreen(
-                    windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
-                    displayFeatures = displayFeatures, //used to determine physical properties of display device to accommodate view accordingly
-                    navigateBack = appState::navigateBack, //navigation back button
-                )
-            }
-
-            //Library Screen Navigation Router
+            // Library Screen Navigation Router
             composable(Screen.Library.route) { backStackEntry ->
                 LibraryScreen(
-                    windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
-                    navigateBack = appState::navigateBack, //navigation back button
+                    windowSizeClass = adaptiveInfo.windowSizeClass,
+                    navigateBack = appState::navigateBack,
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
@@ -109,10 +100,28 @@ fun MusicApp(
                 )
             }
 
-            //Search Screen Navigation Router
+            // Player Screen Navigation Router
+            composable(Screen.Player.route) { backStackEntry ->
+                PlayerScreen(
+                    windowSizeClass = adaptiveInfo.windowSizeClass,
+                    displayFeatures = displayFeatures,
+                    navigateBack = appState::navigateBack,
+                    navigateToAlbumDetails = { albumId ->
+                        Log.i(TAG, "id: $albumId")
+                        appState.navigateToAlbumDetails(albumId, backStackEntry)
+                    },
+                    navigateToArtistDetails = { artistId ->
+                        Log.i(TAG, "id: $artistId")
+                        appState.navigateToArtistDetails(artistId, backStackEntry)
+                    }
+                )
+            }
+
+            // Search Screen Navigation Router
             composable(Screen.Search.route) { backStackEntry ->
                 SearchScreen(
                     navigateBack = appState::navigateBack,
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToAlbumDetails = { album ->
                         Log.i(TAG, "id: ${album.id}")
                         appState.navigateToAlbumDetails(album.id, backStackEntry)
@@ -121,19 +130,17 @@ fun MusicApp(
                         Log.i(TAG, "id: ${artist.id}")
                         appState.navigateToArtistDetails(artist.id, backStackEntry)
                     },
-                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                 )
             }
 
-            //Settings Screen Navigation Router
+            // Settings Screen Navigation Router
             composable(Screen.Settings.route) { backStackEntry ->
                 SettingsScreen(
-                    windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
-                    displayFeatures = displayFeatures, //used to determine physical properties of display device to accommodate view accordingly
-                    navigateBack = appState::navigateBack, //navigation back button
+                    windowSizeClass = adaptiveInfo.windowSizeClass,
+                    displayFeatures = displayFeatures,
+                    navigateBack = appState::navigateBack,
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
-                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSettings = { appState.navigateToSettings(backStackEntry) },
                 )
             }
@@ -141,50 +148,49 @@ fun MusicApp(
             // Selected Album Details Navigation Router
             composable(Screen.AlbumDetails.route) { backStackEntry ->
                 AlbumDetailsScreen(
-                    //windowSizeClass = adaptiveInfo.windowSizeClass, //needed for screens meant to use full screen
                     navigateBack = appState::navigateBack,
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
+                    navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                     navigateToArtistDetails = { artistId ->
                         Log.i(TAG, "id: $artistId")
                         appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
-                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
-                    navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
 
             // Selected Artist Details Navigation Router
             composable(Screen.ArtistDetails.route) { backStackEntry ->
                 ArtistDetailsScreen(
-                    //keeping for now in case window class size becomes relevant
-                    //windowSizeClass = adaptiveInfo.windowSizeClass,
                     navigateBack = appState::navigateBack,
+                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
+                    navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                     navigateToAlbumDetails = { albumId ->
                         Log.i(TAG, "id: $albumId")
                         appState.navigateToAlbumDetails(albumId, backStackEntry)
                     },
-                    navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
-                    navigateToSearch = { appState.navigateToSearch(backStackEntry) },
                 )
             }
 
             // Selected Composer Details Navigation Router
             composable(Screen.ComposerDetails.route) { backStackEntry ->
                 ComposerDetailsScreen(
-                    //keeping for now in case window class size becomes relevant
-                    //windowSizeClass = adaptiveInfo.windowSizeClass,
-
                     navigateBack = appState::navigateBack,
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
+                    navigateToAlbumDetails = { albumId ->
+                        Log.i(TAG, "id: $albumId")
+                        appState.navigateToAlbumDetails(albumId, backStackEntry)
+                    },
+                    navigateToArtistDetails = { artistId ->
+                        Log.i(TAG, "id: $artistId")
+                        appState.navigateToArtistDetails(artistId, backStackEntry)
+                    }
                 )
             }
 
             // Selected Genre Details Navigation Router
             composable(Screen.GenreDetails.route) { backStackEntry ->
                 GenreDetailsScreen(
-                    //keeping for now in case window class size becomes relevant
-                    //windowSizeClass = adaptiveInfo.windowSizeClass,
-
                     navigateBack = appState::navigateBack,
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
@@ -202,12 +208,17 @@ fun MusicApp(
             // Selected Playlist Details Navigation Router
             composable(Screen.PlaylistDetails.route) { backStackEntry ->
                 PlaylistDetailsScreen(
-                    //keeping for now in case window class size becomes relevant
-                    //windowSizeClass = adaptiveInfo.windowSizeClass,
-
                     navigateBack = appState::navigateBack,
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
                     navigateToSearch = { appState.navigateToSearch(backStackEntry) },
+                    navigateToAlbumDetails = { albumId ->
+                        Log.i(TAG, "id: $albumId")
+                        appState.navigateToAlbumDetails(albumId, backStackEntry)
+                    },
+                    navigateToArtistDetails = { artistId ->
+                        Log.i(TAG, "id: $artistId")
+                        appState.navigateToArtistDetails(artistId, backStackEntry)
+                    },
                 )
             }
         }

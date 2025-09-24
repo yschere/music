@@ -61,8 +61,8 @@ class ArtistDetailsViewModel @Inject constructor(
     private val getArtistDetailsData = getArtistDetailsV2(artistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    private val selectedSong = MutableStateFlow<SongInfo?>(null)
-    private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
+    private val selectedSong = MutableStateFlow(SongInfo())
+    private val selectedAlbum = MutableStateFlow(AlbumInfo())
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -98,7 +98,7 @@ class ArtistDetailsViewModel @Inject constructor(
 
             Log.i(TAG, "SongController status:\n" +
                     "isActive?: $isActive\n" +
-                    "player?: ${player?.playbackState}\n")
+                    "player?: ${player?.playbackState}")
 
             combine(
                 refreshing,
@@ -124,8 +124,8 @@ class ArtistDetailsViewModel @Inject constructor(
                     artist = artistDetailsFilterResult.artist,
                     albums = artistDetailsFilterResult.albums,
                     songs = artistDetailsFilterResult.songs,
-                    selectSong = selectSong ?: SongInfo(),
-                    selectAlbum = selectAlbum ?: AlbumInfo(),
+                    selectSong = selectSong,
+                    selectAlbum = selectAlbum,
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")
@@ -144,9 +144,9 @@ class ArtistDetailsViewModel @Inject constructor(
             songController.events.collect {
                 Log.d(TAG, "get SongController Player Event(s)")
 
-                // if events is empty, take these actions to generate the needed values for populating the Player Screen
+                // if events is empty, take these actions to generate initial MiniPlayer values
                 if (it == null) {
-                    Log.d(TAG, "init: running start up events to initialize LibraryVM")
+                    Log.d(TAG, "init: running start up events to initialize MiniPlayer")
                     getSongControllerState()
                     onPlayerEvent(event = Player.EVENT_IS_LOADING_CHANGED)
                     onPlayerEvent(event = Player.EVENT_MEDIA_ITEM_TRANSITION)

@@ -33,8 +33,8 @@ fun Duration.formatString(): String {
 /**
  * referenced by MediaService -> onMediaItemTransition
  */
-internal val Uri.isThirdPartyUri
-    get() = scheme == ContentResolver.SCHEME_CONTENT && authority != MediaStore.AUTHORITY
+//internal val Uri.isThirdPartyUri
+//    get() = scheme == ContentResolver.SCHEME_CONTENT && authority != MediaStore.AUTHORITY
 
 /**
  * returns the positions array from the [DefaultShuffleOrder]
@@ -74,18 +74,6 @@ inline val Player.mediaItems
  * @return The list of media items in the player's queue.
  */
 val Player.queue get() = if (!shuffleModeEnabled) mediaItems else orders.map(::getMediaItemAt)
-
-//suspend fun Context.getAlbumArt(uri: Uri, size: Int = 512): Drawable? {
-//    val request = ImageRequest.Builder(context = applicationContext).data(uri)
-//        // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
-//        .size(size).scale(Scale.FILL)
-//        // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
-//        .allowHardware(false).build()
-//    return when (val result = request.context.imageLoader.execute(request)) {
-//        is SuccessResult -> result.drawable
-//        else -> null
-//    }
-//}
 
 /**
  * referenced by MediaService -> onCustomCommand

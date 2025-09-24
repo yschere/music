@@ -115,6 +115,7 @@ fun LazyListScope.playlistItems(
             playlist = playlist,
             navigateToPlaylistDetails = { navigateToPlaylistDetails(playlist) },
             onMoreOptionsClick = { onPlaylistMoreOptionsClick(playlist) },
+            cardOrRow = true,
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -154,44 +155,7 @@ fun LazyGridScope.playlistItems(
             playlist = playlist,
             navigateToPlaylistDetails = { navigateToPlaylistDetails(playlist) },
             onMoreOptionsClick = { onPlaylistMoreOptionsClick(playlist) },
-            modifier = Modifier.fillMaxWidth()
+            cardOrRow = true,
         )
     }
 }
-
-@Composable
-private fun TopPlaylistRowItem(
-    playlistName: String,
-    //playlistImageId: String,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier.semantics(mergeDescendants = true) {}
-    ) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .align(Alignment.CenterHorizontally)
-        ) {
-            AlbumImage(
-                albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
-                contentDescription = playlistName,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(MaterialTheme.shapes.medium),
-            )
-        }
-
-        Text(
-            text = playlistName,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .fillMaxWidth()
-        )
-    }
-}
-

@@ -16,16 +16,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -63,7 +58,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -106,78 +100,6 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 private const val TAG = "Home Screen"
-
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun <T> ThreePaneScaffoldNavigator<T>.isMainPaneHidden(): Boolean {
-    return scaffoldValue[SupportingPaneScaffoldRole.Main] == PaneAdaptedValue.Hidden
-}
-
-/**
- * Copied from `calculatePaneScaffoldDirective()` in [PaneScaffoldDirective], with modifications to
- * only show 1 pane horizontally if either width or height size class is compact.
- */
-fun calculateScaffoldDirective(
-    windowAdaptiveInfo: WindowAdaptiveInfo,
-    verticalHingePolicy: HingePolicy = HingePolicy.AvoidSeparating
-): PaneScaffoldDirective {
-    val maxHorizontalPartitions: Int
-    val verticalSpacerSize: Dp
-    if (windowAdaptiveInfo.windowSizeClass.isCompact) {
-        // Window width or height is compact. Limit to 1 pane horizontally.
-        maxHorizontalPartitions = 1
-        verticalSpacerSize = 0.dp
-    } else {
-        when (windowAdaptiveInfo.windowSizeClass.windowWidthSizeClass) {
-            WindowWidthSizeClass.COMPACT -> {
-                maxHorizontalPartitions = 1
-                verticalSpacerSize = 0.dp
-            }
-
-            WindowWidthSizeClass.MEDIUM -> {
-                maxHorizontalPartitions = 1
-                verticalSpacerSize = 0.dp
-            }
-
-            else -> {
-                maxHorizontalPartitions = 2
-                verticalSpacerSize = 24.dp
-            }
-        }
-    }
-    val maxVerticalPartitions: Int
-    val horizontalSpacerSize: Dp
-
-    if (windowAdaptiveInfo.windowPosture.isTabletop) {
-        maxVerticalPartitions = 2
-        horizontalSpacerSize = 24.dp
-    } else {
-        maxVerticalPartitions = 1
-        horizontalSpacerSize = 0.dp
-    }
-
-    val defaultPanePreferredWidth = 360.dp
-
-    return PaneScaffoldDirective(
-        maxHorizontalPartitions,
-        verticalSpacerSize,
-        maxVerticalPartitions,
-        horizontalSpacerSize,
-        defaultPanePreferredWidth,
-        getExcludedVerticalBounds(windowAdaptiveInfo.windowPosture, verticalHingePolicy)
-    )
-}
-
-/**
- * Copied from `getExcludedVerticalBounds()` in [PaneScaffoldDirective] since it is private.
- */
-private fun getExcludedVerticalBounds(posture: Posture, hingePolicy: HingePolicy): List<Rect> {
-    return when (hingePolicy) {
-        HingePolicy.AvoidSeparating -> posture.separatingVerticalHingeBounds
-        HingePolicy.AvoidOccluding -> posture.occludingVerticalHingeBounds
-        HingePolicy.AlwaysAvoid -> posture.allVerticalHingeBounds
-        else -> emptyList()
-    }
-}
 
 /**
  * Composable for the Main Screen of the app. Contains windowSizeClass,
@@ -250,46 +172,32 @@ private fun HomeScreenReady(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     Log.i(TAG, "Home Screen Ready START")
-    val navigator = rememberSupportingPaneScaffoldNavigator<String>(
-        scaffoldDirective = calculateScaffoldDirective(currentWindowAdaptiveInfo())
-    )
-    BackHandler(enabled = navigator.canNavigateBack()) {
-        navigator.navigateBack()
-    }
 
-    Surface {
-        SupportingPaneScaffold(
-            value = navigator.scaffoldValue,
-            directive = navigator.scaffoldDirective,
-            mainPane = {
-                HomeScreen(
-                    isLoading = uiState.isLoading,
-                    featuredLibraryItemsFilterResult = uiState.featuredLibraryItemsFilterResult,
-                    totals = uiState.totals,
-                    selectSong = uiState.selectSong,
-                    selectAlbum = uiState.selectAlbum,
-                    currentSong = viewModel.currentSong,
-                    isActive = viewModel.isActive, // if playback is active
-                    isPlaying = viewModel.isPlaying,
+    Surface(color = Color.Transparent) {
+        HomeScreen(
+            isLoading = uiState.isLoading,
+            featuredLibraryItemsFilterResult = uiState.featuredLibraryItemsFilterResult,
+            totals = uiState.totals,
+            selectSong = uiState.selectSong,
+            selectAlbum = uiState.selectAlbum,
+            currentSong = viewModel.currentSong,
+            isActive = viewModel.isActive, // if playback is active
+            isPlaying = viewModel.isPlaying,
 
-                    onHomeAction = viewModel::onHomeAction,
-                    navigateToHome = navigateToHome,
-                    navigateToLibrary = navigateToLibrary,
-                    navigateToPlayer = navigateToPlayer,
-                    navigateToSearch = navigateToSearch,
-                    navigateToSettings = navigateToSettings,
-                    navigateToAlbumDetails = navigateToAlbumDetails,
-                    navigateToArtistDetails = navigateToArtistDetails,
-                    navigateToPlaylistDetails = navigateToPlaylistDetails,
-                    miniPlayerControlActions = MiniPlayerControlActions(
-                        onPlayPress = viewModel::onPlay,
-                        onPausePress = viewModel::onPause,
-                    ),
-                    modifier = Modifier.fillMaxSize(),
-                )
-            },
-            supportingPane = {},
-                modifier = Modifier.fillMaxSize()
+            onHomeAction = viewModel::onHomeAction,
+            navigateToHome = navigateToHome,
+            navigateToLibrary = navigateToLibrary,
+            navigateToPlayer = navigateToPlayer,
+            navigateToSearch = navigateToSearch,
+            navigateToSettings = navigateToSettings,
+            navigateToAlbumDetails = navigateToAlbumDetails,
+            navigateToArtistDetails = navigateToArtistDetails,
+            navigateToPlaylistDetails = navigateToPlaylistDetails,
+            miniPlayerControlActions = MiniPlayerControlActions(
+                onPlayPress = viewModel::onPlay,
+                onPausePress = viewModel::onPause,
+            ),
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
@@ -341,7 +249,7 @@ private fun HomeScreen(
         coroutineScope,
     ) {
         ScreenBackground(
-            modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
+            modifier = modifier
         ) {
             Scaffold(
                 topBar = {
@@ -371,6 +279,7 @@ private fun HomeScreen(
                             navigateToPlayer = navigateToPlayer,
                             onPlayPress = miniPlayerControlActions.onPlayPress,
                             onPausePress = miniPlayerControlActions.onPausePress,
+                            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                         )
                     }
                 },
@@ -777,7 +686,7 @@ private fun HomeContentGrid(
                 items = featuredLibraryItemsFilterResult.recentlyAddedSongs
             ) { song ->
                 Box(
-                    Modifier.padding(horizontal = 12.dp, vertical = 0.dp)
+                    Modifier.padding(horizontal = 12.dp)
                 ) {
                     SongListItem(
                         song = song,

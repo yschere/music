@@ -47,12 +47,14 @@ import com.example.music.R
 
 /***********************************************************************************************
  *
- * ********** Screen Content Floating Action Buttons **********
+ * ********** Screen Content Action Buttons **********
  *
  **********************************************************************************************/
 
 /**
  * Add Songs to Playlist btn, shown specifically when viewing PlaylistDetails of a playlist with no songs
+ * @param onClick defines the action to take when the button is clicked
+ * @param modifier defines any modifiers to apply to button
  */
 @Composable
 fun AddToPlaylistFAB(
@@ -72,6 +74,9 @@ fun AddToPlaylistFAB(
 
 /**
  * Scroll to top floating action btn that appears after scrolling down beyond first few items
+ * @param displayButton defines if the button should be displayed
+ * @param isActive defines if the MiniPlayer is currently active
+ * @param onClick defines the action to take when the button is clicked
  */
 @Composable
 fun BoxScope.ScrollToTopFAB(

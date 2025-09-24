@@ -60,10 +60,10 @@ internal fun ImageBackground(
 
 /**
  * Draws an image background with a color filter.
- * @param imageId Nullable [String] : represents the image's url
- * @param imageDescription Nullable [String] : describes the image
- * @param color [Color] : defines the color to apply to filter
- * @param modifier [Modifier] : defines any modifiers to apply to image
+ * @param imageId represents the image's url
+ * @param imageDescription describes the image
+ * @param color defines the color to apply to filter
+ * @param modifier defines any modifiers to apply to image
  */
 @Composable
 fun ImageBackgroundColorFilter(
