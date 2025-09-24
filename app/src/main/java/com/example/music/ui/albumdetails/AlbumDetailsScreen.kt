@@ -81,6 +81,7 @@ import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
 private const val TAG = "Album Details Screen"
+private val ALBUM_IMAGE_SIZE_DP = 160.dp
 
 /**
  * Stateful version of Album Details Screen
@@ -244,7 +245,7 @@ fun AlbumDetailsScreen(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
                         actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
@@ -316,9 +317,7 @@ fun AlbumDetailsScreen(
                         )
                     }
 
-                    items(
-                        items = songs
-                    ) { song ->
+                    items(items = songs) { song ->
                         SongListItem(
                             song = song,
                             onClick = {
@@ -333,7 +332,7 @@ fun AlbumDetailsScreen(
                                 showSongMoreOptions = true
                             },
                             isListEditable = false,
-                            showAlbumImage = true,
+                            showAlbumImage = false,
                             showArtistName = true,
                             showAlbumTitle = false,
                             showTrackNumber = true,
@@ -575,42 +574,8 @@ fun AlbumDetailsScreen(
 }
 
 /**
- * Composable for Album Details Screen's Top App Bar
- */
-@Composable
-fun AlbumDetailsTopAppBar(
-    navigateBack: () -> Unit,
-    navigateToSearch: () -> Unit,
-    onMoreOptionsClick: () -> Unit,
-    //modifier: Modifier = Modifier
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp)
-    ) {
-        // Back btn
-        BackNavBtn(onClick = navigateBack)
-
-        //right align objects after this space
-        Spacer(Modifier.weight(1f))
-
-        // Search btn
-        SearchBtn(onClick = navigateToSearch)
-
-        // Album More Options btn
-        MoreOptionsBtn(onClick = onMoreOptionsClick)
-    }
-}
-
-/**
- * Album Header Version 2: revision of jetcaster.
- * Has album image on left;
- * album title, album artist, song count on right side.
- * Has song count, song sort btn, multi-select on separate row below.
- * Has shuffle and play btns on separate row below that.
+ * Composable for Album Details Screen's header.
+ * Has album image on left, album title and album artist on right side.
  */
 @Composable
 fun AlbumDetailsHeader(
@@ -621,7 +586,7 @@ fun AlbumDetailsHeader(
         modifier = modifier.padding(16.dp)
     ) {
         val maxImageSize = this.maxWidth / 2
-        val imageSize = min( maxImageSize, 148.dp )
+        val imageSize = min( maxImageSize, 160.dp )
         Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -639,15 +604,13 @@ fun AlbumDetailsHeader(
                 ) {
                     Text(
                         text = album.title,
-                        //color = MaterialTheme.colorScheme.onPrimary,
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.headlineMedium
                     )
                     Text(
                         text = album.albumArtistName ?: "",
-                        //color = MaterialTheme.colorScheme.onPrimary,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Visible,
                         style = MaterialTheme.typography.titleMedium
                     )
@@ -658,10 +621,9 @@ fun AlbumDetailsHeader(
 }
 
 /**
- * Album Header Version 3: based on music player / spotify player type.
- * Has album image centered at top;
- * Has album title, album artist, below image.
- * Has song count, song sort btn, multi-select on separate row below.
+ * Composable for Album Details Screen's header.
+ * This version has album image enlarged and centered at the top, 
+ * album title and album artist below the album image.
  */
 @Composable
 fun AlbumDetailsHeaderLargeAlbumCover(
@@ -673,7 +635,7 @@ fun AlbumDetailsHeaderLargeAlbumCover(
         modifier = modifier.fillMaxWidth()
     ) {
         val maxImageSize = this.maxWidth * 0.6f
-        val imageSize = max( maxImageSize, 148.dp )
+        val imageSize = max( maxImageSize, 160.dp )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
