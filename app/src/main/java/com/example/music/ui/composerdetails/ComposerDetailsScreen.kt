@@ -1,6 +1,9 @@
 package com.example.music.ui.composerdetails
 
 import android.util.Log
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,20 +20,31 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,6 +57,8 @@ import com.example.music.domain.testing.PreviewComposers
 import com.example.music.domain.testing.getSongsByComposer
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.testing.PreviewSongs
+import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.shared.Loading
@@ -55,8 +71,10 @@ import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.BackNavBtn
 import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.ScrollToTopFAB
 import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
+import kotlinx.coroutines.launch
 
 private const val TAG = "Composer Details Screen"
 
@@ -65,26 +83,39 @@ private const val TAG = "Composer Details Screen"
  */
 @Composable
 fun ComposerDetailsScreen(
+    navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateBack: () -> Unit = {},
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     viewModel: ComposerDetailsViewModel = hiltViewModel(),
 ) {
+    Log.i(TAG, "Composer Details Screen START")
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
-        Text(text = uiState.errorMessage!!)
         ComposerDetailsError(onRetry = viewModel::refresh)
     }
-    Surface {
+    Surface(color = Color.Transparent) {
         if (uiState.isReady) {
             ComposerDetailsScreen(
                 composer = uiState.composer,
                 songs = uiState.songs,
+                currentSong = viewModel.currentSong,
+                isActive = viewModel.isActive, // if playback is active
+                isPlaying = viewModel.isPlaying,
+
+                onComposerAction = viewModel::onComposerAction,
+                navigateBack = navigateBack,
                 navigateToPlayer = navigateToPlayer,
                 navigateToSearch = navigateToSearch,
-                navigateBack = navigateBack,
+                navigateToAlbumDetails = navigateToAlbumDetails,
+                navigateToArtistDetails = navigateToArtistDetails,
                 modifier = Modifier.fillMaxSize(),
+                miniPlayerControlActions = MiniPlayerControlActions(
+                    onPlayPress = viewModel::onPlay,
+                    onPausePress = viewModel::onPause,
+                )
             )
         } else {
             ComposerDetailsLoadingScreen(
@@ -119,73 +150,198 @@ private fun ComposerDetailsLoadingScreen(
 /**
  * Stateless Composable for Composer Details Screen
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ComposerDetailsScreen(
     composer: ComposerInfo,
     songs: List<SongInfo>,
+    currentSong: SongInfo,
+    isActive: Boolean,
+    isPlaying: Boolean,
+
+    onComposerAction: (ComposerAction) -> Unit,
+    navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateBack: () -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
+    miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
 ) {
+    Log.i(TAG, "ComposerDetails Screen START\n" +
+        "currentSong? ${currentSong.title}\n" +
+        "isActive? $isActive")
+
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
+    val appBarScrollBehavior = TopAppBarDefaults
+        .exitUntilCollapsedScrollBehavior(
+            rememberTopAppBarState()
+        )
+    val isCollapsed = remember {
+        derivedStateOf {
+            appBarScrollBehavior.state.collapsedFraction > 0.8
+        }
+    }
+
+    val listState = rememberLazyGridState()
+    val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
+
+    val sheetState = rememberModalBottomSheetState(false)
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
+    var showComposerMoreOptions by remember { mutableStateOf(false) }
+    var showSongMoreOptions by remember { mutableStateOf(false) }
+
     ScreenBackground(
-        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        modifier = modifier
     ) {
         Scaffold(
-            contentWindowInsets = WindowInsets.systemBarsIgnoringVisibility,
             topBar = {
-                ComposerDetailsTopAppBar(
-                    navigateToSearch = navigateToSearch,
-                    navigateBack = navigateBack,
+                LargeTopAppBar(
+                    title = {
+                        if ( isCollapsed.value ) {
+                            Text(
+                                text = composer.name,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.basicMarquee()
+                            )
+                        } else {
+                            ComposerDetailsHeaderTitle(composer, modifier)
+                        }
+                    },
+                    navigationIcon = {
+                        // Back btn
+                        BackNavBtn(onClick = navigateBack)
+                    },
+                    actions = {
+                        // Search btn
+                        SearchBtn(onClick = navigateToSearch)
+
+                        // Composer More Options
+                        MoreOptionsBtn(
+                            onClick = {
+                                showBottomSheet = true
+                                showComposerMoreOptions = true
+                            }
+                        )
+                    },
+                    collapsedHeight = 48.dp,//TopAppBarDefaults.LargeAppBarCollapsedHeight, // is 64.dp
+                    expandedHeight = 120.dp,//80.dp,//TopAppBarDefaults.LargeAppBarExpandedHeight,//200.dp, // for Header
+                    windowInsets = TopAppBarDefaults.windowInsets,
+                    colors = TopAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+                    scrollBehavior = appBarScrollBehavior,
                 )
             },
-            bottomBar = {},
+            bottomBar = {
+                if (isActive){
+                    MiniPlayer(
+                        song = currentSong,
+                        isPlaying = isPlaying,
+                        navigateToPlayer = navigateToPlayer,
+                        onPlayPress = miniPlayerControlActions.onPlayPress,
+                        onPausePress = miniPlayerControlActions.onPausePress,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+                    )
+                }
+            },
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             contentColor = contentColorFor(MaterialTheme.colorScheme.background)
         ) { contentPadding ->
-            ComposerDetailsContent(
+            // ComposerDetails Content
+            Box(Modifier.fillMaxSize()) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(1),
+                    modifier = modifier.padding(contentPadding)
+                        .fillMaxSize()
+                        .padding(horizontal = 12.dp),
+                ) {
+                    fullWidthItem {
+                        ItemCountAndSortSelectButtons(
+                            id = R.plurals.songs,
+                            itemCount = songs.size,
+                            onSortClick = {
+                                Log.i(TAG, "Song Sort btn clicked")
+                                showBottomSheet = true
+                                showSortSheet = true
+                            },
+                            onSelectClick = {
+                                Log.i(TAG, "Multi Select btn clicked")
+                            }
+                        )
+                    }
+
+                    fullWidthItem {
+                        PlayShuffleButtons(
+                            onPlayClick = {
+                                Log.i(TAG, "Play Songs btn clicked")
+                                //onComposerAction(ComposerAction.PlaySongs(songs))
+                                //navigateToPlayer()
+                            },
+                            onShuffleClick = {
+                                Log.i(TAG, "Shuffle Songs btn clicked")
+                                //onComposerAction(ComposerAction.ShuffleSongs(songs))
+                                //navigateToPlayer()
+                            },
+                        )
+                    }
+
+                    items(items = songs) { song ->
+                        SongListItem(
+                            song = song,
+                            onClick = {
+                                Log.i(TAG, "Song clicked: ${song.title}")
+                                //onComposerAction(ComposerAction.PlaySong(song))
+                                //navigateToPlayer()
+                            },
+                            onMoreOptionsClick = {
+                                Log.i(TAG, "Song More Option clicked: ${song.title}")
+                                //onComposerAction(ComposerAction.SongMoreOptionClicked(song))
+                                //showBottomSheet = true
+                                //showSongMoreOptions = true
+                            },
+                            isListEditable = false,
+                            showAlbumTitle = true,
+                            showArtistName = true,
+                            showAlbumImage = true,
+                            showTrackNumber = false,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+
+                ScrollToTopFAB(
+                    displayButton = displayButton,
+                    isActive = isActive,
+                    onClick = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Scroll to Top btn clicked")
+                            listState.animateScrollToItem(0)
+                        }
+                    }
+                )
+            }
+            /*ComposerDetailsContent(
                 composer = composer,
                 songs = songs,
                 navigateToPlayer = navigateToPlayer,
                 modifier = Modifier.padding(contentPadding)
-            )
+            )*/
+
+            // ComposerDetails BottomSheet content would go here
         }
-    }
-}
-
-/**
- * Composable for Composer Details Screen's Top App Bar.
- */
-@Composable
-fun ComposerDetailsTopAppBar(
-    navigateToSearch: () -> Unit,
-    navigateBack: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp)
-    ) {
-        //back button
-        BackNavBtn(onClick = navigateBack)
-
-        //right align objects after this space
-        Spacer(Modifier.weight(1f))
-
-        // Search btn
-        SearchBtn(onClick = navigateToSearch)
-
-        // Composer More Options btn
-        MoreOptionsBtn(onClick = {})
     }
 }
 
@@ -206,7 +362,7 @@ fun ComposerDetailsContent(
     ) {
         // Header Item
         fullWidthItem {
-            ComposerDetailsHeaderItem(
+            ComposerDetailsHeaderTitle(
                 composer = composer,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -255,12 +411,12 @@ fun ComposerDetailsContent(
                         //showBottomSheet = true
                         //showSongMoreOptions = true
                     },
-                    modifier = Modifier.fillMaxWidth(),
                     isListEditable = false,
                     showAlbumTitle = true,
                     showArtistName = true,
                     showAlbumImage = true,
                     showTrackNumber = false,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -268,39 +424,31 @@ fun ComposerDetailsContent(
 }
 
 @Composable
-fun ComposerDetailsHeaderItem(
+fun ComposerDetailsHeaderTitle(
     composer: ComposerInfo,
     modifier: Modifier = Modifier
 ) {
-    //FUTURE THOUGHT: choose if want 1 image or multi image view for composer header
-    // and for the 1 image, should it be the 1st album, or an image for externally of the composer?
-    BoxWithConstraints(
-        modifier = modifier.padding(Keyline1)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxWidth(),
     ) {
-        //val widthConstraint = this.maxWidth
-        val maxImageSize = this.maxWidth / 2
-        //val imageSize = min(maxImageSize, 148.dp)
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = composer.name,
-                maxLines = 2,
-                minLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                //color = MaterialTheme.colorScheme.primaryContainer,
-                style = MaterialTheme.typography.headlineMedium
-            )
-        }
+        Text(
+            text = composer.name,
+            maxLines = 2,
+            minLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            //color = MaterialTheme.colorScheme.primaryContainer,
+            style = MaterialTheme.typography.headlineMedium
+        )
     }
 }
 
 //@Preview
 @Composable
 fun ComposerDetailsHeaderItemPreview() {
-    ComposerDetailsHeaderItem(
+    ComposerDetailsHeaderTitle(
         composer = PreviewComposers[0],
     )
 }
@@ -321,10 +469,20 @@ fun ComposerDetailsScreenPreview() {
             //Tatsuya Kitani
             composer = PreviewComposers[1],
             songs = getSongsByComposer(PreviewComposers[1].id),
+            currentSong = PreviewSongs[0],
+            isActive = true,
+            isPlaying = true,
 
+            onComposerAction = {},
+            navigateBack = {},
             navigateToPlayer = {},
             navigateToSearch = {},
-            navigateBack = {},
+            navigateToAlbumDetails = {},
+            navigateToArtistDetails = {},
+            miniPlayerControlActions = MiniPlayerControlActions(
+                onPlayPress = {},
+                onPausePress = {},
+            ),
         )
     }
 }
