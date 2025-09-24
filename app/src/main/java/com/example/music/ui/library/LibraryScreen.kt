@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -84,6 +85,7 @@ import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompLightPreview
+import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.NavDrawerBtn
 import com.example.music.util.ScrollToTopFAB
 import com.example.music.util.SearchBtn
@@ -103,21 +105,20 @@ fun LibraryScreen(
     navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
-    navigateToSettings: () -> Unit,
+    navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
+    navigateToSettings: () -> Unit,
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToGenreDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
-    navigateToPlayer: () -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     Log.i(TAG, "Library Screen START")
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
-        Text(text = uiState.errorMessage!!)
         LibraryScreenError(onRetry = viewModel::refresh)
     }
     Surface(color = Color.Transparent) {
@@ -133,9 +134,9 @@ fun LibraryScreen(
             libraryPlaylists = uiState.libraryPlaylists,
             librarySongs = uiState.librarySongs,
             totals = uiState.totals,
+            currentSong = viewModel.currentSong,
             isActive = viewModel.isActive, // if playback is active
             isPlaying = viewModel.isPlaying,
-            currentSong = viewModel.currentSong,
 
             onLibraryAction = viewModel::onLibraryAction,
             navigateToHome = navigateToHome,
@@ -188,9 +189,9 @@ private fun LibraryScreen(
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
     totals: List<Int>,
+    currentSong: SongInfo,
     isActive: Boolean,
     isPlaying: Boolean,
-    currentSong: SongInfo,
 
     onLibraryAction: (LibraryAction) -> Unit,
     navigateToHome: () -> Unit,
@@ -209,6 +210,7 @@ private fun LibraryScreen(
     Log.i(TAG, "Library Screen START\n" +
             "currentSong? ${currentSong.title}\n" +
             "isActive? $isActive")
+
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //FixMe: update the snackBar selection to properly convey action taken
@@ -1221,13 +1223,12 @@ private fun LibraryCategoryTabs(
                 selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 unselectedContentColor = MaterialTheme.colorScheme.primary,
                 onClick = { onLibraryCategorySelected(libraryCategory) },
-                modifier = Modifier.padding(0.dp),
+                modifier = Modifier.clip(MaterialTheme.shapes.small),
                 content = {
                     Text(
                         text = libraryCategory.name,
                         style =
-                            if (index == selectedIndex)
-                                MaterialTheme.typography.titleLarge
+                            if (index == selectedIndex) MaterialTheme.typography.titleLarge
                             else MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(8.dp)
                     )
@@ -1252,7 +1253,7 @@ private fun LibraryCategoryTabIndicator(
 
 private val CompactWindowSizeClass = WindowSizeClass.compute(360f, 780f)
 
-@CompLightPreview
+@SystemLightPreview
 @Composable
 private fun PreviewLibrary() {
     MusicTheme {
