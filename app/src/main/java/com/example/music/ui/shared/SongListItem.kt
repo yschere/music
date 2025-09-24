@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.music.designsys.component.AlbumImage
@@ -28,9 +30,8 @@ import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.ReorderItemBtn
 
-/**
- * Original Song List Item
- */
+private val ICON_SIZE_DP = 56.dp
+
 @Composable
 fun SongListItem(
     song: SongInfo,
@@ -66,9 +67,6 @@ fun SongListItem(
     }
 }
 
-/**
- * Original Song List Item Content
- */
 @Composable
 private fun SongListItemRow(
     song: SongInfo,
@@ -109,7 +107,6 @@ private fun SongListItemRow(
 
         // list edit-ability would most likely be for queue list and playlist, when editing list is selected
         if (isListEditable) { // Check if this means songs is meant to be in an editable/movable list
-            //Box(modifier = modifier.size(56.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)))
             ReorderItemBtn(
                 onClick = {},
                 title = song.title,
@@ -117,16 +114,17 @@ private fun SongListItemRow(
         }
 
         //show the track number of the song
-        // FixMe: change this so it's not as pronounced, nor shifts over the rest of the row content
         if (showTrackNumber) {
             Text(
                 text =
-                    if (song.trackNumber == null) ""
+                    if (song.trackNumber == null || song.trackNumber == 0) "-"
                     else song.trackNumber.toString(),
+                textAlign = TextAlign.Center,
                 minLines = 1,
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(10.dp),
+                modifier = Modifier.padding(10.dp)
+                    .requiredSize(width = 35.dp, height = 15.dp)
             )
         }
 
@@ -137,7 +135,7 @@ private fun SongListItemRow(
             //SongListItemImageBm(
                 //artworkBitmap = song.artworkBitmap,
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(ICON_SIZE_DP)
                     .clip(MaterialTheme.shapes.small),
             )
         }
@@ -234,7 +232,7 @@ private fun SongListItem_GeneralPreview() {
     }
 }
 
-@CompDarkPreview
+//@CompDarkPreview
 @Composable
 private fun SongListItem_ShowAllPreview() {
     MusicTheme {
@@ -252,7 +250,7 @@ private fun SongListItem_ShowAllPreview() {
     }
 }
 
-//@CompLightPreview
+@CompLightPreview
 @Composable
 private fun SongListItem_AlbumDetailsPreview() {
     MusicTheme {
@@ -261,7 +259,7 @@ private fun SongListItem_AlbumDetailsPreview() {
             onClick = {},
             onMoreOptionsClick = {},
             isListEditable = false,
-            showAlbumImage = true,
+            showAlbumImage = false,
             showArtistName = true,
             showAlbumTitle = false,
             showTrackNumber = true,
