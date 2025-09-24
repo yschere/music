@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Menu
@@ -194,6 +195,18 @@ fun AddToPlaylistBtn(
         icon = Icons.Filled.Add,
         description = stringResource(R.string.icon_add_to_playlist),
         onClick = onClick,
+    )
+}
+
+@Composable
+fun InfoBtn(
+    onClick: () -> Unit,
+) {
+    DrawIconBtn(
+        icon = Icons.Filled.Info,
+        description = stringResource(R.string.icon_song_details),
+        onClick = onClick,
+        iconModifier = Modifier.padding(4.dp)
     )
 }
 
