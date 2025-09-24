@@ -21,14 +21,11 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.ModalBottomSheet
@@ -73,11 +70,13 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.util.InfoBtn
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.coroutines.CoroutineScope
 
 private const val TAG = "Bottom Modal"
+private val HEADER_ICON_SIZE_DP = 56.dp
 
 /**
  * More Options Modal Content - Action Options Row Composable
@@ -94,7 +93,7 @@ fun ActionOptionRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { action() }
-            .height(56.dp)
+            .height(HEADER_ICON_SIZE_DP)
             .padding(horizontal = 24.dp)
     ) {
         Icon(
@@ -117,6 +116,7 @@ fun ActionOptionRow(
 fun MoreOptionModalHeader(
     title: String = "", // item's name or title
     item: Any, // one of the info items ... should these Info types actually come from a base class?
+    onInfoClick: () -> Unit = {},
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -192,16 +192,9 @@ fun MoreOptionModalHeader(
             )
         }
 
-        // if item is a PlayerSong, include info icon to pop up song details
-        if( item is SongInfo ) {
-            IconButton( onClick = {} ) { // whatever way to show song details, still not sure how yet
-                Icon(
-                    imageVector = Icons.Filled.Info,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = stringResource(R.string.icon_song_details),
-                    modifier = Modifier.padding(4.dp)
-                )
-            }
+        if(item is SongInfo) {
+            InfoBtn(onClick = onInfoClick)
+            // whatever way to show song details, still not sure how yet
         }
     }
 }
@@ -220,7 +213,7 @@ fun HeaderImage(
         contentDescription = contentDescription,
         contentScale = ContentScale.Crop,
         modifier = Modifier
-            .size(56.dp)
+            .size(HEADER_ICON_SIZE_DP)
             .clip(shapes.small)
     )
 }
@@ -235,7 +228,7 @@ fun HeaderInitial(
 ) {
     Box(
         modifier = Modifier
-            .size(56.dp)
+            .size(HEADER_ICON_SIZE_DP)
             .clip(shapes.small)
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
         Text(
@@ -398,15 +391,16 @@ fun SongMoreOptionsBottomModal(
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        Column (
+        LazyColumn (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier,
         ) {
             // header section
-            MoreOptionModalHeader(song.title, song)
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            item {
+                MoreOptionModalHeader(song.title, song)
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            }
 
             val songActions = arrayListOf(
                 Pair(Actions.PlayItem, play),
@@ -416,25 +410,25 @@ fun SongMoreOptionsBottomModal(
             )
 
             // action items, shown items are dependent on this being a song item
-            songActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
+            item {
+                songActions.forEach { item ->
+                    ActionOptionRow(item.first, item.second)
+                }
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            // if the song has an artist name and current screen is not ArtistDetails
-            if (song.artistName != "" && context != "ArtistDetails")
-                ActionOptionRow( Actions.GoToArtist, goToArtist )
+            item {
+                // if the song has an artist name and current screen is not ArtistDetails
+                if (song.artistName != "" && context != "ArtistDetails")
+                    ActionOptionRow( Actions.GoToArtist, goToArtist )
 
-            // if the song has an album title and current screen is not AlbumDetails
-            if (song.albumTitle != "" && context != "AlbumDetails")
-                ActionOptionRow( Actions.GoToAlbum, goToAlbum )
+                // if the song has an album title and current screen is not AlbumDetails
+                if (song.albumTitle != "" && context != "AlbumDetails")
+                    ActionOptionRow( Actions.GoToAlbum, goToAlbum )
 
-            /* //if (song.genreName != "" && context != "GenreDetails")
-                //ActionOptionRow( Pair(Actions.GoToGenre) {} )
-            //if (song.composerName != "" && context != "ComposerDetails")
-                //ActionOptionRow( Pair(Actions.GoToComposer) {} )
+            }
 
-            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            /* //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow( Pair(Actions.EditSongTags) {} ) //onClick action would go into lambda edit song tags
 
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
@@ -444,10 +438,12 @@ fun SongMoreOptionsBottomModal(
                 //ActionOptionRow( Pair(Actions.RemoveFromQueue) {} )
             //ActionOptionRow( Pair(Actions.DeleteFromLibrary) {} ) */
 
-            CloseModalBtn(
-                onClick = onClose,
-                text = "CLOSE"
-            )
+            item {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CLOSE"
+                )
+            }
         }
     }
 }
@@ -478,15 +474,16 @@ fun AlbumMoreOptionsBottomModal(
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        Column (
+        LazyColumn (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier,
         ) {
             // header section
-            MoreOptionModalHeader(album.title, album)
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            item {
+                MoreOptionModalHeader(album.title, album)
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            }
 
             val albumActions = arrayListOf(
                 Pair(Actions.PlayItem, play),
@@ -497,26 +494,32 @@ fun AlbumMoreOptionsBottomModal(
             )
 
             // action items, shown items are dependent on this being a song item
-            albumActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
+            item {
+                albumActions.forEach { item ->
+                    ActionOptionRow(item.first, item.second)
+                }
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            // if album has album artist and not already on ArtistDetails screen
-            if (album.albumArtistId != null && context != "ArtistDetails")
-                ActionOptionRow(Actions.GoToAlbumArtist, goToArtist)
+            item {
+                // if album has album artist and not already on ArtistDetails screen
+                if (album.albumArtistId != null && context != "ArtistDetails")
+                    ActionOptionRow(Actions.GoToAlbumArtist, goToArtist)
 
-            // if in artistDetails, in library.Albums,
-            if (context != "AlbumDetails")
-                ActionOptionRow(Actions.GoToAlbum, goToAlbum)
+                // if in artistDetails, in library.Albums,
+                if (context != "AlbumDetails")
+                    ActionOptionRow(Actions.GoToAlbum, goToAlbum)
+            }
 
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow( Actions.EditAlbumTags, {} )
 
-            CloseModalBtn(
-                onClick = onClose,
-                text = "CLOSE"
-            )
+            item {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CLOSE"
+                )
+            }
         }
     }
 }
@@ -546,15 +549,16 @@ fun ArtistMoreOptionsBottomModal(
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        Column (
+        LazyColumn (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier,
         ) {
             // header section
-            MoreOptionModalHeader(artist.name, artist)
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            item {
+                MoreOptionModalHeader(artist.name, artist)
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            }
 
             val artistActions = arrayListOf(
                 Pair(Actions.PlayItem, play),
@@ -564,24 +568,30 @@ fun ArtistMoreOptionsBottomModal(
                 Pair(Actions.AddToQueue, addToQueue),
             )
 
-            // action items, shown items are dependent on this being an artist item
-            artistActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
+            item {
+                // action items, shown items are dependent on this being an artist item
+                artistActions.forEach { item ->
+                    ActionOptionRow(item.first, item.second)
+                }
             }
 
-            // if on library.artists
-            if (context != "ArtistDetails") {
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-                ActionOptionRow( Actions.GoToArtist, goToArtist )
+            item {
+                // if on library.artists
+                if (context != "ArtistDetails") {
+                    HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+                    ActionOptionRow( Actions.GoToArtist, goToArtist )
+                }
             }
 
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow( Actions.EditArtistTags, {} ) //onClick action in the lambda
 
-            CloseModalBtn(
-                onClick = onClose,
-                text = "CLOSE"
-            )
+            item {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CLOSE"
+                )
+            }
         }
     }
 }
@@ -611,16 +621,16 @@ fun ComposerMoreOptionsBottomModal(
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-
-        Column (
+        LazyColumn (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier,
         ) {
             // header section
-            MoreOptionModalHeader(composer.name, composer)
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            item {
+                MoreOptionModalHeader(composer.name, composer)
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            }
 
             val composerActions = listOf(
                 Pair(Actions.PlayItem, play),
@@ -630,24 +640,30 @@ fun ComposerMoreOptionsBottomModal(
                 Pair(Actions.AddToQueue, addToQueue),
             )
 
-            // action items, shown items are dependent on this being a song item
-            composerActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
+            item {
+                // action items, shown items are dependent on this being a song item
+                composerActions.forEach { item ->
+                    ActionOptionRow(item.first, item.second)
+                }
             }
 
-            // if on library.composers
-            if (context != "ComposerDetails") {
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-                ActionOptionRow(Actions.GoToComposer, goToComposer)
+            item {
+                // if on library.composers
+                if (context != "ComposerDetails") {
+                    HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+                    ActionOptionRow(Actions.GoToComposer, goToComposer)
+                }
             }
 
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow( Actions.EditComposerTags, {} )
 
-            CloseModalBtn(
-                onClick = onClose,
-                text = "CLOSE"
-            )
+            item {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CLOSE"
+                )
+            }
         }
     }
 }
@@ -677,15 +693,16 @@ fun GenreMoreOptionsBottomModal(
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        Column (
+        LazyColumn (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier,
         ) {
             // header section
-            MoreOptionModalHeader(genre.name, genre)
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            item {
+                MoreOptionModalHeader(genre.name, genre)
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            }
 
             val genreActions = listOf(
                 Pair(Actions.PlayItem, play),
@@ -695,24 +712,30 @@ fun GenreMoreOptionsBottomModal(
                 Pair(Actions.AddToQueue, addToQueue),
             )
 
-            // action items, shown items are dependent on this being a song item
-            genreActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
+            item {
+                // action items, shown items are dependent on this being a song item
+                genreActions.forEach { item ->
+                    ActionOptionRow(item.first, item.second)
+                }
             }
 
-            // if on library.genres
-            if (context != "GenreDetails") {
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-                ActionOptionRow(Actions.GoToGenre, goToGenre)
+            item {
+                // if on library.genres
+                if (context != "GenreDetails") {
+                    HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+                    ActionOptionRow(Actions.GoToGenre, goToGenre)
+                }
             }
 
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow(Actions.EditGenreTags, {})
 
-            CloseModalBtn(
-                onClick = onClose,
-                text = "CLOSE"
-            )
+            item {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CLOSE"
+                )
+            }
         }
     }
 }
@@ -742,15 +765,16 @@ fun PlaylistMoreOptionsBottomModal(
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        Column (
+        LazyColumn (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier,
         ) {
             // header section
-            MoreOptionModalHeader(playlist.name, playlist)
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            item {
+                MoreOptionModalHeader(playlist.name, playlist)
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            }
 
             val playlistActions = listOf(
                 Pair(Actions.PlayItem, play),
@@ -760,28 +784,34 @@ fun PlaylistMoreOptionsBottomModal(
                 Pair(Actions.AddToQueue, addToQueue),
             )
 
-            // action items, shown items are dependent on this being a song item
-            playlistActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
+            item {
+                // action items, shown items are dependent on this being a song item
+                playlistActions.forEach { item ->
+                    ActionOptionRow(item.first, item.second)
+                }
             }
 
-            // if on library.playlists
-            if (context != "PlaylistDetails") {
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-                ActionOptionRow(Actions.GoToPlaylist, goToPlaylist)
+            item {
+                // if on library.playlists
+                if (context != "PlaylistDetails") {
+                    HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+                    ActionOptionRow(Actions.GoToPlaylist, goToPlaylist)
+                }
             }
 
-            //ActionOptionRow( Actions.EditPlaylistTags, {} )
+            /* //ActionOptionRow( Actions.EditPlaylistTags, {} )
             //ActionOptionRow( Actions.EditPlaylistOrder, {} )
 
             //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             //ActionOptionRow( Actions.ExportPlaylist, {} )
-            //ActionOptionRow( Actions.DeletePlaylist, {} )
+            //ActionOptionRow( Actions.DeletePlaylist, {} ) */
 
-            CloseModalBtn(
-                onClick = onClose,
-                text = "CLOSE"
-            )
+            item {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CLOSE"
+                )
+            }
         }
     }
 }
@@ -809,13 +839,15 @@ fun PlayerMoreOptionsBottomModal(
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        Column (
+        LazyColumn (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier,
         ) {
-            MoreOptionModalHeader(song.title, song)
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            item {
+                MoreOptionModalHeader(song.title, song)
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            }
 
             val songActions = arrayListOf(
                 //Pair(Actions.PlayItemNext, {}),
@@ -824,25 +856,31 @@ fun PlayerMoreOptionsBottomModal(
                 Pair(Actions.GoToAlbum, goToAlbum),
             )
 
-            songActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
+            item {
+                songActions.forEach { item ->
+                    ActionOptionRow(item.first, item.second)
+                }
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
             val queueActions = arrayListOf(
                 Pair(Actions.ClearQueue, clearQueue),
                 Pair(Actions.SaveQueueToPlaylist, saveQueue)
             )
-            queueActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
-            }
-            //// need lists and for each to lay out each modal action
 
-            CloseModalBtn(
-                onClick = onClose,
-                text = "CLOSE"
-            )
+            item {
+                queueActions.forEach { item ->
+                    ActionOptionRow(item.first, item.second)
+                }
+                //// need lists and for each to lay out each modal action
+            }
+
+            item {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CLOSE"
+                )
+            }
         }
     }
 }
@@ -883,29 +921,36 @@ fun QueueMoreOptionsBottomModal(
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        Column (
+        LazyColumn (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier,
         ) {
-            Row(
-                //verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Text("Now Playing")
+            item {
+                Row(
+                    //verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                ) {
+                    Text("Now Playing")
+                }
+                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+
             }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
 
-            ActionOptionRow(Actions.AddToPlaylist, addToPlaylist)
-            ActionOptionRow(Actions.ClearQueue, clearQueue)
-            ActionOptionRow(Actions.SaveQueueToPlaylist, {})
+            item {
+                ActionOptionRow(Actions.AddToPlaylist, addToPlaylist)
+                ActionOptionRow(Actions.ClearQueue, clearQueue)
+                ActionOptionRow(Actions.SaveQueueToPlaylist, {})
+            }
 
-            CloseModalBtn(
-                onClick = onClose,
-                text = "CLOSE"
-            )
+            item {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CLOSE"
+                )
+            }
         }
     }
 }
