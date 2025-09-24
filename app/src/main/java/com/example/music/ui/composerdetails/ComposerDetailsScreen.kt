@@ -205,8 +205,6 @@ fun ComposerDetailsScreen(
                         if ( isCollapsed.value ) {
                             Text(
                                 text = composer.name,
-                                maxLines = 3,
-                                overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.headlineMedium,
                                 modifier = Modifier.basicMarquee()
                             )
@@ -215,14 +213,10 @@ fun ComposerDetailsScreen(
                         }
                     },
                     navigationIcon = {
-                        // Back btn
                         BackNavBtn(onClick = navigateBack)
                     },
                     actions = {
-                        // Search btn
                         SearchBtn(onClick = navigateToSearch)
-
-                        // Composer More Options
                         MoreOptionsBtn(
                             onClick = {
                                 showBottomSheet = true
@@ -237,7 +231,7 @@ fun ComposerDetailsScreen(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
                         navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
                         actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
@@ -264,6 +258,7 @@ fun ComposerDetailsScreen(
             Box(Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(1),
+                    state = listState,
                     modifier = modifier.padding(contentPadding)
                         .fillMaxSize()
                         .padding(horizontal = 12.dp),
@@ -333,98 +328,14 @@ fun ComposerDetailsScreen(
                     }
                 )
             }
-            /*ComposerDetailsContent(
-                composer = composer,
-                songs = songs,
-                navigateToPlayer = navigateToPlayer,
-                modifier = Modifier.padding(contentPadding)
-            )*/
 
             // ComposerDetails BottomSheet content would go here
         }
     }
 }
 
-/**
- * Composable for Composer Details Screen's Content.
- */
 @Composable
-fun ComposerDetailsContent(
-    composer: ComposerInfo,
-    songs: List<SongInfo>,
-    navigateToPlayer: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(1),
-        modifier = modifier.fillMaxSize()
-            .padding(horizontal = 12.dp),
-    ) {
-        // Header Item
-        fullWidthItem {
-            ComposerDetailsHeaderTitle(
-                composer = composer,
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-        }
-
-        // Song List
-        if (songs.isNotEmpty()) {
-            fullWidthItem {
-                ItemCountAndSortSelectButtons(
-                    id = R.plurals.composers,
-                    itemCount = songs.size,
-                    onSortClick = {},
-                    onSelectClick = {}
-                )
-            }
-
-            fullWidthItem {
-                PlayShuffleButtons(
-                    onPlayClick = {
-                        Log.i(TAG, "Play Songs btn clicked")
-                        //onComposerAction(ComposerAction.PlaySongs(songs))
-                        //navigateToPlayer()
-                    },
-                    onShuffleClick = {
-                        Log.i(TAG, "Shuffle Songs btn clicked")
-                        //onComposerAction(ComposerAction.ShuffleSongs(songs))
-                        //navigateToPlayer()
-                    },
-                )
-            }
-
-            items(
-                items = songs
-            ) { song ->
-                SongListItem(
-                    song = song,
-                    onClick = {
-                        Log.i(TAG, "Song clicked: ${song.title}")
-                        //onComposerAction(ComposerAction.PlaySong(song))
-                        //navigateToPlayer()
-                    },
-                    onMoreOptionsClick = {
-                        Log.i(TAG, "Song More Option clicked: ${song.title}")
-                        //onComposerAction(ComposerAction.SongMoreOptionClicked(song))
-                        //showBottomSheet = true
-                        //showSongMoreOptions = true
-                    },
-                    isListEditable = false,
-                    showAlbumTitle = true,
-                    showArtistName = true,
-                    showAlbumImage = true,
-                    showTrackNumber = false,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ComposerDetailsHeaderTitle(
+fun ComposerDetailsHeader(
     composer: ComposerInfo,
     modifier: Modifier = Modifier
 ) {
@@ -437,20 +348,10 @@ fun ComposerDetailsHeaderTitle(
             text = composer.name,
             maxLines = 2,
             minLines = 1,
-            overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
-            //color = MaterialTheme.colorScheme.primaryContainer,
             style = MaterialTheme.typography.headlineMedium
         )
     }
-}
-
-//@Preview
-@Composable
-fun ComposerDetailsHeaderItemPreview() {
-    ComposerDetailsHeaderTitle(
-        composer = PreviewComposers[0],
-    )
 }
 
 @SystemLightPreview
