@@ -254,6 +254,12 @@ class PlayerViewModel @Inject constructor(
         timerJob = null
     }
 
+    fun onClearQueue() {
+        Log.i(TAG, "Clear Queue")
+        songController.clearQueue()
+        onStop()
+    }
+
     fun onPlay() {
         Log.i(TAG,"Hit play btn on Player Screen.")
         songController.play(true)
@@ -262,13 +268,6 @@ class PlayerViewModel @Inject constructor(
     fun onPause() {
         Log.i(TAG, "Hit pause btn on Player Screen")
         songController.pause()
-    }
-
-    fun onStop() {
-        Log.i(TAG, "Stop the Player Screen")
-        _isPlaying = false
-        stopTimer()
-        songController.stop()
     }
 
     fun onPrevious() {
@@ -299,8 +298,15 @@ class PlayerViewModel @Inject constructor(
         songController.onRepeat()
     }
 
-    fun onDestroy() {
+    private fun onStop() {
+        Log.i(TAG, "Stop the Player")
+        _isPlaying = false
         stopTimer()
+        songController.stop()
+        //onDestroy()
+    }
+
+    private fun onDestroy() {
         player?.release()
     }
 
