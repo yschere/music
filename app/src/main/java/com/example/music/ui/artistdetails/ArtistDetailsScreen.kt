@@ -270,9 +270,9 @@ fun ArtistDetailsScreen(
             containerColor = Color.Transparent,
             contentColor = contentColorFor(MaterialTheme.colorScheme.background)
         ) { contentPadding ->
-            val albs = albums.toPersistentList()
-            val pagerState = rememberPagerState { albs.size }
+            val pagerState = rememberPagerState { albums.size }
 
+            // ArtistDetails Content
             Box(Modifier.fillMaxSize()) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(1),
@@ -760,9 +760,9 @@ fun ArtistDetailsScreenPreview() {
 
             selectSong = getSongsByArtist(PreviewArtists[0].id)[0],
             selectAlbum = getAlbumsByArtist(113)[0],
+            currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,
-            currentSong = PreviewSongs[0],
 
             onArtistAction = {},
             navigateBack = {},
