@@ -209,7 +209,7 @@ fun ComposerDetailsScreen(
                                 modifier = Modifier.basicMarquee()
                             )
                         } else {
-                            ComposerDetailsHeaderTitle(composer, modifier)
+                            ComposerDetailsHeader(composer, modifier)
                         }
                     },
                     navigationIcon = {
