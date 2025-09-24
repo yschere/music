@@ -36,6 +36,7 @@ import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
 private const val TAG = "Library Composers"
+private val ICON_SIZE_DP = 56.dp
 
 /**
  * Overloaded version of lazy list for artistItems
@@ -144,7 +145,7 @@ private fun ComposerListItemRow(
         ComposerListItemIcon(
             composer = composer.name,
             modifier = Modifier
-                .size(56.dp)
+                .size(ICON_SIZE_DP)
                 .clip(MaterialTheme.shapes.small),
         )
 

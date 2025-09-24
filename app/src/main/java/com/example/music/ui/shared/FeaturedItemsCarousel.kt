@@ -38,7 +38,7 @@ import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 
 private const val TAG = "Featured Items Carousel"
-private val FEATURED_ITEM_IMAGE_SIZE_DP = 160.dp
+private val IMAGE_CARD_SIZE_DP = 160.dp
 
 /**
  * Composable for Featured Albums Carousel. Displays a horizontal pager for the albums given
@@ -64,7 +64,7 @@ fun FeaturedAlbumsCarousel(
                 .background(Color.Transparent)
         ) {
             Log.i(TAG, "Generating Horizontal pager")
-            val horizontalPadding = (this.maxWidth - FEATURED_ITEM_IMAGE_SIZE_DP) / 2
+            val horizontalPadding = (this.maxWidth - IMAGE_CARD_SIZE_DP) / 2
             HorizontalPager(
                 state = pagerState,
                 contentPadding = PaddingValues(
@@ -72,7 +72,7 @@ fun FeaturedAlbumsCarousel(
                     vertical = 16.dp,
                 ),
                 pageSpacing = 24.dp,
-                pageSize = PageSize.Fixed(FEATURED_ITEM_IMAGE_SIZE_DP)
+                pageSize = PageSize.Fixed(IMAGE_CARD_SIZE_DP)
             ) { page ->
                 Log.i(TAG, "Generating Album Carousel Item: $page")
                 val album = items[page]
@@ -113,7 +113,7 @@ fun FeaturedPlaylistsCarousel(
                 .fillMaxWidth()
                 .background(Color.Transparent)
         ) {
-            val horizontalPadding = (this.maxWidth - FEATURED_ITEM_IMAGE_SIZE_DP) / 2
+            val horizontalPadding = (this.maxWidth - IMAGE_CARD_SIZE_DP) / 2
             HorizontalPager(
                 state = pagerState,
                 contentPadding = PaddingValues(
@@ -121,7 +121,7 @@ fun FeaturedPlaylistsCarousel(
                     vertical = 16.dp,
                 ),
                 pageSpacing = 24.dp,
-                pageSize = PageSize.Fixed(FEATURED_ITEM_IMAGE_SIZE_DP)
+                pageSize = PageSize.Fixed(IMAGE_CARD_SIZE_DP)
             ) { page ->
                 val playlist = items[page]
                 Log.i(TAG, "Generating Playlist Carousel Item: $page")
@@ -152,14 +152,14 @@ private fun FeaturedCarouselItem(
         Box(
             contentAlignment = Alignment.BottomStart,
             modifier = Modifier
-                .size(FEATURED_ITEM_IMAGE_SIZE_DP)
+                .size(IMAGE_CARD_SIZE_DP)
                 .align(Alignment.CenterHorizontally)
         ) {
             AlbumImage(
                 albumImage = itemImage,
                 contentDescription = itemTitle,
                 modifier = Modifier
-                    .size(FEATURED_ITEM_IMAGE_SIZE_DP)
+                    .size(IMAGE_CARD_SIZE_DP)
                     .clip(MaterialTheme.shapes.medium),
             )
 
@@ -205,7 +205,7 @@ private fun PreviewCard() {
             itemImage = Uri.parse(""),//album.artwork!!,
             onMoreOptionsClick = {},
             modifier = Modifier
-                .size(FEATURED_ITEM_IMAGE_SIZE_DP, FEATURED_ITEM_IMAGE_SIZE_DP + 48.dp)
+                .size(IMAGE_CARD_SIZE_DP, IMAGE_CARD_SIZE_DP + 48.dp)
                 .fillMaxSize()
         )
     }

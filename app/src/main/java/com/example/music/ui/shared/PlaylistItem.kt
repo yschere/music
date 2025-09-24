@@ -30,7 +30,8 @@ import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
 
-private val FEATURED_PLAYLIST_IMAGE_SIZE_DP = 160.dp
+private val IMAGE_CARD_SIZE_DP = 160.dp
+private val IMAGE_ICON_SIZE_DP = 56.dp
 
 @Composable
 fun PlaylistItem(
@@ -81,7 +82,7 @@ fun PlaylistItemCard(
 ) {
     Column(
         modifier = modifier
-            .width(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
+            .width(IMAGE_CARD_SIZE_DP)
     ) {
         Box(
             contentAlignment = Alignment.BottomStart,
@@ -91,7 +92,7 @@ fun PlaylistItemCard(
                 albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
                 contentDescription = playlist.name,
                 modifier = Modifier
-                    .size(FEATURED_PLAYLIST_IMAGE_SIZE_DP)
+                    .size(IMAGE_CARD_SIZE_DP)
                     .clip(MaterialTheme.shapes.medium),
             )
 
@@ -147,7 +148,7 @@ private fun PlaylistItemRow(
             albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
             contentDescription = playlist.name,
             modifier = modifier
-                .size(56.dp)
+                .size(IMAGE_ICON_SIZE_DP)
                 .clip(MaterialTheme.shapes.medium),
         )
 

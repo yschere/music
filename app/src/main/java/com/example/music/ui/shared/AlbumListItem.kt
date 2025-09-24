@@ -30,7 +30,8 @@ import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
 
-private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
+private val IMAGE_CARD_SIZE_DP = 160.dp
+private val IMAGE_ICON_SIZE_DP = 56.dp
 
 @Composable
 fun AlbumListItem(
@@ -80,7 +81,7 @@ fun AlbumItemCard(
 ) {
     Column(
         modifier = modifier
-            .width(FEATURED_ALBUM_IMAGE_SIZE_DP)
+            .width(IMAGE_CARD_SIZE_DP)
     ) {
         Box(
             contentAlignment = Alignment.BottomStart,
@@ -90,7 +91,7 @@ fun AlbumItemCard(
                 albumImage = album.artworkUri,
                 contentDescription = album.title,
                 modifier = Modifier
-                    .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
+                    .size(IMAGE_CARD_SIZE_DP)
                     .clip(MaterialTheme.shapes.medium),
             )
 
@@ -146,7 +147,7 @@ fun AlbumItemRow(
             albumImage = album.artworkUri,
             contentDescription = album.title,
             modifier = Modifier
-                .size(56.dp)
+                .size(IMAGE_ICON_SIZE_DP)
                 .clip(MaterialTheme.shapes.medium),
         )
 

@@ -26,6 +26,8 @@ import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
 
+private val ICON_SIZE_DP = 56.dp
+
 @Composable
 fun ArtistListItem(
     artist: ArtistInfo,
@@ -61,7 +63,7 @@ private fun ArtistListItemRow(
         ArtistListItemIcon(
             artist = artist.name,
             modifier = Modifier
-                .size(56.dp)
+                .size(ICON_SIZE_DP)
                 .clip(MaterialTheme.shapes.small),
         )
 
