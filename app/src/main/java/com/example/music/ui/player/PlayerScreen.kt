@@ -115,6 +115,8 @@ fun PlayerScreen(
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
     navigateBack: () -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     PlayerScreen(
@@ -125,9 +127,12 @@ fun PlayerScreen(
         progress = viewModel.progress,
         timeElapsed = viewModel.position,
         hasNext = viewModel.hasNext,
+        clearQueue = viewModel::onClearQueue,
         windowSizeClass = windowSizeClass,
         displayFeatures = displayFeatures,
         navigateBack = navigateBack,
+        navigateToAlbumDetails = navigateToAlbumDetails,
+        navigateToArtistDetails = navigateToArtistDetails,
         playerControlActions = PlayerControlActions(
             onPlayPress = viewModel::onPlay,
             onPausePress = viewModel::onPause,
@@ -143,7 +148,7 @@ fun PlayerScreen(
     if (state.errorMessage != null) { PlayerScreenError(onRetry = viewModel::refresh) }*/
 }
 
-//wrappers for default class of possible control actions
+// wrappers for default class of possible control actions
 data class PlayerControlActions(
     val onPlayPress: () -> Unit,
     val onPausePress: () -> Unit,
@@ -172,7 +177,7 @@ private fun PlayerScreenError(
     )
 }
 
-
+// wrapper for player screen more options modal actions
 data class PlayerModalActions(
     val onDismissRequest: () -> Unit,
     //val addToPlaylist: () -> Unit = {},
@@ -196,9 +201,12 @@ private fun PlayerScreen(
     progress: Float,
     timeElapsed: Long,
     hasNext: Boolean,
+    clearQueue: () -> Unit,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
     navigateBack: () -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     playerControlActions: PlayerControlActions,
     modifier: Modifier = Modifier
 ) {
@@ -250,7 +258,7 @@ private fun PlayerScreen(
                     goToArtist = {
                         coroutineScope.launch {
                             Log.i(TAG, "Player More Options -> Go to Artist clicked :: ${currentSong.artistId}")
-                            //navigateToArtistDetails(currentSong.artistId)
+                            navigateToArtistDetails(currentSong.artistId)
                             sheetState.hide()
                         }.invokeOnCompletion {
                             Log.i(TAG, "set showBottomSheet to FALSE")
@@ -262,7 +270,7 @@ private fun PlayerScreen(
                     goToAlbum = {
                         coroutineScope.launch {
                             Log.i(TAG, "Player More Options -> Go to Album clicked :: ${currentSong.albumId}")
-                            //navigateToAlbumDetails(currentSong.albumId)
+                            navigateToAlbumDetails(currentSong.albumId)
                             sheetState.hide()
                         }.invokeOnCompletion {
                             Log.i(TAG, "set showBottomSheet to FALSE")
@@ -274,9 +282,9 @@ private fun PlayerScreen(
                     clearQueue = {
                         coroutineScope.launch {
                             Log.i(TAG, "Player More Options -> Clear Queue clicked")
-                            //onPlayerAction(PlayerAction.ClearQueue())
-                            //navigateToAlbumDetails(currentSong.albumId)
+                            clearQueue()
                             sheetState.hide()
+                            navigateBack()
                         }.invokeOnCompletion {
                             Log.i(TAG, "set showBottomSheet to FALSE")
                             if(!sheetState.isVisible) {
@@ -1028,9 +1036,12 @@ fun PlayerScreenPreview() {
                 progress =  154604L / ( PreviewSongs[0].duration.toMillis() ) .toFloat(),
                 timeElapsed = 154604L,
                 hasNext = true,
+                clearQueue = {},
                 displayFeatures = emptyList(),
                 windowSizeClass = WindowSizeClass.compute(maxWidth.value, maxHeight.value),
-                navigateBack = { },
+                navigateBack = {},
+                navigateToAlbumDetails = {},
+                navigateToArtistDetails = {},
                 playerControlActions = PlayerControlActions(
                     onPlayPress = {},
                     onPausePress = {},
