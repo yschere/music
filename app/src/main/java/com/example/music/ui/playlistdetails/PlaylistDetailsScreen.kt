@@ -2,58 +2,49 @@ package com.example.music.ui.playlistdetails
 
 import android.net.Uri
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
@@ -66,57 +57,70 @@ import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.getPlaylistSongs
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.testing.PreviewSongs
+import com.example.music.ui.player.MiniPlayerControlActions
+import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Error
+import com.example.music.ui.shared.ItemCountAndPlusSortSelectButtons
 import com.example.music.ui.shared.Loading
+import com.example.music.ui.shared.MiniPlayer
+import com.example.music.ui.shared.PlayShuffleButtons
+import com.example.music.ui.shared.PlaylistMoreOptionsBottomModal
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
+import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
+import com.example.music.util.AddToPlaylistFAB
+import com.example.music.util.BackNavBtn
+import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.ScrollToTopFAB
+import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
-import com.example.music.util.quantityStringResource
+import kotlinx.coroutines.launch
 
 private const val TAG = "Playlist Details Screen"
-
-/** Changelog:
- *
- * 4/2/2025 - Removing PlayerSong as UI model supplement. SongInfo domain model
- * has been adjusted to support UI with the string values of the foreign key
- * ids and remaining extra info that was not in PlayerSong.
- *
- * 4/13/2025 - Added navigateToSearch to Search Icon in TopAppBar
- *
- * 7/22-23/2025 - Removed PlayerSong completely
- */
+private val PLAYLIST_IMAGE_SIZE_DP = 160.dp
 
 /**
  * Stateful version of Playlist Details Screen
  */
 @Composable
 fun PlaylistDetailsScreen(
+    navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateBack: () -> Unit,
-    //modifier: Modifier = Modifier,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     viewModel: PlaylistDetailsViewModel = hiltViewModel(),
 ) {
-    //Log.i(TAG, "Initial Screen Call - Start")
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
-        Text(text = uiState.errorMessage!!)
         PlaylistDetailsError(onRetry = viewModel::refresh)
     }
-    Surface {
+    Surface(color = Color.Transparent) {
         if (uiState.isReady) {
             PlaylistDetailsScreen(
                 playlist = uiState.playlist,
                 songs = uiState.songs,
+                selectSong = uiState.selectSong,
+                currentSong = viewModel.currentSong,
+                isActive = viewModel.isActive, // if playback is active
+                isPlaying = viewModel.isPlaying,
+
                 onPlaylistAction = viewModel::onPlaylistAction,
+                navigateBack = navigateBack,
                 navigateToPlayer = navigateToPlayer,
                 navigateToSearch = navigateToSearch,
-                navigateBack = navigateBack,
+                navigateToAlbumDetails = navigateToAlbumDetails,
+                navigateToArtistDetails = navigateToArtistDetails,
                 modifier = Modifier.fillMaxSize(),
+                miniPlayerControlActions = MiniPlayerControlActions(
+                    onPlayPress = viewModel::onPlay,
+                    onPausePress = viewModel::onPause,
+                )
             )
         } else {
             PlaylistDetailsLoadingScreen(
@@ -124,29 +128,6 @@ fun PlaylistDetailsScreen(
             )
         }
     }
-
-    /* -------ORIGINAL VERSION ---------
-        //this version was based on the viewModel using sealed instance and @AssistedInject
-        val state by viewModel.state.collectAsStateWithLifecycle()
-        when (val s = state) {
-            is PlaylistUiState.Loading -> {
-                PlaylistDetailsLoadingScreen(
-                    modifier = Modifier.fillMaxSize()
-                )
-            } // screen to show when ui state is in loading
-            is PlaylistUiState.Ready -> {
-                PlaylistDetailsScreen(
-                    playlist = s.playlist,
-                    songs = s.songs,
-                    onQueueSong = viewModel::onQueueSong,
-                    navigateToPlayer = navigateToPlayer,
-                    navigateBack = navigateBack,
-                    showBackButton = showBackButton,
-                    modifier = modifier,
-                )
-            } // screen to show when ui state is ready to display
-        }
-    */
 }
 
 /**
@@ -164,271 +145,433 @@ private fun PlaylistDetailsError(
 }
 
 /**
- * Loading Screen
+ * Loading Screen with circular progress indicator in center
  */
 @Composable
 private fun PlaylistDetailsLoadingScreen(
     modifier: Modifier = Modifier
 ) { Loading(modifier = modifier) }
-//full screen circular progress - loading screen
 
 /**
  * Stateless Composable for Playlist Details Screen
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlaylistDetailsScreen(
     playlist: PlaylistInfo,
     songs: List<SongInfo>,
+    selectSong: SongInfo,
+    currentSong: SongInfo,
+    isActive: Boolean,
+    isPlaying: Boolean,
+
     onPlaylistAction: (PlaylistAction) -> Unit,
+    navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
     navigateToSearch: () -> Unit,
-    navigateBack: () -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
+    miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
-) { //base level screen data / coroutine setter / screen component(s) caller
-    //Log.i(TAG, "Draw Screen Start")
+) {
+    Log.i(TAG, "Playlist Details Screen START\n" +
+            "currentSong? ${currentSong.title}\n" +
+            "isActive? $isActive")
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
+    val appBarScrollBehavior = TopAppBarDefaults
+        .exitUntilCollapsedScrollBehavior(
+            rememberTopAppBarState()
+        )
+    val isCollapsed = remember {
+        derivedStateOf {
+            appBarScrollBehavior.state.collapsedFraction > 0.8
+        }
+    }
+
+    val listState = rememberLazyGridState()
+    val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
+
+    val sheetState = rememberModalBottomSheetState(false)
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
+    var showPlaylistMoreOptions by remember { mutableStateOf(false) }
+    var showSongMoreOptions by remember { mutableStateOf( false ) }
+
     ScreenBackground(
-        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        modifier = modifier
     ) {
-        //base layer structure component
         Scaffold(
-            contentWindowInsets = WindowInsets.systemBarsIgnoringVisibility,
-                //can't quite remember what this one was for ...
-                // was this meant to keep all the contents within the window insets?
             topBar = {
-                PlaylistDetailsTopAppBar(
-                    navigateToSearch = navigateToSearch,
-                    navigateBack = navigateBack, //since using topAppBar here, separating navigateBack from the other navigate functions here
+                LargeTopAppBar(
+                    title = {
+                        // if true, bar is collapsed so use album title as title
+                        if ( isCollapsed.value ) {
+                            Text(
+                                text = playlist.name,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.headlineMedium,
+                                modifier = Modifier.basicMarquee()
+                            )
+                        } else {
+                            // if false, bar is expanded so use full header
+                            //AlbumDetailsHeaderLargeAlbumCover(album, modifier)
+                            PlaylistDetailsHeader(playlist, modifier)
+                        }
+                    },
+                    navigationIcon = {
+                        BackNavBtn(onClick = navigateBack)
+                    },
+                    actions = {
+                        SearchBtn(onClick = navigateToSearch)
+                        MoreOptionsBtn(
+                            onClick = {
+                                showBottomSheet = true
+                                showPlaylistMoreOptions = true
+                            }
+                        )
+                    },
+                    collapsedHeight = 48.dp,//TopAppBarDefaults.LargeAppBarCollapsedHeight, // is 64.dp
+                    expandedHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 76.dp,//200.dp, // for Header
+                    //expandedHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 270.dp, // for HeaderLargeAlbumCover
+                    windowInsets = TopAppBarDefaults.windowInsets,
+                    colors = TopAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+                    scrollBehavior = appBarScrollBehavior,
                 )
             },
             bottomBar = {
-                /* //should show BottomBarPlayer here if a queue session is running or service is running
-                BottomBarPlayer(
-                    song = PreviewSongs[5],
-                    navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
-                )*/
+                if (isActive){
+                    MiniPlayer(
+                        song = currentSong,
+                        isPlaying = isPlaying,
+                        navigateToPlayer = navigateToPlayer,
+                        onPlayPress = miniPlayerControlActions.onPlayPress,
+                        onPausePress = miniPlayerControlActions.onPausePress,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+                    )
+                }
             },
-            snackbarHost = { // setting the snackbar hoststate to the scaffold
-                SnackbarHost(hostState = snackbarHostState)
-            },
-            //modifier = modifier.fillMaxSize().systemBarsPadding(),
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            modifier = modifier.nestedScroll(appBarScrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
-            contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
-            //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
-        ) { contentPadding -> //not sure why content padding into content function done in this way
-            //logger.info { "Playlist Details Screen - Content function call" }
-            PlaylistDetailsContent(
-                playlist = playlist,
-                songs = songs,
-                /*onQueueSong = {
-                    coroutineScope.launch { //use the onQueueSong btn onClick to trigger snackbar
-                        snackbarHostState.showSnackbar(snackBarText)
-                    }
-                    onQueueSong(it)
-                },*/
-                onPlaylistAction = onPlaylistAction,
-                navigateToPlayer = navigateToPlayer,
-                modifier = Modifier.padding(contentPadding)//.padding(horizontal = 8.dp)
-            )
-        }
-    }
-    //logger.info{ "Playlist Details Screen function end" }
-}
-
-/**
- * Composable for Playlist Details Screen's Top App Bar.
- */
-@Composable
-private fun PlaylistDetailsTopAppBar(
-    navigateToSearch: () -> Unit,
-    navigateBack: () -> Unit,
-    //should include album more options btn action here,
-    //pretty sure that button also needs a context driven options set
-    //modifier: Modifier = Modifier
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp)
-    ) {
-        //back button
-        IconButton( onClick = navigateBack ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(id = R.string.icon_back_nav),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-
-        //right align objects after this space
-        Spacer(Modifier.weight(1f))
-
-        // search btn
-        IconButton( onClick = navigateToSearch ) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = stringResource(R.string.icon_search),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-        // more options btn // temporary placement till figure out if this should be part of header
-        IconButton(onClick = {}) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-    }
-}
-
-/**
- * Composable for Playlist Details Screen's Content.
- */
-@Composable
-private fun PlaylistDetailsContent(
-    playlist: PlaylistInfo,
-    songs: List<SongInfo>,
-    onPlaylistAction: (PlaylistAction) -> Unit,
-    navigateToPlayer: () -> Unit,
-    modifier: Modifier = Modifier
-) { //determines content of details screen
-    //logger.info { "Playlist Details Content function start" }
-    LazyVerticalGrid( //uses lazy vertical grid to store header and items list below it
-        columns = GridCells.Adaptive(362.dp),
-        modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp)
-    ) {
-        //logger.info { "Playlist Details Content - lazy vertical grid start" }
-        // section 1: header item
-        fullWidthItem {
-            PlaylistDetailsHeader(
-                playlist = playlist,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        // section 2: songs list
-        fullWidthItem {
-            if (songs.isEmpty()) {
-                PlaylistDetailsEmptyList(
-                    onClick = {
-                        Log.i(TAG, "Add to Empty Playlist btn clicked")
-                    }
-                )
-            } else {
-                Column {
-                    SongCountAndAddSortSelectButtons(
-                        songs = songs,
-                        onAddClick = {
-                            Log.i(TAG, "Add to Playlist btn clicked")
-                        },
-                        onSelectClick = {
-                            Log.i(TAG, "Multi-Select btn clicked")
-                        },
-                        onSortClick = {
-                            Log.i(TAG, "Song Sort btn clicked")
-                        }
-                    )
-                    PlayShuffleButtons(
-                        onPlayClick = {
-                            Log.i(TAG, "Play Playlist btn clicked")
-                            onPlaylistAction(PlaylistAction.PlaySongs(songs))
-                            navigateToPlayer()
-                        },
-                        onShuffleClick = {
-                            Log.i(TAG, "Shuffle Playlist btn clicked")
-                            onPlaylistAction(PlaylistAction.ShuffleSongs(songs))
-                            navigateToPlayer()
-                        },
-                    )
-                }
-            }
-        }
-
-        /**
-         * ORIGINAL VERSION: using songs: List<SongInfo>
-         */
-        //items(songs, key = { it.id }) { song -> // for each song in list:
-        items(songs) { song ->
-            //Note: Because playlists are capable of having multiple copies of
-            // the same song, its likely necessary going forward to change the
-            // referencing of each song thru its playlist entry
-            // for now, not using unique id, just outputting the list
-            Box(Modifier.padding(horizontal = 4.dp, vertical = 0.dp)) {
-                SongListItem(
-                    //call the SongListItem function to display each one, include the data needed to display item in full,
-                    //and should likely share context from where this call being made in case specific data needs to be shown / not shown
-                    song = song,
-                    onClick = {
-                        Log.i(TAG, "Song clicked ${song.title}")
-                        onPlaylistAction(PlaylistAction.PlaySong(song))
-                        navigateToPlayer()
-                    },
-                    onMoreOptionsClick = {},
-                    //onQueueSong = onQueueSong,
-                    modifier = Modifier.fillMaxWidth(),
-                    isListEditable = false,
-                    showArtistName = true,
-                    showAlbumImage = true,
-                    showAlbumTitle = true,
-                    showTrackNumber = false,
-                )
-            }
-        }
-        //logger.info { "Playlist Details Content - lazy vertical grid end" }
-    }
-    //logger.info { "Playlist Details Content function end" }
-}
-
-/**
- * Default header based on jetcaster
- */
-/*@Composable
-private fun PlaylistDetailsHeaderItem(
-    playlist: PlaylistInfo,
-    modifier: Modifier = Modifier
-) {
-    BoxWithConstraints(
-        modifier = modifier.padding(Keyline1)
-    ) {
-        val maxImageSize = this.maxWidth / 2
-        val imageSize = min(maxImageSize, 148.dp)
-        Column {
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                modifier = Modifier.fillMaxWidth()//.background(MaterialTheme.colorScheme.secondary)
-            ) {
-                AlbumImage(
-                    modifier = Modifier
-                        .size(imageSize)
-                        .clip(MaterialTheme.shapes.large),
-                        //.background(MaterialTheme.colorScheme.onPrimary),
-                    //albumImage = album.artwork!!,//album.imageUrl or album.artwork when that is fixed
-                    albumImage = 1,
-                    contentDescription = playlist.name
-                )
-                Column(
-                    modifier = Modifier.padding(start = 16.dp)
+            contentColor = contentColorFor(MaterialTheme.colorScheme.background)
+        ) { contentPadding ->
+            // PlaylistDetails Content
+            Box(Modifier.fillMaxSize()) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(1),
+                    state = listState,
+                    modifier = Modifier.padding(contentPadding)
+                        .fillMaxSize()
+                        .padding(horizontal = 12.dp)
                 ) {
-                    Text(
-                        text = playlist.name,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.headlineMedium
+                    // section 2: songs list
+                    fullWidthItem {
+                        if (songs.isEmpty()) {
+                            PlaylistDetailsEmptyList(
+                                onClick = {
+                                    Log.i(TAG, "Empty list -> Add to Playlist btn clicked")
+                                    // want to navigate to multi-select view of all songs
+                                    // maybe have it use sort and filter options?
+                                    // have search as well that will also have selection enabled
+                                }
+                            )
+                        } else {
+                            Column {
+                                ItemCountAndPlusSortSelectButtons(
+                                    id = R.plurals.songs,
+                                    itemCount = songs.size,
+                                    createOrAdd = false, // add to playlist
+                                    onPlusClick = {
+                                        Log.i(TAG, "Add Songs to Playlist btn clicked")
+                                    }, // want this to nav to multi-select view that shows "add songs to playlist"
+                                    onSortClick = {
+                                        Log.i(TAG, "Song Sort btn clicked")
+                                        showBottomSheet = false
+                                        showSortSheet = false
+                                    },
+                                    onSelectClick = {
+                                        Log.i(TAG, "Multi-Select btn clicked")
+                                        // want to navigate to multi-select view of songs in playlist
+                                        // maybe have it use sort and filter options?
+                                        // have search as well that will also have selection enabled
+                                        // but this search will be just the songs in playlist?
+                                    },
+                                )
+                                PlayShuffleButtons(
+                                    onPlayClick = {
+                                        Log.i(TAG, "Play Songs btn clicked")
+                                        onPlaylistAction(PlaylistAction.PlaySongs(songs))
+                                        navigateToPlayer()
+                                    },
+                                    onShuffleClick = {
+                                        Log.i(TAG, "Shuffle Songs btn clicked")
+                                        onPlaylistAction(PlaylistAction.ShuffleSongs(songs))
+                                        navigateToPlayer()
+                                    },
+                                )
+                            }
+                        }
+                    }
+
+                    items(items = songs) { song ->
+                        SongListItem(
+                            song = song,
+                            onClick = {
+                                Log.i(TAG, "Song clicked: ${song.title}")
+                                onPlaylistAction(PlaylistAction.PlaySong(song))
+                                navigateToPlayer()
+                            },
+                            onMoreOptionsClick = {
+                                Log.i(TAG, "Song More Option clicked: ${song.title}")
+                                onPlaylistAction(PlaylistAction.SongMoreOptionClicked(song))
+                                showBottomSheet = true
+                                showSongMoreOptions = true
+                            },
+                            isListEditable = false,
+                            showAlbumImage = true,
+                            showArtistName = true,
+                            showAlbumTitle = true,
+                            showTrackNumber = false,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+
+                ScrollToTopFAB(
+                    displayButton = displayButton,
+                    isActive = isActive,
+                    onClick = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Scroll to Top btn clicked")
+                            listState.animateScrollToItem(0)
+                        }
+                    }
+                )
+            }
+
+            // PlaylistDetails BottomSheet
+            if (showBottomSheet) {
+                Log.i(TAG, "PlaylistDetails Content -> showBottomSheet is TRUE")
+                // bottom sheet context - sort btn
+                if (showSortSheet) {
+                    Log.i(TAG, "PlaylistDetails Content -> Song Sort Modal is TRUE")
+                    DetailsSortSelectionBottomModal(
+                        onDismissRequest = {
+                            showBottomSheet = false
+                            showSortSheet = false
+                        },
+                        sheetState = sheetState,
+                        onClose = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Hide sheet state")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set Song Sort to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSortSheet = false
+                                }
+                            }
+                        },
+                        onApply = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Save sheet state - does nothing atm")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set Song Sort to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSortSheet = false
+                                }
+                            }
+                        },
+                        content = "SongInfo",
+                        context = "PlaylistDetails"
                     )
-                    PlaylistDetailsHeaderItemButtons(
-                        onShuffleClick = {},
-                        onPlayClick = {},
-                        modifier = Modifier.fillMaxWidth()
+                }
+
+                // bottom sheet context - playlist more options btn
+                else if (showPlaylistMoreOptions) {
+                    Log.i(TAG, "PlaylistDetails Content -> Playlist More Options is TRUE")
+                    PlaylistMoreOptionsBottomModal(
+                        onDismissRequest = {
+                            showBottomSheet = false
+                            showPlaylistMoreOptions = false
+                        },
+                        sheetState = sheetState,
+                        playlist = playlist,
+                        play = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Playlist More Options Modal -> PlaySongs clicked")
+                                onPlaylistAction(PlaylistAction.PlaySongs(songs))
+                                navigateToPlayer()
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showPlaylistMoreOptions = false
+                                }
+                            }
+                        },
+                        playNext = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Playlist More Options Modal -> PlaySongsNext clicked")
+                                onPlaylistAction(PlaylistAction.PlaySongsNext(songs))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showPlaylistMoreOptions = false
+                                }
+                            }
+                        },
+                        shuffle = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Playlist More Options Modal -> ShuffleSongs clicked")
+                                onPlaylistAction(PlaylistAction.ShuffleSongs(songs))
+                                navigateToPlayer()
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showPlaylistMoreOptions = false
+                                }
+                            }
+                        },
+                        //addToPlaylist = {},
+                        addToQueue = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Playlist More Options Modal -> QueueSongs clicked")
+                                onPlaylistAction(PlaylistAction.QueueSongs(songs))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showPlaylistMoreOptions = false
+                                }
+                            }
+                        },
+                        onClose = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Hide sheet state")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showPlaylistMoreOptions = false
+                                }
+                            }
+                        },
+                        context = "PlaylistDetails"
+                    )
+                }
+
+                // bottom sheet context - song more options btn
+                else if (showSongMoreOptions) {
+                    Log.i(TAG, "PlaylistDetails Content -> Song More Options is TRUE")
+                    SongMoreOptionsBottomModal(
+                        onDismissRequest = {
+                            showBottomSheet = false
+                            showSongMoreOptions = false
+                        },
+                        sheetState = sheetState,
+                        song = selectSong,
+                        play = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Playlist More Options Modal -> PlaySong clicked :: ${selectSong.title}")
+                                onPlaylistAction(PlaylistAction.PlaySong(selectSong))
+                                navigateToPlayer()
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showPlaylistMoreOptions = false
+                                }
+                            }
+                        },
+                        playNext = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Playlist More Options Modal -> PlaySongNext clicked :: ${selectSong.title}")
+                                onPlaylistAction(PlaylistAction.PlaySongNext(selectSong))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSongMoreOptions = false
+                                }
+                            }
+                        },
+                        //addToPlaylist = {},
+                        addToQueue = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Playlist More Options Modal -> QueueSong clicked :: ${selectSong.title}")
+                                onPlaylistAction(PlaylistAction.QueueSong(selectSong))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set PlaylistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSongMoreOptions = false
+                                }
+                            }
+                        },
+                        goToArtist = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> GoToArtist clicked :: ${selectSong.artistId}")
+                                navigateToArtistDetails(selectSong.artistId)
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSongMoreOptions = false
+                                }
+                            }
+                        },
+                        goToAlbum = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked :: ${selectSong.albumId}")
+                                navigateToAlbumDetails(selectSong.albumId)
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSongMoreOptions = false
+                                }
+                            }
+                        },
+                        onClose = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Hide sheet state")
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
+                                if(!sheetState.isVisible) {
+                                    showBottomSheet = false
+                                    showSongMoreOptions = false
+                                }
+                            }
+                        },
+                        context = "PlaylistDetails"
                     )
                 }
             }
@@ -436,51 +579,9 @@ private fun PlaylistDetailsHeaderItem(
     }
 }
 
-@Composable
-private fun PlaylistDetailsHeaderItemButtons(
-    onShuffleClick: () -> Unit,
-    onPlayClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(modifier.padding(top = 16.dp)) {
-        Button( // shuffle btn
-            onClick = onShuffleClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.Default.Shuffle,
-                contentDescription = stringResource(R.string.icon_shuffle)
-            )
-        }
-
-        Button( //play btn
-            onClick = onPlayClick,
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = stringResource(R.string.icon_play)
-            )
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // more options btn
-        IconButton(
-            onClick = {  },
-            modifier = Modifier.padding(start = 8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-    }
-}*/
-
 /**
- * Header with image on left, playlist name on right
+ * Composable for Playlist Details Screen's header.
+ * Has playlist image on the left side, playlist name on the right side.
  */
 @Composable
 private fun PlaylistDetailsHeader(
@@ -488,13 +589,13 @@ private fun PlaylistDetailsHeader(
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
-        modifier = modifier.padding(Keyline1)
+        modifier = modifier.padding(16.dp)
     ) {
         val maxImageSize = this.maxWidth / 2
-        val imageSize = min( maxImageSize, 148.dp )
+        val imageSize = min(maxImageSize, PLAYLIST_IMAGE_SIZE_DP)
         Column {
             Row(
-                verticalAlignment = Alignment.CenterVertically,// or Bottom
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 AlbumImage(
@@ -514,129 +615,8 @@ private fun PlaylistDetailsHeader(
                         style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.basicMarquee()
                     )
-                    //could put add songs btn and more options btn here
                 }
             }
-        }
-    }
-}
-
-/**
- * Content section 1.3: song count and list sort icons
- */
-@Composable
-private fun SongCountAndAddSortSelectButtons(
-    songs: List<SongInfo>,
-    onAddClick: () -> Unit,
-    onSortClick: () -> Unit,
-    onSelectClick: () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = """\s[a-z]""".toRegex()
-                .replace(quantityStringResource(R.plurals.songs, songs.size, songs.size)) {
-                    it.value.uppercase()
-                },
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier
-                .padding(8.dp)
-                .weight(1f, true)
-        )
-        //Spacer(Modifier.weight(1f,true))
-
-        // add icon
-        IconButton(onClick = onAddClick) { // navigate to multiselect across all songs
-            Icon(
-                imageVector = Icons.Filled.Add,//want this to be sort icon // Icons.Default.Add,
-                contentDescription = stringResource(R.string.icon_add_to_playlist),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-
-        // sort icon
-        IconButton(onClick = onSortClick) { // showBottomSheet = true
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Sort,//want this to be sort icon
-                contentDescription = stringResource(R.string.icon_sort),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-
-        // multi-select icon
-        IconButton(onClick = onSelectClick) { // navigate to multiselect across playlist songs
-            Icon(
-                imageVector = Icons.Filled.Checklist,//want this to be multi select icon
-                contentDescription = stringResource(R.string.icon_multi_select),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-    }
-}
-
-/**
- * Content section 1.5: shuffle and play buttons
- */
-@Composable
-private fun PlayShuffleButtons(
-    onPlayClick: () -> Unit,
-    onShuffleClick: () -> Unit,
-    //modifier: Modifier = Modifier,
-) {
-    Row(Modifier.padding(bottom = 8.dp)) {
-        // play btn
-        Button(
-            onClick = onPlayClick, //what is the thing that would jump start this step process. would it go thru the viewModel??
-            //step 1: regardless of shuffle being on or off, set shuffle to off
-            //step 2: prepare the mediaPlayer with the new queue of items in order from playlist
-            //step 3: set the player to play the first item in queue
-            //step 4: navigateToPlayer(first item)
-            //step 5: start playing
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
-            //did have colors set, colors = buttonColors( container -> primary, content -> background ) // coroutineScope.launch { sheetState.hide() showThemeSheet = false },
-            shape = MaterialTheme.shapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PlayArrow,
-                contentDescription = stringResource(R.string.icon_play)
-            )
-            Text("PLAY")
-        }
-
-        // shuffle btn
-        Button(
-            onClick = onShuffleClick, //what is the thing that would jump start this step process
-            //step 1: regardless of shuffle being on or off, set shuffle to on
-            //step 2?: confirm the shuffle type
-            //step 3: prepare the mediaPlayer with the new queue of items shuffled from playlist
-            //step 4: set the player to play the first item in queue
-            //step 5: navigateToPlayer(first item)
-            //step 6: start playing
-            //needs to take the songs in the playlist, shuffle the
-            /*coroutineScope.launch {
-                sheetState.hide()
-                showThemeSheet = false
-            }*/
-            //did have colors set, colors = buttonColors( container -> primary, content -> background )
-            shape = MaterialTheme.shapes.small,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Shuffle,
-                contentDescription = stringResource(R.string.icon_shuffle)
-            )
-            Text("SHUFFLE")
         }
     }
 }
@@ -658,15 +638,7 @@ private fun PlaylistDetailsEmptyList(
         Text(
             text = "Add Songs to Playlist"
         )
-        Button( //add btn
-            onClick = onClick, // multi-select screen to pick songs to add to playlist
-            modifier = Modifier.semantics(mergeDescendants = true) { }
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = stringResource(R.string.icon_add_to_playlist)
-            )
-        }
+        AddToPlaylistFAB(onClick = onClick)
     }
 }
 
@@ -699,10 +671,21 @@ fun PlaylistDetailsScreenPreview() {
             playlist = PreviewPlaylists[2],
             songs = getPlaylistSongs(2),
 
+            selectSong = getPlaylistSongs(2)[1],
+            currentSong = PreviewSongs[9],
+            isActive = true,
+            isPlaying = false,
+
             onPlaylistAction = {},
+            navigateBack = {},
             navigateToPlayer = {},
             navigateToSearch = {},
-            navigateBack = {},
+            navigateToAlbumDetails = {},
+            navigateToArtistDetails = {},
+            miniPlayerControlActions = MiniPlayerControlActions(
+                onPlayPress = {},
+                onPausePress = {},
+            ),
         )
     }
 }
