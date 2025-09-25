@@ -7,6 +7,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 /**
  * Composable for Loading Screen: full screen with circular progress indicator
@@ -15,13 +16,12 @@ import androidx.compose.ui.Modifier
 fun Loading(
     modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            CircularProgressIndicator(
-                Modifier.align(Alignment.Center)
-            )
+    Surface(
+        color = Color.Transparent,
+        modifier = modifier
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
 }

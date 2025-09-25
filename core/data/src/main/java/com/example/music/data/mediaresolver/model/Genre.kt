@@ -15,7 +15,6 @@ private const val TAG = "MediaResolver Genre"
 data class Genre(
     @JvmField val id: Long,
     @JvmField val name: String,
-    @JvmField val sort: String,
     @JvmField val numTracks: Int = 0
 )
 
@@ -25,13 +24,11 @@ data class Genre(
 fun Cursor.toGenre(): Genre {
     if (FLAG) Log.i(TAG, "Cursor to Genre: \n" +
         "ID: ${getLong(0)} \n" +
-        "Name: ${getString(1) ?: MediaStore.UNKNOWN_STRING}\n" +
-        "Sort: ${getString(2) ?: MediaStore.UNKNOWN_STRING}"
+        "Name: ${getString(1) ?: MediaStore.UNKNOWN_STRING}"
     )
     return Genre(
         id = getLong(0),
         name = getString(1) ?: MediaStore.UNKNOWN_STRING,
-        sort = getString(2) ?: MediaStore.UNKNOWN_STRING,
     )
 }
 

@@ -17,7 +17,6 @@ data class Artist(
     @JvmField val name: String,
     @JvmField val numTracks: Int,
     @JvmField val numAlbums: Int,
-    @JvmField val sort: String,
 )
 
 /**
@@ -33,6 +32,5 @@ fun Cursor.toArtist(): Artist {
         name = getString(1) ?: MediaStore.UNKNOWN_STRING,
         numTracks = getInt(2),
         numAlbums = getInt(3),
-        sort = getString(4) ?: MediaStore.UNKNOWN_STRING,
     )
 }
