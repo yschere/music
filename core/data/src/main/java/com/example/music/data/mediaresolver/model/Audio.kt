@@ -5,6 +5,8 @@ import android.database.Cursor
 import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.runtime.Stable
+import androidx.core.database.getIntOrNull
+import androidx.core.database.getStringOrNull
 import androidx.media3.common.MediaItem
 import com.example.music.data.mediaresolver.MediaRepo.Companion.toAlbumArtUri
 import com.example.music.data.util.FLAG
@@ -33,14 +35,11 @@ data class Audio(
     @JvmField val genre: String,
     @JvmField val genreId: Long,
     @JvmField val year: Int,
-    @JvmField val trackNumber: Int,
     @JvmField val duration: Int,
     @JvmField val bitrate: Int,
-
-    @JvmField val audioId: Long,
-    @JvmField val discNumber: Int,
-    @JvmField val srcTrackNumber: Int,
-    @JvmField val cdTrackNumber: Int,
+    @JvmField val trackNumber: Int?,
+    @JvmField val discNumber: String?,
+    @JvmField val cdTrackNumber: String?,
 )
 
 /**
@@ -51,7 +50,14 @@ fun Cursor.toAudio(): Audio {
             "ID: ${getLong(0)} \n" +
             "Title: ${getString(1)}\n" +
             "File Path: ${getString(3)}\n" +
-            "Date Added: ${getLong(4)}"
+            "Date Added: ${getLong(4)}\n\n" +
+            "Size: ${getInt(6)}\n" +
+            "Composer: ${getString(12)}\n" +
+            "Genre: ${getString(13)}\n" +
+            "Year: ${getInt(15)}\n" +
+
+            "Disc number as String/null: ${getStringOrNull(19)}\n" +
+            "CD Track number as String/null: ${getStringOrNull(20)}\n"
     )
     return Audio(
         id = getLong(0),
@@ -71,14 +77,12 @@ fun Cursor.toAudio(): Audio {
         genre = getString(13) ?: MediaStore.UNKNOWN_STRING,
         genreId = getLong(14),
         year = getInt(15),
-        trackNumber = getInt(16),
-        duration = getInt(17),
-        bitrate = getInt(18),
 
-        audioId = getLong(19),
-        discNumber = getInt(20),
-        srcTrackNumber = getInt(21),
-        cdTrackNumber = getInt(22),
+        duration = getInt(16),
+        bitrate = getInt(17),
+        trackNumber = getIntOrNull(18),
+        discNumber = getStringOrNull(19),
+        cdTrackNumber = getStringOrNull(20),
     )
 }
 

@@ -176,15 +176,12 @@ private val AUDIO_PROJECTION
         MediaStore.Audio.AudioColumns.GENRE, // 13
         MediaStore.Audio.AudioColumns.GENRE_ID, // 14
         MediaStore.Audio.AudioColumns.YEAR, // 15
-        MediaStore.Audio.AudioColumns.TRACK, // 16
-        MediaStore.Audio.AudioColumns.DURATION, // 17
-        MediaStore.Audio.AudioColumns.BITRATE, // 18
 
-        //adding for testing what these columns return as
-        MediaStore.Audio.AudioColumns._ID, // 19
-        MediaStore.Audio.AudioColumns.DISC_NUMBER, // 20
-        MediaStore.Audio.AudioColumns.NUM_TRACKS, // 21
-        MediaStore.MediaColumns.CD_TRACK_NUMBER, // 22
+        MediaStore.Audio.AudioColumns.DURATION, // 16
+        MediaStore.Audio.AudioColumns.BITRATE, // 17
+        MediaStore.Audio.AudioColumns.TRACK, // 18
+        MediaStore.Audio.AudioColumns.DISC_NUMBER, // 19
+        MediaStore.MediaColumns.CD_TRACK_NUMBER, // 20
     )
 
 /**
@@ -304,11 +301,10 @@ suspend fun ContentResolver.findAudio(id: Long): Audio =
                 "Artist: ${result.artist} \n" +
                 "Album: ${result.album} \n" +
                 "Genre: ${result.genre} \n" +
-                "CD TrackNumber: ${result.cdTrackNumber} \n" +
                 "Date Added: ${result.dateAdded} \n" +
                 "Date Modified: ${result.dateModified} \n" +
+                "CD TrackNumber: ${result.cdTrackNumber} \n" +
                 "Disc Number: ${result.discNumber} \n" +
-                "Src TrackNumber: ${result.srcTrackNumber} \n" +
                 "File Path: ${result.path} \n" +
                 "File Size: ${result.size} \n" +
                 "Year: ${result.year} \n"
@@ -339,11 +335,10 @@ suspend fun ContentResolver.findAudio(path: String): Audio =
                 "Artist: ${result.artist} \n" +
                 "Album: ${result.album} \n" +
                 "Genre: ${result.genre} \n" +
-                "CD TrackNumber: ${result.cdTrackNumber} \n" +
                 "Date Added: ${result.dateAdded} \n" +
                 "Date Modified: ${result.dateModified} \n" +
+                "CD TrackNumber: ${result.cdTrackNumber} \n" +
                 "Disc Number: ${result.discNumber} \n" +
-                "Src TrackNumber: ${result.srcTrackNumber} \n" +
                 "File Path: ${result.path} \n" +
                 "File Size: ${result.size} \n" +
                 "Year: ${result.year}"
@@ -372,11 +367,10 @@ suspend fun ContentResolver.findAudio(uri: Uri): Audio =
                 "Artist: ${result.artist} \n" +
                 "Album: ${result.album} \n" +
                 "Genre: ${result.genre} \n" +
-                "CD TrackNumber: ${result.cdTrackNumber} \n" +
                 "Date Added: ${result.dateAdded} \n" +
                 "Date Modified: ${result.dateModified} \n" +
-                "Disc Number: ${result.discNumber} \n" +
-                "Src TrackNumber: ${result.srcTrackNumber} \n" +
+                "CD TrackNumber: ${result.cdTrackNumber?:" null "} \n" +
+                "Disc Number: ${result.discNumber?:" null "} \n" +
                 "File Path: ${result.path} \n" +
                 "File Size: ${result.size} \n" +
                 "Year: ${result.year}"

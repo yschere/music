@@ -2,6 +2,7 @@ package com.example.music.domain.model
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.media3.common.MediaItem
 import com.example.music.data.database.model.Song
 import com.example.music.domain.player.model.album
@@ -14,8 +15,11 @@ import com.example.music.domain.player.model.year
 import com.example.music.data.mediaresolver.model.Audio
 import com.example.music.data.mediaresolver.model.artworkUri
 import com.example.music.data.mediaresolver.model.uri
+import com.example.music.data.util.FLAG
 import java.time.Duration
 import java.time.OffsetDateTime
+
+private const val TAG = "SongInfo"
 
 /**
  * External data layer representation of a song.Intent: to represent a Playlist for the UI, with the ability to
@@ -46,16 +50,16 @@ data class SongInfo(
     val genreName: String? = null,
     val composerId: Long? = null,
     val composerName: String? = null,
-    val trackNumber: Int? = null,
-    val discNumber: Int? = null,
     val duration: Duration = Duration.ZERO,
     val dateAdded: OffsetDateTime? = null,
     val dateModified: OffsetDateTime? = null,
     val dateLastPlayed: OffsetDateTime? = null,
     val size: Long = 0,
     val year: Int? = null,
-    val cdTrackNum: Int? = null,
-    val srcTrackNum: Int? = null,
+    val trackNumber: Int? = null,
+    val trackTotal: Int? = null,
+    val discNumber: Int? = null,
+    val discTotal: Int? = null,
     val artworkUri: Uri = Uri.parse(""),
     val artworkBitmap: Bitmap? = null,
     //fileSize
@@ -95,16 +99,25 @@ fun MediaItem.toSongInfo(): SongInfo =
         //dateLastPlayed
         //size
         year = this.year,
-        cdTrackNum = this.mediaMetadata.discNumber,
-        //srcTrackNum
+        discNumber = this.mediaMetadata.discNumber,
         artworkUri = this.artworkUri ?: Uri.parse(""),
     )
 
 /**
  * Transform resolver's Audio model to SongInfo
  */
-fun Audio.asExternalModel(): SongInfo =
-    SongInfo(
+fun Audio.asExternalModel(): SongInfo {
+    if (FLAG) Log.i(TAG, "Audio to SongInfo:" +
+            "ID: ${this.id}\n" +
+            "Title: ${this.title}\n" +
+            "Artist: ${this.artist}\n" +
+            "Album: ${this.album}\n" +
+            "Track Number: ${this.cdTrackNumber?.substringBefore('/')?.toInt() ?: "null"}\n" +
+            "Track Total: ${this.cdTrackNumber?.substringAfter('/')?.removeSuffix("/")?.toInt() ?: "null"}\n" +
+            "Disc Number: ${this.discNumber?.substringBefore('/')?.toInt() ?: "null"}\n" +
+            "Disc Total: ${this.discNumber?.substringAfter('/')?.removeSuffix("/")?.toInt() ?: "null"}")
+
+    return  SongInfo(
         id = this.id,
         uri = this.uri,
         title = this.title,
@@ -114,10 +127,21 @@ fun Audio.asExternalModel(): SongInfo =
         albumTitle = this.album,
         genreId = this.genreId,
         duration = Duration.ofMillis(this.duration.toLong()),
-        //trackNumber = this.trackNumber, // i think this is the combined CD and Track numbers as xyyy
-        trackNumber = this.cdTrackNumber,
+        trackNumber =
+            if (this.cdTrackNumber != null) this.cdTrackNumber?.substringBefore('/')?.toInt()
+            else null,
+        trackTotal =
+            if (this.cdTrackNumber != null) this.cdTrackNumber?.substringAfter('/')?.removeSuffix("/")?.toInt()
+            else null,
+        discNumber =
+            if (this.discNumber != null) this.discNumber?.substringBefore('/')?.toInt()
+            else null,
+        discTotal =
+            if (this.discNumber != null) this.discNumber?.substringAfter('/')?.removeSuffix("/")?.toInt()
+            else null,
         dateLastPlayed = OffsetDateTime.now(),
         //dateLastPlayed = this.dateModified,
         year = this.year,
         artworkUri = this.artworkUri,
     )
+}
