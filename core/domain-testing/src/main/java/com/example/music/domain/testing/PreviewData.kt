@@ -133,8 +133,8 @@ val PreviewSongs = listOf(
         ),
         size = 1431,
         year = 2004,
-        cdTrackNum = 1,
-        srcTrackNum = 1
+        trackTotal = 1,
+        discTotal = 1
     ),
     SongInfo(
         id = 103,
@@ -166,8 +166,8 @@ val PreviewSongs = listOf(
         ),
         size = 1654,
         year = 2009,
-        cdTrackNum = 4,
-        srcTrackNum = 1
+        trackTotal = 4,
+        discTotal = 1
     ),
     SongInfo(
         id = 528,
@@ -196,8 +196,8 @@ val PreviewSongs = listOf(
         dateLastPlayed = null,
         year = 2007,
         size = 6542,
-        cdTrackNum = 1,
-        srcTrackNum = 1,
+        trackTotal = 1,
+        discTotal = 1,
     ),
     SongInfo(
         id = 529,
@@ -226,8 +226,8 @@ val PreviewSongs = listOf(
         dateLastPlayed = null,
         size = 1231,
         year = 2007,
-        cdTrackNum = 2,
-        srcTrackNum = 1,
+        trackTotal = 2,
+        discTotal = 1,
     ),
     SongInfo(
         id = 530,
@@ -256,8 +256,8 @@ val PreviewSongs = listOf(
         dateLastPlayed = null,
         size = 1121,
         year = 2007,
-        cdTrackNum = 3,
-        srcTrackNum = 1,
+        trackTotal = 3,
+        discTotal = 1,
     ),
     SongInfo(
         id = 12,
@@ -286,8 +286,8 @@ val PreviewSongs = listOf(
         dateLastPlayed = null,
         size = 931,
         year = 2007,
-        cdTrackNum = 8,
-        srcTrackNum = 1,
+        trackTotal = 8,
+        discTotal = 1,
     ),
     SongInfo(
         id = 17,
@@ -315,8 +315,8 @@ val PreviewSongs = listOf(
         dateLastPlayed = null,
         size = 352,
         year = 2009,
-        cdTrackNum = 2,
-        srcTrackNum = 1,
+        trackTotal = 2,
+        discTotal = 1,
     ),
     SongInfo(
         id = 21,
@@ -344,8 +344,8 @@ val PreviewSongs = listOf(
         dateLastPlayed = null,
         size = 29889,
         year = 2012,
-        cdTrackNum = 11,
-        srcTrackNum = 1,
+        trackTotal = 11,
+        discTotal = 1,
     ),
     SongInfo(
         id = 6535,
@@ -376,8 +376,8 @@ val PreviewSongs = listOf(
         ),
         size = 292,
         year = 2009,
-        cdTrackNum = 9,
-        srcTrackNum = 1,
+        trackTotal = 9,
+        discTotal = 1,
     ),
     SongInfo(
         id = 67,
@@ -408,8 +408,8 @@ val PreviewSongs = listOf(
         ),
         size = 1991,
         year = 2024,
-        cdTrackNum = 1,
-        srcTrackNum = 1,
+        trackTotal = 1,
+        discTotal = 1,
     ),
     SongInfo(
         id = 59,
@@ -440,8 +440,8 @@ val PreviewSongs = listOf(
         ),
         size = 5762,
         year = 2024,
-        cdTrackNum = 1,
-        srcTrackNum = 1,
+        trackTotal = 1,
+        discTotal = 1,
     ),
     SongInfo(
         id = 171,
@@ -471,8 +471,8 @@ val PreviewSongs = listOf(
         ),
         size = 1431,
         year = 2002,
-        cdTrackNum = 1,
-        srcTrackNum = 1,
+        trackTotal = 1,
+        discTotal = 1,
     ),
 )
 
