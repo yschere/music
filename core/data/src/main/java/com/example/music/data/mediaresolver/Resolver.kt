@@ -412,7 +412,6 @@ private val ARTIST_PROJECTION
         MediaStore.Audio.Artists.ARTIST,
         MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
         MediaStore.Audio.Artists.NUMBER_OF_ALBUMS,
-        MediaStore.Audio.Artists.DEFAULT_SORT_ORDER,
     )
 
 /**
@@ -617,7 +616,6 @@ private val ALBUM_PROJECTION
         MediaStore.Audio.Albums.ARTIST_ID,
         MediaStore.Audio.Albums.LAST_YEAR,
         MediaStore.Audio.Albums.NUMBER_OF_SONGS,
-        MediaStore.Audio.Albums.DEFAULT_SORT_ORDER,
     )
 
 /**
@@ -798,7 +796,6 @@ private val GENRE_PROJECTION
     get() = arrayOf(
         MediaStore.Audio.Genres._ID,
         MediaStore.Audio.Genres.NAME,
-        MediaStore.Audio.Genres.DEFAULT_SORT_ORDER,
     )
 
 /**
