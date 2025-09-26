@@ -138,7 +138,6 @@ fun MusicApp(
                 SettingsScreen(
                     windowSizeClass = adaptiveInfo.windowSizeClass,
                     displayFeatures = displayFeatures,
-                    navigateBack = appState::navigateBack,
                     navigateToHome = { appState.navigateToHome(backStackEntry) },
                     navigateToLibrary = { appState.navigateToLibrary(backStackEntry) },
                     navigateToSettings = { appState.navigateToSettings(backStackEntry) },
