@@ -25,22 +25,6 @@ import kotlin.math.roundToLong
 
 private const val TAG = "Player View Model"
 
-interface MiniPlayerState {
-    var currentSong: SongInfo
-    var isPlaying: Boolean
-    val player: Player?
-}
-
-interface PlayerState {
-    val currentMedia: MediaItem?
-    var isPlaying: Boolean
-    val player: Player?
-    var progress: Float
-    var position: Long
-    var isShuffled: Boolean
-    var repeatState: RepeatType
-}
-
 /**
  * Tracks the current playback position as a fraction of the current duration.
  */
@@ -432,3 +416,14 @@ class PlayerViewModel @Inject constructor(
         Log.d(TAG, "SongController onEvent: -> $event :: $s")
     }
 }
+
+// wrapper for player screen more options modal actions
+data class PlayerModalActions(
+    val onDismissRequest: () -> Unit,
+    //val addToPlaylist: () -> Unit = {},
+    val goToArtist: () -> Unit,
+    val goToAlbum: () -> Unit,
+    val clearQueue: () -> Unit,
+    val saveQueue: () -> Unit,
+    val onClose: () -> Unit,
+)
