@@ -282,7 +282,7 @@ private suspend inline fun ContentResolver.getBucketAudios(
 
 /**
  * Search for [Audio] on [MediaStore.Audio.Media._ID]
- * @param id [Long]
+ * @param id audio _id
  * @return [Cursor] transformed to [Audio]
  */
 suspend fun ContentResolver.findAudio(id: Long): Audio =
@@ -315,7 +315,7 @@ suspend fun ContentResolver.findAudio(id: Long): Audio =
 
 /**
  * Search for [Audio] on [MediaStore.Audio.Media.DATA], limit 1
- * @param path [String]
+ * @param path audio file path
  * @return [Cursor] transformed to [Audio]
  */
 suspend fun ContentResolver.findAudio(path: String): Audio =
@@ -349,7 +349,7 @@ suspend fun ContentResolver.findAudio(path: String): Audio =
 
 /**
  * Search for [Audio] on uri, limit 1
- * @param uri [Uri]
+ * @param uri audio uri
  * @return [Cursor] transformed to [Audio]
  */
 suspend fun ContentResolver.findAudio(uri: Uri): Audio =
