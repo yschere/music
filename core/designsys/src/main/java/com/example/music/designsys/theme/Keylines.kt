@@ -12,7 +12,7 @@ val ITEM_IMAGE_ROW_SIZE = 56.dp
 // Padding values
 val SMALL_PADDING = 4.dp
 val CONTENT_PADDING = 8.dp
-val DEFAULT_PADDING = 12.dp // original horizontal padding I used
+val DEFAULT_PADDING = 12.dp // original horizontal padding in app
 val SCREEN_PADDING = 16.dp
 val MARGIN_PADDING = 16.dp
 val MODAL_CONTENT_PADDING = 24.dp
@@ -22,15 +22,20 @@ val FAB_SIZE = 56.dp
 val ICON_SIZE = 56.dp
 val PRIMARY_BUTTON_SIZE = 72.dp
 val SIDE_BUTTON_SIZE = 48.dp
+val MINI_PLAYER_BUTTON_SIZE = 48.dp
+val SCROLL_FAB_BOTTOM_PADDING = 48.dp
 
 // Content margin size values
 val CONTENT_LEFT_MARGIN = 72.dp
 val TOOLBAR_HEIGHT = 56.dp
-val TOP_BAR_COLLAPSED_HEIGHT = 56.dp // is TopAppBar when bar is collapsed and screen scrolled down
-val TOP_BAR_EXPANDED_HEIGHT = 240.dp // is TopAppBar with art and title side by side <-> covers album and playlist details headers
+val TOP_BAR_COLLAPSED_HEIGHT = 48.dp // is TopAppBar when bar is collapsed and screen scrolled down
+val TOP_BAR_EXPANDED_HEIGHT = 120.dp // is TopAppBar with art and title side by side <-> covers album and playlist details headers
+val LARGE_TOP_APP_BAR_COLLAPSED_HEIGHT = 64.dp
+val LARGE_TOP_APP_BAR_EXPANDED_HEIGHT = 200.dp
 val LARGE_TOP_BAR_EXPANDED_HEIGHT = 300.dp // is for TopAppBar with large art cover
 val SUBTITLE_HEIGHT = 48.dp
 //val LIST_ITEM_HEIGHT = 72.dp //original, but this so big
+val MINI_PLAYER_HEIGHT = 64.dp
 val ROW_ITEM_HEIGHT = 64.dp
 val LIST_ITEM_HEIGHT = 56.dp
 val ICON_BUTTON_RIGHT_MARGIN = 32.dp
