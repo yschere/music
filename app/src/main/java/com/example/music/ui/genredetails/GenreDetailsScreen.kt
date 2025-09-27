@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -183,7 +184,7 @@ fun GenreDetailsScreen(
         )
     val isCollapsed = remember {
         derivedStateOf {
-            appBarScrollBehavior.state.collapsedFraction > 0.8
+            appBarScrollBehavior.state.collapsedFraction > 0.5
         }
     }
 
@@ -203,17 +204,14 @@ fun GenreDetailsScreen(
             topBar = {
                 LargeTopAppBar(
                     title = {
-                        // if true, bar is collapsed so use album title as title
-                        if ( isCollapsed.value ) {
-                            Text(
-                                text = genre.name,
-                                style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.basicMarquee()
-                            )
-                        } else {
-                            // if false, bar is expanded so use full header
-                            GenreDetailsHeader(genre, modifier)
-                        }
+                        Text(
+                            text = genre.name,
+                            style = MaterialTheme.typography.headlineMedium,
+                            overflow = TextOverflow.Clip,
+                            modifier =
+                                if (isCollapsed.value) Modifier.basicMarquee()
+                                else Modifier,
+                        )
                     },
                     navigationIcon = { BackNavBtn(onClick = navigateBack) },
                     actions = {

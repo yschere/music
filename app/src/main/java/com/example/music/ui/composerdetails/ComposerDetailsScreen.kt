@@ -184,7 +184,7 @@ fun ComposerDetailsScreen(
         )
     val isCollapsed = remember {
         derivedStateOf {
-            appBarScrollBehavior.state.collapsedFraction > 0.8
+            appBarScrollBehavior.state.collapsedFraction > 0.5
         }
     }
 
@@ -204,15 +204,14 @@ fun ComposerDetailsScreen(
             topBar = {
                 LargeTopAppBar(
                     title = {
-                        if ( isCollapsed.value ) {
-                            Text(
-                                text = composer.name,
-                                style = MaterialTheme.typography.headlineMedium,
-                                modifier = Modifier.basicMarquee()
-                            )
-                        } else {
-                            ComposerDetailsHeader(composer, modifier)
-                        }
+                        Text(
+                            text = composer.name,
+                            style = MaterialTheme.typography.headlineMedium,
+                            overflow = TextOverflow.Clip,
+                            modifier =
+                                if (isCollapsed.value) Modifier.basicMarquee()
+                                else Modifier,
+                        )
                     },
                     navigationIcon = { BackNavBtn(onClick = navigateBack) },
                     actions = {
