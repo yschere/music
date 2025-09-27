@@ -630,22 +630,8 @@ private fun HomeContentGrid(
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(MARGIN_PADDING)
                     )
-
                     Spacer(Modifier.weight(1f))
-
-                    Button(
-                        onClick = navigateToLibrary, //navigateToLibrary -> Playlists -> sortBy DateLastAccessed Desc
-                        modifier = Modifier.padding(horizontal = MARGIN_PADDING),
-                        contentPadding = ButtonDefaults.TextButtonContentPadding,
-                        colors = ButtonDefaults.buttonColors(
-                            contentColor = MaterialTheme.colorScheme.inversePrimary,
-                        )
-                    ) {
-                        Text(
-                            text = "More",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
+                    NavToMoreBtn(onClick = {})
                 }
             }
             fullWidthItem {
@@ -675,22 +661,8 @@ private fun HomeContentGrid(
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(MARGIN_PADDING)
                     )
-                    
                     Spacer(Modifier.weight(1f))
-
-                    Button(
-                        onClick = navigateToLibrary, //navigateToLibrary -> Songs -> sortBy DateCreated Desc
-                        modifier = Modifier.padding(horizontal = MARGIN_PADDING),
-                        contentPadding = ButtonDefaults.TextButtonContentPadding,
-                        colors = ButtonDefaults.buttonColors(
-                            contentColor = MaterialTheme.colorScheme.inversePrimary,
-                        )
-                    ) {
-                        Text(
-                            text = "More",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
+                    NavToMoreBtn(onClick = {})
                 }
             }
 

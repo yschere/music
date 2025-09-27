@@ -1,5 +1,6 @@
 package com.example.music.util
 
+import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -13,7 +14,11 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,9 +33,12 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
@@ -40,11 +48,15 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.designsys.theme.MARGIN_PADDING
+import com.example.music.designsys.theme.MINI_PLAYER_HEIGHT
+import com.example.music.designsys.theme.SCROLL_FAB_BOTTOM_PADDING
 
 /***********************************************************************************************
  *
@@ -67,10 +79,37 @@ fun AddToPlaylistFAB(
         description = stringResource(R.string.icon_add_to_playlist),
         onClick = onClick,
         btnModifier = modifier
+            .shadow(elevation = 3.dp, shape = CircleShape)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primary),
         tint = MaterialTheme.colorScheme.inversePrimary,
     )
+}
+
+/**
+ * More button that will navigate to a longer list of the shown items
+ * @param onClick defines the action to take when the button is clicked
+ * @param modifier defines any modifiers to apply to button
+ */
+@Composable
+fun RowScope.NavToMoreBtn(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.padding(horizontal = MARGIN_PADDING)
+            .align(Alignment.CenterVertically),
+        contentPadding = ButtonDefaults.TextButtonContentPadding,
+        colors = ButtonDefaults.buttonColors(
+            contentColor = MaterialTheme.colorScheme.inversePrimary,
+        )
+    ) {
+        Text(
+            text = "More",
+            style = MaterialTheme.typography.titleMedium
+        )
+    }
 }
 
 /**
@@ -87,13 +126,19 @@ fun BoxScope.ScrollToTopFAB(
 ) {
     AnimatedVisibility(
         visible = displayButton.value,
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .padding(
-                bottom =
-                    if (isActive) 120.dp
-                    else 60.dp
-            ),
+        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+            .align(alignment =
+                if (LocalConfiguration.current.orientation == ORIENTATION_LANDSCAPE) Alignment.BottomEnd
+                else Alignment.BottomCenter
+            ) // align FAB to bottom right in landscape, and bottom center in portrait
+            .padding(bottom =
+                if (isActive) MINI_PLAYER_HEIGHT + SCROLL_FAB_BOTTOM_PADDING
+                else SCROLL_FAB_BOTTOM_PADDING
+            ) // isActive means button needs extra 64dp of clearance
+            .padding(end =
+                if (LocalConfiguration.current.orientation == ORIENTATION_LANDSCAPE) 120.dp
+                else 0.dp
+            ), // when in landscape, try to move fab away from right side screen by some amount
         enter = slideInVertically(
             // Start the slide from 40 (pixels) above where the content is supposed to go, to
             // produce a parallax effect
@@ -111,6 +156,7 @@ fun BoxScope.ScrollToTopFAB(
             description = stringResource(R.string.icon_scroll_to_top),
             onClick = onClick,
             btnModifier = Modifier
+                .shadow(elevation = 3.dp, shape = CircleShape)
                 .clip(MaterialTheme.shapes.extraLarge)
                 .background(MaterialTheme.colorScheme.primary),
             tint = MaterialTheme.colorScheme.inversePrimary,
@@ -262,7 +308,6 @@ fun SortBtn(
     )
 }
 
-
 /**
  * Icon for showing if a song is in the favorites list. NOT IN USE
  */
@@ -314,6 +359,13 @@ fun ToggleFavoriteBtn(
         ).value,
     )
 }
+
+
+/***********************************************************************************************
+ *
+ * ********** Base Icon Button **********
+ *
+ **********************************************************************************************/
 
 @Composable
 private fun DrawIconBtn(

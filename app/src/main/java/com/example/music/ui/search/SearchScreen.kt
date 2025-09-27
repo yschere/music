@@ -32,6 +32,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,13 +50,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.music.R
+import com.example.music.designsys.theme.MARGIN_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
+import com.example.music.domain.model.SongInfo
+import com.example.music.ui.shared.AlbumActions
 import com.example.music.ui.shared.AlbumListItem
+import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistListItem
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongListItem
+import com.example.music.util.NavToMoreBtn
 
 private const val TAG = "Search Screen"
 
@@ -110,7 +116,6 @@ private fun SearchError(
     )
 }
 
-
 @Composable
 fun SearchScreenReady(
     uiState: SearchUiState,
@@ -151,40 +156,37 @@ fun SearchScreenReady(
                     sendQuery = viewModel::sendQuery, // onSendQuery
                 ),
                 resultActions = ResultActions(
-                    onSongClicked = { item ->
+                    onSongClick = { item ->
                         Log.i(TAG, "Song clicked: ${item.title}")
                         viewModel.onPlaySong(item)
                         navigateToPlayer()
                     },
-                    /*onSongMoreOptionsClicked = { item: SongInfo ->
+                    onSongMoreOptionsClick = { item ->
                         Log.i(TAG, "Song More Options clicked: ${item.title}")
-                        onSearchAction(SearchAction.SongMoreOptionClicked(item))
-                        showBottomSheet = true
+                        viewModel.onSongMoreOptionsClick(item)
                         showSongMoreOptions = true
                         //play, playNext, add to queue, add to playlist, go to artist, go to album
-                    },*/
-                    onArtistClicked = { item ->
+                    },
+                    onArtistClick = { item ->
                         Log.i(TAG, "Artist clicked: ${item.name}")
                         navigateToArtistDetails(item)
                     },
-                    /*onArtistMoreOptionsClicked = { item: ArtistInfo ->
+                    onArtistMoreOptionsClick = { item ->
                         Log.i(TAG, "Artist More Options clicked: ${item.name}")
-                        onSearchAction(SearchAction.ArtistMoreOptionClicked(item))
-                        showBottomSheet = true
+                        viewModel.onArtistMoreOptionsClick(item)
                         showArtistMoreOptions = true
                         //play, playNext, shuffle, add to queue, add to playlist, go to artist
-                    },*/
-                    onAlbumClicked = { item ->
+                    },
+                    onAlbumClick = { item ->
                         Log.i(TAG, "Album clicked: ${item.title}")
                         navigateToAlbumDetails(item)
                     },
-                    /*onAlbumMoreOptionsClicked = { item: AlbumInfo ->
+                    onAlbumMoreOptionsClick = { item ->
                         Log.i(TAG, "Album More Options clicked: ${item.title}")
-                        onSearchAction(SearchAction.AlbumMoreOptionClicked(item))
-                        showBottomSheet = true
+                        viewModel.onAlbumMoreOptionsClick(item)
                         showAlbumMoreOptions = true
                         //play, playnext, shuffle, add to queue, add to playlist, go to album
-                    },*/
+                    },
                 ),
                 modifier = Modifier.padding(contentPadding),
             )
@@ -344,9 +346,9 @@ fun SearchField(
                         uiState.results.songs.forEach { song ->
                             SongListItem(
                                 song = song,
-                                onClick = { resultActions.onSongClicked(song) },
+                                onClick = resultActions.onSongClick,
                                 onMoreOptionsClick = {
-                                    //onSongMoreOptionClicked(song)
+                                    //onSongMoreOptionsClicked(song)
                                 },
                                 showArtistName = true,
                                 showAlbumTitle = true,
@@ -371,24 +373,12 @@ fun SearchField(
                                 modifier = Modifier.padding(16.dp),
                             )
                             Spacer(Modifier.weight(1f))
-                            Button(
-                                onClick = {},
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                contentPadding = ButtonDefaults.TextButtonContentPadding,
-                                colors = ButtonDefaults.buttonColors(
-                                    contentColor = MaterialTheme.colorScheme.inversePrimary,
-                                )
-                            ) {
-                                Text(
-                                    text = "More",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
+                            NavToMoreBtn(onClick = {})
                         }
                         uiState.results.artists.forEach { artist ->
                             ArtistListItem(
                                 artist = artist,
-                                navigateToArtistDetails = { resultActions.onArtistClicked(artist) },
+                                navigateToArtistDetails = { resultActions.onArtistClick(artist) },
                                 onMoreOptionsClick = {
                                     //onArtistMoreOptionsClicked(artist)
                                 },
@@ -412,24 +402,12 @@ fun SearchField(
                                 modifier = Modifier.padding(16.dp),
                             )
                             Spacer(Modifier.weight(1f))
-                            Button(
-                                onClick = {},
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                contentPadding = ButtonDefaults.TextButtonContentPadding,
-                                colors = ButtonDefaults.buttonColors(
-                                    contentColor = MaterialTheme.colorScheme.inversePrimary,
-                                )
-                            ) {
-                                Text(
-                                    text = "More",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
+                            NavToMoreBtn(onClick = {})
                         }
                         uiState.results.albums.forEach { album ->
                             AlbumListItem(
                                 album = album,
-                                navigateToAlbumDetails = { resultActions.onAlbumClicked(album) },
+                                navigateToAlbumDetails = { resultActions.onAlbumClick(album) },
                                 onMoreOptionsClick = {
                                     //onAlbumMoreOptionsClicked(album)
                                 },
