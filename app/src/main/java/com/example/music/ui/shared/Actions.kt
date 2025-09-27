@@ -1,6 +1,5 @@
 package com.example.music.ui.shared
 
-import android.app.Notification.Action
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
@@ -39,6 +38,71 @@ data class ActionItem(
     val name: String = "",
     val icon: ImageVector,
     val contentDescription: Int = 0, // resource string name
+)
+
+data class SongActions(
+    val play: () -> Unit = {},
+    val playNext: () -> Unit = {},
+    //val AddToPlaylist: () -> Unit = {},
+    val addToQueue: () -> Unit = {},
+    val goToArtist: () -> Unit = {},
+    val goToAlbum: () -> Unit = {},
+)
+
+data class AlbumActions(
+    val play: () -> Unit = {},
+    val playNext: () -> Unit = {},
+    val shuffle: () -> Unit = {},
+    //val addToPlaylist: () -> Unit = {},
+    val addToQueue: () -> Unit = {},
+    val goToAlbumArtist: () -> Unit = {},
+    val goToAlbum: () -> Unit = {},
+)
+
+data class ArtistActions(
+    val play: () -> Unit = {},
+    val playNext: () -> Unit = {},
+    val shuffle: () -> Unit = {},
+    //val addToPlaylist: () -> Unit = {},
+    val addToQueue: () -> Unit = {},
+    val goToArtist: () -> Unit = {},
+)
+
+data class ComposerActions(
+    val play: () -> Unit = {},
+    val playNext: () -> Unit = {},
+    val shuffle: () -> Unit = {},
+    //val addToPlaylist: () -> Unit = {},
+    val addToQueue: () -> Unit = {},
+    val goToComposer: () -> Unit = {},
+)
+
+data class GenreActions(
+    val play: () -> Unit = {},
+    val playNext: () -> Unit = {},
+    val shuffle: () -> Unit = {},
+    //val addToPlaylist: () -> Unit = {},
+    val addToQueue: () -> Unit = {},
+    val goToGenre: () -> Unit = {},
+)
+
+data class PlaylistActions(
+    val play: () -> Unit = {},
+    val playNext: () -> Unit = {},
+    val shuffle: () -> Unit = {},
+    //val addToPlaylist: () -> Unit = {},
+    val addToQueue: () -> Unit = {},
+    val goToPlaylist: () -> Unit = {},
+    //val editPlaylistTags: () -> Unit = {},
+    //val editPlaylistOrder: () -> Unit = {},
+    //val exportPlaylist: () -> Unit = {},
+    //val deletePlaylist: () -> Unit = {},
+)
+
+data class QueueActions(
+    val addToPlaylist: () -> Unit = {},
+    val saveQueueToPlaylist: () -> Unit = {},
+    val clearQueue: () -> Unit = {},
 )
 
 /**

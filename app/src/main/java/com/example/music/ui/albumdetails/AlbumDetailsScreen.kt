@@ -63,6 +63,7 @@ import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.player.MiniPlayerControlActions
+import com.example.music.ui.shared.AlbumActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
@@ -71,6 +72,7 @@ import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.PlayShuffleButtons
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
@@ -119,8 +121,8 @@ fun AlbumDetailsScreen(
                 navigateToArtistDetails = navigateToArtistDetails,
                 modifier = Modifier.fillMaxSize(),
                 miniPlayerControlActions = MiniPlayerControlActions(
-                    onPlayPress = viewModel::onPlay,
-                    onPausePress = viewModel::onPause,
+                    onPlay = viewModel::onPlay,
+                    onPause = viewModel::onPause,
                 )
             )
         } else {
@@ -252,8 +254,8 @@ fun AlbumDetailsScreen(
                         song = currentSong,
                         isPlaying = isPlaying,
                         navigateToPlayer = navigateToPlayer,
-                        onPlayPress = miniPlayerControlActions.onPlayPress,
-                        onPausePress = miniPlayerControlActions.onPausePress,
+                        onPlay = miniPlayerControlActions.onPlay,
+                        onPause = miniPlayerControlActions.onPause,
                         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                     )
                 }
@@ -313,7 +315,7 @@ fun AlbumDetailsScreen(
                             },
                             onMoreOptionsClick = {
                                 Log.i(TAG, "Song More Option clicked: ${song.title}")
-                                onAlbumAction(AlbumAction.SongMoreOptionClicked(song))
+                                onAlbumAction(AlbumAction.SongMoreOptionsClicked(song))
                                 showBottomSheet = true
                                 showSongMoreOptions = true
                             },
@@ -391,74 +393,76 @@ fun AlbumDetailsScreen(
                         },
                         sheetState = sheetState,
                         album = album,
-                        play = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> PlaySongs clicked")
-                                onAlbumAction(AlbumAction.PlaySongs(songs))
-                                sheetState.hide()
-                                navigateToPlayer()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
-                                if(!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                    showAlbumMoreOptions = false
+                        albumActions = AlbumActions(
+                            play = {
+                                coroutineScope.launch {
+                                    Log.i(TAG, "Album More Options Modal -> PlaySongs clicked")
+                                    onAlbumAction(AlbumAction.PlaySongs(songs))
+                                    sheetState.hide()
+                                    navigateToPlayer()
+                                }.invokeOnCompletion {
+                                    Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                    if(!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                        showAlbumMoreOptions = false
+                                    }
                                 }
-                            }
-                        },
-                        playNext = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> PlaySongsNext clicked")
-                                onAlbumAction(AlbumAction.PlaySongsNext(songs))
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
-                                if(!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                    showAlbumMoreOptions = false
+                            },
+                            playNext = {
+                                coroutineScope.launch {
+                                    Log.i(TAG, "Album More Options Modal -> PlaySongsNext clicked")
+                                    onAlbumAction(AlbumAction.PlaySongsNext(songs))
+                                    sheetState.hide()
+                                }.invokeOnCompletion {
+                                    Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                    if(!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                        showAlbumMoreOptions = false
+                                    }
                                 }
-                            }
-                        },
-                        shuffle = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> ShuffleSongs clicked")
-                                onAlbumAction(AlbumAction.ShuffleSongs(songs))
-                                sheetState.hide()
-                                navigateToPlayer()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
-                                if(!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                    showAlbumMoreOptions = false
+                            },
+                            shuffle = {
+                                coroutineScope.launch {
+                                    Log.i(TAG, "Album More Options Modal -> ShuffleSongs clicked")
+                                    onAlbumAction(AlbumAction.ShuffleSongs(songs))
+                                    sheetState.hide()
+                                    navigateToPlayer()
+                                }.invokeOnCompletion {
+                                    Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                    if(!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                        showAlbumMoreOptions = false
+                                    }
                                 }
-                            }
-                        },
-                        //addToPlaylist = {},
-                        addToQueue = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> QueueSongs clicked")
-                                onAlbumAction(AlbumAction.QueueSongs(songs))
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
-                                if(!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                    showAlbumMoreOptions = false
+                            },
+                            //addToPlaylist = {},
+                            addToQueue = {
+                                coroutineScope.launch {
+                                    Log.i(TAG, "Album More Options Modal -> QueueSongs clicked")
+                                    onAlbumAction(AlbumAction.QueueSongs(songs))
+                                    sheetState.hide()
+                                }.invokeOnCompletion {
+                                    Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                    if(!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                        showAlbumMoreOptions = false
+                                    }
                                 }
-                            }
-                        },
-                        goToArtist = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> GoToArtist clicked :: ${album.albumArtistId ?: "null id"}")
-                                navigateToArtistDetails(album.albumArtistId ?: 0L) // not a good check for if this is null
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
-                                if(!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                    showAlbumMoreOptions = false
+                            },
+                            goToAlbumArtist = {
+                                coroutineScope.launch {
+                                    Log.i(TAG, "Album More Options Modal -> GoToArtist clicked :: ${album.albumArtistId ?: "null id"}")
+                                    navigateToArtistDetails(album.albumArtistId ?: 0L) // not a good check for if this is null
+                                    sheetState.hide()
+                                }.invokeOnCompletion {
+                                    Log.i(TAG, "set showBottomSheet to FALSE; set AlbumMoreOptions to FALSE")
+                                    if(!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                        showAlbumMoreOptions = false
+                                    }
                                 }
-                            }
-                        },
+                            },
+                        ),
                         onClose = {
                             coroutineScope.launch {
                                 Log.i(TAG, "Hide sheet state")
@@ -485,60 +489,62 @@ fun AlbumDetailsScreen(
                         },
                         sheetState = sheetState,
                         song = selectSong,
-                        play = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> PlaySong clicked :: ${selectSong.id}")
-                                onAlbumAction(AlbumAction.PlaySong(selectSong))
-                                sheetState.hide()
-                                navigateToPlayer()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
-                                if(!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                    showSongMoreOptions = false
+                        songActions = SongActions(
+                            play = {
+                                coroutineScope.launch {
+                                    Log.i(TAG, "Song More Options Modal -> PlaySong clicked :: ${selectSong.id}")
+                                    onAlbumAction(AlbumAction.PlaySong(selectSong))
+                                    sheetState.hide()
+                                    navigateToPlayer()
+                                }.invokeOnCompletion {
+                                    Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
+                                    if(!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                        showSongMoreOptions = false
+                                    }
                                 }
-                            }
-                        },
-                        playNext = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked :: ${selectSong.id}")
-                                onAlbumAction(AlbumAction.PlaySongNext(selectSong))
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
-                                if(!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                    showSongMoreOptions = false
+                            },
+                            playNext = {
+                                coroutineScope.launch {
+                                    Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked :: ${selectSong.id}")
+                                    onAlbumAction(AlbumAction.PlaySongNext(selectSong))
+                                    sheetState.hide()
+                                }.invokeOnCompletion {
+                                    Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
+                                    if(!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                        showSongMoreOptions = false
+                                    }
                                 }
-                            }
-                        },
-                        //addToPlaylist = {},
-                        addToQueue = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> QueueSong clicked :: ${selectSong.id}")
-                                onAlbumAction(AlbumAction.QueueSong(selectSong))
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
-                                if(!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                    showSongMoreOptions = false
+                            },
+                            //addToPlaylist = {},
+                            addToQueue = {
+                                coroutineScope.launch {
+                                    Log.i(TAG, "Song More Options Modal -> QueueSong clicked :: ${selectSong.id}")
+                                    onAlbumAction(AlbumAction.QueueSong(selectSong))
+                                    sheetState.hide()
+                                }.invokeOnCompletion {
+                                    Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
+                                    if(!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                        showSongMoreOptions = false
+                                    }
                                 }
-                            }
-                        },
-                        goToArtist = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> GoToArtist clicked :: ${selectSong.artistId}")
-                                navigateToArtistDetails(selectSong.artistId)
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
-                                if(!sheetState.isVisible) {
-                                    showBottomSheet = false
-                                    showSongMoreOptions = false
+                            },
+                            goToArtist = {
+                                coroutineScope.launch {
+                                    Log.i(TAG, "Song More Options Modal -> GoToArtist clicked :: ${selectSong.artistId}")
+                                    navigateToArtistDetails(selectSong.artistId)
+                                    sheetState.hide()
+                                }.invokeOnCompletion {
+                                    Log.i(TAG, "set showBottomSheet to FALSE; set SongMoreOptions to FALSE")
+                                    if(!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                        showSongMoreOptions = false
+                                    }
                                 }
-                            }
-                        },
+                            },
+                        ),
                         onClose = {
                             coroutineScope.launch {
                                 Log.i(TAG, "Hide sheet state")
@@ -690,8 +696,8 @@ fun AlbumDetailsScreenPreview() {
             navigateToSearch = {},
             navigateToArtistDetails = {},
             miniPlayerControlActions = MiniPlayerControlActions(
-                onPlayPress = {},
-                onPausePress = {},
+                onPlay = {},
+                onPause = {},
             ),
         )
     }

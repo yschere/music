@@ -52,6 +52,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
+import com.example.music.designsys.theme.SCREEN_PADDING
+import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
+import com.example.music.designsys.theme.TOP_BAR_EXPANDED_HEIGHT
 import com.example.music.domain.testing.PreviewComposers
 import com.example.music.domain.testing.getSongsByComposer
 import com.example.music.domain.model.ComposerInfo
@@ -112,8 +115,8 @@ fun ComposerDetailsScreen(
                 navigateToArtistDetails = navigateToArtistDetails,
                 modifier = Modifier.fillMaxSize(),
                 miniPlayerControlActions = MiniPlayerControlActions(
-                    onPlayPress = viewModel::onPlay,
-                    onPausePress = viewModel::onPause,
+                    onPlay = viewModel::onPlay,
+                    onPause = viewModel::onPause,
                 )
             )
         } else {
@@ -211,9 +214,7 @@ fun ComposerDetailsScreen(
                             ComposerDetailsHeader(composer, modifier)
                         }
                     },
-                    navigationIcon = {
-                        BackNavBtn(onClick = navigateBack)
-                    },
+                    navigationIcon = { BackNavBtn(onClick = navigateBack) },
                     actions = {
                         SearchBtn(onClick = navigateToSearch)
                         MoreOptionsBtn(
@@ -223,8 +224,8 @@ fun ComposerDetailsScreen(
                             }
                         )
                     },
-                    collapsedHeight = 48.dp,//TopAppBarDefaults.LargeAppBarCollapsedHeight, // is 64.dp
-                    expandedHeight = 120.dp,//80.dp,//TopAppBarDefaults.LargeAppBarExpandedHeight,//200.dp, // for Header
+                    collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
+                    expandedHeight = TOP_BAR_EXPANDED_HEIGHT,
                     windowInsets = TopAppBarDefaults.windowInsets,
                     colors = TopAppBarColors(
                         containerColor = Color.Transparent,
@@ -242,8 +243,8 @@ fun ComposerDetailsScreen(
                         song = currentSong,
                         isPlaying = isPlaying,
                         navigateToPlayer = navigateToPlayer,
-                        onPlayPress = miniPlayerControlActions.onPlayPress,
-                        onPausePress = miniPlayerControlActions.onPausePress,
+                        onPlay = miniPlayerControlActions.onPlay,
+                        onPause = miniPlayerControlActions.onPause,
                         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                     )
                 }
@@ -260,7 +261,7 @@ fun ComposerDetailsScreen(
                     state = listState,
                     modifier = modifier.padding(contentPadding)
                         .fillMaxSize()
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = SCREEN_PADDING),
                 ) {
                     fullWidthItem {
                         ItemCountAndSortSelectButtons(
@@ -302,7 +303,7 @@ fun ComposerDetailsScreen(
                             },
                             onMoreOptionsClick = {
                                 Log.i(TAG, "Song More Option clicked: ${song.title}")
-                                //onComposerAction(ComposerAction.SongMoreOptionClicked(song))
+                                //onComposerAction(ComposerAction.SongMoreOptionsClicked(song))
                                 //showBottomSheet = true
                                 //showSongMoreOptions = true
                             },
@@ -380,8 +381,8 @@ fun ComposerDetailsScreenPreview() {
             navigateToAlbumDetails = {},
             navigateToArtistDetails = {},
             miniPlayerControlActions = MiniPlayerControlActions(
-                onPlayPress = {},
-                onPausePress = {},
+                onPlay = {},
+                onPause = {},
             ),
         )
     }
