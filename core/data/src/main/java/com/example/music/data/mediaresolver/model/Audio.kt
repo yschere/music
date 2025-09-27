@@ -35,11 +35,12 @@ data class Audio(
     @JvmField val genre: String,
     @JvmField val genreId: Long,
     @JvmField val year: Int,
+
     @JvmField val duration: Int,
     @JvmField val bitrate: Int,
     @JvmField val trackNumber: Int?,
-    @JvmField val discNumber: String?,
     @JvmField val cdTrackNumber: String?,
+    @JvmField val discNumber: String?,
 )
 
 /**
@@ -47,17 +48,20 @@ data class Audio(
  */
 fun Cursor.toAudio(): Audio {
     if (FLAG) Log.i(TAG, "Cursor to Audio: \n" +
-            "ID: ${getLong(0)} \n" +
-            "Title: ${getString(1)}\n" +
-            "File Path: ${getString(3)}\n" +
-            "Date Added: ${getLong(4)}\n\n" +
-            "Size: ${getInt(6)}\n" +
-            "Composer: ${getString(12)}\n" +
-            "Genre: ${getString(13)}\n" +
-            "Year: ${getInt(15)}\n" +
+        "ID: ${getLong(0)} \n" +
+        "Title: ${getString(1)}\n" +
+        "File Path: ${getString(3)}\n" +
+        "Date Added: ${getLong(4)}\n\n" +
 
-            "Disc number as String/null: ${getStringOrNull(19)}\n" +
-            "CD Track number as String/null: ${getStringOrNull(20)}\n"
+        "Size: ${getIntOrNull(6)}\n" +
+        "Composer: ${getStringOrNull(12)}\n" +
+        "Genre: ${getStringOrNull(13)}\n" +
+        "Year: ${getIntOrNull(15)}\n" +
+        "Duration: ${getIntOrNull(16)}\n" +
+        "Bitrate: ${getIntOrNull(17)}\n\n" +
+
+        "CD Track number: ${getStringOrNull(19)}\n" +
+        "Disc number: ${getStringOrNull(20)}\n"
     )
     return Audio(
         id = getLong(0),
@@ -81,8 +85,8 @@ fun Cursor.toAudio(): Audio {
         duration = getInt(16),
         bitrate = getInt(17),
         trackNumber = getIntOrNull(18),
-        discNumber = getStringOrNull(19),
-        cdTrackNumber = getStringOrNull(20),
+        cdTrackNumber = getStringOrNull(19),
+        discNumber = getStringOrNull(20),
     )
 }
 
@@ -111,7 +115,6 @@ val Audio.key
  */
 val Audio.artworkUri
     get() = toAlbumArtUri(albumId)
-
 
 /**
  * Returns a [MediaItem] object that represents this audio file as a playable media item.

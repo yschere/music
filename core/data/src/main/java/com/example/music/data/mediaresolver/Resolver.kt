@@ -180,8 +180,8 @@ private val AUDIO_PROJECTION
         MediaStore.Audio.AudioColumns.DURATION, // 16
         MediaStore.Audio.AudioColumns.BITRATE, // 17
         MediaStore.Audio.AudioColumns.TRACK, // 18
-        MediaStore.Audio.AudioColumns.DISC_NUMBER, // 19
-        MediaStore.MediaColumns.CD_TRACK_NUMBER, // 20
+        MediaStore.MediaColumns.CD_TRACK_NUMBER, // 19
+        MediaStore.Audio.AudioColumns.DISC_NUMBER, // 20
     )
 
 /**

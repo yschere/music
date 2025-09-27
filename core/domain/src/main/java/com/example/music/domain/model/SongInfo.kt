@@ -107,15 +107,23 @@ fun MediaItem.toSongInfo(): SongInfo =
  * Transform resolver's Audio model to SongInfo
  */
 fun Audio.asExternalModel(): SongInfo {
+    /* // there's four currently known possible scenarios that determine the value for track total and disc total
+    // 1. the cdTrackNumber had a normal value in x/y format, so the total is the y number
+    // 2. the cdTrackNumber had a value in x/y/ format, so the total is still the y number, but it needs to also remove the second /
+    // 3. the cdTrackNumber had a value in x/ format, so the total is null
+    // 4. the cdTrackNumber value was null, so the total is also null */
+    val totalTrack = this.cdTrackNumber?.substringAfter('/')?.removeSuffix("/")
+    val totalDisc = this.discNumber?.substringAfter('/')?.removeSuffix("/")
+
     if (FLAG) Log.i(TAG, "Audio to SongInfo:" +
-            "ID: ${this.id}\n" +
-            "Title: ${this.title}\n" +
-            "Artist: ${this.artist}\n" +
-            "Album: ${this.album}\n" +
-            "Track Number: ${this.cdTrackNumber?.substringBefore('/')?.toInt() ?: "null"}\n" +
-            "Track Total: ${this.cdTrackNumber?.substringAfter('/')?.removeSuffix("/")?.toInt() ?: "null"}\n" +
-            "Disc Number: ${this.discNumber?.substringBefore('/')?.toInt() ?: "null"}\n" +
-            "Disc Total: ${this.discNumber?.substringAfter('/')?.removeSuffix("/")?.toInt() ?: "null"}")
+        "ID: ${this.id}\n" +
+        "Title: ${this.title}\n" +
+        "Artist: ${this.artist}\n" +
+        "Album: ${this.album}\n" +
+        "Track Number: ${this.cdTrackNumber?.substringBefore('/')?.toInt() ?: "null"}\n" +
+        "Track Total: ${totalTrack ?: "null"}\n" +
+        "Disc Number: ${this.discNumber?.substringBefore('/')?.toInt() ?: "null"}\n" +
+        "Disc Total: ${totalDisc ?: "null"}")
 
     return  SongInfo(
         id = this.id,
@@ -127,20 +135,15 @@ fun Audio.asExternalModel(): SongInfo {
         albumTitle = this.album,
         genreId = this.genreId,
         duration = Duration.ofMillis(this.duration.toLong()),
-        trackNumber =
-            if (this.cdTrackNumber != null) this.cdTrackNumber?.substringBefore('/')?.toInt()
-            else null,
+        trackNumber = this.cdTrackNumber?.substringBefore('/')?.toInt(),
         trackTotal =
-            if (this.cdTrackNumber != null) this.cdTrackNumber?.substringAfter('/')?.removeSuffix("/")?.toInt()
-            else null,
-        discNumber =
-            if (this.discNumber != null) this.discNumber?.substringBefore('/')?.toInt()
-            else null,
+            if (totalTrack == "") null
+            else totalTrack?.toInt(),
+        discNumber = this.discNumber?.substringBefore('/')?.toInt(),
         discTotal =
-            if (this.discNumber != null) this.discNumber?.substringAfter('/')?.removeSuffix("/")?.toInt()
-            else null,
-        dateLastPlayed = OffsetDateTime.now(),
-        //dateLastPlayed = this.dateModified,
+            if (totalDisc == "") null
+            else totalDisc?.toInt(),
+        dateLastPlayed = OffsetDateTime.now(), //this.dateModified,
         year = this.year,
         artworkUri = this.artworkUri,
     )
