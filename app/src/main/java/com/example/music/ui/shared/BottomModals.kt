@@ -1,6 +1,7 @@
 package com.example.music.ui.shared
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -61,6 +62,14 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.DEFAULT_PADDING
+import com.example.music.designsys.theme.ICON_SIZE
+import com.example.music.designsys.theme.ITEM_IMAGE_ROW_SIZE
+import com.example.music.designsys.theme.LIST_ITEM_HEIGHT
+import com.example.music.designsys.theme.MARGIN_PADDING
+import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.ComposerInfo
@@ -70,13 +79,19 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.SystemDarkPreview
+import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.InfoBtn
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
-import kotlinx.coroutines.CoroutineScope
 
 private const val TAG = "Bottom Modal"
-private val HEADER_ICON_SIZE_DP = 56.dp
+
+/***********************************************************************************************
+ *
+ * ********** BOTTOM MODAL SUPPORTING COMPOSABLE FUNCTIONS ***********
+ *
+ **********************************************************************************************/
 
 /**
  * More Options Modal Content - Action Options Row Composable
@@ -93,18 +108,20 @@ fun ActionOptionRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { action() }
-            .height(HEADER_ICON_SIZE_DP)
-            .padding(horizontal = 24.dp)
+            .height(LIST_ITEM_HEIGHT)
+            .padding(horizontal = MODAL_CONTENT_PADDING)
     ) {
         Icon(
             imageVector = item.icon,
             tint = MaterialTheme.colorScheme.onPrimaryContainer,
             contentDescription = stringResource(item.contentDescription),
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(SMALL_PADDING)
+                .align(Alignment.CenterVertically),
         )
         Text(
             text = item.name,
-            modifier = Modifier.padding(start = 16.dp)
+            modifier = Modifier.padding(start = CONTENT_PADDING)
+                .align(Alignment.CenterVertically),
         )
     }
 }
@@ -122,7 +139,7 @@ fun MoreOptionModalHeader(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 12.dp)
+            .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
     ) {
         // either item image or item first initial
         when (item) {
@@ -213,14 +230,14 @@ fun HeaderImage(
         contentDescription = contentDescription,
         contentScale = ContentScale.Crop,
         modifier = Modifier
-            .size(HEADER_ICON_SIZE_DP)
+            .size(ITEM_IMAGE_ROW_SIZE)
             .clip(shapes.small)
     )
 }
 
 /**
  * More Options Modal Header - Header Item First Initial
- * used for ArtistInfo, ComposerInfo, GenreInfo
+ * used for ArtistInfo, ComposerInfo, GenreInfo, PlaylistInfo
  */
 @Composable
 fun HeaderInitial(
@@ -228,9 +245,10 @@ fun HeaderInitial(
 ) {
     Box(
         modifier = Modifier
-            .size(HEADER_ICON_SIZE_DP)
+            .size(ICON_SIZE)
             .clip(shapes.small)
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+    ){
         Text(
             text = name[0].toString(),
             minLines = 1,
@@ -300,12 +318,58 @@ fun PlaylistInfo.setSubtitle(): String =
 fun CustomDragHandle() {
     Box(
         modifier = Modifier
-            .padding(vertical = 12.dp)
-            .width(30.dp)
-            .height(4.dp)
+            .padding(vertical = DEFAULT_PADDING)
+            .width(32.dp)
+            .height(SMALL_PADDING)
             .clip(shapes.small)
             .background(MaterialTheme.colorScheme.onBackground)
     )
+}
+
+@Composable
+fun RadioGroupSet(
+    radioOptions: List<String>,
+    //radio button content: @Composable () -> Unit,
+) {
+    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
+    // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier.selectableGroup()
+    ) {
+        radioOptions.forEach { option ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+                    .height(LIST_ITEM_HEIGHT)
+                    .selectable(
+                        selected = (option == selectedOption),
+                        onClick = { onOptionSelected(option) },
+                        role = Role.RadioButton
+                    )
+                    .padding(horizontal = MODAL_CONTENT_PADDING)
+            ) {
+                RadioButton(
+                    selected = (option == selectedOption),
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = MaterialTheme.colorScheme.primary,
+                        unselectedColor = MaterialTheme.colorScheme.onBackground,
+                    ),
+                    modifier = Modifier.padding(SMALL_PADDING),
+                    onClick = null, // null recommended for accessibility with screen readers
+                )
+                // radio button content here
+                Text(
+                    text = option,
+                    color =
+                    if (option == selectedOption) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(start = SMALL_PADDING),
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -325,7 +389,7 @@ fun CloseModalBtn(
         shape = CircleShape,
         modifier = modifier
             .fillMaxWidth()
-            .padding(10.dp)
+            .padding(CONTENT_PADDING)
     ) {
         Text(text)
     }
@@ -334,11 +398,13 @@ fun CloseModalBtn(
 @Composable
 fun ApplyModalBtn(
     onClick: () -> Unit,
+    enabled: Boolean = true,
     text: String,
     modifier: Modifier = Modifier,
 ) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         colors = buttonColors(
             contentColor = MaterialTheme.colorScheme.background,
             disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -347,7 +413,7 @@ fun ApplyModalBtn(
         shape = CircleShape,
         modifier = modifier
             .fillMaxWidth()
-            .padding(10.dp)
+            .padding(CONTENT_PADDING)
     ) {
         Text(text)
     }
@@ -359,6 +425,13 @@ fun ApplyModalBtn(
  * -edit Playlist details (depends if description is a thing)
  * -view song info (media metadata)
  */
+
+
+/***********************************************************************************************
+ *
+ * ********** MORE OPTIONS BOTTOM MODALS ***********
+ *
+ **********************************************************************************************/
 
 /**
  * Idea for modal: to show action items like a dropdown menu when an item's more options btn is clicked/pressed.
@@ -902,7 +975,6 @@ fun QueueMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
 
-    navigateToPlayer: () -> Unit = {},
     play: () -> Unit = {},
     playNext: () -> Unit = {},
     shuffle: () -> Unit = {},
@@ -955,6 +1027,13 @@ fun QueueMoreOptionsBottomModal(
     }
 }
 
+
+/***********************************************************************************************
+ *
+ * ********** OBJECT SORTING BOTTOM MODALS ***********
+ *
+ **********************************************************************************************/
+
 /**
  * Bottom Modal for Library Screen to use for sorting on the library list's Sort btn
  */
@@ -964,9 +1043,9 @@ fun LibrarySortSelectionBottomModal(
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
-    libraryCategory: LibraryCategory,
     onClose: () -> Unit = {},
     onApply: () -> Unit = {},
+    libraryCategory: LibraryCategory, // both context and content of the modal
 ){
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -984,10 +1063,11 @@ fun LibrarySortSelectionBottomModal(
         ) {
             item {
                 Text(
-                    text = "Sort by",
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                    text = "Sort by:",
                     textAlign = TextAlign.Left,
                     style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
                 )
             }
 
@@ -995,8 +1075,8 @@ fun LibrarySortSelectionBottomModal(
                 //list of radio buttons, set of options determined by context
                 when (libraryCategory) {
 
+                    //sorting on library.albums screen
                     LibraryCategory.Albums -> {
-                        //sorting on library.albums screen
                         RadioGroupSet(
                             listOf(
                                 "Title",
@@ -1007,23 +1087,25 @@ fun LibrarySortSelectionBottomModal(
                         )
                     }
 
+                    //sorting on library.artists screen
                     LibraryCategory.Artists -> {
-                        //sorting on library.artists screen
-                        RadioGroupSet(listOf("Name", "Album Count", "Song Count"))
+                        RadioGroupSet(
+                            listOf(
+                                "Name",
+                                "Album Count",
+                                "Song Count"
+                            )
+                        )
                     }
 
-                    LibraryCategory.Composers -> {
-                        //sorting on library.composers screen
-                        RadioGroupSet(listOf("Name", "Song Count"))
-                    }
+                    //sorting on library.composers screen
+                    LibraryCategory.Composers -> { RadioGroupSet(listOf("Name", "Song Count")) }
 
-                    LibraryCategory.Genres -> {
-                        //sorting on library.genres screen
-                        RadioGroupSet(listOf("Name", "Song Count"))
-                    }
+                    //sorting on library.genres screen
+                    LibraryCategory.Genres -> { RadioGroupSet(listOf("Name", "Song Count")) }
 
+                    //sorting on library.playlists screen
                     LibraryCategory.Playlists -> {
-                        //sorting on library.playlists screen
                         RadioGroupSet(
                             listOf(
                                 "Playlist name",
@@ -1035,8 +1117,8 @@ fun LibrarySortSelectionBottomModal(
                         )
                     }
 
+                    //sorting on library.songs screen
                     LibraryCategory.Songs -> {
-                        //sorting on library.songs screen
                         RadioGroupSet(
                             listOf(
                                 "Song title",
@@ -1050,25 +1132,23 @@ fun LibrarySortSelectionBottomModal(
                 }
             }
 
-            item { HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) }
+            item { HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)) }
 
             // radio buttons for selecting ascending or descending
             item { RadioGroupSet(listOf("Ascending", "Descending")) }
+        }
 
-            item {
-                Row {
-                    CloseModalBtn(
-                        onClick = onClose,
-                        text = "CANCEL",
-                        modifier = Modifier.weight(0.5f)
-                    )
-                    ApplyModalBtn(
-                        onClick = onApply,
-                        text = "APPLY",
-                        modifier = Modifier.weight(0.5f)
-                    )
-                }
-            }
+        Row {
+            CloseModalBtn(
+                onClick = onClose,
+                text = "CANCEL",
+                modifier = Modifier.weight(0.5f)
+            )
+            ApplyModalBtn(
+                onClick = onApply,
+                text = "APPLY",
+                modifier = Modifier.weight(0.5f)
+            )
         }
     }
 }
@@ -1103,72 +1183,73 @@ fun DetailsSortSelectionBottomModal(
         ) {
             item {
                 Text(
-                    text = "Sort by",
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                    text = "Sort by:",
                     textAlign = TextAlign.Left,
                     style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
                 )
             }
 
-            //list of radio buttons, set of options determined by context
+            //list of radio buttons, set of options determined by content and context
             item {
                 when (content) {
-
-                    "AlbumInfo" -> { // is AlbumInfo
+                    "AlbumInfo" -> {
                         //sorting on artist details -> album list screen
                         RadioGroupSet(listOf("Album Title", "Song Count"))
                     }
 
-                    "SongInfo" -> { // is SongInfo
-                        //sorting on album details screen -> "Title, Track Number" -found in albumRepo, songRepo
-                        if (context == "AlbumDetails")
-                            RadioGroupSet(listOf("Title", "Track number"))
+                    "SongInfo" -> {
+                        when (context) {
+                            //sorting on album details screen -> "Title, Track Number" -found in albumRepo, songRepo
+                            "AlbumDetails" -> { RadioGroupSet(listOf("Title", "Track number")) }
 
-                        //sorting on artist details screen -> "Song Title, Album Title" -songRepo
-                        if (context == "ArtistDetails")
-                            RadioGroupSet(listOf("Title", "Album Title"))
+                            //sorting on artist details screen -> "Song Title, Album Title" -songRepo
+                            "ArtistDetails" -> { RadioGroupSet(listOf("Title", "Album Title")) }
 
-                        //sorting on composer details screen -> "Title -songRepo, date last played -composerRepo
-                        if (context == "ComposerDetails")
-                            RadioGroupSet(listOf("Title", "Date Last Played"))
+                            //sorting on composer details screen -> "Title -songRepo, date last played -composerRepo
+                            "ComposerDetails" -> { RadioGroupSet(listOf("Title", "Date Last Played")) }
 
-                        //sorting on genre details screen -> "Title, date last played -songRepo, genreRepo
-                        if (context == "GenreDetails")
-                            RadioGroupSet(listOf("Title", "Date Last Played"))
+                            //sorting on genre details screen -> "Title, date last played -songRepo, genreRepo
+                            "GenreDetails" -> { RadioGroupSet(listOf("Title", "Date Last Played")) }
 
-                        //sorting on playlist details screen -> "Title, track number
-                        if (context == "PlaylistDetails")
-                            RadioGroupSet(listOf("Title", "Track number"))
+                            //sorting on playlist details screen -> "Title, track number
+                            "PlaylistDetails" -> { RadioGroupSet(listOf("Title", "Track number")) }
+
+                            else -> { Text("this is not a valid context screen to pass") }
+                        }
                     }
 
-                    else -> {
-                        Text("this is not a valid object to pass")
-                    }
+                    else -> { Text("this is not a valid content type to pass") }
                 }
             }
 
-            item { HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) }
+            item { HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)) }
 
             //radio buttons for selecting ascending or descending
             item { RadioGroupSet(listOf("Ascending", "Descending")) }
-
-            item {
-                Row {
-                    CloseModalBtn(
-                        onClick = onClose,
-                        text = "CANCEL",
-                        modifier = Modifier.weight(0.5f)
-                    )
-                    ApplyModalBtn(
-                        onClick = onApply,
-                        text = "APPLY",
-                        modifier = Modifier.weight(0.5f)
-                    )
-                }
-            }
+        }
+        Row {
+            CloseModalBtn(
+                onClick = onClose,
+                text = "CANCEL",
+                modifier = Modifier.weight(0.5f)
+            )
+            ApplyModalBtn(
+                onClick = onApply,
+                text = "APPLY",
+                modifier = Modifier.weight(0.5f)
+            )
         }
     }
 }
+
+
+/***********************************************************************************************
+ *
+ * ********** CREATE PLAYLIST BOTTOM MODAL ***********
+ *
+ **********************************************************************************************/
 
 /**
  * Bottom modal for creating Playlists, from either Add to playlist -> New playlist prompt or on Library.Playlists -> Add btn
@@ -1179,7 +1260,6 @@ fun CreatePlaylistBottomModal(
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(),
 
-    coroutineScope: CoroutineScope,
     onClose: () -> Unit = {},
     onCreate: () -> Unit = {},
 ) {
@@ -1197,7 +1277,10 @@ fun CreatePlaylistBottomModal(
     val createEnabled = remember { derivedStateOf { isInvalid(nameText) } }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { state.text }.collect{ validate(it) }
+        snapshotFlow { state.text }.collect{
+            Log.i(TAG, "current text is: ${it.chars()}")
+            validate(it)
+        }
     }
 
     ModalBottomSheet(
@@ -1225,8 +1308,8 @@ fun CreatePlaylistBottomModal(
                 )
             }
 
+            //playlist name text field, REQUIRED
             fullWidthItem {
-                //playlist name text field
                 OutlinedTextField(
                     value = nameText,
                     onValueChange = {
@@ -1262,8 +1345,8 @@ fun CreatePlaylistBottomModal(
                 )
             }
 
+            //playlist description text field, NOT REQUIRED
             fullWidthItem {
-                //playlist description text field, NOT REQUIRED
                 OutlinedTextField(
                     value = descriptionText,
                     onValueChange = { descriptionText = it },
@@ -1281,7 +1364,6 @@ fun CreatePlaylistBottomModal(
                     ),
                     label = { Text("Description") },
                 )
-                //TextField()
                 //text field for playlist name, *required
                 //text field for playlist description, not required
             }
@@ -1295,7 +1377,7 @@ fun CreatePlaylistBottomModal(
                     )
                     ApplyModalBtn(
                         onClick = onCreate,
-                        //enabled = !createEnabled.value,
+                        enabled = !createEnabled.value,
                         text = "CREATE",
                         modifier = Modifier.weight(0.5f)
                     )
@@ -1305,54 +1387,48 @@ fun CreatePlaylistBottomModal(
     }
 }
 
+
+/***********************************************************************************************
+ *
+ * ********** SETTINGS BOTTOM MODAL ***********
+ *
+ **********************************************************************************************/
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RadioGroupSet(
-    radioOptions: List<String>,
+fun SettingsBottomModal(
+    onDismissRequest: () -> Unit,
+    sheetState: SheetState,
+
+    onClose: () -> Unit = {},
+    onApply: () -> Unit = {},
+    content: @Composable () -> Unit,
 ) {
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
-    // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier
-            .selectableGroup()
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+        contentColor = MaterialTheme.colorScheme.onBackground,
+        containerColor = MaterialTheme.colorScheme.background,
+        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
+        dragHandle = { CustomDragHandle() },
+        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        radioOptions.forEach { text ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .selectable(
-                        selected = (text == selectedOption),
-                        onClick = { onOptionSelected(text) },
-                        role = Role.RadioButton
-                    ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(
-                    selected = (text == selectedOption),
-                    colors = RadioButtonDefaults.colors(
-                        selectedColor = MaterialTheme.colorScheme.primary,
-                        unselectedColor = MaterialTheme.colorScheme.onBackground,
-                    ),
-                    modifier = Modifier.padding(start = 24.dp),
-                    onClick = null, // null recommended for accessibility with screen readers
-                )
-                Text(
-                    text = text,
-                    color =
-                    if (text == selectedOption)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onBackground,
-                    //style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-            }
+        content()
+
+        Row {
+            CloseModalBtn(
+                onClick = onClose,
+                text = "CANCEL",
+                modifier = Modifier.weight(0.5f)
+            )
+            ApplyModalBtn(
+                onClick = onApply,
+                text = "APPLY",
+                modifier = Modifier.weight(0.5f)
+            )
         }
     }
 }
-
 
 /*
     more options context menu
@@ -1416,6 +1492,27 @@ fun PreviewMoreOptionsModal() {
                 density = Density(1f,1f)
             ),
             song = PreviewSongs[0],
+        )
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@SystemDarkPreview
+@Composable
+fun PreviewDetailSortModal() {
+    MusicTheme {
+        DetailsSortSelectionBottomModal(
+            onDismissRequest = {},
+            sheetState = SheetState(
+                initialValue = SheetValue.Expanded,
+                skipPartiallyExpanded = true,
+                density = Density(1f,1f)
+            ),
+            onClose = {},
+            onApply = {},
+            content = "SongInfo",
+            context = "ComposerDetails"
         )
     }
 }
