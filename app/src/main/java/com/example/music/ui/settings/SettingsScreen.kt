@@ -1,43 +1,39 @@
 package com.example.music.ui.settings
 
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults.buttonColors
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarDefaults.TopAppBarExpandedHeight
+import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -49,11 +45,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,16 +58,24 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.layout.DisplayFeature
 import com.example.music.R
 import com.example.music.data.repository.ShuffleType
-import com.example.music.designsys.theme.MusicShapes
-import com.example.music.domain.testing.PreviewAlbums
-import com.example.music.domain.testing.PreviewArtists
-import com.example.music.domain.testing.PreviewPlaylists
-import com.example.music.domain.testing.PreviewSongs
+import com.example.music.designsys.theme.CONTENT_LEFT_MARGIN
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.DEFAULT_PADDING
+import com.example.music.designsys.theme.LIST_ITEM_HEIGHT
+import com.example.music.designsys.theme.MARGIN_PADDING
+import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
+import com.example.music.designsys.theme.ROW_ITEM_HEIGHT
+import com.example.music.designsys.theme.SCREEN_PADDING
+import com.example.music.designsys.theme.SMALL_PADDING
+import com.example.music.ui.shared.ActionItem
+import com.example.music.ui.shared.Actions
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.SettingsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
+import com.example.music.util.NavDrawerBtn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -83,32 +88,30 @@ private const val TAG = "Settings Screen"
 fun SettingsScreen(
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
-    navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
-    navigateToPlayer: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
+    Log.i(TAG, "Settings Screen START")
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    if (uiState.errorMessage != null) {
-        Text(text = uiState.errorMessage!!)
-        SettingsScreenError(onRetry = viewModel::refresh)
-    }
-    Surface {
+    Surface(color = Color.Transparent) {
+        if (uiState.errorMessage != null) {
+            Log.e(TAG, "${uiState.errorMessage}")
+            SettingsScreenError(onRetry = viewModel::refresh)
+        }
+
         SettingsScreen(
             windowSizeClass = windowSizeClass,
             isLoading = uiState.isLoading,
             displayFeatures = displayFeatures,
             totals = uiState.totals,
             onSettingsAction = viewModel::onSettingsAction,
-            navigateBack = navigateBack,
             navigateToHome = navigateToHome,
             navigateToLibrary = navigateToLibrary,
             navigateToSettings = navigateToSettings,
-            navigateToPlayer = navigateToPlayer,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
@@ -138,13 +141,12 @@ private fun SettingsScreen(
     displayFeatures: List<DisplayFeature>,
     totals: List<Int>,
     onSettingsAction: (SettingsAction) -> Unit,
-    navigateBack: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
-    navigateToPlayer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    Log.i(TAG, "Settings Screen START")
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -161,28 +163,19 @@ private fun SettingsScreen(
         coroutineScope,
     ) {
         ScreenBackground(
-            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+            modifier = modifier
         ) {
             Scaffold(
-                //contentWindowInsets = WindowInsets.systemBarsIgnoringVisibility,
-                snackbarHost = {
-                    SnackbarHost(hostState = snackbarHostState)
-                },
-                bottomBar = {
-                    /* //should show BottomBarPlayer here if a queue session is running or service is running
-                    BottomBarPlayer(
-                        song = PreviewSongs[5],
-                        navigateToPlayer = { navigateToPlayer(PreviewSongs[5]) },
-                    )*/
-                },
-                modifier = Modifier.fillMaxSize().statusBarsPadding(),
-                containerColor = Color.Transparent,
-                contentColor = contentColorFor(MaterialTheme.colorScheme.background) //selects the appropriate color to be the content color for the container using background color
-                //contentColor = MaterialTheme.colorScheme.inverseSurface //or onPrimaryContainer
-            ) { contentPadding ->
-                Column {
+                topBar = {
                     SettingsTopAppBar(
-                        navigateBack = navigateBack,
+                        //navigateBack = navigateBack,
+                        onNavigationIconClick = {
+                            coroutineScope.launch {
+                                drawerState.apply {
+                                    if (isClosed) open() else close()
+                                }
+                            }
+                        },
                     )
                     if (isLoading) {
                         LinearProgressIndicator(
@@ -191,16 +184,19 @@ private fun SettingsScreen(
                                 .padding(horizontal = 16.dp)
                         )
                     }
-
-                    SettingsContent(
-                        coroutineScope = coroutineScope,
-                        windowSizeClass = windowSizeClass,
-                        displayFeatures = displayFeatures,
-                        //settings data store
-                        onSettingsAction = onSettingsAction,
-                        modifier = modifier.padding(contentPadding),
-                    )
-                }
+                },
+                snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+                containerColor = Color.Transparent,
+                contentColor = contentColorFor(MaterialTheme.colorScheme.background)
+            ) { contentPadding ->
+                SettingsContent(
+                    coroutineScope = coroutineScope,
+                    windowSizeClass = windowSizeClass,
+                    displayFeatures = displayFeatures,
+                    //settings data store
+                    onSettingsAction = onSettingsAction,
+                    modifier = modifier.padding(contentPadding),
+                )
             }
         }
     }
@@ -209,35 +205,34 @@ private fun SettingsScreen(
 /**
  * Composable for Settings Screen's Top App Bar.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsTopAppBar(
-    navigateBack: () -> Unit, //use this to capture navDrawer open/close action
-    //modifier: Modifier = Modifier,
+    onNavigationIconClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    //logger.info { "Settings App Bar function start" }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp)
-    ) {
-        //back button
-        IconButton(onClick = navigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(id = R.string.icon_back_nav),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+    TopAppBar(
+        title = {
+            Text(
+                text = "Settings",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.fillMaxWidth().padding(CONTENT_PADDING)
             )
-        }
-
-        //right align objects after this space
-        Spacer(Modifier.weight(1f))
-    }
+        },
+        navigationIcon = { NavDrawerBtn(onClick = onNavigationIconClick) },
+        actions = {},
+        expandedHeight = TopAppBarExpandedHeight,
+        windowInsets = TopAppBarDefaults.windowInsets,
+        colors = TopAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Transparent,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        scrollBehavior = pinnedScrollBehavior(),
+    )
 }
-
-//support class for setting up ThemeMode options with icons
-data class OptionItem(val name: String, val icon: ImageVector, val contentDescription: String)//, val action: () -> Unit)
 
 /**
  * Composable for Settings Screen's Content.
@@ -257,24 +252,15 @@ private fun SettingsContent(
     isImportPlaylistEnabled: Boolean = true,
     isRefreshLibrarySettingEnabled: Boolean = true,
 ) {
+    Log.i(TAG, "SettingsContent START")
+
     val sheetState = rememberModalBottomSheetState(true,)
     var showShuffleSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
 
     // Main Content on Settings screen
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp)
-    ) {
-        // ****** Settings Header ******
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.displaySmall,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-
-        // ****** Settings Options ******
+    Column(modifier = modifier.fillMaxSize()) {
+        /* // ****** Settings Options ******
         // 1 set shuffle type
         // 2 set app theme
         // 3 import playlist
@@ -284,246 +270,17 @@ private fun SettingsContent(
         // 7 audio effects / player visual effects
         // 8 show music on lock screen
         // 9 permissions
-        // 10 equalizer
-
+        // 10 equalizer */
 
         // Select Shuffle Type
         if(isShuffleSettingEnabled) {
-            SetShuffleTypeSetting(
+            SettingRowItemWithModal(
                 "Set Shuffle Type",
-                "Set the type of queue shuffle when shuffle is on",//"Set ONCE for shuffle to occur on start of queue. Set ONLOOP for shuffle to occur every restart of queue.",
+                "Set the type of queue shuffle when shuffle is on",
+                //"Set ONCE for shuffle to occur on start of queue.
+                // Set ONLOOP for shuffle to occur every restart of queue.",
                 onClick = { showShuffleSheet = true }
             )
-        }
-        HorizontalDivider(
-            color = Color.LightGray
-        )
-
-        // Set Light/Dark Mode
-        if(isThemeModeEnabled) {
-            AppThemeSetting (
-                "Theme Mode",
-                "Set light mode, dark mode, or system default",
-                onClick = { showThemeSheet = true },
-            )
-        }
-        HorizontalDivider(
-            color = Color.LightGray
-        )
-
-        // Import Playlist from device
-        if(isImportPlaylistEnabled) {
-            ImportPlaylistSetting (
-                "Import Playlist",
-                "Tap to search device for playlists to import",
-                onSettingsAction = { action ->
-                    /*if (action is SettingsAction.ImportPlaylist) {
-
-                        coroutineScope.launch{
-                            //not sure what to put here
-                        }
-                    }*/
-                    onSettingsAction(action)
-                },
-            )
-        }
-        HorizontalDivider(
-            color = Color.LightGray
-        )
-
-        //Refresh Library
-        if(isRefreshLibrarySettingEnabled) {
-            RefreshLibrarySetting(
-                "Refresh App Library",
-                "Tap to update your music library",
-                onSettingsAction = { action ->
-                    /*if (action is SettingsAction.RefreshLibrary) {
-
-                        coroutineScope.launch{
-                            //not sure what to put here
-                        }
-                    }*/
-                    onSettingsAction(action)
-                },
-            )
-        }
-    }
-
-    if (showShuffleSheet) {
-        ModalBottomSheet(
-            onDismissRequest = {showShuffleSheet = false},
-            sheetState = sheetState, // = rememberModalBottomSheetState(skipPartiallyExpanded = false,),
-            contentColor = MaterialTheme.colorScheme.onBackground,
-            containerColor = MaterialTheme.colorScheme.background,
-            scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
-            properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
-        ) {
-            ShuffleRadioGroupSet(
-                listOf(ShuffleType.ONCE, ShuffleType.ON_LOOP),
-                onSettingsAction = {
-                    onSettingsAction(
-                        SettingsAction.ShuffleTypeSelected(
-                            it
-                        )
-                    )
-                }
-            )
-            Row {
-                //cancel/exit btn
-                Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            sheetState.hide()
-                            showShuffleSheet = false
-                        }
-                    },
-                    colors = buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,//.copy(alpha = 0.5f),
-                        contentColor = MaterialTheme.colorScheme.onBackground,
-                        disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                    ),
-                    shape = MusicShapes.small,
-                    modifier = Modifier//.fillMaxWidth()
-                        .padding(10.dp).weight(0.5f)
-                ) {
-                    Text("CANCEL")
-                }
-
-                //apply btn
-                Button(
-                    onClick = {
-                        //showBottomSheet = false
-                        coroutineScope.launch {
-                            sheetState.hide()
-                            showShuffleSheet = false
-                        }
-                    },
-                    colors = buttonColors(
-                        //containerColor = MaterialTheme.colorScheme.primaryContainer,//.copy(alpha = 0.5f),
-                        contentColor = MaterialTheme.colorScheme.background,
-                        disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                    ),
-                    shape = MusicShapes.small,
-                    modifier = Modifier//.fillMaxWidth()
-                        .padding(10.dp).weight(0.5f)
-                ) {
-                    Text("APPLY")
-                }
-            }
-        }
-    }
-
-    if (showThemeSheet) {
-        ModalBottomSheet(
-            onDismissRequest = {showThemeSheet = false},
-            sheetState = sheetState, // = rememberModalBottomSheetState(skipPartiallyExpanded = false,),
-            contentColor = MaterialTheme.colorScheme.onBackground,
-            containerColor = MaterialTheme.colorScheme.background,
-            scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
-            properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
-        ) {
-            val themeOptions = listOf<OptionItem>(
-                OptionItem("System default", Icons.Filled.Settings, "System default theme option"),
-                OptionItem("Light", Icons.Filled.LightMode, "Light Mode theme option"),
-                OptionItem("Dark", Icons.Filled.DarkMode, "Dark Mode theme option")
-            )
-            ThemeRadioGroupSet(
-                themeOptions,
-                //listOf("System default", "Light", "Dark"),
-                onSettingsAction = {
-                    onSettingsAction(
-                        SettingsAction.ThemeModeSelected(
-                            it
-                        )
-                    )
-                }
-            )
-            Row {
-                //cancel/exit btn
-                Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            sheetState.hide()
-                            showThemeSheet = false
-                        }
-                    },
-                    colors = buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onBackground,
-                        disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                    ),
-                    shape = MusicShapes.small,
-                    modifier = Modifier
-                        .padding(10.dp).weight(0.5f)
-                ) {
-                    Text("CANCEL")
-                }
-
-                //apply btn
-                Button(
-                    onClick = {
-                        //showBottomSheet = false
-                        coroutineScope.launch {
-                            sheetState.hide()
-                            showThemeSheet = false
-                        }
-                    },
-                    colors = buttonColors(
-                        //containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.background,
-                        disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                    ),
-                    shape = MusicShapes.small,
-                    modifier = Modifier
-                        .padding(10.dp).weight(0.5f)
-                ) {
-                    Text("APPLY")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SetShuffleTypeSetting(
-    title: String,
-    subtitle: String = "",
-    onClick: () -> Unit,
-) {
-    Surface(
-        color = Color.Transparent,
-        onClick = onClick,// { showShuffleSheet = true } // transition screen to show list of options,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Column {
-                Text(
-                    text = title,
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier//.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-                Text(
-                    text = subtitle,
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-            Spacer(Modifier.weight(1f))
-            Icon(
-                imageVector = Icons.Filled.ArrowDropDown,
-                //imageVector = Icons.Filled.ChevronRight,
-                //tint = MaterialTheme.colorScheme.surfaceTint,
-                contentDescription = title
-            )
-
             /*
                 if I want this to be done in the google suggested way,
                 would need this to be a radio button selection on a new page/fragment
@@ -536,42 +293,182 @@ fun SetShuffleTypeSetting(
                     option subtitle: Set ONLOOP for shuffle to occur every restart of queue.
             */
         }
+
+        // Set Light/Dark Mode
+        if (isThemeModeEnabled) {
+            SettingRowItemWithModal(
+                "Theme Mode",
+                "Set light mode, dark mode, or system default",
+                onClick = {
+                    showThemeSheet = true
+                },
+            )
+        }
+
+        // Import Playlist from device
+        if (isImportPlaylistEnabled) {
+            SettingRowItem(
+                "Import Playlist",
+                "Tap to search device for playlists to import",
+                onClick = {
+                    onSettingsAction(SettingsAction.ImportPlaylist)
+                },
+            )
+        }
+
+        //Refresh Library
+        if (isRefreshLibrarySettingEnabled) {
+            SettingRowItem(
+                "Refresh App Library",
+                "Tap to update your music library",
+                onClick = {
+                    onSettingsAction(SettingsAction.RefreshLibrary)
+                },
+            )
+        }
+    }
+
+    if (showShuffleSheet) {
+        SettingsBottomModal(
+            onDismissRequest = { showShuffleSheet = false },
+            sheetState = sheetState,
+            onClose = {
+                coroutineScope.launch {
+                    Log.i(TAG, "Hide sheet state")
+                    sheetState.hide()
+                }.invokeOnCompletion {
+                    Log.i(TAG, "set showShuffleSheet to FALSE")
+                    if(!sheetState.isVisible) {
+                        showShuffleSheet = false
+                    }
+                }
+            },
+            onApply = {
+                coroutineScope.launch {
+                    Log.i(TAG, "Hide sheet state")
+                    sheetState.hide()
+                }.invokeOnCompletion {
+                    Log.i(TAG, "set showShuffleSheet to FALSE")
+                    if(!sheetState.isVisible) {
+                        showShuffleSheet = false
+                    }
+                }
+            },
+        ) {
+            ShuffleModalContent(
+                onShuffleApply = {
+                    Log.i(TAG, "Shuffle selected: ${it.name}")
+                    onSettingsAction( SettingsAction.ShuffleTypeSelected( it ) )
+                }
+            )
+        }
+    }
+
+    if (showThemeSheet) {
+        SettingsBottomModal(
+            onDismissRequest = { showThemeSheet = false },
+            sheetState = sheetState,
+            onClose = {
+                coroutineScope.launch {
+                    Log.i(TAG, "Hide sheet state")
+                    sheetState.hide()
+                }.invokeOnCompletion {
+                    Log.i(TAG, "set showThemeSheet to FALSE")
+                    if(!sheetState.isVisible) {
+                        showThemeSheet = false
+                    }
+                }
+            },
+            onApply = {
+                coroutineScope.launch {
+                    Log.i(TAG, "Apply clicked: does nothing right now")
+                    sheetState.hide()
+                }.invokeOnCompletion {
+                    Log.i(TAG, "set showThemeSheet to FALSE")
+                    if(!sheetState.isVisible) {
+                        showThemeSheet = false
+                    }
+                }
+            },
+        ) {
+            ThemeModalContent(
+                onThemeApply = {
+                    Log.i(TAG, "Theme selected: $it")
+                    onSettingsAction(SettingsAction.ThemeModeSelected(it))
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun AppThemeSetting(
+private fun SettingRowItem(
     title: String,
     subtitle: String = "",
-    onClick: () -> Unit,
+    onClick: () -> Unit = {},
 ) {
     Surface(
         color = Color.Transparent,
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+            modifier = Modifier
+                .height(ROW_ITEM_HEIGHT)
+                .padding(horizontal = SCREEN_PADDING)
         ) {
             Column {
                 Text(
                     text = title,
                     textAlign = TextAlign.Left,
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier//.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier
                 )
                 Text(
                     text = subtitle,
                     textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingRowItemWithModal(
+    title: String,
+    subtitle: String = "",
+    onClick: () -> Unit = {}
+) {
+    Surface(
+        color = Color.Transparent,
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+                .height(ROW_ITEM_HEIGHT)
+                .padding(horizontal = SCREEN_PADDING)
+        ) {
+            Column {
+                Text(
+                    text = title,
+                    textAlign = TextAlign.Left,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = subtitle,
+                    textAlign = TextAlign.Left,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
             Spacer(Modifier.weight(1f))
             Icon(
-                imageVector = Icons.Filled.ArrowDropDown,
-                //imageVector = Icons.Filled.ChevronRight,
-                //tint = MaterialTheme.colorScheme.surfaceTint,
+                imageVector = Icons.Filled.KeyboardArrowDown,
                 contentDescription = title
             )
         }
@@ -579,45 +476,91 @@ fun AppThemeSetting(
 }
 
 @Composable
-fun ShuffleRadioGroupSet(
+private fun ShuffleModalContent(
+    onShuffleApply: (ShuffleType) -> Unit,
+) {
+    Column(modifier = Modifier) {
+        Text(
+            text = "Set Shuffle Type:",
+            textAlign = TextAlign.Left,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
+        )
+        ShuffleRadioGroupSet(
+            radioOptions = listOf(ShuffleType.ONCE, ShuffleType.ON_LOOP),
+            onSettingsAction = onShuffleApply,
+        )
+    }
+}
+
+@Composable
+private fun ThemeModalContent(
+    onThemeApply: (String) -> Unit,
+) {
+    val themeOptions = arrayListOf(
+        Actions.ThemeDefault,
+        Actions.ThemeLight,
+        Actions.ThemeDark,
+    )
+    Column(modifier = Modifier) {
+        Text(
+            text = "Set Theme Mode:",
+            textAlign = TextAlign.Left,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
+        )
+        ThemeRadioGroupSet(
+            radioOptions = themeOptions,
+            onSettingsAction = onThemeApply
+        )
+    }
+}
+
+@Composable
+private fun ShuffleRadioGroupSet(
     radioOptions: List<ShuffleType>,
     onSettingsAction: (ShuffleType) -> Unit,
 ) {
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
     // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
-    Column(Modifier.selectableGroup()) {
-        radioOptions.forEach { text ->
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier.selectableGroup()
+    ) {
+        radioOptions.forEach { option ->
             Row(
-                Modifier.fillMaxWidth()
-                    .height(56.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(LIST_ITEM_HEIGHT)
                     .selectable(
-                        selected = (text == selectedOption),
+                        selected = (option == selectedOption),
                         onClick = {
-                            onOptionSelected(text)
-                            onSettingsAction(text)
+                            onOptionSelected(option)
+                            onSettingsAction(option)
                         },
                         role = Role.RadioButton
                     )
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = MODAL_CONTENT_PADDING)
             ) {
                 RadioButton(
-                    selected = (text == selectedOption),
+                    selected = (option == selectedOption),
                     colors = RadioButtonDefaults.colors(
                         selectedColor = MaterialTheme.colorScheme.primary,
                         unselectedColor = MaterialTheme.colorScheme.onBackground,
                     ),
-                    onClick = null // null recommended for accessibility with screenreaders
+                    modifier = Modifier.padding(SMALL_PADDING),
+                    onClick = null, // null recommended for accessibility with screenreaders
                 )
                 Text(
-                    text = text.name,
+                    text = option.name,
                     color =
-                        if (text == selectedOption)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(start = 16.dp)
+                        if (option == selectedOption) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(start = CONTENT_PADDING),
                 )
             }
         }
@@ -625,117 +568,55 @@ fun ShuffleRadioGroupSet(
 }
 
 @Composable
-fun ThemeRadioGroupSet(
-    radioOptions: List<OptionItem>,
+private fun ThemeRadioGroupSet(
+    radioOptions: List<ActionItem>,
     onSettingsAction: (String) -> Unit,
 ) {
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
     // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
-    Column(Modifier.selectableGroup()) {
-        radioOptions.forEach { text ->
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier.selectableGroup()
+    ) {
+        radioOptions.forEach { option ->
             Row(
-                Modifier.fillMaxWidth()
-                    .height(56.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+                    .height(LIST_ITEM_HEIGHT)
                     .selectable(
-                        selected = (text == selectedOption),
+                        selected = (option == selectedOption),
                         onClick = {
-                            onOptionSelected(text)
-                            onSettingsAction(text.name)
+                            onOptionSelected(option)
+                            onSettingsAction(option.name)
                         },
                         role = Role.RadioButton
                     )
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = MODAL_CONTENT_PADDING)
             ) {
                 RadioButton(
-                    selected = (text == selectedOption),
+                    selected = (option == selectedOption),
                     colors = RadioButtonDefaults.colors(
                         selectedColor = MaterialTheme.colorScheme.primary,
                         unselectedColor = MaterialTheme.colorScheme.onBackground,
                     ),
+                    modifier = Modifier.padding(SMALL_PADDING),
                     onClick = null // null recommended for accessibility with screenreaders
                 )
                 Icon(
-                    imageVector = text.icon,
-                    contentDescription = text.contentDescription,
+                    imageVector = option.icon,
+                    contentDescription = option.contentDescription.toString(),
                     tint =
-                        if (text == selectedOption)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(start = 8.dp)
+                        if (option == selectedOption) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(SMALL_PADDING),
                 )
                 Text(
-                    text = text.name,
+                    text = option.name,
                     color =
-                        if (text == selectedOption)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ImportPlaylistSetting(
-    title: String,
-    subtitle: String = "",
-    onSettingsAction: (SettingsAction) -> Unit,
-) {
-    Surface(
-        color = Color.Transparent,
-        onClick = { onSettingsAction(SettingsAction.ImportPlaylist) },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Column {
-                Text(
-                    text = title,
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = subtitle,
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun RefreshLibrarySetting(
-    title: String,
-    subtitle: String = "",
-    onSettingsAction: (SettingsAction) -> Unit,
-) {
-    Surface(
-        color = Color.Transparent,
-        onClick = { onSettingsAction(SettingsAction.RefreshLibrary) },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Column {
-                Text(
-                    text = title,
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = subtitle,
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.labelSmall,
+                        if (option == selectedOption) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(start = SMALL_PADDING),
                 )
             }
         }
@@ -745,28 +626,40 @@ fun RefreshLibrarySetting(
 //private val CompactWindowSizeClass = WindowSizeClass.compute(360f, 780f)
 
 //@SystemLightPreview
-@SystemDarkPreview
+//@SystemDarkPreview
 @Composable
 private fun PreviewSettings() {
     MusicTheme {
         BoxWithConstraints {
             SettingsScreen(
-                //uiState = {},
                 windowSizeClass = WindowSizeClass.compute(maxWidth.value, maxHeight.value),
                 isLoading = false,
                 displayFeatures = emptyList(),
-                totals = listOf(
-                    PreviewSongs.size,
-                    PreviewArtists.size,
-                    PreviewAlbums.size,
-                    PreviewPlaylists.size),
+                totals = listOf(6373, 990, 1427, 35),
                 onSettingsAction = {},
-                navigateBack = {},
                 navigateToHome = {},
                 navigateToLibrary = {},
                 navigateToSettings = {},
-                navigateToPlayer = {},
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@SystemDarkPreview
+@Composable
+private fun SettingsModalPreview() {
+    MusicTheme {
+        SettingsBottomModal(
+            onDismissRequest = {},
+            sheetState = SheetState(
+                initialValue = SheetValue.Expanded,
+                skipPartiallyExpanded = true,
+                density = Density(1f,1f)
+            )
+        ) {
+//            ShuffleModalContent {  }
+            ThemeModalContent {  }
         }
     }
 }
