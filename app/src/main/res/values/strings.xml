@@ -8,6 +8,7 @@
     <string name="retry_label">Retry</string>
 
     <!-- Home screen specific texts section -->
+    <string name="recent_albums">Recent Albums</string>
     <string name="recent_playlists">Recent Playlists</string>
     <string name="recent_songs">Recently Added Songs</string>
 
@@ -86,6 +87,11 @@
     <string name="sbt_song_removed_from_playlist">Song removed from playlist %s</string>
     <string name="sbt_song_removed_from_your_queue">Song removed from queue</string>
     <string name="sbt_tags_edited">Tags edited for %s</string>
+
+    <!-- Settings Options -->
+    <string name="setting_theme_default">System default theme option</string>
+    <string name="setting_theme_light">Light Mode theme option</string>
+    <string name="setting_theme_dark">Dark Mode theme option</string>
 
     <!-- Notification section -->
     <string name="media_notification_channel">Music Player</string>
