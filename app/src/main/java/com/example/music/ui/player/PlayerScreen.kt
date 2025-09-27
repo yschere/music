@@ -138,8 +138,8 @@ fun PlayerScreen(
         navigateToAlbumDetails = navigateToAlbumDetails,
         navigateToArtistDetails = navigateToArtistDetails,
         playerControlActions = PlayerControlActions(
-            onPlayPress = viewModel::onPlay,
-            onPausePress = viewModel::onPause,
+            onPlay = viewModel::onPlay,
+            onPause = viewModel::onPause,
             onNext = viewModel::onNext,
             onPrevious = viewModel::onPrevious,
             onSeek = viewModel::onSeek,
@@ -151,21 +151,6 @@ fun PlayerScreen(
     // TODO: determine another invocation point for error handling
     if (state.errorMessage != null) { PlayerScreenError(onRetry = viewModel::refresh) }*/
 }
-
-// wrappers for default class of possible control actions
-data class PlayerControlActions(
-    val onPlayPress: () -> Unit,
-    val onPausePress: () -> Unit,
-    val onNext: () -> Unit,
-    val onPrevious: () -> Unit,
-    val onSeek: (Long) -> Unit,
-    val onShuffle: () -> Unit,
-    val onRepeat: () -> Unit
-)
-data class MiniPlayerControlActions(
-    val onPlayPress: () -> Unit,
-    val onPausePress: () -> Unit,
-)
 
 /**
  * Error Screen
@@ -180,17 +165,6 @@ private fun PlayerScreenError(
         modifier = modifier
     )
 }
-
-// wrapper for player screen more options modal actions
-data class PlayerModalActions(
-    val onDismissRequest: () -> Unit,
-    //val addToPlaylist: () -> Unit = {},
-    val goToArtist: () -> Unit,
-    val goToAlbum: () -> Unit,
-    val clearQueue: () -> Unit,
-    val saveQueue: () -> Unit,
-    val onClose: () -> Unit,
-)
 
 /**
  * Stateless version of Player Screen
@@ -353,12 +327,8 @@ private fun PlayerTopAppBar(
 ){
     TopAppBar(
         title = {},
-        navigationIcon = {
-            // Back btn
-            BackNavBtn(onClick = navigateBack)
-        },
+        navigationIcon = { BackNavBtn(onClick = navigateBack) },
         actions = {
-            // navigateToQueue btn
             QueueBtn(onClick = navigateToQueue)
 
             // Current Song More Options btn
@@ -568,8 +538,8 @@ private fun PlayerContentRegular(
                     isPlaying = isPlaying,
                     isShuffled = isShuffled,
                     repeatState = repeatState,
-                    onPlayPress = playerControlActions.onPlayPress,
-                    onPausePress = playerControlActions.onPausePress,
+                    onPlay = playerControlActions.onPlay,
+                    onPause = playerControlActions.onPause,
                     onNext = playerControlActions.onNext,
                     onPrevious = playerControlActions.onPrevious,
                     onShuffle = playerControlActions.onShuffle,
@@ -580,6 +550,7 @@ private fun PlayerContentRegular(
             Spacer(modifier = Modifier.weight(1f))
         }
     }
+
     if (showBottomSheet) {
         Log.i(TAG, "Player Screen Content -> Player More Options is TRUE")
         PlayerMoreOptionsBottomModal(
@@ -589,10 +560,7 @@ private fun PlayerContentRegular(
             //playNext = {},
             //addToFavorites = {},
             //addToPlaylist = {},
-            goToArtist = playerModalActions.goToArtist,
-            goToAlbum = playerModalActions.goToAlbum,
-            clearQueue = playerModalActions.clearQueue,
-            saveQueue = playerModalActions.saveQueue,
+            playerModalActions = playerModalActions,
             onClose = playerModalActions.onClose,
         )
     }
@@ -867,8 +835,8 @@ fun PlayerButtons(
     isPlaying: Boolean,
     isShuffled: Boolean,
     repeatState: RepeatType,
-    onPlayPress: () -> Unit,
-    onPausePress: () -> Unit,
+    onPlay: () -> Unit,
+    onPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onShuffle: () -> Unit,
@@ -931,7 +899,7 @@ fun PlayerButtons(
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
             modifier = sideButtonsModifier
-                        .clip(CircleShape)
+                .clip(CircleShape)
                 .clickable { onPrevious() }
         )
 
@@ -946,7 +914,7 @@ fun PlayerButtons(
                 modifier = primaryButtonModifier
                     .padding(CONTENT_PADDING)
                         .clip(CircleShape)
-                    .clickable { onPausePress() }
+                    .clickable { onPause() }
             )
         }
         else {
@@ -959,7 +927,7 @@ fun PlayerButtons(
                 modifier = primaryButtonModifier
                     .padding(CONTENT_PADDING)
                         .clip(CircleShape)
-                    .clickable { onPlayPress() }
+                    .clickable { onPlay() }
             )
         }
 
@@ -1026,8 +994,8 @@ fun PlayerButtonsPreview() {
             isPlaying = true,
             isShuffled = false,
             repeatState = RepeatType.ONE,
-            onPlayPress = {},
-            onPausePress = {},
+            onPlay = {},
+            onPause = {},
             onShuffle = {},
             onRepeat = {},
             onNext = {},
@@ -1058,8 +1026,8 @@ fun PlayerScreenPreview() {
                 navigateToAlbumDetails = {},
                 navigateToArtistDetails = {},
                 playerControlActions = PlayerControlActions(
-                    onPlayPress = {},
-                    onPausePress = {},
+                    onPlay = {},
+                    onPause = {},
                     onShuffle = {},
                     onRepeat = {},
                     onSeek = {},
