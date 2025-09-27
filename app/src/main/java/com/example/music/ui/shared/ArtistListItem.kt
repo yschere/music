@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -20,13 +21,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.ICON_SIZE
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
-
-private val ICON_SIZE_DP = 56.dp
 
 @Composable
 fun ArtistListItem(
@@ -35,7 +36,7 @@ fun ArtistListItem(
     onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(4.dp)) {
+    Box(modifier = modifier) {
         Surface(
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainer,
@@ -58,12 +59,13 @@ private fun ArtistListItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(vertical = CONTENT_PADDING)
+            .padding(start = CONTENT_PADDING),
     ) {
         ArtistListItemIcon(
             artist = artist.name,
             modifier = Modifier
-                .size(ICON_SIZE_DP)
+                .size(ICON_SIZE)
                 .clip(MaterialTheme.shapes.small),
         )
 
@@ -99,7 +101,6 @@ private fun ArtistListItemRow(
             }
         }
 
-        // More Options btn
         MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
@@ -112,7 +113,7 @@ private fun ArtistListItemIcon(
     artist: String,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Row(
         modifier = modifier
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
     ) {
@@ -122,7 +123,8 @@ private fun ArtistListItemIcon(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
+            modifier = Modifier.fillMaxWidth()
+                .align(Alignment.CenterVertically)
         )
     }
 }

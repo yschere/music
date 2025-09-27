@@ -183,7 +183,7 @@ class ArtistDetailsViewModel @Inject constructor(
                 _isPlaying = songController.isPlaying
                 isActive = songController.isActive
                 Log.d(TAG, "isPlaying changed:\n" +
-                    "isPlaying set to $isPlaying" +
+                    "isPlaying set to $isPlaying\n" +
                     "isActive set to $isActive")
             }
 

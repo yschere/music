@@ -52,7 +52,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.Keyline1
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
+import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.getPlaylistSongs
 import com.example.music.domain.model.PlaylistInfo
@@ -81,7 +83,6 @@ import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
 private const val TAG = "Playlist Details Screen"
-private val PLAYLIST_IMAGE_SIZE_DP = 160.dp
 
 /**
  * Stateful version of Playlist Details Screen
@@ -201,9 +202,7 @@ private fun PlaylistDetailsScreen(
     var showPlaylistMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
 
-    ScreenBackground(
-        modifier = modifier
-    ) {
+    ScreenBackground(modifier = modifier) {
         Scaffold(
             topBar = {
                 LargeTopAppBar(
@@ -273,7 +272,7 @@ private fun PlaylistDetailsScreen(
                     state = listState,
                     modifier = Modifier.padding(contentPadding)
                         .fillMaxSize()
-                        .padding(horizontal = 12.dp)
+                        .padding(horizontal = SCREEN_PADDING)
                 ) {
                     // section 2: songs list
                     fullWidthItem {
@@ -589,10 +588,10 @@ private fun PlaylistDetailsHeader(
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
-        modifier = modifier.padding(16.dp)
+        modifier = modifier.fillMaxWidth()//.padding(SCREEN_PADDING)
     ) {
         val maxImageSize = this.maxWidth / 2
-        val imageSize = min(maxImageSize, PLAYLIST_IMAGE_SIZE_DP)
+        val imageSize = min(maxImageSize, ITEM_IMAGE_CARD_SIZE)
         Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -605,17 +604,13 @@ private fun PlaylistDetailsHeader(
                         .size(imageSize)
                         .clip(MaterialTheme.shapes.large)
                 )
-                Column(
-                    modifier = Modifier.padding(start = 16.dp)
-                ) {
-                    Text(
-                        text = playlist.name,
-                        maxLines = 2,
-                        overflow = TextOverflow.Visible,
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier.basicMarquee()
-                    )
-                }
+                Text(
+                    text = playlist.name,
+                    maxLines = 2,
+                    overflow = TextOverflow.Visible,
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(start = CONTENT_PADDING)//.basicMarquee()
+                )
             }
         }
     }

@@ -53,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.music.R
+import com.example.music.designsys.theme.MARGIN_PADDING
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewComposers
@@ -119,6 +120,7 @@ fun LibraryScreen(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
+        Log.e(TAG, "${uiState.errorMessage}")
         LibraryScreenError(onRetry = viewModel::refresh)
     }
     Surface(color = Color.Transparent) {
@@ -244,7 +246,7 @@ private fun LibraryScreen(
                         LinearProgressIndicator(
                             Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
+                                .padding(horizontal = MARGIN_PADDING)
                         )
                     }
                 },
@@ -309,13 +311,17 @@ private fun LibraryTopAppBar(
     modifier: Modifier = Modifier,
 ) {
     TopAppBar(
-        title = {},
-        navigationIcon = {
-            NavDrawerBtn(onClick = onNavigationIconClick)
+        title = {
+            Text(
+                text = "Library",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MARGIN_PADDING, vertical = 8.dp)
+            )
         },
-        actions = {
-            SearchBtn(onClick = navigateToSearch)
-        },
+        navigationIcon = { NavDrawerBtn(onClick = onNavigationIconClick) },
+        actions = { SearchBtn(onClick = navigateToSearch) },
         expandedHeight = TopAppBarExpandedHeight,
         windowInsets = TopAppBarDefaults.windowInsets,
         colors = TopAppBarColors(
@@ -389,9 +395,9 @@ private fun LibraryContent(
     val groupedPlaylistItems = libraryPlaylists.groupBy { it.name.first() }
     val groupedSongItems = librarySongs.groupBy { it.title.first() }
 
-    groupedArtistItems.forEach { (letter, artist) ->
-        Log.i(TAG, "Output for groupedArtists Letter: $letter, artist: $artist")
-    }
+//    groupedArtistItems.forEach { (letter, artist) ->
+//        Log.i(TAG, "Output for groupedArtists Letter: $letter, artist: $artist")
+//    }
 
     // screen sizing parameters for generating LazyGrid columns
     val config = LocalConfiguration.current
@@ -1066,7 +1072,6 @@ private fun LibraryContent(
                     showCreatePlaylist = false
                 },
                 sheetState = sheetState,
-                coroutineScope = coroutineScope,
                 onClose = {
                     coroutineScope.launch {
                         Log.i(TAG, "Hide sheet state")

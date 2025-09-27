@@ -6,14 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -54,6 +52,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.theme.DEFAULT_PADDING
+import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
+import com.example.music.designsys.theme.MARGIN_PADDING
+import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
+import com.example.music.designsys.theme.TOP_BAR_EXPANDED_HEIGHT
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.getSongsInAlbum
 import com.example.music.domain.model.AlbumInfo
@@ -81,7 +84,6 @@ import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
 private const val TAG = "Album Details Screen"
-private val ALBUM_IMAGE_SIZE_DP = 160.dp
 
 /**
  * Stateful version of Album Details Screen
@@ -207,7 +209,7 @@ fun AlbumDetailsScreen(
                 LargeTopAppBar(
                     title = {
                         // if true, bar is collapsed so use album title as title
-                        if ( isCollapsed.value ) {
+                        if (isCollapsed.value) {
                             Text(
                                 text = album.title,
                                 maxLines = 3,
@@ -221,15 +223,9 @@ fun AlbumDetailsScreen(
                             AlbumDetailsHeader(album, modifier)
                         }
                     },
-                    navigationIcon = {
-                        // Back btn
-                        BackNavBtn(onClick = navigateBack)
-                    },
+                    navigationIcon = { BackNavBtn(onClick = navigateBack) },
                     actions = {
-                        // Search btn
                         SearchBtn(onClick = navigateToSearch)
-
-                        // Album More Options btn
                         MoreOptionsBtn(
                             onClick = {
                                 showBottomSheet = true
@@ -237,9 +233,8 @@ fun AlbumDetailsScreen(
                             }
                         )
                     },
-                    collapsedHeight = 48.dp,//TopAppBarDefaults.LargeAppBarCollapsedHeight, // is 64.dp
-                    expandedHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 76.dp,//200.dp, // for Header
-                    //expandedHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 270.dp, // for HeaderLargeAlbumCover
+                    collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
+                    expandedHeight = TOP_BAR_EXPANDED_HEIGHT,
                     windowInsets = TopAppBarDefaults.windowInsets,
                     colors = TopAppBarColors(
                         containerColor = Color.Transparent,
@@ -250,15 +245,6 @@ fun AlbumDetailsScreen(
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
-                /*AlbumDetailsTopAppBar(
-                    navigateBack = navigateBack,
-                    navigateToSearch = navigateToSearch,
-                    onMoreOptionsClick = {
-                        showBottomSheet = true
-                        showAlbumMoreOptions = true
-                    },
-                    modifier = modifier
-                ) */
             },
             bottomBar = {
                 if (isActive){
@@ -285,7 +271,7 @@ fun AlbumDetailsScreen(
                     state = listState,
                     modifier = Modifier.padding(contentPadding)
                         .fillMaxSize()
-                        .padding(horizontal = 12.dp)
+                        .padding(horizontal = DEFAULT_PADDING)
                 ) {
                     fullWidthItem {
                         ItemCountAndSortSelectButtons(
@@ -575,7 +561,7 @@ fun AlbumDetailsScreen(
 
 /**
  * Composable for Album Details Screen's header.
- * Has album image on left, album title and album artist on right side.
+ * Has album image on the left side, album title and album artist on the right side.
  */
 @Composable
 fun AlbumDetailsHeader(
@@ -586,7 +572,7 @@ fun AlbumDetailsHeader(
         modifier = modifier.padding(16.dp)
     ) {
         val maxImageSize = this.maxWidth / 2
-        val imageSize = min( maxImageSize, 160.dp )
+        val imageSize = min(maxImageSize, ITEM_IMAGE_CARD_SIZE)
         Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -600,7 +586,7 @@ fun AlbumDetailsHeader(
                         .clip(MaterialTheme.shapes.large),
                 )
                 Column(
-                    modifier = Modifier.padding(start = 16.dp),
+                    modifier = Modifier.padding(start = MARGIN_PADDING),
                 ) {
                     Text(
                         text = album.title,
@@ -635,7 +621,7 @@ fun AlbumDetailsHeaderLargeAlbumCover(
         modifier = modifier.fillMaxWidth()
     ) {
         val maxImageSize = this.maxWidth * 0.6f
-        val imageSize = max( maxImageSize, 160.dp )
+        val imageSize = max(maxImageSize, ITEM_IMAGE_CARD_SIZE)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -656,7 +642,6 @@ fun AlbumDetailsHeaderLargeAlbumCover(
             )
             Text(
                 text = album.albumArtistName ?: "",
-                //color = MaterialTheme.colorScheme.onPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Visible,
                 style = MaterialTheme.typography.titleLarge
@@ -665,98 +650,6 @@ fun AlbumDetailsHeaderLargeAlbumCover(
     }
 }
 
-/**
- * Album Header Version 4: Album Details Top App Bar content using BoxWithConstraints
- * to emulate changing header states.
- */
-/*@Composable
-fun AlbumDetailsHeaderBox(
-    album: AlbumInfo,
-    modifier: Modifier = Modifier
-) {
-    val minBoxHeight = 64.dp //height of collapsed top bar
-    /*
-        // Goal: describe header when TopAppBar is in expanded state and when in collapsed state
-            -in expanded state: show full header with album image, album title, album artist name
-            -in collapsed state: show simplified header with album title as page title
-
-            -want to use box with constraints to adjust layout and contents upon the change in constraint
-     */
-    BoxWithConstraints(
-        contentAlignment = Alignment.TopStart,
-        propagateMinConstraints = true,
-        modifier = modifier.padding(16.dp)
-    ) {
-        //val boxWidth = maxWidth
-        val boxHeight = maxHeight
-        val smallHeight = 64.dp
-        val maxImageSize = this.maxWidth * 0.5f
-        val imageSize = min( maxImageSize, 148.dp )
-        if (this.maxWidth == boxHeight) {
-            Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    /*AlbumImage(
-                    modifier = Modifier
-                        .size(imageSize)
-                        .clip(MaterialTheme.shapes.large),
-                    albumImage = 1,
-                    contentDescription = album.title
-                )*/
-                    Image(
-                        painter = painterResource(R.drawable.bpicon),
-                        contentDescription = album.title,
-                        modifier = Modifier
-                            .size(imageSize)
-                            .clip(MaterialTheme.shapes.large)
-                    )
-                    Column(
-                        modifier = Modifier.padding(start = 16.dp)
-                    ) {
-                        Text(
-                            text = album.title,
-                            //color = MaterialTheme.colorScheme.onPrimary,
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = Modifier.basicMarquee()
-                        )
-                        Text(
-                            text = album.albumArtistName ?: "",
-                            //color = MaterialTheme.colorScheme.onPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Visible,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
-            }
-        } else {
-            Text(
-                text = album.title,
-                //color = MaterialTheme.colorScheme.onPrimary,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-}*/
-
-//@CompLightPreview
-//@CompDarkPreview
-/*@Composable
-fun AlbumDetailsHeaderItemPreview() {
-    MusicTheme {
-        AlbumDetailsHeader(
-            album = PreviewAlbums[6],
-            artist = getArtistData(PreviewAlbums[6].albumArtistId!!)
-        )
-    }
-}*/
 
 //@CompDarkPreview
 @Composable

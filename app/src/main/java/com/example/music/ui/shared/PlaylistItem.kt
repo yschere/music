@@ -24,14 +24,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
+import com.example.music.designsys.theme.ITEM_IMAGE_ROW_SIZE
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
-
-private val IMAGE_CARD_SIZE_DP = 160.dp
-private val IMAGE_ICON_SIZE_DP = 56.dp
 
 @Composable
 fun PlaylistItem(
@@ -41,7 +41,7 @@ fun PlaylistItem(
     cardOrRow: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(4.dp)) {
+    Box(modifier = modifier) {
         if (cardOrRow) {
             Surface(
                 shape = MaterialTheme.shapes.large,
@@ -82,7 +82,7 @@ fun PlaylistItemCard(
 ) {
     Column(
         modifier = modifier
-            .width(IMAGE_CARD_SIZE_DP)
+            .width(ITEM_IMAGE_CARD_SIZE)
     ) {
         Box(
             contentAlignment = Alignment.BottomStart,
@@ -92,7 +92,7 @@ fun PlaylistItemCard(
                 albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
                 contentDescription = playlist.name,
                 modifier = Modifier
-                    .size(IMAGE_CARD_SIZE_DP)
+                    .size(ITEM_IMAGE_CARD_SIZE)
                     .clip(MaterialTheme.shapes.medium),
             )
 
@@ -124,7 +124,6 @@ fun PlaylistItemCard(
                 modifier = Modifier.padding(4.dp).weight(1f,true)
             )
 
-            // More Options btn
             MoreOptionsBtn(onClick = onMoreOptionsClick)
         }
     }
@@ -142,13 +141,14 @@ private fun PlaylistItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(vertical = CONTENT_PADDING)
+            .padding(start = CONTENT_PADDING),
     ) {
         AlbumImage(
             albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
             contentDescription = playlist.name,
             modifier = modifier
-                .size(IMAGE_ICON_SIZE_DP)
+                .size(ITEM_IMAGE_ROW_SIZE)
                 .clip(MaterialTheme.shapes.medium),
         )
 
@@ -175,7 +175,6 @@ private fun PlaylistItemRow(
             }
         }
 
-        // More Options btn
         MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }

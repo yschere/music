@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.util.AddToPlaylistBtn
 import com.example.music.util.CreatePlaylistBtn
 import com.example.music.util.MultiSelectBtn
@@ -39,7 +40,6 @@ fun ItemCountAndSortSelectButtons(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.fillMaxWidth()
     ) {
-        // Item Count
         Text(
             text = """\s[a-z]""".toRegex().replace(
                 quantityStringResource(id, itemCount, itemCount)
@@ -48,13 +48,9 @@ fun ItemCountAndSortSelectButtons(
             },
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp).weight(1f, true)
+            modifier = Modifier.weight(1f, true)
         )
-
-        // Sort btn
         SortBtn(onClick = onSortClick)
-
-        // Multi-Select btn
         MultiSelectBtn(onClick = onSelectClick)
     }
 }
@@ -80,7 +76,6 @@ fun ItemCountAndPlusSortSelectButtons(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.fillMaxWidth()
     ) {
-        // Item Count
         Text(
             text = """\s[a-z]""".toRegex().replace(
                 quantityStringResource(id, itemCount, itemCount)
@@ -89,20 +84,15 @@ fun ItemCountAndPlusSortSelectButtons(
             },
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp).weight(1f, true)
+            modifier = Modifier.weight(1f, true)
         )
 
-        // Plus btn: determines if btn is for CreatePlaylist (true) or AddToPlaylist (false)
         if (createOrAdd) {
             CreatePlaylistBtn(onClick = onPlusClick)
         } else {
             AddToPlaylistBtn(onClick = onPlusClick)
         }
-
-        // Sort btn
         SortBtn(onClick = onSortClick)
-
-        // Multi-Select btn
         MultiSelectBtn(onClick = onSelectClick)
     }
 }
@@ -118,13 +108,13 @@ fun PlayShuffleButtons(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.padding(bottom = 8.dp)
+        modifier = modifier.padding(vertical = CONTENT_PADDING)
     ) {
         // Play btn
         Button(
             onClick = onPlayClick,
             modifier = Modifier
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = CONTENT_PADDING)
                 .weight(0.5f)
         ) {
             Icon(
@@ -138,7 +128,7 @@ fun PlayShuffleButtons(
         Button(
             onClick = onShuffleClick,
             modifier = Modifier
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = CONTENT_PADDING)
                 .weight(0.5f)
         ) {
             Icon(

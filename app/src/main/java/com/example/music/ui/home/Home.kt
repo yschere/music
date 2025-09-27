@@ -68,6 +68,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
+import com.example.music.designsys.theme.MARGIN_PADDING
+import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.PlaylistInfo
@@ -122,6 +124,10 @@ fun MainScreen(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     Box {
+        if (uiState.errorMessage != null) {
+            Log.e(TAG, "${uiState.errorMessage}")
+            HomeScreenError(onRetry = viewModel::refresh)
+        }
         HomeScreenReady(
             uiState = uiState,
             windowSizeClass = windowSizeClass,
@@ -135,10 +141,6 @@ fun MainScreen(
             navigateToPlaylistDetails = navigateToPlaylistDetails,
             viewModel = viewModel,
         )
-
-        if (uiState.errorMessage != null) {
-            HomeScreenError(onRetry = viewModel::refresh)
-        }
     }
 }
 
@@ -156,7 +158,6 @@ private fun HomeScreenError(
     )
 }
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 private fun HomeScreenReady(
     uiState: HomeScreenUiState,
@@ -206,7 +207,6 @@ private fun HomeScreenReady(
  * Composable for Home Screen and its properties needed to render the
  * components of the page.
  */
- @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeScreen(
     isLoading: Boolean,
@@ -234,6 +234,7 @@ private fun HomeScreen(
     Log.i(TAG, "Home Screen START\n" +
         "currentSong? ${currentSong.title}\n" +
         "isActive? $isActive")
+
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //FixMe: update the snackBar selection to properly convey action taken
@@ -324,20 +325,22 @@ private fun HomeTopAppBar(
     modifier: Modifier = Modifier,
 ) {
     TopAppBar(
-        title = {},
-        navigationIcon = {
-            NavDrawerBtn(onClick = onNavigationIconClick)
+        title = {
+            Text(
+                text = "Home",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+            )
         },
-        actions = {
-            SearchBtn(onClick = navigateToSearch)
-        },
+        navigationIcon = { NavDrawerBtn(onClick = onNavigationIconClick) },
+        actions = { SearchBtn(onClick = navigateToSearch) },
         expandedHeight = TopAppBarExpandedHeight,
         windowInsets = TopAppBarDefaults.windowInsets,
         colors = TopAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = Color.Transparent,
             navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
             actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
         scrollBehavior = pinnedScrollBehavior(),
@@ -361,6 +364,7 @@ private fun HomeContent(
     navigateToPlayer: () -> Unit,
 ) {
     Log.i(TAG, "HomeContent START")
+
     val pLists = featuredLibraryItemsFilterResult.recentAlbums.toPersistentList()
     val pagerState = rememberPagerState { pLists.size }
 
@@ -612,18 +616,18 @@ private fun HomeContentGrid(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = stringResource(R.string.recent_playlists),
+                        text = stringResource(R.string.recent_albums),
                         minLines = 1,
                         maxLines = 1,
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(MARGIN_PADDING)
                     )
 
                     Spacer(Modifier.weight(1f))
 
                     Button(
                         onClick = navigateToLibrary, //navigateToLibrary -> Playlists -> sortBy DateLastAccessed Desc
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(horizontal = MARGIN_PADDING),
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
                         colors = ButtonDefaults.buttonColors(
                             contentColor = MaterialTheme.colorScheme.inversePrimary,
@@ -661,14 +665,14 @@ private fun HomeContentGrid(
                         minLines = 1,
                         maxLines = 1,
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(MARGIN_PADDING)
                     )
 
                     Spacer(Modifier.weight(1f))
 
                     Button(
                         onClick = navigateToLibrary, //navigateToLibrary -> Songs -> sortBy DateCreated Desc
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(horizontal = MARGIN_PADDING),
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
                         colors = ButtonDefaults.buttonColors(
                             contentColor = MaterialTheme.colorScheme.inversePrimary,
@@ -681,12 +685,9 @@ private fun HomeContentGrid(
                     }
                 }
             }
-            items(
-                items = featuredLibraryItemsFilterResult.recentlyAddedSongs
-            ) { song ->
-                Box(
-                    Modifier.padding(horizontal = 12.dp)
-                ) {
+
+            items(items = featuredLibraryItemsFilterResult.recentlyAddedSongs) { song ->
+                Box(Modifier.padding(horizontal = SCREEN_PADDING)) {
                     SongListItem(
                         song = song,
                         onClick = {

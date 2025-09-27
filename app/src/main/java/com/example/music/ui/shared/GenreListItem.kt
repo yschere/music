@@ -20,13 +20,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.ICON_SIZE
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.testing.PreviewGenres
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
-
-private val ICON_SIZE_DP = 56.dp
 
 @Composable
 fun GenreListItem(
@@ -35,7 +35,7 @@ fun GenreListItem(
     onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(4.dp)) {
+    Box(modifier = modifier) {
         Surface(
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainer,
@@ -58,12 +58,13 @@ private fun GenreListItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(vertical = CONTENT_PADDING)
+            .padding(start = CONTENT_PADDING),
     ) {
         GenreListItemIcon(
             genre = genre.name,
             modifier = Modifier
-                .size(ICON_SIZE_DP)
+                .size(ICON_SIZE)
                 .clip(MaterialTheme.shapes.small),
         )
 
@@ -90,7 +91,6 @@ private fun GenreListItemRow(
             }
         }
 
-        // More Options btn
         MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }

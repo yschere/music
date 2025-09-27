@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -30,12 +29,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,12 +45,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
-import com.example.music.designsys.theme.Keyline1
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.getAlbumsByArtist
 import com.example.music.domain.testing.getSongsByArtist
@@ -294,7 +291,7 @@ fun ArtistDetailsScreen(
                                 textAlign = TextAlign.Left,
                                 style = MaterialTheme.typography.titleMedium,
                                 // adding 12.dp horizontal padding for screen with carousel
-                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                                modifier = Modifier.padding(horizontal = SCREEN_PADDING, vertical = CONTENT_PADDING)
                             )
                         }
 
@@ -329,7 +326,7 @@ fun ArtistDetailsScreen(
                                     Log.i(TAG, "Multi Select btn clicked")
                                 },
                                 // adding 12.dp horizontal padding for screen with carousel
-                                modifier = Modifier.padding(horizontal = 12.dp)
+                                modifier = Modifier.padding(horizontal = SCREEN_PADDING)
                             )
                         }
 
@@ -346,13 +343,13 @@ fun ArtistDetailsScreen(
                                     navigateToPlayer()
                                 },
                                 // adding 12.dp horizontal padding for screen with carousel
-                                modifier = Modifier.padding(horizontal = 12.dp)
+                                modifier = Modifier.padding(horizontal = SCREEN_PADDING)
                             )
                         }
 
                         items(items = songs) { song ->
                             // adding 12.dp horizontal padding for screen with carousel
-                            Box(Modifier.padding(horizontal = 12.dp)) {
+                            Box(Modifier.padding(horizontal = SCREEN_PADDING)) {
                                 SongListItem(
                                     song = song,
                                     onClick = {

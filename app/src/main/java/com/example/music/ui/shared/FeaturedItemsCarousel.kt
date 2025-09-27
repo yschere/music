@@ -29,6 +29,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
+import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
+import com.example.music.designsys.theme.SUBTITLE_HEIGHT
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
@@ -38,7 +40,6 @@ import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 
 private const val TAG = "Featured Items Carousel"
-private val IMAGE_CARD_SIZE_DP = 160.dp
 
 /**
  * Composable for Featured Albums Carousel. Displays a horizontal pager for the albums given
@@ -64,7 +65,7 @@ fun FeaturedAlbumsCarousel(
                 .background(Color.Transparent)
         ) {
             Log.i(TAG, "Generating Horizontal pager")
-            val horizontalPadding = (this.maxWidth - IMAGE_CARD_SIZE_DP) / 2
+            val horizontalPadding = (this.maxWidth - ITEM_IMAGE_CARD_SIZE) / 2
             HorizontalPager(
                 state = pagerState,
                 contentPadding = PaddingValues(
@@ -72,7 +73,7 @@ fun FeaturedAlbumsCarousel(
                     vertical = 16.dp,
                 ),
                 pageSpacing = 24.dp,
-                pageSize = PageSize.Fixed(IMAGE_CARD_SIZE_DP)
+                pageSize = PageSize.Fixed(ITEM_IMAGE_CARD_SIZE)
             ) { page ->
                 Log.i(TAG, "Generating Album Carousel Item: $page")
                 val album = items[page]
@@ -84,6 +85,7 @@ fun FeaturedAlbumsCarousel(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable { onClick(album.id) }
+                        .clip(MaterialTheme.shapes.medium)
                 )
             }
         }
@@ -113,7 +115,7 @@ fun FeaturedPlaylistsCarousel(
                 .fillMaxWidth()
                 .background(Color.Transparent)
         ) {
-            val horizontalPadding = (this.maxWidth - IMAGE_CARD_SIZE_DP) / 2
+            val horizontalPadding = (this.maxWidth - ITEM_IMAGE_CARD_SIZE) / 2
             HorizontalPager(
                 state = pagerState,
                 contentPadding = PaddingValues(
@@ -121,7 +123,7 @@ fun FeaturedPlaylistsCarousel(
                     vertical = 16.dp,
                 ),
                 pageSpacing = 24.dp,
-                pageSize = PageSize.Fixed(IMAGE_CARD_SIZE_DP)
+                pageSize = PageSize.Fixed(ITEM_IMAGE_CARD_SIZE)
             ) { page ->
                 val playlist = items[page]
                 Log.i(TAG, "Generating Playlist Carousel Item: $page")
@@ -133,6 +135,7 @@ fun FeaturedPlaylistsCarousel(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable { onClick(playlist) }
+                        .clip(MaterialTheme.shapes.medium)
                 )
             }
         }
@@ -152,14 +155,14 @@ private fun FeaturedCarouselItem(
         Box(
             contentAlignment = Alignment.BottomStart,
             modifier = Modifier
-                .size(IMAGE_CARD_SIZE_DP)
+                .size(ITEM_IMAGE_CARD_SIZE)
                 .align(Alignment.CenterHorizontally)
         ) {
             AlbumImage(
                 albumImage = itemImage,
                 contentDescription = itemTitle,
                 modifier = Modifier
-                    .size(IMAGE_CARD_SIZE_DP)
+                    .size(ITEM_IMAGE_CARD_SIZE)
                     .clip(MaterialTheme.shapes.medium),
             )
 
@@ -189,8 +192,6 @@ private fun FeaturedCarouselItem(
                 style = MaterialTheme.typography.titleMedium, //titleSmall,
                 modifier = Modifier.padding(4.dp).weight(1f,true)
             )
-
-            // More Options btn
             MoreOptionsBtn(onClick = onMoreOptionsClick)
         }
     }
@@ -205,8 +206,9 @@ private fun PreviewCard() {
             itemImage = Uri.parse(""),//album.artwork!!,
             onMoreOptionsClick = {},
             modifier = Modifier
-                .size(IMAGE_CARD_SIZE_DP, IMAGE_CARD_SIZE_DP + 48.dp)
+                .size(ITEM_IMAGE_CARD_SIZE, ITEM_IMAGE_CARD_SIZE + SUBTITLE_HEIGHT)
                 .fillMaxSize()
+                .clip(MaterialTheme.shapes.medium)
         )
     }
 }

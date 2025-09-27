@@ -100,7 +100,7 @@ class HomeViewModel @Inject constructor(
             val counts = getTotalCountsV2()
             Log.i(TAG, "SongController status:\n" +
                 "isActive?: $isActive\n" +
-                "player?: ${player?.playbackState}\n")
+                "player?: ${player?.playbackState}")
 
             combine(
                 refreshing,
@@ -145,9 +145,9 @@ class HomeViewModel @Inject constructor(
             songController.events.collect {
                 Log.d(TAG, "get SongController Player Event(s)")
 
-                // if events is empty, take these actions to generate the needed values for populating the Player Screen
+                // if events is empty, take these actions to generate the needed values for populating MiniPlayer
                 if (it == null) {
-                    Log.d(TAG, "init: running start up events to initialize HomeVM")
+                    Log.d(TAG, "init: running start up events to initialize MiniPlayer")
                     getSongControllerState()
                     onPlayerEvent(event = Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)
                     onPlayerEvent(event = Player.EVENT_REPEAT_MODE_CHANGED)
@@ -186,7 +186,7 @@ class HomeViewModel @Inject constructor(
                 _isPlaying = songController.isPlaying
                 isActive = songController.isActive
                 Log.d(TAG, "isPlaying changed:\n" +
-                    "isPlaying set to $isPlaying" +
+                    "isPlaying set to $isPlaying\n" +
                     "isActive set to $isActive")
             }
 

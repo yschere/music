@@ -28,7 +28,6 @@ import com.example.music.domain.usecases.GetLibrarySongsV2
 import com.example.music.domain.usecases.GetSongDataV2
 import com.example.music.domain.usecases.GetTotalCountsV2
 import com.example.music.service.SongController
-import com.example.music.ui.albumdetails.AlbumAction
 import com.example.music.ui.player.MiniPlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -36,7 +35,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -164,7 +162,7 @@ class LibraryViewModel @Inject constructor(
             val counts = getTotalCountsV2()
             Log.i(TAG, "SongController status:\n" +
                 "isActive?: $isActive\n" +
-                "player?: ${player?.playbackState}\n")
+                "player?: ${player?.playbackState}")
 
             combine(
                 refreshing,
@@ -276,7 +274,7 @@ class LibraryViewModel @Inject constructor(
                 _isPlaying = songController.isPlaying
                 isActive = songController.isActive
                 Log.d(TAG, "isPlaying changed:\n" +
-                    "isPlaying set to $isPlaying" +
+                    "isPlaying set to $isPlaying\n" +
                     "isActive set to $isActive")
             }
 

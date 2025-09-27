@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,6 +22,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.ICON_SIZE
+import com.example.music.designsys.theme.ITEM_IMAGE_ROW_SIZE
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.theme.MusicTheme
@@ -29,8 +32,6 @@ import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.ReorderItemBtn
-
-private val ICON_SIZE_DP = 56.dp
 
 @Composable
 fun SongListItem(
@@ -42,10 +43,10 @@ fun SongListItem(
     showAlbumImage: Boolean = false,
     showAlbumTitle: Boolean = false,
     showTrackNumber: Boolean = false,
-    hasBackground: Boolean = true,
+    hasBackground: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(4.dp)) {
+    Box(modifier = modifier) {
         Surface(
             shape = MaterialTheme.shapes.large,
             color =
@@ -61,7 +62,7 @@ fun SongListItem(
                 showAlbumImage = showAlbumImage,
                 showAlbumTitle = showAlbumTitle,
                 showTrackNumber = showTrackNumber,
-                modifier = modifier,
+                modifier = Modifier,
             )
         }
     }
@@ -80,7 +81,8 @@ private fun SongListItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(vertical = CONTENT_PADDING)
+            .padding(start = CONTENT_PADDING),
     ) {
         /* // ********* UI Logic Expectations: *********
             // for properties that can be null, replace them with empty string
@@ -115,16 +117,9 @@ private fun SongListItemRow(
 
         //show the track number of the song
         if (showTrackNumber) {
-            Text(
-                text =
-                    if (song.trackNumber == null || song.trackNumber == 0) "-"
-                    else song.trackNumber.toString(),
-                textAlign = TextAlign.Center,
-                minLines = 1,
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(10.dp)
-                    .requiredSize(width = 35.dp, height = 15.dp)
+            SongListItemNumber(
+                number = song.trackNumber,
+                modifier = Modifier.size(ICON_SIZE)
             )
         }
 
@@ -134,8 +129,9 @@ private fun SongListItemRow(
                 artworkUri = song.artworkUri,
             //SongListItemImageBm(
                 //artworkBitmap = song.artworkBitmap,
+                description = song.title,
                 modifier = Modifier
-                    .size(ICON_SIZE_DP)
+                    .size(ITEM_IMAGE_ROW_SIZE)
                     .clip(MaterialTheme.shapes.small),
             )
         }
@@ -169,7 +165,6 @@ private fun SongListItemRow(
             }
         }
 
-        // More Options btn
         MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
@@ -177,11 +172,12 @@ private fun SongListItemRow(
 @Composable
 private fun SongListItemImage(
     artworkUri: Uri,
+    description: String = "",
     modifier: Modifier = Modifier
 ) {
     AlbumImage(
         albumImage = artworkUri,
-        contentDescription = null,
+        contentDescription = description,
         modifier = modifier,
     )
 }
@@ -189,13 +185,32 @@ private fun SongListItemImage(
 @Composable
 private fun SongListItemImageBm(
     artworkBitmap: Bitmap?,
+    description: String = "",
     modifier: Modifier = Modifier
 ) {
     AlbumImageBm(
         albumImage = artworkBitmap,
-        contentDescription = null,
+        contentDescription = description,
         modifier = modifier,
     )
+}
+
+@Composable
+private fun SongListItemNumber(
+    number: Int?,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier = modifier) {
+        Text(
+            text = number?.toString() ?: "-",
+            minLines = 1,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.fillMaxWidth()
+                .align(Alignment.CenterVertically)
+        )
+    }
 }
 
 @Composable

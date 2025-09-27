@@ -86,6 +86,10 @@ import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
 import com.example.music.designsys.component.ImageBackgroundColorFilter_Bm
 import com.example.music.designsys.component.ImageBackgroundRadialGradientFilter_Bm
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.PRIMARY_BUTTON_SIZE
+import com.example.music.designsys.theme.SCREEN_PADDING
+import com.example.music.designsys.theme.SIDE_BUTTON_SIZE
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.shared.Error
@@ -525,11 +529,10 @@ private fun PlayerContentRegular(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = SCREEN_PADDING)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             SongLyricsSwitch(
                 currentSong = currentSong,
@@ -614,7 +617,8 @@ private fun SongLyricsSwitch(
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+        modifier = Modifier.fillMaxWidth()
+            .padding(CONTENT_PADDING)
     ) {
         Text(
             text = "Song",
@@ -793,7 +797,9 @@ fun PlayerSlider(
         var newElapse by remember(progress) { mutableFloatStateOf(progress) }
         val interactionSource = remember { MutableInteractionSource() }
 
-        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
+        Row(Modifier.fillMaxWidth()
+            .padding(horizontal = CONTENT_PADDING)
+        ) {
             Text(
                 text = Duration.ofMillis(timeElapsed).formatString(),
                 style = MaterialTheme.typography.bodyMedium,
@@ -868,8 +874,8 @@ fun PlayerButtons(
     onShuffle: () -> Unit,
     onRepeat: () -> Unit,
     modifier: Modifier = Modifier,
-    primaryButtonSize: Dp = 72.dp,
-    sideButtonSize: Dp = 48.dp,
+    primaryButtonSize: Dp = PRIMARY_BUTTON_SIZE,
+    sideButtonSize: Dp = SIDE_BUTTON_SIZE,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -877,19 +883,19 @@ fun PlayerButtons(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         val sideButtonsModifier = Modifier
-            .size(sideButtonSize)
             .background(
                 color = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             )
+            .size(sideButtonSize)
             .semantics { role = Role.Button }
 
         val primaryButtonModifier = Modifier
-            .size(primaryButtonSize)
             .background(
                 color = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             )
+            .size(primaryButtonSize)
             .semantics { role = Role.Button }
 
         // Shuffle btn
@@ -902,6 +908,7 @@ fun PlayerButtons(
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = sideButtonsModifier
                     .clickable { onShuffle() }
+                    .clip(CircleShape)
             )
         }
         else {
@@ -912,6 +919,7 @@ fun PlayerButtons(
                 contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = sideButtonsModifier
+                        .clip(CircleShape)
                     .clickable { onShuffle() }
             )
         }
@@ -923,6 +931,7 @@ fun PlayerButtons(
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
             modifier = sideButtonsModifier
+                        .clip(CircleShape)
                 .clickable { onPrevious() }
         )
 
@@ -935,7 +944,8 @@ fun PlayerButtons(
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = primaryButtonModifier
-                    .padding(8.dp)
+                    .padding(CONTENT_PADDING)
+                        .clip(CircleShape)
                     .clickable { onPausePress() }
             )
         }
@@ -947,7 +957,8 @@ fun PlayerButtons(
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = primaryButtonModifier
-                    .padding(8.dp)
+                    .padding(CONTENT_PADDING)
+                        .clip(CircleShape)
                     .clickable { onPlayPress() }
             )
         }
@@ -959,6 +970,7 @@ fun PlayerButtons(
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
             modifier = sideButtonsModifier
+                .clip(CircleShape)
                 .clickable(enabled = hasNext, onClick = onNext)
                 .alpha(if (hasNext) 1f else 0.25f)
         )
@@ -973,6 +985,7 @@ fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                     modifier = sideButtonsModifier
+                        .clip(CircleShape)
                         .clickable { onRepeat() }
                 )
             }
@@ -984,6 +997,7 @@ fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                     modifier = sideButtonsModifier
+                        .clip(CircleShape)
                         .clickable { onRepeat() }
                 )
             }
@@ -995,6 +1009,7 @@ fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                     modifier = sideButtonsModifier
+                        .clip(CircleShape)
                         .clickable { onRepeat() }
                 )
             }
