@@ -39,6 +39,7 @@ fun AlbumListItem(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     onMoreOptionsClick: () -> Unit,
     cardOrRow: Boolean = true,
+    hasBackground: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -57,7 +58,9 @@ fun AlbumListItem(
         } else {
             Surface(
                 shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color =
+                    if (hasBackground) MaterialTheme.colorScheme.surfaceContainer
+                    else Color.Transparent,
                 onClick = { navigateToAlbumDetails(album) }
             ) {
                 AlbumItemRow(

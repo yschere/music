@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,12 +35,15 @@ fun ArtistListItem(
     artist: ArtistInfo,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     onMoreOptionsClick: () -> Unit,
+    hasBackground: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
         Surface(
             shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainer,
+            color =
+                if (hasBackground) MaterialTheme.colorScheme.surfaceContainer
+                else Color.Transparent,
             onClick = { navigateToArtistDetails(artist) },
         ) {
             ArtistListItemRow(
