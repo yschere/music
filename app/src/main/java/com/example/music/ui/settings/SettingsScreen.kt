@@ -72,7 +72,7 @@ import com.example.music.ui.shared.Actions
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
-import com.example.music.ui.shared.SettingsBottomModal
+import com.example.music.ui.shared.PromptBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.NavDrawerBtn
@@ -329,7 +329,7 @@ private fun SettingsContent(
     }
 
     if (showShuffleSheet) {
-        SettingsBottomModal(
+        PromptBottomModal(
             onDismissRequest = { showShuffleSheet = false },
             sheetState = sheetState,
             onClose = {
@@ -365,7 +365,7 @@ private fun SettingsContent(
     }
 
     if (showThemeSheet) {
-        SettingsBottomModal(
+        PromptBottomModal(
             onDismissRequest = { showThemeSheet = false },
             sheetState = sheetState,
             onClose = {
@@ -650,7 +650,7 @@ private fun PreviewSettings() {
 @Composable
 private fun SettingsModalPreview() {
     MusicTheme {
-        SettingsBottomModal(
+        PromptBottomModal(
             onDismissRequest = {},
             sheetState = SheetState(
                 initialValue = SheetValue.Expanded,
