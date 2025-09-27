@@ -9,14 +9,14 @@ val MusicTypography = androidx.compose.material3.Typography(
     displayLarge = TextStyle(
         fontFamily = Roboto,
         fontSize = 57.sp,
-        fontWeight = FontWeight.W400,
+        fontWeight = FontWeight.W400, //500
         lineHeight = 64.sp,
         letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
         fontFamily = Roboto,
         fontSize = 45.sp,
-        fontWeight = FontWeight.W400,
+        fontWeight = FontWeight.W400, // 500
         lineHeight = 52.sp
     ),
     displaySmall = TextStyle(
@@ -30,32 +30,35 @@ val MusicTypography = androidx.compose.material3.Typography(
     headlineLarge = TextStyle(
         fontFamily = Roboto,
         fontSize = 32.sp,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W400, // 500
         lineHeight = 40.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = Roboto,
         fontSize = 28.sp,
-        fontWeight = FontWeight.W500,
-        lineHeight = 36.sp
+        fontWeight = FontWeight.W400, // 500
+        lineHeight = 36.sp,
+        letterSpacing = 0.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = Roboto,
         fontSize = 24.sp,
-        fontWeight = FontWeight.W500,
-        lineHeight = 32.sp
+        fontWeight = FontWeight.W400, // 500
+        lineHeight = 32.sp,
+        letterSpacing = 0.sp
     ),
 
 
     titleLarge = TextStyle(
         fontFamily = Roboto,
         fontSize = 22.sp,
-        fontWeight = FontWeight.W500,
-        lineHeight = 28.sp
+        fontWeight = FontWeight.W400, // 500
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
         fontFamily = Roboto,
-        fontSize = 18.sp,
+        fontSize = 16.sp, // 18
         fontWeight = FontWeight.W500,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp
@@ -72,21 +75,21 @@ val MusicTypography = androidx.compose.material3.Typography(
     bodyLarge = TextStyle(
         fontFamily = Roboto,
         fontSize = 16.sp,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W400, // 500
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = Roboto,
         fontSize = 14.sp,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W400, // 500
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(
         fontFamily = Roboto,
         fontSize = 12.sp,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W400,
         lineHeight = 16.sp,
         letterSpacing = 0.4.sp
     ),
@@ -109,7 +112,7 @@ val MusicTypography = androidx.compose.material3.Typography(
     labelSmall = TextStyle(
         fontFamily = Roboto,
         fontSize = 11.sp,
-        fontWeight = FontWeight.W500,
+        fontWeight = FontWeight.W400,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),
