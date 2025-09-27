@@ -8,11 +8,13 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ClearAll
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.RemoveFromQueue
 import androidx.compose.material.icons.filled.Reorder
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -74,4 +77,8 @@ object Actions {
     val RemoveFromPlaylist: ActionItem = ActionItem("Remove Song From Playlist", Icons.Filled.PlaylistRemove, R.string.icon_remove_song_playlist) // for song in playlist
     val RemoveFromQueue: ActionItem = ActionItem("Remove Song from Queue", Icons.Filled.RemoveFromQueue, R.string.icon_remove_song_queue)
     val DeleteFromLibrary: ActionItem = ActionItem("Delete From Library", Icons.Filled.Delete, R.string.icon_delete_song) // for song in library
+
+    val ThemeDefault: ActionItem = ActionItem("System default", Icons.Filled.Settings, R.string.setting_theme_default)
+    val ThemeLight: ActionItem = ActionItem("Light", Icons.Filled.LightMode, R.string.setting_theme_light)
+    val ThemeDark: ActionItem = ActionItem("Dark", Icons.Filled.DarkMode, R.string.setting_theme_dark)
 }
