@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.MoreVert
@@ -179,6 +180,17 @@ fun BackNavBtn(
         icon = Icons.AutoMirrored.Filled.ArrowBack,
         description = stringResource(id = R.string.icon_back_nav),
         onClick = onClick
+    )
+}
+
+@Composable
+fun ClearFieldBtn(
+    onClick: () -> Unit,
+) {
+    DrawIconBtn(
+        icon = Icons.Filled.Clear,
+        description = stringResource(id = R.string.icon_clear_field),
+        onClick = onClick,
     )
 }
 

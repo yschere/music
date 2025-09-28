@@ -9,15 +9,15 @@ import java.time.OffsetDateTime
  * Intent: to represent a Playlist for the UI, with the ability to
  * order playlists by dateCreated, dateLastAccessed,
  * dateLastPlayed, and song count.
- * @property id [Long] The playlist's unique ID
- * @property name [String] The name of the playlist
- * @property description [String] The description of the playlist
- * @property dateCreated [OffsetDateTime] The datetime when the playlist was created
- * @property dateLastAccessed [OffsetDateTime] The datetime when the playlist was last accessed,
+ * @property id The playlist's unique ID
+ * @property name The name of the playlist
+ * @property description The description of the playlist
+ * @property dateCreated The datetime when the playlist was created
+ * @property dateLastAccessed The datetime when the playlist was last accessed,
  * aka when playlist created or any updates/changes to playlist or its list of songs
- * @property dateLastPlayed [OffsetDateTime] The datetime when a song within the playlist was last played,
+ * @property dateLastPlayed The datetime when a song within the playlist was last played,
  * currently set regardless of context where song was played
- * @property songCount [Int] The amount of songs by the playlist
+ * @property songCount The amount of songs by the playlist
  */
 data class PlaylistInfo(
     val id: Long = 0,

@@ -15,10 +15,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 
 /**
- * Sends an image request and returns the image scaled 150% overlaid by [overlay] with a blur modifier
+ * Sends an image request and returns the image scaled 150% overlaid with [overlay] with a blur modifier
  * @param imageId represents the image's unique identifier
  * @param imageDescription describes the image
  * @param overlay defines the filter overlay to draw onto the image
@@ -120,7 +120,7 @@ fun ImageBackgroundRadialGradientFilter(
 
 /**
  * Draws an image background with a color filter.
- * @param imageId epresents the image's bitmap
+ * @param imageId represents the image's bitmap
  * @param imageDescription describes the image
  * @param color defines the color to apply to filter
  * @param modifier defines any modifiers to apply to image

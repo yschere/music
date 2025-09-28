@@ -104,6 +104,7 @@
     <string name="icon_artist">Go to Artist Details</string>
     <string name="icon_back_nav">Navigate back to previous screen</string>
     <string name="icon_composer">Go to Composer Details</string>
+    <string name="icon_clear_field">Clear Text Field</string>
     <string name="icon_create_new_playlist">Create New Playlist</string>
     <string name="icon_delete_song">Remove from Library</string>
     <string name="icon_delete_playlist">Remove Playlist from Library</string>
