@@ -10,18 +10,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,11 +33,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
@@ -50,18 +47,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.music.R
-import com.example.music.designsys.theme.MARGIN_PADDING
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.ui.shared.AlbumActions
 import com.example.music.ui.shared.AlbumListItem
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
+import com.example.music.ui.shared.ArtistActions
 import com.example.music.ui.shared.ArtistListItem
+import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
+import com.example.music.ui.shared.SongMoreOptionsBottomModal
+import com.example.music.util.BackNavBtn
+import com.example.music.util.ClearFieldBtn
 import com.example.music.util.NavToMoreBtn
+import kotlinx.coroutines.launch
 
 private const val TAG = "Search Screen"
 
@@ -72,31 +77,25 @@ private const val TAG = "Search Screen"
 fun SearchScreen(
     navigateBack: () -> Unit = {},
     navigateToPlayer: () -> Unit,
-    navigateToArtistDetails: (ArtistInfo) -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     viewModel: SearchQueryViewModel = hiltViewModel(),
 ) {
     // contains the View / Ui state of the screen
     val uiState = viewModel.state.collectAsState().value
 
-    // contains the SearchBar Field state
-    val fieldState = viewModel.searchFieldState.collectAsState().value
-
-    // contains the state of the string text in the SearchBar
-    val queryText = viewModel.queryText.collectAsState().value
-
     Surface(color = Color.Transparent) {
         SearchScreenReady(
             uiState = uiState,
-            fieldState = fieldState,
-            queryText = queryText,
+            viewModel = viewModel,
             navigateBack = navigateBack,
             navigateToPlayer = navigateToPlayer,
             navigateToArtistDetails = navigateToArtistDetails,
             navigateToAlbumDetails = navigateToAlbumDetails,
-            viewModel = viewModel,
+            modifier = Modifier.fillMaxSize(),
         )
         if (uiState == SearchUiState.Error) {
+            Log.e(TAG, "SearchUiState Error")
             SearchError(onRetry = {})
         }
     }
@@ -119,77 +118,359 @@ private fun SearchError(
 @Composable
 fun SearchScreenReady(
     uiState: SearchUiState,
-    fieldState: SearchFieldState,
+    viewModel: SearchQueryViewModel,
+    navigateBack: () -> Unit,
+    navigateToPlayer: () -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SearchScreen(
+        uiState = uiState,
+        queryText = viewModel.queryText.collectAsState().value,
+        selectSong = viewModel.selectedSong.collectAsState().value,
+        selectArtist = viewModel.selectedArtist.collectAsState().value,
+        selectAlbum = viewModel.selectedAlbum.collectAsState().value,
+
+        onMoreOptionsAction = viewModel::onMoreOptionsAction,
+        searchActions = SearchActions(
+            updateQuery = viewModel::updateQuery,
+            clearQuery = viewModel::clearQuery,
+            sendQuery = viewModel::sendQuery,
+        ),
+        onSongMoreOptionsClick = viewModel::onSongMoreOptionsClick,
+        onArtistMoreOptionsClick = viewModel::onArtistMoreOptionsClick,
+        onAlbumMoreOptionsClick = viewModel::onAlbumMoreOptionsClick,
+        onMoreResultsClick = viewModel::onMoreQuery,
+
+        navigateBack = navigateBack,
+        navigateToPlayer = navigateToPlayer,
+        navigateToArtistDetails = navigateToArtistDetails,
+        navigateToAlbumDetails = navigateToAlbumDetails,
+        modifier = modifier,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchScreen(
+    uiState: SearchUiState,
     queryText: String,
+    selectSong: SongInfo,
+    selectArtist: ArtistInfo,
+    selectAlbum: AlbumInfo,
+
+    onMoreOptionsAction: (MoreOptionsAction) -> Unit,
+    searchActions: SearchActions,
+    onSongMoreOptionsClick: (SongInfo) -> Unit,
+    onArtistMoreOptionsClick: (ArtistInfo) -> Unit,
+    onAlbumMoreOptionsClick: (AlbumInfo) -> Unit,
+    onMoreResultsClick: (String) -> Unit,
 
     navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
-    navigateToArtistDetails: (ArtistInfo) -> Unit,
-    navigateToAlbumDetails: (AlbumInfo) -> Unit,
-    viewModel: SearchQueryViewModel,
+    navigateToArtistDetails: (Long) -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    //val coroutineScope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     //val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
+
+    val sheetState = rememberModalBottomSheetState(false,)
+    var showAlbumMoreOptions by remember { mutableStateOf(false) }
+    var showArtistMoreOptions by remember { mutableStateOf(false) }
+    var showSongMoreOptions by remember { mutableStateOf(false) }
 
     ScreenBackground(
         modifier = modifier
     ) {
         Scaffold(
             topBar = {},
-            contentWindowInsets = WindowInsets.systemBars,
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             containerColor = Color.Transparent,
+            modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
             contentColor = contentColorFor(MaterialTheme.colorScheme.background)
         ) { contentPadding ->
             SearchContent(
                 navigateBack = navigateBack,
                 uiState = uiState,
-                searchFieldState = fieldState,
                 queryText = queryText,
-                searchActions = SearchActions(
-                    updateQuery = viewModel::updateQuery, // onSearchInputChanged
-                    changeFieldState = viewModel::changeFieldState, // onSearchFieldClicked
-                    resetUiState = viewModel::resetUiState, // onChevronClicked
-                    clearQuery = viewModel::clearQuery, // onClearInputClicked
-                    sendQuery = viewModel::sendQuery, // onSendQuery
-                ),
+                searchActions = searchActions,
                 resultActions = ResultActions(
-                    onSongClick = { item ->
-                        Log.i(TAG, "Song clicked: ${item.title}")
-                        viewModel.onPlaySong(item)
+                    onSongClick = { song: SongInfo ->
+                        Log.i(TAG, "Song clicked: ${song.title}")
+                        onMoreOptionsAction(MoreOptionsAction.PlaySong(song))
                         navigateToPlayer()
                     },
-                    onSongMoreOptionsClick = { item ->
-                        Log.i(TAG, "Song More Options clicked: ${item.title}")
-                        viewModel.onSongMoreOptionsClick(item)
+                    onSongMoreOptionsClick = { song: SongInfo ->
+                        Log.i(TAG, "Song More Options clicked: ${song.title}")
+                        onSongMoreOptionsClick(song)
                         showSongMoreOptions = true
-                        //play, playNext, add to queue, add to playlist, go to artist, go to album
                     },
-                    onArtistClick = { item ->
-                        Log.i(TAG, "Artist clicked: ${item.name}")
-                        navigateToArtistDetails(item)
+                    onArtistClick = { artist: ArtistInfo ->
+                        Log.i(TAG, "Artist clicked: ${artist.name}")
+                        navigateToArtistDetails(artist.id)
                     },
-                    onArtistMoreOptionsClick = { item ->
-                        Log.i(TAG, "Artist More Options clicked: ${item.name}")
-                        viewModel.onArtistMoreOptionsClick(item)
+                    onArtistMoreOptionsClick = { artist: ArtistInfo ->
+                        Log.i(TAG, "Artist More Options clicked: ${artist.name}")
+                        onArtistMoreOptionsClick(artist)
                         showArtistMoreOptions = true
-                        //play, playNext, shuffle, add to queue, add to playlist, go to artist
                     },
-                    onAlbumClick = { item ->
-                        Log.i(TAG, "Album clicked: ${item.title}")
-                        navigateToAlbumDetails(item)
+                    onAlbumClick = { album: AlbumInfo ->
+                        Log.i(TAG, "Album clicked: ${album.title}")
+                        navigateToAlbumDetails(album.id)
                     },
-                    onAlbumMoreOptionsClick = { item ->
-                        Log.i(TAG, "Album More Options clicked: ${item.title}")
-                        viewModel.onAlbumMoreOptionsClick(item)
+                    onAlbumMoreOptionsClick = { album: AlbumInfo ->
+                        Log.i(TAG, "Album More Options clicked: ${album.title}")
+                        onAlbumMoreOptionsClick(album)
                         showAlbumMoreOptions = true
-                        //play, playnext, shuffle, add to queue, add to playlist, go to album
                     },
+                    onMoreResultsClick = onMoreResultsClick,
                 ),
                 modifier = Modifier.padding(contentPadding),
             )
+
+            if (showAlbumMoreOptions) {
+                Log.i(TAG, "Settings Content -> Album More Options is TRUE")
+                AlbumMoreOptionsBottomModal(
+                    onDismissRequest = { showAlbumMoreOptions = false },
+                    sheetState = sheetState,
+                    album = selectAlbum,
+                    albumActions = AlbumActions(
+                        play = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options -> Play Album clicked :: ${selectAlbum.id}")
+                                onMoreOptionsAction(MoreOptionsAction.PlayAlbum(selectAlbum))
+                                sheetState.hide()
+                                navigateToPlayer()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showAlbumMoreOptions to FALSE")
+                                if (!sheetState.isVisible) {
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        playNext = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> Play Album Next clicked :: ${selectAlbum.id}")
+                                onMoreOptionsAction(MoreOptionsAction.PlayAlbumNext(selectAlbum))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showAlbumMoreOptions to FALSE")
+                                if (!sheetState.isVisible) {
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        shuffle = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> Shuffle Album clicked :: ${selectAlbum.id}")
+                                onMoreOptionsAction(MoreOptionsAction.ShuffleAlbum(selectAlbum))
+                                sheetState.hide()
+                                navigateToPlayer()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showAlbumMoreOptions to FALSE")
+                                if (!sheetState.isVisible) {
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        addToQueue = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> Queue Album clicked :: ${selectAlbum.id}")
+                                onMoreOptionsAction(MoreOptionsAction.QueueAlbum(selectAlbum))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showAlbumMoreOptions to FALSE")
+                                if (!sheetState.isVisible) {
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        goToAlbumArtist = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> Go To Album Artist clicked :: ${selectAlbum.albumArtistId}")
+                                navigateToArtistDetails(selectAlbum.albumArtistId ?: 0)
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showAlbumMoreOptions to FALSE")
+                                if (!sheetState.isVisible) {
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                        goToAlbum = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Album More Options Modal -> Go To Album clicked :: ${selectAlbum.id}")
+                                navigateToAlbumDetails(selectAlbum.id)
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showAlbumMoreOptions to FALSE")
+                                if (!sheetState.isVisible) {
+                                    showAlbumMoreOptions = false
+                                }
+                            }
+                        },
+                    ),
+                    onClose = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Hide sheet state")
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showAlbumMoreOptions to FALSE")
+                            if (!sheetState.isVisible) showAlbumMoreOptions = false
+                        }
+                    },
+                    context = "Search",
+                )
+            }
+
+            if (showArtistMoreOptions) {
+                Log.i(TAG, "Settings Content -> Artist More Options is TRUE")
+                ArtistMoreOptionsBottomModal(
+                    onDismissRequest = { showArtistMoreOptions = false },
+                    sheetState = sheetState,
+                    artist = selectArtist,
+                    artistActions = ArtistActions(
+                        play = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> Play Artist clicked :: ${selectArtist.name}")
+                                onMoreOptionsAction(MoreOptionsAction.PlayArtist(selectArtist))
+                                sheetState.hide()
+                                navigateToPlayer()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) showArtistMoreOptions = false
+                            }
+                        },
+                        playNext = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> Play Artist Next clicked :: ${selectArtist.name}")
+                                onMoreOptionsAction(MoreOptionsAction.PlayArtistNext(selectArtist))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) showArtistMoreOptions = false
+                            }
+                        },
+                        shuffle = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> Shuffle Artist clicked :: ${selectArtist.name}")
+                                onMoreOptionsAction(MoreOptionsAction.ShuffleArtist(selectArtist))
+                                sheetState.hide()
+                                navigateToPlayer()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) showArtistMoreOptions = false
+                            }
+                        },
+                        addToQueue = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> Queue Artist clicked :: ${selectArtist.name}")
+                                onMoreOptionsAction(MoreOptionsAction.QueueArtist(selectArtist))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) showArtistMoreOptions = false
+                            }
+                        },
+                        goToArtist = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> Play Artist clicked :: ${selectArtist.name}")
+                                onMoreOptionsAction(MoreOptionsAction.PlayArtist(selectArtist))
+                                sheetState.hide()
+                                navigateToArtistDetails(selectArtist.id)
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) showArtistMoreOptions = false
+                            }
+                        },
+                    ),
+                    onClose = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Hide sheet state")
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                            if (!sheetState.isVisible) showArtistMoreOptions = false
+                        }
+                    },
+                    context = "Search",
+                )
+            }
+
+            if (showSongMoreOptions) {
+                Log.i(TAG, "Settings Content -> Song More Options is TRUE")
+                SongMoreOptionsBottomModal(
+                    onDismissRequest = { showSongMoreOptions = false },
+                    sheetState = sheetState,
+                    song = selectSong,
+                    songActions = SongActions(
+                        play = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> Play Song clicked :: ${selectSong.title}")
+                                onMoreOptionsAction(MoreOptionsAction.PlaySong(selectSong))
+                                navigateToPlayer()
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showSongMoreOptions to FALSE")
+                                if (!sheetState.isVisible) showSongMoreOptions = false
+                            }
+                        },
+                        playNext = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> Play Song Next clicked :: ${selectSong.title}")
+                                onMoreOptionsAction(MoreOptionsAction.PlaySongNext(selectSong))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showSongMoreOptions to FALSE")
+                                if (!sheetState.isVisible) showSongMoreOptions = false
+                            }
+                        },
+                        addToQueue = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> Queue Song clicked :: ${selectSong.title}")
+                                onMoreOptionsAction(MoreOptionsAction.QueueSong(selectSong))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showSongMoreOptions to FALSE")
+                                if (!sheetState.isVisible) showSongMoreOptions = false
+                            }
+                        },
+                        goToArtist = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> Go To Artist clicked :: ${selectSong.artistId}")
+                                navigateToArtistDetails(selectSong.artistId)
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showSongMoreOptions to FALSE")
+                                if (!sheetState.isVisible) showSongMoreOptions = false
+                            }
+                        },
+                        goToAlbum = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> Go To Album clicked :: ${selectSong.albumId}")
+                                navigateToAlbumDetails(selectSong.albumId)
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showSongMoreOptions to FALSE")
+                                if (!sheetState.isVisible) showSongMoreOptions = false
+                            }
+                        },
+                    ),
+                    onClose = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Hide sheet state")
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showSongMoreOptions to FALSE")
+                            if (!sheetState.isVisible) showSongMoreOptions = false
+                        }
+                    },
+                    context = "Search"
+                )
+            }
         }
     }
 }
@@ -198,22 +479,21 @@ fun SearchScreenReady(
 fun SearchContent(
     navigateBack: () -> Unit,
     uiState: SearchUiState,
-    searchFieldState: SearchFieldState,
     queryText: String,
     searchActions: SearchActions,
     resultActions: ResultActions,
     modifier: Modifier = Modifier,
 ) {
+    Log.i(TAG, "Search Content START")
+
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .systemBarsPadding()
             .padding(horizontal = 12.dp)
     ) {
         SearchField(
             navigateBack,
             uiState,
-            searchFieldState,
             queryText,
             searchActions,
             resultActions,
@@ -226,12 +506,12 @@ fun SearchContent(
 fun SearchField(
     navigateBack: () -> Unit,
     uiState: SearchUiState,
-    searchFieldState: SearchFieldState,
     queryText: String,
     searchActions: SearchActions,
     resultActions: ResultActions,
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
     val interactionSource = remember { MutableInteractionSource() }
 
     SearchBar(
@@ -241,6 +521,7 @@ fun SearchField(
                 onQueryChange = { searchActions.updateQuery(it) },
                 onSearch = {
                     searchActions.sendQuery()
+                    keyboardController?.hide()
                     isExpanded = true
                 },
                 expanded = isExpanded,
@@ -248,39 +529,18 @@ fun SearchField(
                 enabled = true,
                 placeholder = { Text(stringResource(id = R.string.icon_search)) },
                 leadingIcon = {
-                    if (isExpanded) {
-                        IconButton(onClick = navigateBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(id = R.string.icon_back_nav),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
-                    } else {
+                    if (isExpanded) BackNavBtn(onClick = navigateBack)
+                    else {
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = stringResource(R.string.icon_search),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
-                    /*IconButton(onClick = navigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.icon_back_nav),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    }*/
                 },
                 trailingIcon = {
-                    IconButton (
-                        onClick = searchActions.resetUiState
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Clear,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    }
+                    if (isExpanded) ClearFieldBtn(onClick = searchActions.clearQuery)
+                    else null
                 },
                 interactionSource = interactionSource,
                 modifier = Modifier.fillMaxWidth(),
@@ -303,7 +563,7 @@ fun SearchField(
                 LinearProgressIndicator(
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = SCREEN_PADDING)
                 )
             }
             when (uiState) {
@@ -313,188 +573,114 @@ fun SearchField(
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
-                            .padding(16.dp)
+                            .padding(SCREEN_PADDING)
                     )
                 }
 
                 is SearchUiState.SearchResultsFound -> {
                     if (queryText != "" && uiState.results.songs.isNotEmpty()) {
-                        Spacer(Modifier.padding(8.dp))
+                        val songResult = uiState.results.songs
+
+                        Spacer(Modifier.padding(CONTENT_PADDING))
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = "Songs",
                                 style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(16.dp),
+                                modifier = Modifier.padding(SCREEN_PADDING),
                             )
                             Spacer(Modifier.weight(1f))
-                            Button(
-                                onClick = {},
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                contentPadding = ButtonDefaults.TextButtonContentPadding,
-                                colors = ButtonDefaults.buttonColors(
-                                    contentColor = MaterialTheme.colorScheme.inversePrimary,
-                                )
-                            ) {
-                                Text(
-                                    text = "More",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
+                            if (songResult.size > 20)
+                                NavToMoreBtn(onClick = { resultActions.onMoreResultsClick("Songs") })
                         }
-                        uiState.results.songs.forEach { song ->
+
+                        songResult.forEach { song ->
                             SongListItem(
                                 song = song,
-                                onClick = resultActions.onSongClick,
-                                onMoreOptionsClick = {
-                                    //onSongMoreOptionsClicked(song)
-                                },
+                                onClick = { resultActions.onSongClick(song) },
+                                onMoreOptionsClick = { resultActions.onSongMoreOptionsClick(song) },
                                 showArtistName = true,
                                 showAlbumTitle = true,
                                 showAlbumImage = true,
                             )
                         }
-                    } else if (queryText != "" && uiState.results.songs.isEmpty()) {
-                        Spacer(Modifier.padding(8.dp))
+                    }
+                    else if (queryText != "" && uiState.results.songs.isEmpty()) {
+                        Spacer(Modifier.padding(CONTENT_PADDING))
                         Text(
                             text = "No Songs Found",
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(SCREEN_PADDING),
                         )
                     }
 
                     if (queryText != "" && uiState.results.artists.isNotEmpty()) {
-                        Spacer(Modifier.padding(8.dp))
+                        val artistResult = uiState.results.artists
+
+                        Spacer(Modifier.padding(CONTENT_PADDING))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = "Artists",
                                 style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(16.dp),
+                                modifier = Modifier.padding(SCREEN_PADDING),
                             )
                             Spacer(Modifier.weight(1f))
-                            NavToMoreBtn(onClick = {})
+                            if (artistResult.size > 20)
+                                NavToMoreBtn(onClick = { resultActions.onMoreResultsClick("Artists") })
                         }
-                        uiState.results.artists.forEach { artist ->
+                        artistResult.forEach { artist ->
                             ArtistListItem(
                                 artist = artist,
                                 navigateToArtistDetails = { resultActions.onArtistClick(artist) },
-                                onMoreOptionsClick = {
-                                    //onArtistMoreOptionsClicked(artist)
-                                },
+                                onMoreOptionsClick = { resultActions.onArtistMoreOptionsClick(artist) },
                             )
                         }
-                    } else if (queryText != "" && uiState.results.artists.isEmpty()) {
-                        Spacer(Modifier.padding(8.dp))
+                    }
+                    else if (queryText != "" && uiState.results.artists.isEmpty()) {
+                        Spacer(Modifier.padding(CONTENT_PADDING))
                         Text(
                             text = "No Artists Found",
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(SCREEN_PADDING),
                         )
                     }
 
                     if (queryText != "" && uiState.results.albums.isNotEmpty()) {
-                        Spacer(Modifier.padding(8.dp))
+                        val albumResult = uiState.results.albums
+
+                        Spacer(Modifier.padding(CONTENT_PADDING))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = "Albums",
                                 style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(16.dp),
+                                modifier = Modifier.padding(SCREEN_PADDING),
                             )
                             Spacer(Modifier.weight(1f))
-                            NavToMoreBtn(onClick = {})
+                            if (albumResult.size > 20)
+                                NavToMoreBtn(onClick = { resultActions.onMoreResultsClick("Albums") })
                         }
-                        uiState.results.albums.forEach { album ->
+                        albumResult.forEach { album ->
                             AlbumListItem(
                                 album = album,
                                 navigateToAlbumDetails = { resultActions.onAlbumClick(album) },
-                                onMoreOptionsClick = {
-                                    //onAlbumMoreOptionsClicked(album)
-                                },
+                                onMoreOptionsClick = { resultActions.onAlbumMoreOptionsClick(album) },
                                 cardOrRow = false,
                             )
                         }
-                    } else if (queryText != "" && uiState.results.albums.isEmpty()) {
-                        Spacer(Modifier.padding(8.dp))
+                    }
+                    else if (queryText != "" && uiState.results.albums.isEmpty()) {
+                        Spacer(Modifier.padding(CONTENT_PADDING))
                         Text(
                             text = "No Albums Found",
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(SCREEN_PADDING),
                         )
                     }
                 }
 
                 else -> { Spacer(modifier = Modifier.fillMaxSize()) }
             }
-
-            /* // state logic
-            // when ui state is idle, change nothing? keep as is
-            // when ui state is loading, have loading bar indicator
-            // when ui state is error, show error()
-            // when ui state is no results, show no "" found
-            // when ui state is results found, show list of results
-
-            // when ui state is idle and field is active, show nothing
-            // when ui state is results found, set field to inactive/idle
-            // when ui state is loading, set field to idle
-            // all other ui state, do nothing to field
-             */
         }
     }
 }
-
-/*
-@HiltViewModel(assistedFactory = SearchQueryViewModel.Factory::class)
-class SearchQueryViewModel @AssistedInject constructor(
-    private val getSearchQueryUseCase: SearchQueryUseCase,
-    @Assisted private val query: String = "",
-) : ViewModel() {
-
-    @AssistedFactory
-    interface Factory {
-        fun create(query: String): SearchQueryViewModel
-    }
-
-    private val refreshing = MutableStateFlow(false)
-
-    val state: StateFlow<SearchUiState> =
-        combine(
-            refreshing,
-            getSearchQueryUseCase(query)
-        ) {
-            refreshing,
-            searchResults, ->
-            SearchUiState.Ready(
-                searchResults.songs,
-                searchResults.artists,
-                searchResults.albums,
-                searchResults.composers,
-            )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = SearchUiState.Loading
-        )
-
-    fun toggleSearch() {
-        viewModelScope.launch {
-            //this.getSearchQueryUseCase()
-        }
-    }
-
-    fun sendQuery(query: String): Flow<SearchQueryFilterResult> {
-        return getSearchQueryUseCase(query)
-    }
-}*/
-
-/*
-sealed interface SearchUiState{
-    data object Loading: SearchUiState
-    data class Ready(
-        val songsResult: List<SongInfo> = emptyList(),
-        val artistsResult: List<ArtistInfo> = emptyList(),
-        val albumsResult: List<AlbumInfo> = emptyList(),
-        val composersResult: List<ComposerInfo> = emptyList(),
-    ) : SearchUiState
-}
-*/

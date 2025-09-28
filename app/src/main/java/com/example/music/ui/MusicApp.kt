@@ -122,13 +122,13 @@ fun MusicApp(
                 SearchScreen(
                     navigateBack = appState::navigateBack,
                     navigateToPlayer = { appState.navigateToPlayer(backStackEntry) },
-                    navigateToAlbumDetails = { album ->
-                        Log.i(TAG, "id: ${album.id}")
-                        appState.navigateToAlbumDetails(album.id, backStackEntry)
+                    navigateToAlbumDetails = { albumId ->
+                        Log.i(TAG, "id: $albumId")
+                        appState.navigateToAlbumDetails(albumId, backStackEntry)
                     },
-                    navigateToArtistDetails = { artist ->
-                        Log.i(TAG, "id: ${artist.id}")
-                        appState.navigateToArtistDetails(artist.id, backStackEntry)
+                    navigateToArtistDetails = { artistId ->
+                        Log.i(TAG, "id: $artistId")
+                        appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
                 )
             }
