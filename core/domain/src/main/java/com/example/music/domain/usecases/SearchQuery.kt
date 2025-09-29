@@ -1,28 +1,23 @@
 package com.example.music.domain.usecases
 
 import android.util.Log
-import com.example.music.domain.model.SearchQueryFilterV2
+import com.example.music.domain.model.SearchQueryFilterResult
 import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.uri
 import javax.inject.Inject
 
-private const val TAG = "Search Query V2"
+private const val TAG = "Search Query"
 
 /**
  * Use case to search the music library's songs, artists and albums
  * for any title or name that is similar to the provided query string.
  */
-class SearchQueryV2 @Inject constructor(
+class SearchQuery @Inject constructor(
     private val mediaRepo: MediaRepo,
 ) {
-    //not sure yet if this needs to be suspend or return flowOf
-    // forgot that the 'find' functions are suspend functions
-    suspend operator fun invoke(query: String): SearchQueryFilterV2 {
-        Log.i(TAG, "Start")
-
-        //want this to trigger the find functions in MediaRepo for audio, artist, album
-        // TBD if genre or composer or playlists should be included
+    suspend operator fun invoke(query: String): SearchQueryFilterResult {
+        Log.i(TAG, "START")
 
         val audios = mediaRepo.findAudios(
             query = query,
@@ -45,12 +40,12 @@ class SearchQueryV2 @Inject constructor(
             album.asExternalModel()
         }
 
-        Log.i(TAG, "Results: \n" +
-            "Song list: ${audios.size}\n" +
+        Log.i(TAG, "Results:\n" +
+            "Songs list: ${audios.size}\n" +
             "Artists list: ${artists.size}\n" +
             "Albums list: ${albums.size}")
 
-        return SearchQueryFilterV2(
+        return SearchQueryFilterResult(
             songs = audios,
             artists = artists,
             albums = albums,

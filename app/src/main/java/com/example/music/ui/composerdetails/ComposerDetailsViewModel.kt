@@ -11,7 +11,7 @@ import androidx.media3.common.Player
 import com.example.music.domain.usecases.GetComposerDetailsUseCase
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.usecases.GetSongDataV2
+import com.example.music.domain.usecases.GetSongData
 import com.example.music.service.SongController
 import com.example.music.ui.Screen
 import com.example.music.ui.player.MiniPlayerState
@@ -43,7 +43,7 @@ class ComposerDetailsViewModel @Inject constructor(
     getComposerDetailsUseCase: GetComposerDetailsUseCase,
     savedStateHandle: SavedStateHandle,
 
-    private val getSongDataV2: GetSongDataV2,
+    private val getSongData: GetSongData,
     private val songController: SongController,
 ) : ViewModel(), MiniPlayerState {
 
@@ -177,7 +177,7 @@ class ComposerDetailsViewModel @Inject constructor(
                         delay(100)
                         id = mediaItem?.mediaId
                     }
-                    currentSong = getSongDataV2(id.toLong())
+                    currentSong = getSongData(id.toLong())
                     Log.d(TAG, "Current Song set to ${currentSong.title}")
                     songController.logTrackNumber()
                 }
@@ -192,7 +192,7 @@ class ComposerDetailsViewModel @Inject constructor(
     private suspend fun getSongControllerState() {
         val id = songController.currentSong?.mediaId
         if (id != null) {
-            currentSong = getSongDataV2(id.toLong())
+            currentSong = getSongData(id.toLong())
         }
         _isPlaying = songController.isPlaying
         isActive = songController.isActive
@@ -234,7 +234,7 @@ class ComposerDetailsViewModel @Inject constructor(
             is ComposerAction.QueueSong -> onQueueSong(action.song)
             is ComposerAction.QueueSongs -> onQueueSongs(action.songs)
             is ComposerAction.ShuffleSongs -> onShuffleSongs(action.songs)
-            is ComposerAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
+            is ComposerAction.SongMoreOptionsClicked -> onSongMoreOptionsClick(action.song)
         }
     }
 
@@ -258,8 +258,8 @@ class ComposerDetailsViewModel @Inject constructor(
         Log.i(TAG, "onShuffleSongs -> ${songs.size}")
         songController.shuffle(songs)
     }
-    private fun onSongMoreOptionClick(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
+    private fun onSongMoreOptionsClick(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
         //selectedSong.value = song
     }
 }
@@ -270,5 +270,5 @@ sealed interface ComposerAction {
     data class QueueSong(val song: SongInfo) : ComposerAction
     data class QueueSongs(val songs: List<SongInfo>) : ComposerAction
     data class ShuffleSongs(val songs: List<SongInfo>) : ComposerAction
-    data class SongMoreOptionClicked(val song: SongInfo) : ComposerAction
+    data class SongMoreOptionsClicked(val song: SongInfo) : ComposerAction
 }

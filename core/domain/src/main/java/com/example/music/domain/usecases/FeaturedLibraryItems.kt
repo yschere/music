@@ -1,20 +1,20 @@
 package com.example.music.domain.usecases
 
 import android.util.Log
-import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
-import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.uri
-import javax.inject.Inject
+import com.example.music.domain.model.FeaturedLibraryItemsFilter
+import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import javax.inject.Inject
 
-private const val TAG = "FeaturedLibraryItemsV2"
+private const val TAG = "Featured Library Items"
 
-class FeaturedLibraryItemsV2 @Inject constructor(
+class FeaturedLibraryItems @Inject constructor(
     private val mediaRepo: MediaRepo,
 ) {
-    operator fun invoke(): Flow<FeaturedLibraryItemsFilterV2> {
+    operator fun invoke(): Flow<FeaturedLibraryItemsFilter> {
         Log.i(TAG, "Start fetching most recent albums and most recent songs")
 
         // albumItems should return albumRepo date created desc limit 5
@@ -30,7 +30,7 @@ class FeaturedLibraryItemsV2 @Inject constructor(
             albumIdsFlow
         ) { mediaIds, albumIds ->
             Log.i(TAG, "Building Featured Library from fetched IDs")
-            FeaturedLibraryItemsFilterV2(
+            FeaturedLibraryItemsFilter(
                 recentAlbums = albumIds.map { albumId ->
                     Log.i(TAG, "Fetch Album from AlbumID - $albumId")
                     mediaRepo.getAlbum(albumId).asExternalModel()

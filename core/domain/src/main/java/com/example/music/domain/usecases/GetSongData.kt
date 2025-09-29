@@ -10,14 +10,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-private const val TAG = "Get Song Data V2"
+private const val TAG = "Get Song Data"
 
-class GetSongDataV2 @Inject constructor(
+class GetSongData @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
     // use to build SongInfo from an Audio id
     suspend operator fun invoke(songId: Long): SongInfo {
-        Log.i(TAG, "Fetching Data for single song - start\n" +
+        Log.i(TAG, "Fetching Data for single song - START\n" +
                 "songId: $songId")
         val audio = mediaRepo.getAudioFlow(songId).first()
         Log.i(TAG, "Found file data for song $songId\n" +
@@ -30,7 +30,7 @@ class GetSongDataV2 @Inject constructor(
 
     // use to build list of SongInfo from list of Audio ids
     operator fun invoke(songIds: List<Long>): Flow<List<SongInfo>> {
-        Log.i(TAG, "Fetching data for multiple songs - start\n" +
+        Log.i(TAG, "Fetching data for multiple songs - START\n" +
                 "songs size: ${songIds.size}")
         return mediaRepo.getAudiosFlow(songIds)
             .map { songList ->

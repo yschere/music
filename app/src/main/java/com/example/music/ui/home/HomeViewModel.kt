@@ -8,15 +8,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
-import com.example.music.domain.usecases.FeaturedLibraryItemsV2
-import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
+import com.example.music.data.util.combine
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
-import com.example.music.data.util.combine
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.usecases.GetAlbumDetailsV2
-import com.example.music.domain.usecases.GetSongDataV2
-import com.example.music.domain.usecases.GetTotalCountsV2
+import com.example.music.domain.usecases.FeaturedLibraryItems
+import com.example.music.domain.usecases.GetAlbumDetails
+import com.example.music.domain.usecases.GetSongData
+import com.example.music.domain.usecases.GetTotalCounts
 import com.example.music.service.SongController
 import com.example.music.ui.player.MiniPlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,7 +35,8 @@ private const val TAG = "Home View Model"
 data class HomeScreenUiState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
-    val featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2 = FeaturedLibraryItemsFilterV2(),
+    val featuredAlbums: List<AlbumInfo> = emptyList(),
+    val featuredSongs: List<SongInfo> = emptyList(),
     val totals: List<Int> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
     val selectAlbum: AlbumInfo = AlbumInfo(),
@@ -47,16 +47,16 @@ data class HomeScreenUiState(
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    featuredLibraryItemsV2: FeaturedLibraryItemsV2,
-    getTotalCountsV2: GetTotalCountsV2,
+    featuredLibraryItems: FeaturedLibraryItems,
 
-    private val getAlbumDetailsV2: GetAlbumDetailsV2,
-    private val getSongDataV2: GetSongDataV2,
+    private val getAlbumDetails: GetAlbumDetails,
+    private val getSongData: GetSongData,
+    private val getTotalCounts: GetTotalCounts,
     private val songController: SongController
 ) : ViewModel(), MiniPlayerState {
 
     // test version for using MediaStore, uses Album instead of playlist for now
-    private val featuredLibraryItems = featuredLibraryItemsV2()
+    private val featuredItemsData = featuredLibraryItems()
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     // Holds the song, album to show in more options modal
@@ -97,21 +97,21 @@ class HomeViewModel @Inject constructor(
         Log.i(TAG, "init START")
         viewModelScope.launch {
             Log.i(TAG, "viewModelScope launch START")
-            val counts = getTotalCountsV2()
+            val counts = getTotalCounts()
             Log.i(TAG, "SongController status:\n" +
                 "isActive?: $isActive\n" +
                 "player?: ${player?.playbackState}")
 
             combine(
                 refreshing,
-                featuredLibraryItems,
+                featuredItemsData,
                 selectedSong,
                 selectedAlbum,
             ) {
                 refreshing,
                 libraryItems,
                 selectSong,
-                selectAlbum ->
+                selectAlbum, ->
                 Log.i(TAG, "HomeUiState combine START\n" +
                     "refreshing: $refreshing\n" +
                     //"libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}\n" +
@@ -123,7 +123,8 @@ class HomeViewModel @Inject constructor(
 
                 HomeScreenUiState(
                     isLoading = refreshing,
-                    featuredLibraryItemsFilterResult = libraryItems,
+                    featuredAlbums = libraryItems.recentAlbums,
+                    featuredSongs = libraryItems.recentlyAddedSongs,
                     totals = counts,
                     selectSong = selectSong,
                     selectAlbum = selectAlbum,
@@ -199,7 +200,7 @@ class HomeViewModel @Inject constructor(
                         delay(100)
                         id = mediaItem?.mediaId
                     }
-                    currentSong = getSongDataV2(id.toLong())
+                    currentSong = getSongData(id.toLong())
                     Log.d(TAG, "Current Song set to ${currentSong.title}")
                     songController.logTrackNumber()
                 }
@@ -214,7 +215,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun getSongControllerState() {
         val id = songController.currentSong?.mediaId
         if (id != null) {
-            currentSong = getSongDataV2(id.toLong())
+            currentSong = getSongData(id.toLong())
         }
         _isPlaying = songController.isPlaying
         isActive = songController.isActive
@@ -252,9 +253,9 @@ class HomeViewModel @Inject constructor(
         Log.i(TAG, "onHomeAction - $action")
         when (action) {
             is HomeAction.EmptyLibraryView -> onEmptyPlaylistView()
-            is HomeAction.AlbumMoreOptionClicked -> onAlbumMoreOptionClicked(action.album)
+            is HomeAction.AlbumMoreOptionsClicked -> onAlbumMoreOptionsClicked(action.album)
             //is HomeAction.LibraryPlaylistSelected -> onLibraryPlaylistSelected(action.playlist)
-            is HomeAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
+            is HomeAction.SongMoreOptionsClicked -> onSongMoreOptionsClick(action.song)
 
             is HomeAction.PlaySong -> onPlaySong(action.song) // songMO-play
             is HomeAction.PlaySongNext -> onPlaySongNext(action.song) // songMO-playNext
@@ -273,12 +274,12 @@ class HomeViewModel @Inject constructor(
         //featuredPlaylists = null
     }
 
-    private fun onAlbumMoreOptionClicked(album: AlbumInfo) {
-        Log.i(TAG, "onAlbumMoreOptionClick -> ${album.title}")
+    private fun onAlbumMoreOptionsClicked(album: AlbumInfo) {
+        Log.i(TAG, "onAlbumMoreOptionsClick -> ${album.title}")
         selectedAlbum.value = album
     }
-    private fun onSongMoreOptionClick(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
+    private fun onSongMoreOptionsClick(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
         selectedSong.value = song
     }
     /*private fun onLibraryPlaylistSelected(playlist: PlaylistInfo) {
@@ -301,47 +302,38 @@ class HomeViewModel @Inject constructor(
     private fun onPlaySongs(album: AlbumInfo) {
         Log.i(TAG, "onPlaySongs -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.play(songs)
         }
     }
     private fun onPlaySongsNext(album: AlbumInfo) {
         Log.i(TAG, "onQueueSongsNext -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.addToQueueNext(songs)
         }
     }
     private fun onShuffleSongs(album: AlbumInfo) {
         Log.i(TAG, "onShuffleSongs -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.shuffle(songs)
         }
     }
     private fun onQueueSongs(album: AlbumInfo) {
         Log.i(TAG, "onQueueSongs -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.addToQueue(songs)
         }
     }
 }
 
-/**
- * Enumerated list of Home Screen tab options as Home Screen Categories.
- * --DIFFERENT FROM PODCAST CATEGORY/GENRE--
- *  - The second half of the Home Screen main pane generates tabs based on these home categories
- *  - Your Library shows latest songs in library (sorted list of songs by last played desc
- *  - Discover shows chips of genres in library (currently pulling form domainTesting/PreviewData.kt)
- *  - Within the selected genre, shows list of albums within that genre (currently pulling from domainTesting/PreviewData.kt)
- */
-
 @Immutable
 sealed interface HomeAction {
     data class EmptyLibraryView(val playlist: PlaylistInfo) : HomeAction
-    data class AlbumMoreOptionClicked(val album: AlbumInfo) : HomeAction
-    data class SongMoreOptionClicked(val song: SongInfo) : HomeAction
+    data class AlbumMoreOptionsClicked(val album: AlbumInfo) : HomeAction
+    data class SongMoreOptionsClicked(val song: SongInfo) : HomeAction
     //data class LibraryPlaylistSelected(val playlist: PlaylistInfo) : HomeAction
 
     data class PlaySong(val song: SongInfo) : HomeAction

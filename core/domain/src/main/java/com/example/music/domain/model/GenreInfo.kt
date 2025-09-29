@@ -3,7 +3,7 @@ package com.example.music.domain.model
 import android.util.Log
 import com.example.music.data.database.model.Genre
 import com.example.music.data.database.model.GenreWithExtraInfo
-import com.example.music.data.mediaresolver.model.Genre as GenreV2
+import com.example.music.data.mediaresolver.model.Genre as GenreMR
 import com.example.music.data.util.FLAG
 
 private const val TAG = "GenreInfo"
@@ -40,8 +40,8 @@ fun GenreWithExtraInfo.asExternalModel(): GenreInfo {
     )
 }
 
-fun GenreV2.asExternalModel(): GenreInfo {
-    if (FLAG) Log.i(TAG, "GenreV2 to GenreInfo external model constructor: \n ${this.id} + ${this.name}")
+fun GenreMR.asExternalModel(): GenreInfo {
+    if (FLAG) Log.i(TAG, "GenreMR to GenreInfo external model constructor: \n ${this.id} + ${this.name}")
     return GenreInfo(
         id = this.id,
         name = this.name,

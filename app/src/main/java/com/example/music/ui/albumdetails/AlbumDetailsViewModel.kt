@@ -12,8 +12,8 @@ import androidx.media3.common.util.UnstableApi
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.usecases.GetAlbumDetailsV2
-import com.example.music.domain.usecases.GetSongDataV2
+import com.example.music.domain.usecases.GetAlbumDetails
+import com.example.music.domain.usecases.GetSongData
 import com.example.music.service.SongController
 import com.example.music.ui.Screen
 import com.example.music.ui.player.MiniPlayerState
@@ -45,17 +45,17 @@ data class AlbumUiState (
 @UnstableApi
 @HiltViewModel
 class AlbumDetailsViewModel @Inject constructor(
-    getAlbumDetailsV2: GetAlbumDetailsV2,
+    getAlbumDetails: GetAlbumDetails,
     savedStateHandle: SavedStateHandle,
 
-    private val getSongDataV2: GetSongDataV2,
+    private val getSongData: GetSongData,
     private val songController: SongController,
 ) : ViewModel(), MiniPlayerState {
 
     private val _albumId: String = savedStateHandle.get<String>(Screen.ARG_ALBUM_ID)!!
     private val albumId = _albumId.toLong()
 
-    private val getAlbumDetailsData = getAlbumDetailsV2(albumId)
+    private val getAlbumDetailsData = getAlbumDetails(albumId)
             .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     private val selectedSong = MutableStateFlow(SongInfo())
@@ -188,7 +188,7 @@ class AlbumDetailsViewModel @Inject constructor(
                         delay(100)
                         id = mediaItem?.mediaId
                     }
-                    currentSong = getSongDataV2(id.toLong())
+                    currentSong = getSongData(id.toLong())
                     Log.d(TAG, "Current Song set to ${currentSong.title}")
                     songController.logTrackNumber()
                 }
@@ -203,7 +203,7 @@ class AlbumDetailsViewModel @Inject constructor(
     private suspend fun getSongControllerState() {
         val id = songController.currentSong?.mediaId
         if (id != null) {
-            currentSong = getSongDataV2(id.toLong())
+            currentSong = getSongData(id.toLong())
         }
         _isPlaying = songController.isPlaying
         isActive = songController.isActive
@@ -240,7 +240,7 @@ class AlbumDetailsViewModel @Inject constructor(
     fun onAlbumAction(action: AlbumAction) {
         Log.i(TAG, "onAlbumAction - $action")
         when (action) {
-            is AlbumAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
+            is AlbumAction.SongMoreOptionsClicked -> onSongMoreOptionsClick(action.song)
 
             is AlbumAction.PlaySong -> onPlaySong(action.song) // songMO-play
             is AlbumAction.PlaySongNext -> onPlaySongNext(action.song) // songMO-playNext
@@ -255,8 +255,8 @@ class AlbumDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun onSongMoreOptionClick(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
+    private fun onSongMoreOptionsClick(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
         selectedSong.value = song
     }
 
@@ -292,7 +292,7 @@ class AlbumDetailsViewModel @Inject constructor(
 }
 
 sealed interface AlbumAction {
-    data class SongMoreOptionClicked(val song: SongInfo) : AlbumAction
+    data class SongMoreOptionsClicked(val song: SongInfo) : AlbumAction
 
     data class PlaySong(val song: SongInfo) : AlbumAction
     data class PlaySongNext(val song: SongInfo) : AlbumAction

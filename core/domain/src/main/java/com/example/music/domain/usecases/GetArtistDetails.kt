@@ -13,9 +13,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-private const val TAG = "Get Artist Details V2"
+private const val TAG = "Get Artist Details"
 
-class GetArtistDetailsV2 @Inject constructor(
+class GetArtistDetails @Inject constructor(
     private val mediaRepo: MediaRepo,
     //private val getAppPref: GetAppPreferencesUseCase,
 ) {

@@ -6,17 +6,16 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.model.Audio
 import com.example.music.data.mediaresolver.MediaRepo
-import com.example.music.data.mediaresolver.model.uri
 import javax.inject.Inject
 
-private const val TAG = "Get Library Songs V2"
+private const val TAG = "Get Library Songs"
 
-class GetLibrarySongsV2 @Inject constructor(
+class GetLibrarySongs @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<SongInfo> {
         val songsList: List<Audio>
-        Log.i(TAG, "Start - sortOption: $sortOption - isAscending: $isAscending")
+        Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
 

@@ -12,13 +12,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-private const val TAG = "Get Genre Details V2"
+private const val TAG = "Get Genre Details"
 
-class GetGenreDetailsV2 @Inject constructor(
+class GetGenreDetails @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
     operator fun invoke(genreId: Long): Flow<GenreDetailsFilterResult> {
-        Log.i(TAG, "Start: GenreId: $genreId")
+        Log.i(TAG, "START --- genreId: $genreId")
         val genreItem: Flow<Genre> = mediaRepo.getGenreFlow(genreId)
 
         return combine(

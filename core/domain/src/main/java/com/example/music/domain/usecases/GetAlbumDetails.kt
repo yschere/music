@@ -2,30 +2,26 @@ package com.example.music.domain.usecases
 
 import android.provider.MediaStore
 import android.util.Log
-import com.example.music.domain.model.AlbumDetailsFilterResult
-import com.example.music.domain.model.asExternalModel
+import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.Album
 import com.example.music.data.mediaresolver.model.Artist
-import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.uri
+import com.example.music.domain.model.AlbumDetailsFilterResult
+import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-private const val TAG = "Get Album Details V2"
+private const val TAG = "Get Album Details"
 
-class GetAlbumDetailsV2 @Inject constructor(
+class GetAlbumDetails @Inject constructor(
     private val mediaRepo: MediaRepo,
 ) {
     operator fun invoke(albumId: Long): Flow<AlbumDetailsFilterResult> {
-        Log.i(TAG, "Start: AlbumID: $albumId")
-
+        Log.i(TAG, "START -- albumID: $albumId")
         val albumItem: Flow<Album> = mediaRepo.getAlbumFlow(albumId)
-        Log.i(TAG, "album item == $albumItem")
-
         val artistItem: Flow<Artist> = mediaRepo.getArtistByAlbumIdFlow(albumId)
-        Log.i(TAG, "artist item == $artistItem")
 
         return combine(
             albumItem,
@@ -38,8 +34,8 @@ class GetAlbumDetailsV2 @Inject constructor(
             Log.i(TAG, "ALBUM: $album --- \n" +
                 "Album ID: ${album.albumId} \n" +
                 "Album Title: ${album.title} \n" +
-                "Artist: ${album.artist} \n"
-                )
+                "Artist: ${album.artist}"
+            )
             Log.i(TAG, "ALBUM ARTIST: $artist --- \n" +
                 "Artist ID: ${artist.id} \n" +
                 "Artist Name: ${artist.name} \n" +

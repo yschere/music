@@ -9,20 +9,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-private const val TAG = "GetLibraryPlaylistsUseCase"
+private const val TAG = "Get Library Playlists"
 
 /**
  * Use case for retrieving library playlists to populate Playlists List in Library Screen.
- * @property playlistRepo [PlaylistRepo] The repository for accessing Playlist and SongPlaylistEntry data
+ * @property playlistRepo The repository for accessing Playlist and SongPlaylistEntry data
  */
-class GetLibraryPlaylistsUseCase @Inject constructor(
+class GetLibraryPlaylists @Inject constructor(
     private val playlistRepo: PlaylistRepo
 ) {
-    /**
-     * Invoke to create a list of [PlaylistInfo] from all of the playlists in [playlistRepo].
-     * @param sortOption [String] The data property/attribute to sort by. If not met, default to sorting by playlist name.
-     * @param isAscending [Int] The order to sort by. If true, sort Ascending. Else false, sort Descending.
-     */
     operator fun invoke(sortOption: String, isAscending: Boolean): Flow<List<PlaylistInfo>> {
         val playlistsList: Flow<List<PlaylistWithExtraInfo>> //= flowOf()
         Log.i(TAG, "Building Playlists List:\n" +

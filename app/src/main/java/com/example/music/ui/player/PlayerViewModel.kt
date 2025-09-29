@@ -14,7 +14,7 @@ import androidx.media3.common.Player
 import com.example.music.data.repository.RepeatType
 import com.example.music.domain.model.SongInfo
 import com.example.music.service.SongController
-import com.example.music.domain.usecases.GetSongDataV2
+import com.example.music.domain.usecases.GetSongData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -38,7 +38,7 @@ val SongController.progress
  */
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val getSongDataV2: GetSongDataV2,
+    private val getSongData: GetSongData,
     private val songController: SongController,
 ) : ViewModel(), PlayerState {
 
@@ -151,7 +151,7 @@ class PlayerViewModel @Inject constructor(
                         delay(100)
                         id = mediaItem?.mediaId
                     }
-                    currentSong = getSongDataV2(id.toLong())
+                    currentSong = getSongData(id.toLong())
                     Log.d(TAG, "Current Song set to ${currentSong.title}")
                     songController.logTrackNumber()
                 }

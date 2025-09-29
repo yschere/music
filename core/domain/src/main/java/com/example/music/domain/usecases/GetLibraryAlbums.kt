@@ -8,14 +8,14 @@ import com.example.music.data.mediaresolver.model.Album
 import com.example.music.data.mediaresolver.MediaRepo
 import javax.inject.Inject
 
-private const val TAG = "Get Library Albums V2"
+private const val TAG = "Get Library Albums"
 
-class GetLibraryAlbumsV2 @Inject constructor(
+class GetLibraryAlbums @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<AlbumInfo> {
         val albumsList: List<Album>
-        Log.i(TAG, "Start - sortOption: $sortOption - isAscending: $isAscending")
+        Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
             "ARTIST" -> {

@@ -12,8 +12,8 @@ import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.ui.Screen
 import com.example.music.data.util.combine
-import com.example.music.domain.usecases.GetPlaylistDetailsV2
-import com.example.music.domain.usecases.GetSongDataV2
+import com.example.music.domain.usecases.GetPlaylistDetails
+import com.example.music.domain.usecases.GetSongData
 import com.example.music.service.SongController
 import com.example.music.ui.player.MiniPlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,18 +38,17 @@ data class PlaylistUiState(
 
 @HiltViewModel
 class PlaylistDetailsViewModel @Inject constructor(
-    getPlaylistDetailsV2: GetPlaylistDetailsV2,
+    getPlaylistDetails: GetPlaylistDetails,
     savedStateHandle: SavedStateHandle,
 
-    private val getSongDataV2: GetSongDataV2,
+    private val getSongData: GetSongData,
     private val songController: SongController,
 ) : ViewModel(), MiniPlayerState {
 
     private val _playlistId: String = savedStateHandle.get<String>(Screen.ARG_PLAYLIST_ID)!!
     private val playlistId = _playlistId.toLong()
 
-//    private val getPlaylistDetailsData = getPlaylistDetailsUseCase(playlistId)
-    private val getPlaylistDetailsData = getPlaylistDetailsV2(playlistId)
+    private val getPlaylistDetailsData = getPlaylistDetails(playlistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     /* ---- Initial version that uses playlistRepo directly to retrieve Flow data for Playlist Details
@@ -190,7 +189,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                         delay(100)
                         id = mediaItem?.mediaId
                     }
-                    currentSong = getSongDataV2(id.toLong())
+                    currentSong = getSongData(id.toLong())
                     Log.d(TAG, "Current Song set to ${currentSong.title}")
                     songController.logTrackNumber()
                 }
@@ -205,7 +204,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     private suspend fun getSongControllerState() {
         val id = songController.currentSong?.mediaId
         if (id != null) {
-            currentSong = getSongDataV2(id.toLong())
+            currentSong = getSongData(id.toLong())
         }
         _isPlaying = songController.isPlaying
         isActive = songController.isActive
@@ -242,7 +241,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     fun onPlaylistAction(action: PlaylistAction) {
         Log.i(TAG, "onPlaylistAction - $action")
         when (action) {
-            is PlaylistAction.SongMoreOptionClicked -> onSongMoreOptionClick(action.song)
+            is PlaylistAction.SongMoreOptionsClicked -> onSongMoreOptionsClick(action.song)
 
             is PlaylistAction.PlaySong -> onPlaySong(action.song)
             is PlaylistAction.PlaySongNext -> onPlaySongNext(action.song)
@@ -255,8 +254,8 @@ class PlaylistDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun onSongMoreOptionClick(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick -> ${song.title}")
+    private fun onSongMoreOptionsClick(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
         selectedSong.value = song
     }
 
@@ -292,7 +291,7 @@ class PlaylistDetailsViewModel @Inject constructor(
 }
 
 sealed interface PlaylistAction {
-    data class SongMoreOptionClicked(val song: SongInfo) : PlaylistAction
+    data class SongMoreOptionsClicked(val song: SongInfo) : PlaylistAction
 
     data class PlaySong(val song: SongInfo) : PlaylistAction
     data class PlaySongNext(val song: SongInfo) : PlaylistAction

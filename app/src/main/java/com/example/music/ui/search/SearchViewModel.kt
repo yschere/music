@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
-import com.example.music.domain.model.SearchQueryFilterV2
+import com.example.music.domain.model.SearchQueryFilterResult
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.usecases.GetAlbumDetailsV2
-import com.example.music.domain.usecases.GetArtistDetailsV2
-import com.example.music.domain.usecases.SearchQueryV2
+import com.example.music.domain.usecases.GetAlbumDetails
+import com.example.music.domain.usecases.GetArtistDetails
+import com.example.music.domain.usecases.SearchQuery
 import com.example.music.service.SongController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,9 +24,9 @@ private const val TAG = "Search View Model"
 
 @HiltViewModel
 class SearchQueryViewModel @Inject constructor(
-    private val getAlbumDetailsV2: GetAlbumDetailsV2,
-    private val getArtistDetailsV2: GetArtistDetailsV2,
-    private val searchQueryV2: SearchQueryV2,
+    private val getAlbumDetails: GetAlbumDetails,
+    private val getArtistDetails: GetArtistDetails,
+    private val searchQuery: SearchQuery,
     private val songController: SongController,
 ) : ViewModel() {
 
@@ -93,7 +93,7 @@ class SearchQueryViewModel @Inject constructor(
             "set uiState to Loading")
         _state.update { SearchUiState.Loading }
         viewModelScope.launch {
-            val results = searchQueryV2(queryText.value)
+            val results = searchQuery(queryText.value)
             Log.i(TAG, "Query Search Results:\n" +
                 "${results.songs.size} songs\n" +
                 "${results.artists.size} artists\n" +
@@ -169,28 +169,28 @@ class SearchQueryViewModel @Inject constructor(
     private fun onPlayAlbum(album: AlbumInfo) {
         Log.i(TAG, "onPlayAlbum -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.play(songs)
         }
     }
     private fun onPlayAlbumNext(album: AlbumInfo) {
         Log.i(TAG, "onPlayAlbumNext -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.addToQueueNext(songs)
         }
     }
     private fun onShuffleAlbum(album: AlbumInfo) {
         Log.i(TAG, "onShuffleAlbum -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.shuffle(songs)
         }
     }
     private fun onQueueAlbum(album: AlbumInfo) {
         Log.i(TAG, "onQueueAlbum -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.addToQueue(songs)
         }
     }
@@ -198,28 +198,28 @@ class SearchQueryViewModel @Inject constructor(
     private fun onPlayArtist(artist: ArtistInfo) {
         Log.i(TAG, "onPlayArtist -> ${artist.name}")
         viewModelScope.launch {
-            val songs = getArtistDetailsV2(artist.id).first().songs
+            val songs = getArtistDetails(artist.id).first().songs
             songController.play(songs)
         }
     }
     private fun onPlayArtistNext(artist: ArtistInfo) {
         Log.i(TAG, "onPlayArtistNext -> ${artist.name}")
         viewModelScope.launch {
-            val songs = getArtistDetailsV2(artist.id).first().songs
+            val songs = getArtistDetails(artist.id).first().songs
             songController.addToQueueNext(songs)
         }
     }
     private fun onShuffleArtist(artist: ArtistInfo) {
         Log.i(TAG, "onShuffleArtist -> ${artist.name}")
         viewModelScope.launch {
-            val songs = getArtistDetailsV2(artist.id).first().songs
+            val songs = getArtistDetails(artist.id).first().songs
             songController.shuffle(songs)
         }
     }
     private fun onQueueArtist(artist: ArtistInfo) {
         Log.i(TAG, "onQueueArtist -> ${artist.name}")
         viewModelScope.launch {
-            val songs = getArtistDetailsV2(artist.id).first().songs
+            val songs = getArtistDetails(artist.id).first().songs
             songController.addToQueue(songs)
         }
     }
@@ -233,7 +233,7 @@ sealed interface SearchUiState {
     data object Error : SearchUiState
     data object NoResults : SearchUiState
     data class SearchResultsFound(
-        val results: SearchQueryFilterV2
+        val results: SearchQueryFilterResult
     ) : SearchUiState
 }
 

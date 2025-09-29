@@ -8,14 +8,14 @@ import com.example.music.data.mediaresolver.model.Genre
 import com.example.music.data.mediaresolver.MediaRepo
 import javax.inject.Inject
 
-private const val TAG = "Get Library Genres V2"
+private const val TAG = "Get Library Genres"
 
-class GetLibraryGenresV2 @Inject constructor(
+class GetLibraryGenres @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<GenreInfo> {
         val genresList: List<Genre>
-        Log.i(TAG, "Start - sortOption: $sortOption - isAscending: $isAscending")
+        Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
             "SONG_COUNT" -> {
@@ -35,7 +35,7 @@ class GetLibraryGenresV2 @Inject constructor(
 
         Log.i(TAG, "********** Library Genres count: ${genresList.size} **********")
         return genresList.map { genre ->
-        Log.i(TAG, "**** Genre: ${genre.id} + ${genre.name} ****")
+            Log.i(TAG, "**** Genre: ${genre.id} + ${genre.name} ****")
             genre.asExternalModel()
         }
     }

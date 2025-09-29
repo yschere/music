@@ -9,20 +9,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-private const val TAG = "GetLibraryComposersUseCase"
+private const val TAG = "Get Library Composers"
 
 /**
  * Use case for retrieving library composers to populate Composers List in Library Screen.
- * @property composerRepo [ComposerRepo] The repository for accessing Composer data
+ * @property composerRepo The repository for accessing Composer data
  */
-class GetLibraryComposersUseCase @Inject constructor(
+class GetLibraryComposers @Inject constructor(
     private val composerRepo: ComposerRepo
 ) {
-    /**
-     * Invoke to create a list of [ComposerInfo] from all of the composers in [composerRepo].
-     * @param sortOption [String] The data property/attribute to sort by. If not met, default to sorting by composer name.
-     * @param isAscending [Boolean] The order to sort by. If true, sort Ascending. Else false, sort Descending.
-     */
     operator fun invoke(sortOption: String, isAscending: Boolean): Flow<List<ComposerInfo>> {
         val composersList: Flow<List<ComposerWithExtraInfo>>// = flowOf()
         Log.i(TAG, "Building Composer List:\n" +
