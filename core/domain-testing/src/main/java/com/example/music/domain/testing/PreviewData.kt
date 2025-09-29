@@ -657,6 +657,7 @@ val PreviewPlaylists = listOf(
         description = "HIHIHIHIHI",
         dateCreated = OffsetDateTime.now(),
         songCount = 6,
+        playlistImage = listOf(Uri.parse(""),Uri.parse(""),Uri.parse(""),Uri.parse(""))
         //tracks = (17, 530, 529, 528, 1023, 103)
     ),
     PlaylistInfo(
@@ -668,6 +669,7 @@ val PreviewPlaylists = listOf(
             4, 5, 0, ZoneOffset.of("-0800")
         ),
         songCount = 4,
+        playlistImage = listOf(Uri.parse(""),Uri.parse(""),Uri.parse(""),Uri.parse(""))
         //tracks = intArrayOf(1023, 12, 17, 21)
     ),
     PlaylistInfo(
@@ -679,6 +681,7 @@ val PreviewPlaylists = listOf(
             49, 0, 0, ZoneOffset.of("-0800")
         ),
         songCount = 2,
+        playlistImage = listOf(Uri.parse(""),Uri.parse(""),Uri.parse(""),Uri.parse(""))
         //tracks = intArrayOf(6535, 6535)
     ),
 )
