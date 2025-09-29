@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.ICON_SIZE
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.testing.PreviewComposers
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
@@ -58,7 +59,8 @@ fun LazyListScope.composerItems(
             id = R.plurals.composers,
             itemCount = composers.size,
             onSortClick = onSortClick,
-            onSelectClick = onSelectClick
+            onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 
@@ -93,7 +95,8 @@ fun LazyGridScope.composerItems(
             id = R.plurals.composers,
             itemCount = composers.size,
             onSortClick = onSortClick,
-            onSelectClick = onSelectClick
+            onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 

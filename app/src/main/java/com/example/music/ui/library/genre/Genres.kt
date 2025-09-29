@@ -2,6 +2,7 @@ package com.example.music.ui.library.genre
 
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.Modifier
 import com.example.music.R
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.GenreInfo
 import com.example.music.ui.shared.GenreListItem
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
@@ -34,7 +36,8 @@ fun LazyListScope.genreItems(
             id = R.plurals.genres,
             itemCount = genres.size,
             onSortClick = onSortClick,
-            onSelectClick = onSelectClick
+            onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 
@@ -69,7 +72,8 @@ fun LazyGridScope.genreItems(
             id = R.plurals.genres,
             itemCount = genres.size,
             onSortClick = onSortClick,
-            onSelectClick = onSelectClick
+            onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 

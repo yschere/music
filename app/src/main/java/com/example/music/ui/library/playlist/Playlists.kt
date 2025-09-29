@@ -1,7 +1,11 @@
 package com.example.music.ui.library.playlist
 
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -9,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.Modifier
 import com.example.music.R
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.ui.shared.ItemCountAndPlusSortSelectButtons
 import com.example.music.ui.shared.PlaylistItem
@@ -36,7 +41,8 @@ fun LazyListScope.playlistItems(
             createOrAdd = true, // create playlists btn
             onPlusClick = onPlusClick,
             onSortClick = onSortClick,
-            onSelectClick = onSelectClick
+            onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 
@@ -74,7 +80,8 @@ fun LazyGridScope.playlistItems(
             createOrAdd = true, // create playlists btn
             onPlusClick = onPlusClick,
             onSortClick = onSortClick,
-            onSelectClick = onSelectClick
+            onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 
@@ -83,11 +90,16 @@ fun LazyGridScope.playlistItems(
         items = playlists,
         span = { GridItemSpan(1) }
     ) { playlist ->
-        PlaylistItem(
-            playlist = playlist,
-            navigateToPlaylistDetails = { navigateToPlaylistDetails(playlist) },
-            onMoreOptionsClick = { onPlaylistMoreOptionsClick(playlist) },
-            cardOrRow = true,
-        )
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            PlaylistItem(
+                playlist = playlist,
+                navigateToPlaylistDetails = { navigateToPlaylistDetails(playlist) },
+                onMoreOptionsClick = { onPlaylistMoreOptionsClick(playlist) },
+                cardOrRow = true,
+            )
+        }
     }
 }

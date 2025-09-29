@@ -1,6 +1,10 @@
 package com.example.music.ui.library.album
 
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -8,6 +12,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.Modifier
 import com.example.music.R
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.ui.shared.AlbumListItem
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
@@ -33,7 +38,8 @@ fun LazyListScope.albumItems(
             id = R.plurals.albums,
             itemCount = albums.size,
             onSortClick = onSortClick,
-            onSelectClick = onSelectClick
+            onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 
@@ -70,6 +76,7 @@ fun LazyGridScope.albumItems(
             itemCount = albums.size,
             onSortClick = onSortClick,
             onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 
@@ -78,11 +85,16 @@ fun LazyGridScope.albumItems(
         items = albums,
         span = { GridItemSpan(1) }
     ){ album ->
-        AlbumListItem(
-            album = album,
-            navigateToAlbumDetails = { navigateToAlbumDetails(album) },
-            onMoreOptionsClick = { onAlbumMoreOptionsClick(album) },
-            cardOrRow = true,
-        )
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            AlbumListItem(
+                album = album,
+                navigateToAlbumDetails = { navigateToAlbumDetails(album) },
+                onMoreOptionsClick = { onAlbumMoreOptionsClick(album) },
+                cardOrRow = true,
+            )
+        }
     }
 }
