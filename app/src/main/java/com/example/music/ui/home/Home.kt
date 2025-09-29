@@ -1,7 +1,6 @@
 package com.example.music.ui.home
 
 import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,9 +15,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
@@ -33,20 +29,6 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.TopAppBarExpandedHeight
 import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.Posture
-import androidx.compose.material3.adaptive.WindowAdaptiveInfo
-import androidx.compose.material3.adaptive.allVerticalHingeBounds
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.layout.HingePolicy
-import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
-import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
-import androidx.compose.material3.adaptive.layout.SupportingPaneScaffold
-import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
-import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
-import androidx.compose.material3.adaptive.navigation.rememberSupportingPaneScaffoldNavigator
-import androidx.compose.material3.adaptive.occludingVerticalHingeBounds
-import androidx.compose.material3.adaptive.separatingVerticalHingeBounds
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -58,20 +40,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
-import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.music.R
 import com.example.music.designsys.theme.MARGIN_PADDING
 import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.domain.model.AlbumInfo
-import com.example.music.domain.model.FeaturedLibraryItemsFilterV2
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewAlbums
@@ -95,7 +73,6 @@ import com.example.music.util.NavDrawerBtn
 import com.example.music.util.NavToMoreBtn
 import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
-import com.example.music.util.isCompact
 import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
@@ -180,7 +157,8 @@ private fun HomeScreenReady(
     Surface(color = Color.Transparent) {
         HomeScreen(
             isLoading = uiState.isLoading,
-            featuredLibraryItemsFilterResult = uiState.featuredLibraryItemsFilterResult,
+            featuredAlbums = uiState.featuredAlbums,
+            featuredSongs = uiState.featuredSongs,
             totals = uiState.totals,
             selectSong = uiState.selectSong,
             selectAlbum = uiState.selectAlbum,
@@ -213,7 +191,8 @@ private fun HomeScreenReady(
 @Composable
 private fun HomeScreen(
     isLoading: Boolean,
-    featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
+    featuredAlbums: List<AlbumInfo>,
+    featuredSongs: List<SongInfo>,
     totals: List<Int>,
     selectSong: SongInfo,
     selectAlbum: AlbumInfo,
@@ -294,7 +273,8 @@ private fun HomeScreen(
                 // Main Content
                 HomeContent(
                     coroutineScope = coroutineScope,
-                    featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
+                    featuredAlbums = featuredAlbums,
+                    featuredSongs = featuredSongs,
                     selectSong = selectSong,
                     selectAlbum = selectAlbum,
                     modifier = modifier.padding(contentPadding),
@@ -306,7 +286,6 @@ private fun HomeScreen(
                         }
                         onHomeAction(action)
                     },
-                    navigateToLibrary = navigateToLibrary,
                     navigateToPlayer = navigateToPlayer,
                     navigateToAlbumDetails = navigateToAlbumDetails,
                     navigateToArtistDetails = navigateToArtistDetails,
@@ -354,13 +333,13 @@ private fun HomeTopAppBar(
 @Composable
 private fun HomeContent(
     coroutineScope: CoroutineScope,
-    featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
+    featuredAlbums: List<AlbumInfo>,
+    featuredSongs: List<SongInfo>,
     //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
     selectSong: SongInfo,
     selectAlbum: AlbumInfo,
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
-    navigateToLibrary: () -> Unit,
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
@@ -368,248 +347,192 @@ private fun HomeContent(
 ) {
     Log.i(TAG, "HomeContent START")
 
-    val pLists = featuredLibraryItemsFilterResult.recentAlbums.toPersistentList()
+    val pLists = featuredAlbums.toPersistentList()
     val pagerState = rememberPagerState { pLists.size }
 
     val sheetState = rememberModalBottomSheetState(false,)
-    var showBottomSheet by remember { mutableStateOf(false) }
     var showAlbumMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
 
     HomeContentGrid(
         pagerState = pagerState,
-        featuredLibraryItemsFilterResult = featuredLibraryItemsFilterResult,
+        featuredAlbums = featuredAlbums,
+        featuredSongs = featuredSongs,
         modifier = modifier,
         onHomeAction = onHomeAction,
-        onAlbumMoreOptionsClick = {
-            showBottomSheet = true
-            showAlbumMoreOptions = true
-        },
-        onSongMoreOptionsClick = {
-            showBottomSheet = true
-            showSongMoreOptions = true
-        },
-        navigateToLibrary = navigateToLibrary,
+        onAlbumMoreOptionsClick = { showAlbumMoreOptions = true },
+        onSongMoreOptionsClick = { showSongMoreOptions = true },
         navigateToAlbumDetails = navigateToAlbumDetails,
         navigateToPlaylistDetails = navigateToPlaylistDetails,
         navigateToPlayer = navigateToPlayer,
     )
 
-    if(showBottomSheet) {
-        Log.i(TAG, "HomeContent -> showBottomSheet is TRUE")
-        if(showAlbumMoreOptions) {
-            Log.i(TAG, "HomeContent -> Album More Options is TRUE")
-            AlbumMoreOptionsBottomModal(
-                onDismissRequest = {
-                    showBottomSheet = false
-                    showAlbumMoreOptions = false
-                },
-                sheetState = sheetState,
-                album = selectAlbum,
-                albumActions = AlbumActions(
-                    play = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Album More Options Modal -> PlaySongs clicked :: ${selectAlbum.id}")
-                            onHomeAction(HomeAction.PlaySongs(selectAlbum))
-                            sheetState.hide()
-                            navigateToPlayer()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showAlbumMoreOptions = false
-                            }
-                        }
-                    },
-                    playNext = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Album More Options Modal -> PlaySongsNext clicked :: ${selectAlbum.id}")
-                            onHomeAction(HomeAction.PlaySongsNext(selectAlbum))
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showAlbumMoreOptions = false
-                            }
-                        }
-                    },
-                    shuffle = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Album More Options Modal -> ShuffleSongs clicked :: ${selectAlbum.id}")
-                            onHomeAction(HomeAction.ShuffleSongs(selectAlbum))
-                            sheetState.hide()
-                            navigateToPlayer()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showAlbumMoreOptions = false
-                            }
-                        }
-                    },
-                    //addToPlaylist = {},
-                    addToQueue = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Album More Options Modal -> QueueSongs clicked :: ${selectAlbum.id}")
-                            onHomeAction(HomeAction.QueueSongs(selectAlbum))
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showAlbumMoreOptions = false
-                            }
-                        }
-                    },
-                    goToAlbumArtist = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Album More Options Modal -> GoToArtist clicked :: ${selectAlbum.albumArtistId ?: "null id"}")
-                            sheetState.hide()
-                            navigateToArtistDetails(selectAlbum.albumArtistId ?: 0) // this isn't a good catch for when an album doesn't have an album artist
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showAlbumMoreOptions = false
-                            }
-                        }
-                    },
-                    goToAlbum = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Album More Options Modal -> GoToAlbum clicked :: ${selectAlbum.id}")
-                            sheetState.hide()
-                            navigateToAlbumDetails(selectAlbum.id)
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showAlbumMoreOptions = false
-                            }
-                        }
-                    },
-                ),
-                onClose = {
+    if (showAlbumMoreOptions) {
+        Log.i(TAG, "HomeContent -> Album More Options is TRUE")
+        AlbumMoreOptionsBottomModal(
+            onDismissRequest = { showAlbumMoreOptions = false },
+            sheetState = sheetState,
+            album = selectAlbum,
+            albumActions = AlbumActions(
+                play = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Hide sheet state")
+                        Log.i(TAG, "Album More Options Modal -> PlaySongs clicked :: ${selectAlbum.id}")
+                        onHomeAction(HomeAction.PlaySongs(selectAlbum))
+                        sheetState.hide()
+                        navigateToPlayer()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) showAlbumMoreOptions = false
+                    }
+                },
+                playNext = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> PlaySongsNext clicked :: ${selectAlbum.id}")
+                        onHomeAction(HomeAction.PlaySongsNext(selectAlbum))
                         sheetState.hide()
                     }.invokeOnCompletion {
                         Log.i(TAG, "set showBottomSheet to FALSE")
-                        if(!sheetState.isVisible) {
-                            showBottomSheet = false
-                            showAlbumMoreOptions = false
-                        }
+                        if(!sheetState.isVisible) showAlbumMoreOptions = false
                     }
                 },
-                context = "Home",
-            )
-        }
-        else if (showSongMoreOptions) {
-            Log.i(TAG, "HomeContent -> Song More Options is TRUE")
-            SongMoreOptionsBottomModal(
-                onDismissRequest = {
-                    showBottomSheet = false
-                    showSongMoreOptions = false
-                },
-                sheetState = sheetState,
-                song = selectSong,
-                songActions = SongActions(
-                    play = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Song More Options Modal -> PlaySong clicked :: ${selectSong.id}")
-                            onHomeAction(HomeAction.PlaySong(selectSong))
-                            navigateToPlayer()
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showSongMoreOptions = false
-                            }
-                        }
-                    },
-                    playNext = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked :: ${selectSong.id}")
-                            onHomeAction(HomeAction.PlaySongNext(selectSong))
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showSongMoreOptions = false
-                            }
-                        }
-                    },
-                    //addToPlaylist = {},
-                    addToQueue = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Song More Options Modal -> QueueSong clicked :: ${selectSong.id}")
-                            onHomeAction(HomeAction.QueueSong(selectSong))
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showSongMoreOptions = false
-                            }
-                        }
-                    },
-                    goToArtist = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Song More Options Modal -> GoToArtist clicked :: ${selectSong.artistId}")
-                            navigateToArtistDetails(selectSong.artistId)
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showSongMoreOptions = false
-                            }
-                        }
-                    },
-                    goToAlbum = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked :: ${selectSong.albumId}")
-                            navigateToAlbumDetails(selectSong.albumId)
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                                showSongMoreOptions = false
-                            }
-                        }
-                    },
-                ),
-                onClose = {
+                shuffle = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Hide sheet state")
+                        Log.i(TAG, "Album More Options Modal -> ShuffleSongs clicked :: ${selectAlbum.id}")
+                        onHomeAction(HomeAction.ShuffleSongs(selectAlbum))
+                        sheetState.hide()
+                        navigateToPlayer()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) showAlbumMoreOptions = false
+                    }
+                },
+                addToQueue = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> QueueSongs clicked :: ${selectAlbum.id}")
+                        onHomeAction(HomeAction.QueueSongs(selectAlbum))
                         sheetState.hide()
                     }.invokeOnCompletion {
                         Log.i(TAG, "set showBottomSheet to FALSE")
-                        if(!sheetState.isVisible) {
-                            showBottomSheet = false
-                            showSongMoreOptions = false
-                        }
+                        if(!sheetState.isVisible) showAlbumMoreOptions = false
                     }
                 },
-                context = "Home"
-            )
-        }
+                goToAlbumArtist = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> GoToAlbumArtist clicked :: ${selectAlbum.albumArtistId ?: "null id"}")
+                        sheetState.hide()
+                        navigateToArtistDetails(selectAlbum.albumArtistId ?: 0) // this isn't a good catch for when an album doesn't have an album artist
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) showAlbumMoreOptions = false
+                    }
+                },
+                goToAlbum = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Album More Options Modal -> GoToAlbum clicked :: ${selectAlbum.id}")
+                        sheetState.hide()
+                        navigateToAlbumDetails(selectAlbum.id)
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) showAlbumMoreOptions = false
+                    }
+                },
+            ),
+            onClose = {
+                coroutineScope.launch {
+                    Log.i(TAG, "Hide sheet state")
+                    sheetState.hide()
+                }.invokeOnCompletion {
+                    Log.i(TAG, "set showBottomSheet to FALSE")
+                    if(!sheetState.isVisible) showAlbumMoreOptions = false
+                }
+            },
+            context = "Home",
+        )
+    }
+
+    if (showSongMoreOptions) {
+        Log.i(TAG, "HomeContent -> Song More Options is TRUE")
+        SongMoreOptionsBottomModal(
+            onDismissRequest = { showSongMoreOptions = false },
+            sheetState = sheetState,
+            song = selectSong,
+            songActions = SongActions(
+                play = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> PlaySong clicked :: ${selectSong.id}")
+                        onHomeAction(HomeAction.PlaySong(selectSong))
+                        navigateToPlayer()
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) showSongMoreOptions = false
+                    }
+                },
+                playNext = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> PlaySongNext clicked :: ${selectSong.id}")
+                        onHomeAction(HomeAction.PlaySongNext(selectSong))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) showSongMoreOptions = false
+                    }
+                },
+                addToQueue = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> QueueSong clicked :: ${selectSong.id}")
+                        onHomeAction(HomeAction.QueueSong(selectSong))
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) showSongMoreOptions = false
+                    }
+                },
+                goToArtist = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> GoToArtist clicked :: ${selectSong.artistId}")
+                        navigateToArtistDetails(selectSong.artistId)
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) showSongMoreOptions = false
+                    }
+                },
+                goToAlbum = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Song More Options Modal -> GoToAlbum clicked :: ${selectSong.albumId}")
+                        navigateToAlbumDetails(selectSong.albumId)
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        Log.i(TAG, "set showBottomSheet to FALSE")
+                        if(!sheetState.isVisible) showSongMoreOptions = false
+                    }
+                },
+            ),
+            onClose = {
+                coroutineScope.launch {
+                    Log.i(TAG, "Hide sheet state")
+                    sheetState.hide()
+                }.invokeOnCompletion {
+                    Log.i(TAG, "set showBottomSheet to FALSE")
+                    if(!sheetState.isVisible) showSongMoreOptions = false
+                }
+            },
+            context = "Home"
+        )
     }
 }
 
 @Composable
 private fun HomeContentGrid(
     pagerState: PagerState,
-    featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterV2,
+    featuredAlbums: List<AlbumInfo>,
+    featuredSongs: List<SongInfo>,
     //featuredLibraryItemsFilterResult: FeaturedLibraryItemsFilterResult,
     modifier: Modifier = Modifier,
     onHomeAction: (HomeAction) -> Unit,
     onAlbumMoreOptionsClick: () -> Unit,
     onSongMoreOptionsClick: () -> Unit,
-    navigateToLibrary: () -> Unit,
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     navigateToPlayer: () -> Unit,
@@ -618,7 +541,7 @@ private fun HomeContentGrid(
         columns = GridCells.Adaptive(500.dp),
         modifier = modifier.fillMaxSize(),
     ) {
-        if (featuredLibraryItemsFilterResult.recentAlbums.isNotEmpty()) {
+        if (featuredAlbums.isNotEmpty()) {
             fullWidthItem {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -638,7 +561,7 @@ private fun HomeContentGrid(
                 FeaturedAlbumsCarousel(
                 //FeaturedPlaylistsCarousel(
                     pagerState = pagerState,
-                    items = featuredLibraryItemsFilterResult.recentAlbums.toPersistentList(),//recentPlaylists.toPersistentList(),
+                    items = featuredAlbums.toPersistentList(),//recentPlaylists.toPersistentList(),
                     onClick = navigateToAlbumDetails,
                     onMoreOptionsClick = { album: AlbumInfo ->
                         onHomeAction( HomeAction.AlbumMoreOptionsClicked(album) )
@@ -649,7 +572,7 @@ private fun HomeContentGrid(
             }
         }
 
-        if (featuredLibraryItemsFilterResult.recentlyAddedSongs.isNotEmpty()) {
+        if (featuredSongs.isNotEmpty()) {
             fullWidthItem {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -666,7 +589,7 @@ private fun HomeContentGrid(
                 }
             }
 
-            items(items = featuredLibraryItemsFilterResult.recentlyAddedSongs) { song ->
+            items(items = featuredSongs) { song ->
                 Box(Modifier.padding(horizontal = SCREEN_PADDING)) {
                     SongListItem(
                         song = song,
@@ -728,10 +651,8 @@ private fun PreviewHome() {
                 recentPlaylists = PreviewPlaylists,
                 recentlyAddedSongs = PreviewSongs
             ),*/
-            featuredLibraryItemsFilterResult = FeaturedLibraryItemsFilterV2(
-                recentAlbums = PreviewAlbums,
-                recentlyAddedSongs = PreviewSongs
-            ),
+            featuredAlbums = PreviewAlbums,
+            featuredSongs = PreviewSongs,
             totals = listOf(
                 PreviewSongs.size,
                 PreviewArtists.size,
