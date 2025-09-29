@@ -19,6 +19,7 @@ import java.time.OffsetDateTime
  * @property dateLastPlayed The datetime when a song within the playlist was last played,
  * currently set regardless of context where song was played
  * @property songCount The amount of songs in the playlist
+ * @property playlistImage The list of Uris from the songs in the playlist
  */
 data class PlaylistInfo(
     val id: Long = 0,
@@ -27,7 +28,8 @@ data class PlaylistInfo(
     val dateCreated: OffsetDateTime = OffsetDateTime.now(),
     val dateLastAccessed: OffsetDateTime = OffsetDateTime.now(),
     val dateLastPlayed: OffsetDateTime? = null,
-    val songCount: Int = 0
+    val songCount: Int = 0,
+    val playlistImage: List<Uri> = emptyList(),
 )
 
 /**
@@ -50,3 +52,31 @@ fun PlaylistWithExtraInfo.asExternalModel(): PlaylistInfo =
         dateLastPlayed = dateLastPlayed, //would be acquired from the song with the latest dateLastPlayed value
         songCount = songCount, //would be acquired from the total count of songs in playlist
     )
+
+/**
+ * Get the artwork Uris of the first four songs of a playlist.
+ * - If the playlist has 0 songs, it returns an emptyList().
+ * - If there is less than four songs, then it will duplicate the existing Uris until the
+ * list fills to four.
+ * @param songs list of songs in the playlist
+ * @return The list of [Uri] from `songs`
+ */
+fun PlaylistInfo.getArtworkUris(songs: List<SongInfo>): List<Uri> =
+    if (songCount == 0) {
+        emptyList()
+    } // no thumbnail to make
+    else if (songCount < 4) {
+        val thumbnails = mutableListOf<Uri>()
+        while (thumbnails.size < 4) {
+            songs.forEach { song ->
+                thumbnails.add(song.artworkUri)
+            }
+        }
+        thumbnails.take(4)
+    } // need to repeat song thumbnails to fill 4 spots
+    else {
+        songs.take(4)
+            .map { song ->
+                song.artworkUri
+            }
+    } // have 4 or more songs so use first 4
