@@ -31,7 +31,6 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.MINI_PLAYER_BUTTON_SIZE
@@ -72,8 +71,7 @@ fun MiniPlayer(
 
     Box(
         contentAlignment = Alignment.BottomCenter,
-        modifier = modifier.fillMaxWidth()
-            .height(MINI_PLAYER_HEIGHT),
+        modifier = modifier.fillMaxWidth().height(MINI_PLAYER_HEIGHT),
     ) {
         Surface(
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.45f),
@@ -89,7 +87,7 @@ fun MiniPlayer(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = CONTENT_PADDING, vertical = SMALL_PADDING)
+                modifier = Modifier.padding(CONTENT_PADDING)
             ) {
                 HeaderImage(song.artworkUri, song.title)
                 Column(Modifier.padding(CONTENT_PADDING).weight(1f)) {
