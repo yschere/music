@@ -94,6 +94,7 @@ fun GenreDetailsScreen(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
+        Log.e(TAG, "${uiState.errorMessage}")
         GenreDetailsError(onRetry = viewModel::refresh)
     }
     Surface(color = Color.Transparent) {

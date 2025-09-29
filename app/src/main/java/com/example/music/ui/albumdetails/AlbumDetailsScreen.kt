@@ -102,6 +102,7 @@ fun AlbumDetailsScreen(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
+        Log.e(TAG, "${uiState.errorMessage}")
         AlbumDetailsError(onRetry = viewModel::refresh)
     }
     Surface(color = Color.Transparent) {

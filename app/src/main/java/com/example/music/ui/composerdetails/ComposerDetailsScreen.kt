@@ -96,6 +96,7 @@ fun ComposerDetailsScreen(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
+        Log.e(TAG, "${uiState.errorMessage}")
         ComposerDetailsError(onRetry = viewModel::refresh)
     }
     Surface(color = Color.Transparent) {

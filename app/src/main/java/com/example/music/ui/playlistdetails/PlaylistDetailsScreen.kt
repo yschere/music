@@ -105,6 +105,7 @@ fun PlaylistDetailsScreen(
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
+        Log.e(TAG, "${uiState.errorMessage}")
         PlaylistDetailsError(onRetry = viewModel::refresh)
     }
     Surface(color = Color.Transparent) {
