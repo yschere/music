@@ -40,9 +40,4 @@ dependencies {
 
     // Backwards Compatibility for older APIs to new App versions
     coreLibraryDesugaring(libs.core.jdk.desugaring)
-
-    // Testing
-    androidTestImplementation(libs.androidx.test.espresso.core)
-    androidTestImplementation(libs.androidx.test.ext.junit)
-    testImplementation(libs.junit)
 }

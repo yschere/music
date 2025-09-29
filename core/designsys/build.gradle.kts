@@ -55,7 +55,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
 
     // Image Loading
-    implementation(libs.coil.kt.compose)
     implementation(libs.coil3.kt.compose)
 
     // Backwards Compatibility for older App versions to new APIs

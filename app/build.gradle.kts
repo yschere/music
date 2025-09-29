@@ -126,7 +126,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
     // Image Loading
-    implementation(libs.coil.kt.compose)
     implementation(libs.coil3.kt.compose)
 
     // DataStore Support
@@ -145,6 +144,7 @@ dependencies {
     //implementation(libs.androidx.media3.test.utils)// Utilities for testing media components (including ExoPlayer components)
     //implementation(libs.androidx.media3.transformer)// For transforming media files
     implementation(libs.androidx.media3.ui)
+    implementation(libs.mp3agic)
 
     // Backwards Compatibility for older APIs to new App versions
     coreLibraryDesugaring(libs.core.jdk.desugaring)
@@ -153,10 +153,10 @@ dependencies {
     implementation(libs.androidx.appcompat)
 
     // Testing
-    androidTestImplementation(libs.androidx.test.espresso.core)
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    androidTestImplementation(libs.dagger.hilt.android.testing)
+    //androidTestImplementation(libs.androidx.test.espresso.core)
+    //androidTestImplementation(libs.androidx.ui.test.junit4)
+    //androidTestImplementation(libs.dagger.hilt.android.testing)
     debugImplementation(libs.androidx.ui.test.manifest)
-    testImplementation(libs.dagger.hilt.android.testing)
-    testImplementation(libs.junit)
+    //testImplementation(libs.dagger.hilt.android.testing)
+    //testImplementation(libs.junit)
 }

@@ -53,9 +53,12 @@ dependencies {
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.media3.common)
     implementation(libs.androidx.activity.compose)
     androidTestImplementation(platform(libs.androidx.compose.bom))
+
+    // Media Controls
+    implementation(libs.androidx.media3.common)
+    implementation(libs.mp3agic)
 
     // Dependency injection
     implementation(libs.androidx.hilt.navigation.compose)
@@ -65,7 +68,6 @@ dependencies {
     ksp(libs.dagger.hilt.compiler)
 
     // Image Loading
-    implementation(libs.coil.kt.compose)
     implementation(libs.coil3.kt.compose)
 
     // Networking
@@ -75,10 +77,10 @@ dependencies {
     //implementation(libs.rometools.modules)
 
     // Database
+    implementation(libs.androidx.datastore) // preferences datastore support
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.datastore) // preferences datastore support
 
     // Logging
     implementation(libs.slf4j.log)
@@ -90,6 +92,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
 
     // Testing
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
+    //testImplementation(libs.junit)
+    //testImplementation(libs.kotlinx.coroutines.test)
 }
