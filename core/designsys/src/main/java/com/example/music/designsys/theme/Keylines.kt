@@ -34,14 +34,15 @@ val LARGE_TOP_BAR_EXPANDED_HEIGHT = 208.dp // 160 + 48 // collapsed top bar + it
 val LARGE_IMAGE_HEIGHT = 300.dp // is for TopAppBar with large art cover
 val SUBTITLE_HEIGHT = 48.dp
 //val LIST_ITEM_HEIGHT = 72.dp //original, but this so big
-val MINI_PLAYER_HEIGHT = 64.dp
+val MINI_PLAYER_HEIGHT = 72.dp
 val ROW_ITEM_HEIGHT = 64.dp
 val LIST_ITEM_HEIGHT = 56.dp
 val ICON_BUTTON_RIGHT_MARGIN = 32.dp
 // large image dimension: 3:2
 
 // Navigation Drawer size values
-val NAV_DRAWER_MARGINS = 16.dp
+val NAV_DRAWER_WIDTH = 240.dp
+val NAV_DRAWER_MARGINS = 16.dp // or 20.dp
 val NAV_DRAWER_CONTENT_LEFT_MARGIN = 72.dp // if has icon or avatar
 val NAV_DRAWER_ITEMS_HEIGHT = 48.dp
 val NAV_DRAWER_CONTENT_PADDING = 8.dp // between different content sections
