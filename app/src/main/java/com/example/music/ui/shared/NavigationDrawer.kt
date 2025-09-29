@@ -1,8 +1,10 @@
 package com.example.music.ui.shared
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -24,6 +26,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
+import com.example.music.designsys.theme.NAV_DRAWER_CONTENT_PADDING
+import com.example.music.designsys.theme.NAV_DRAWER_ITEMS_HEIGHT
+import com.example.music.designsys.theme.NAV_DRAWER_MARGINS
+import com.example.music.designsys.theme.NAV_DRAWER_WIDTH
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.ui.tooling.SystemDarkPreview
@@ -52,13 +59,15 @@ fun NavDrawer(
             ModalDrawerSheet(
                 drawerContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 drawerContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars).fillMaxHeight().width(200.dp)
+                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+                    .fillMaxHeight()
+                    .width(NAV_DRAWER_WIDTH)
             ) {
                 Text(
                     text = "Musicality",
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.displaySmall,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp)
+                    modifier = Modifier.fillMaxWidth().padding(vertical = NAV_DRAWER_MARGINS)
                 )
 
                 // Home Screen navigation item
@@ -77,6 +86,7 @@ fun NavDrawer(
                         }
                         navigateToHome()
                     },
+                    modifier = Modifier.height(NAV_DRAWER_ITEMS_HEIGHT)
                 )
 
                 // Library Screen navigation item
@@ -94,7 +104,8 @@ fun NavDrawer(
                             drawerState.close()
                         }
                         navigateToLibrary()
-                    }
+                    },
+                    modifier = Modifier.height(NAV_DRAWER_ITEMS_HEIGHT)
                 )
 
                 // Settings Screen navigation item
@@ -113,49 +124,47 @@ fun NavDrawer(
                         }
                         navigateToSettings()
                     },
+                    modifier = Modifier.height(NAV_DRAWER_ITEMS_HEIGHT)
                 )
 
                 HorizontalDivider(
+                    thickness = 1.dp,
                     color = Color.LightGray,
-                    modifier = Modifier.padding(2.dp)
+                    modifier = Modifier.padding(horizontal = NAV_DRAWER_CONTENT_PADDING)
                 )
 
-                if(totals.isNotEmpty())
-                {
+                if(totals.isNotEmpty()) {
                     Text(
                         text = "In Your Library:",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                    )
-                    Text(
-                        //text = quantityStringResource(id= R.plurals.songs, totals[0].second, totals[0]),
-                        text = quantityStringResource(id= R.plurals.songs, totals[0], totals[0]),
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)
+                        modifier = Modifier.padding(horizontal = NAV_DRAWER_MARGINS)
+                            .padding(top = NAV_DRAWER_CONTENT_PADDING, bottom = 4.dp)
                     )
-                    Text(
-                        //text = quantityStringResource(id= R.plurals.artists, totals[1].second, totals[1]),
-                        text = quantityStringResource(id= R.plurals.artists, totals[1], totals[1]),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)
-                    )
-                    Text(
-                        //text = quantityStringResource(id= R.plurals.albums, totals[2].second, totals[2]),
-                        text = quantityStringResource(id= R.plurals.albums, totals[2], totals[2]),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)
-                    )
-                    Text(
-                        //text = quantityStringResource(id= R.plurals.genres, totals[3].second, totals[3]),
-                        //text = quantityStringResource(id= R.plurals.playlists, totals[3], totals[3]),
-                        text = quantityStringResource(id= R.plurals.genres, totals[3], totals[3]),
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)
-                    )
+                    Column (Modifier.padding(horizontal = NAV_DRAWER_MARGINS + NAV_DRAWER_CONTENT_PADDING)) {
+                        Text(
+                            text = quantityStringResource(id= R.plurals.songs, totals[0], totals[0]),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                        Text(
+                            text = quantityStringResource(id= R.plurals.artists, totals[1], totals[1]),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                        Text(
+                            text = quantityStringResource(id= R.plurals.albums, totals[2], totals[2]),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                        Text(
+                            text = quantityStringResource(id= R.plurals.genres, totals[3], totals[3]),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
                 }
             }
         },
-        //gesturesEnabled = false,
         scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f)
     ){
         content()
