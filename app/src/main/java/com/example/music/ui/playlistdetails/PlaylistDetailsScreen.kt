@@ -46,7 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.min
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,6 +54,7 @@ import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
+import com.example.music.designsys.theme.LARGE_TOP_BAR_EXPANDED_HEIGHT
 import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
 import com.example.music.domain.testing.PreviewPlaylists
@@ -75,6 +76,8 @@ import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.CompDarkPreview
+import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.AddToPlaylistFAB
@@ -124,7 +127,7 @@ fun PlaylistDetailsScreen(
                 miniPlayerControlActions = MiniPlayerControlActions(
                     onPlay = viewModel::onPlay,
                     onPause = viewModel::onPause,
-                )
+                ),
             )
         } else {
             PlaylistDetailsLoadingScreen(
@@ -176,7 +179,7 @@ private fun PlaylistDetailsScreen(
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
     miniPlayerControlActions: MiniPlayerControlActions,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Log.i(TAG, "Playlist Details Screen START\n" +
             "currentSong? ${currentSong.title}\n" +
@@ -221,7 +224,7 @@ private fun PlaylistDetailsScreen(
                             )
                         } else {
                             // if false, bar is expanded so use full header
-                            //AlbumDetailsHeaderLargeAlbumCover(album, modifier)
+                            //PlaylistDetailsHeaderLargeCover(playlist, modifier)
                             PlaylistDetailsHeader(playlist, modifier)
                         }
                     },
@@ -236,8 +239,9 @@ private fun PlaylistDetailsScreen(
                         )
                     },
                     collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
-                    expandedHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 76.dp,
-                    //expandedHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 270.dp, // for HeaderLargeAlbumCover
+//                    expandedHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 76.dp,
+                    expandedHeight = LARGE_TOP_BAR_EXPANDED_HEIGHT,
+//                    expandedHeight = TopAppBarDefaults.LargeAppBarExpandedHeight + 270.dp, // for HeaderLargeAlbumCover
                     windowInsets = TopAppBarDefaults.windowInsets,
                     colors = TopAppBarColors(
                         containerColor = Color.Transparent,
@@ -271,7 +275,8 @@ private fun PlaylistDetailsScreen(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(1),
                     state = listState,
-                    modifier = Modifier.padding(contentPadding)
+                    modifier = Modifier
+                        .padding(contentPadding)
                         .fillMaxSize()
                         .padding(horizontal = SCREEN_PADDING)
                 ) {
@@ -592,29 +597,77 @@ private fun PlaylistDetailsHeader(
     playlist: PlaylistInfo,
     modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints(
-        modifier = modifier.fillMaxWidth()//.padding(SCREEN_PADDING)
-    ) {
-        val maxImageSize = this.maxWidth / 2
-        val imageSize = min(maxImageSize, ITEM_IMAGE_CARD_SIZE)
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val imageSize = min(this.maxWidth / 2, ITEM_IMAGE_CARD_SIZE)
         Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                AlbumImage(
-                    albumImage = Uri.parse(""), // FixMe: needs Playlist Image generation
-                    contentDescription = playlist.name,
-                    modifier = Modifier
-                        .size(imageSize)
-                        .clip(MaterialTheme.shapes.large)
-                )
+                if (playlist.songCount == 0) {
+                    AlbumImage(
+                        albumImage = Uri.parse(""),
+                        contentDescription = playlist.name,
+                        modifier = Modifier
+                            .size(imageSize)
+                            .clip(MaterialTheme.shapes.large)
+                    )
+                } else {
+                    PlaylistDetailsThumbnails(playlist.playlistImage, imageSize)
+                }
                 Text(
                     text = playlist.name,
                     maxLines = 2,
                     overflow = TextOverflow.Visible,
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(start = CONTENT_PADDING)//.basicMarquee()
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Composable for Playlist Details Screen to display the playlist image as a set of the first few songs of the playlist
+ */
+@Composable
+private fun PlaylistDetailsThumbnails(
+    playlistImage: List<Uri>,
+    imageSize: Dp,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+    ) {
+        Column {
+            Row {
+                AlbumImage(
+                    albumImage = playlistImage[0],
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(imageSize)
+                )
+                AlbumImage(
+                    albumImage = playlistImage[1],
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(imageSize)
+                    )
+            }
+            Row {
+                AlbumImage(
+                    albumImage = playlistImage[2],
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(imageSize)
+                )
+                AlbumImage(
+                    albumImage = playlistImage[3],
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(imageSize)
                 )
             }
         }
@@ -634,6 +687,7 @@ private fun PlaylistDetailsEmptyList(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
+            .padding(SCREEN_PADDING)
     ) {
         Text(
             text = "Add Songs to Playlist"
@@ -654,7 +708,7 @@ fun PlaylistDetailsHeaderItemPreview() {
 }
 
 @SystemLightPreview
-@SystemDarkPreview
+//@SystemDarkPreview
 @Composable
 fun PlaylistDetailsScreenPreview() {
     MusicTheme {
