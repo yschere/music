@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -58,11 +57,9 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.layout.DisplayFeature
 import com.example.music.R
 import com.example.music.data.repository.ShuffleType
-import com.example.music.designsys.theme.CONTENT_LEFT_MARGIN
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.DEFAULT_PADDING
 import com.example.music.designsys.theme.LIST_ITEM_HEIGHT
-import com.example.music.designsys.theme.MARGIN_PADDING
 import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
 import com.example.music.designsys.theme.ROW_ITEM_HEIGHT
 import com.example.music.designsys.theme.SCREEN_PADDING
@@ -72,7 +69,7 @@ import com.example.music.ui.shared.Actions
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
-import com.example.music.ui.shared.PromptBottomModal
+import com.example.music.ui.shared.SettingsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.NavDrawerBtn
@@ -329,7 +326,7 @@ private fun SettingsContent(
     }
 
     if (showShuffleSheet) {
-        PromptBottomModal(
+        SettingsBottomModal(
             onDismissRequest = { showShuffleSheet = false },
             sheetState = sheetState,
             onClose = {
@@ -365,7 +362,7 @@ private fun SettingsContent(
     }
 
     if (showThemeSheet) {
-        PromptBottomModal(
+        SettingsBottomModal(
             onDismissRequest = { showThemeSheet = false },
             sheetState = sheetState,
             onClose = {
@@ -533,8 +530,7 @@ private fun ShuffleRadioGroupSet(
         radioOptions.forEach { option ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
                     .height(LIST_ITEM_HEIGHT)
                     .selectable(
                         selected = (option == selectedOption),
@@ -616,7 +612,7 @@ private fun ThemeRadioGroupSet(
                     color =
                         if (option == selectedOption) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(start = SMALL_PADDING),
+                    modifier = Modifier.padding(start = CONTENT_PADDING),
                 )
             }
         }
@@ -650,13 +646,15 @@ private fun PreviewSettings() {
 @Composable
 private fun SettingsModalPreview() {
     MusicTheme {
-        PromptBottomModal(
+        SettingsBottomModal(
             onDismissRequest = {},
             sheetState = SheetState(
                 initialValue = SheetValue.Expanded,
                 skipPartiallyExpanded = true,
                 density = Density(1f,1f)
-            )
+            ),
+            onClose = {},
+            onApply = {}
         ) {
 //            ShuffleModalContent {  }
             ThemeModalContent {  }
