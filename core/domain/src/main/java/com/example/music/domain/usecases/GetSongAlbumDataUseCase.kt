@@ -17,8 +17,9 @@ import javax.inject.Inject
 private const val TAG = "Get Song Album Data Use Case"
 
 /**
- * Use case to retrieve Flow[AlbumInfo] for given song [SongInfo]
- * @property albumRepo [AlbumRepo] The repository for accessing Album data
+ * Use case to retrieve Flow of [AlbumInfo] for given song [SongInfo]
+ * @property albumRepo The repository for accessing Album data
+ *
  * NOTE: Because the albumId for song can be null,
  * it's possible for AlbumInfo to return as null.
  * So in this case, it will return flow of empty AlbumInfo
@@ -26,10 +27,6 @@ private const val TAG = "Get Song Album Data Use Case"
 class GetSongAlbumDataUseCase @Inject constructor(
     private val albumRepo: AlbumRepo,
 ){
-    /**
-     * Invoke with single Song to retrieve single [AlbumInfo]
-     * @param song [SongInfo] to return flow of [AlbumInfo]
-     */
     operator fun invoke(song: SongInfo): Flow<AlbumInfo> {
         Log.i(TAG, "GetSongAlbumDataUseCase start:\n" +
                 " song.id: ${song.id};\n" +

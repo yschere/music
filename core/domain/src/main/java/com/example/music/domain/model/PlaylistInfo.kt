@@ -1,14 +1,15 @@
 package com.example.music.domain.model
 
+import android.net.Uri
 import com.example.music.data.database.model.Playlist
 import com.example.music.data.database.model.PlaylistWithExtraInfo
 import java.time.OffsetDateTime
 
 /**
  * External data layer representation of a playlist.
+ *
  * Intent: to represent a Playlist for the UI, with the ability to
- * order playlists by dateCreated, dateLastAccessed,
- * dateLastPlayed, and song count.
+ * order playlists by dateCreated, dateLastAccessed, dateLastPlayed, and song count.
  * @property id The playlist's unique ID
  * @property name The name of the playlist
  * @property description The description of the playlist
@@ -17,7 +18,7 @@ import java.time.OffsetDateTime
  * aka when playlist created or any updates/changes to playlist or its list of songs
  * @property dateLastPlayed The datetime when a song within the playlist was last played,
  * currently set regardless of context where song was played
- * @property songCount The amount of songs by the playlist
+ * @property songCount The amount of songs in the playlist
  */
 data class PlaylistInfo(
     val id: Long = 0,

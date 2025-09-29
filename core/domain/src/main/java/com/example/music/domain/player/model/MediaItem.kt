@@ -42,16 +42,16 @@ val MediaItem.mimeType get() = mediaMetadata.extras?.getString(MEDIA_ITEM_EXTRA_
 
 /**
  * Function to build a MediaItem
- * @param id [Long]
- * @param uri [Uri]
- * @param title [CharSequence]
- * @param artist [CharSequence]
- * @param album [CharSequence]
- * @param albumArtist [CharSequence]
- * @param year [Int]
- * @param duration [Long]
- * @param artwork [Uri]?
- * @param mimeType [String]?
+ * @param id
+ * @param uri
+ * @param title
+ * @param artist
+ * @param album
+ * @param albumArtist
+ * @param year
+ * @param duration
+ * @param artworkUri
+ * @param mimeType
  */
 @OptIn(UnstableApi::class)
 private fun mediaSource(

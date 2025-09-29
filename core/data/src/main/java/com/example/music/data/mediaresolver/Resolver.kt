@@ -495,7 +495,7 @@ suspend fun ContentResolver.getArtistAudiosById(
 
 /**
  * Search for [Artist] on name, limit 1
- * @param name [String]
+ * @param name
  * @return [Cursor] transformed to [Artist]?
  */
 suspend fun ContentResolver.findArtist(name: String): Artist = queryExt(
@@ -520,7 +520,7 @@ suspend fun ContentResolver.findArtist(name: String): Artist = queryExt(
 
 /**
  * Search for [Artist] on _id, limit 1
- * @param id [Long]
+ * @param id
  * @return [Cursor] transformed to [Artist]
  */
 suspend fun ContentResolver.findArtist(id: Long): Artist = queryExt(
@@ -545,7 +545,7 @@ suspend fun ContentResolver.findArtist(id: Long): Artist = queryExt(
 
 /**
  * Trying to find artist info based on album Id, limit 1
- * @param albumId [Long]
+ * @param albumId
  * @return [Cursor] transformed to [Artist]?
  */
 suspend fun ContentResolver.findArtistByAlbumId(albumId: Long): Artist = queryExt(
@@ -699,7 +699,7 @@ suspend fun ContentResolver.getAlbumAudiosById(
 
 /**
  * Search for [Album] on [MediaStore.Audio.Media._ID], limit 1
- * @param id [Long]
+ * @param id
  * @return [Cursor] transformed to [Album]
  */
 suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
@@ -726,7 +726,7 @@ suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
 
 /**
  * Search for [Album] on title, limit 1
- * @param title [String]
+ * @param title
  * @return [Cursor] transformed to [Album]
  */
 suspend fun ContentResolver.findAlbum(title: String): Album = queryExt(

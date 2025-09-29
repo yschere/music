@@ -9,11 +9,12 @@ private const val TAG = "ComposerInfo"
 
 /**
  * External data layer representation of a composer.
+ *
  * Intent: to represent a Composer for the UI, with the ability to
  * order composers by song count.
- * @property id [Long] The composer's unique ID
- * @property name [String] The name of the composer
- * @property songCount [Int] The amount of songs by the composer
+ * @property id The composer's unique ID
+ * @property name The name of the composer
+ * @property songCount The amount of songs by the composer
  */
 data class ComposerInfo(
     val id: Long = 0,

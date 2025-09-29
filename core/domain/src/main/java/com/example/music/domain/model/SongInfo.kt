@@ -22,19 +22,21 @@ import java.time.OffsetDateTime
 private const val TAG = "SongInfo"
 
 /**
- * External data layer representation of a song.Intent: to represent a Playlist for the UI, with the ability to
+ * External data layer representation of a song.
+ *
+ * Intent: to represent a Playlist for the UI, with the ability to
  * order playlists by dateCreated, dateLastAccessed, dateLastPlayed, and song count.
- * @property id [Long] The song's unique ID
- * @property uri [Uri] The song's uri
- * @property title [String] The title of the song
- * @property artistId [Long] The unique ID for the song's artist, foreign key to the artists table
- * @property albumId [Long] The unique ID for the song's album, foreign key to the albums table
- * @property genreId [Long] The unique ID for the song's genre, foreign key to the genres table
- * @property composerId [Long] The unique ID for the song's composer, foreign key to the composers table
- * @property trackNumber [Int] The order of the song, default is the song entry albumTrackNumber,
+ * @property id The song's unique ID
+ * @property uri The song's uri
+ * @property title The title of the song
+ * @property artistId The unique ID for the song's artist, foreign key to the artists table
+ * @property albumId The unique ID for the song's album, foreign key to the albums table
+ * @property genreId The unique ID for the song's genre, foreign key to the genres table
+ * @property composerId The unique ID for the song's composer, foreign key to the composers table
+ * @property trackNumber The order of the song, default is the song entry albumTrackNumber,
  * otherwise can be from song playlist entry playlistTrackNumber
- * @property duration [Duration] The length of the song
- * @property dateLastPlayed [OffsetDateTime] The datetime when the song was last played
+ * @property duration The length of the song
+ * @property dateLastPlayed The datetime when the song was last played
  */
 data class SongInfo(
     val id: Long = 0,

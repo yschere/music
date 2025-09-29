@@ -691,73 +691,33 @@ data class SongPlaylistCombo(
 )
 
 val PreviewSongPlaylistCombo = listOf(
-    SongPlaylistCombo(
-        0, 0, 17, 0
-    ),
-    SongPlaylistCombo(
-        1, 0, 530, 1
-    ),
-    SongPlaylistCombo(
-        2, 0, 529, 2
-    ),
-    SongPlaylistCombo(
-        3, 0, 528, 3
-    ),
-    SongPlaylistCombo(
-        4, 0, 1023, 4
-    ),
-    SongPlaylistCombo(
-        5, 1, 1023, 0
-    ),
-    SongPlaylistCombo(
-        6, 1, 12, 1
-    ),
-    SongPlaylistCombo(
-        7, 1, 17, 2
-    ),
-    SongPlaylistCombo(
-        8, 1, 21, 3
-    ),
-    SongPlaylistCombo(
-        9, 2, 6535, 0
-    ),
-    SongPlaylistCombo(
-        10, 2, 6535, 1
-    ),
-    SongPlaylistCombo(
-        11, 0, 103, 5
-    )
+    SongPlaylistCombo( 0, 0, 17, 0 ),
+    SongPlaylistCombo( 1, 0, 530, 1 ),
+    SongPlaylistCombo( 2, 0, 529, 2 ),
+    SongPlaylistCombo( 3, 0, 528, 3 ),
+    SongPlaylistCombo( 4, 0, 1023, 4 ),
+    SongPlaylistCombo( 5, 1, 1023, 0 ),
+    SongPlaylistCombo( 6, 1, 12, 1 ),
+    SongPlaylistCombo( 7, 1, 17, 2 ),
+    SongPlaylistCombo( 8, 1, 21, 3 ),
+    SongPlaylistCombo( 9, 2, 6535, 0 ),
+    SongPlaylistCombo( 10, 2, 6535, 1 ),
+    SongPlaylistCombo( 11, 0, 103, 5 )
 )
 
 fun getAlbumData(albumId: Long): AlbumInfo = PreviewAlbums.single { s -> s.id == albumId }
 fun getSongData(songId: Long): SongInfo = PreviewSongs.single { s -> s.id == songId }
+fun getComposerData(composerId: Long): ComposerInfo = PreviewComposers.single { s -> s.id == composerId }
 fun getGenreData(genreId: Long): GenreInfo = PreviewGenres.single { s -> s.id == genreId }
 fun getArtistData(artistId: Long): ArtistInfo = PreviewArtists.single { s -> s.id == artistId }
 fun getPlaylistData(playlistId: Long): PlaylistInfo = PreviewPlaylists.single { s -> s.id == playlistId }
-fun getPlaylistSongs(playlistId: Long): List<SongInfo> = PreviewSongPlaylistCombo.filter { entry ->
-        entry.playlistId == playlistId
-    }.map { song ->
-        getSongData(song.songId)
-    } //returns songs in playlist
 
-fun getSongsInAlbum(albumId: Long): List<SongInfo> = PreviewSongs.filter { entry ->
-    entry.albumId == albumId
-}
+fun getPlaylistSongs(playlistId: Long): List<SongInfo> =
+    PreviewSongPlaylistCombo.filter { entry -> entry.playlistId == playlistId }
+        .map { song -> getSongData(song.songId) }
 
-fun getAlbumsByArtist(albumArtistId: Long): List<AlbumInfo> = PreviewAlbums.filter{ entry ->
-    entry.albumArtistId == albumArtistId
-}
-
-fun getSongsByArtist(artistId: Long): List<SongInfo> = PreviewSongs.filter { entry ->
-    entry.artistId == artistId
-}
-
-fun getComposerData(composerId: Long): ComposerInfo = PreviewComposers.single { s -> s.id == composerId }
-
-fun getSongsByComposer(composerId: Long): List<SongInfo> = PreviewSongs.filter { entry ->
-    (entry.composerId != null) && (entry.composerId == composerId)
-}
-
-fun getSongsInGenre(genreId: Long): List<SongInfo> = PreviewSongs.filter{ entry ->
-    entry.genreId == genreId
-}
+fun getSongsInAlbum(albumId: Long): List<SongInfo> = PreviewSongs.filter { entry -> entry.albumId == albumId }
+fun getAlbumsByArtist(albumArtistId: Long): List<AlbumInfo> = PreviewAlbums.filter{ entry -> entry.albumArtistId == albumArtistId }
+fun getSongsByArtist(artistId: Long): List<SongInfo> = PreviewSongs.filter { entry -> entry.artistId == artistId }
+fun getSongsByComposer(composerId: Long): List<SongInfo> = PreviewSongs.filter { entry -> (entry.composerId != null) && (entry.composerId == composerId) }
+fun getSongsInGenre(genreId: Long): List<SongInfo> = PreviewSongs.filter{ entry -> entry.genreId == genreId }

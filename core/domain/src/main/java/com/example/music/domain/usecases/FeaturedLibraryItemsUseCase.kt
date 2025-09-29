@@ -18,13 +18,11 @@ class FeaturedLibraryItemsUseCase @Inject constructor(
         private val songRepo: SongRepo,
         private val playlistRepo: PlaylistRepo
 ) {
-
-    //FixMe: trying to rework this so that it checks stores for these items, should only be reliant on passed in stores, not individual items
     operator fun invoke(): Flow<FeaturedLibraryItemsFilterResult> {
         Log.i(TAG, "Start")
         val recentPlaylistsFlow = playlistRepo.sortPlaylistsByDateLastPlayedDesc(5)
         Log.i(TAG, "recentPlaylistsFlow: $recentPlaylistsFlow")
-        val recentSongsFlow = songRepo.sortSongsByDateLastPlayedDesc(10) //FixMe: set this back to sortSongsByDateLastPlayed, limit 10
+        val recentSongsFlow = songRepo.sortSongsByDateLastPlayedDesc(10)
         Log.i(TAG, "recentlyAddedSongsFlow: $recentSongsFlow")
 
         return combine(
