@@ -234,6 +234,55 @@ class HomeViewModel @Inject constructor(
 
             Log.i(TAG, "refresh to be false -> sets screen to ready state")
             refreshing.value = false
+
+            if (force) { // onRetry call when the screen errors
+                homeRelaunch()
+            }
+        }
+    }
+
+    private suspend fun homeRelaunch() {
+        Log.i(TAG, "homeRelaunch START")
+        val counts = getTotalCounts()
+        Log.i(TAG, "SongController status:\n" +
+                "isActive?: $isActive\n" +
+                "player?: ${player?.playbackState}")
+
+        combine(
+            featuredItemsData,
+            selectedSong,
+            selectedAlbum,
+        ) {
+            libraryItems,
+            selectSong,
+            selectAlbum ->
+            Log.i(TAG, "HomeUiState combine START\n" +
+                "refreshing: ${refreshing.value}\n" +
+                //"libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}\n" +
+                "libraryItemsAlbums: ${libraryItems.recentAlbums.size}\n" +
+                "libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}\n" +
+                "is SongController available: ${songController.isConnected()}")
+
+            getSongControllerState()
+
+            HomeScreenUiState(
+                isLoading = refreshing.value,
+                featuredAlbums = libraryItems.recentAlbums,
+                featuredSongs = libraryItems.recentlyAddedSongs,
+                totals = counts,
+                selectSong = selectSong,
+                selectAlbum = selectAlbum,
+            )
+        }.catch { throwable ->
+            Log.i(TAG, "Error Caught: ${throwable.message}")
+            emit(
+                HomeScreenUiState(
+                    isLoading = false,
+                    errorMessage = throwable.message
+                )
+            )
+        }.collect {
+            _state.value = it
         }
     }
 
