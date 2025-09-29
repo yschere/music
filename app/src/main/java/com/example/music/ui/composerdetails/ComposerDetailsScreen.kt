@@ -4,18 +4,13 @@ import android.util.Log
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -48,7 +43,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
@@ -92,7 +86,6 @@ fun ComposerDetailsScreen(
     navigateToArtistDetails: (Long) -> Unit,
     viewModel: ComposerDetailsViewModel = hiltViewModel(),
 ) {
-    Log.i(TAG, "Composer Details Screen START")
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
@@ -193,7 +186,6 @@ fun ComposerDetailsScreen(
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
     val sheetState = rememberModalBottomSheetState(false)
-    var showBottomSheet by remember { mutableStateOf(false) }
     var showSortSheet by remember { mutableStateOf(false) }
     var showComposerMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf(false) }
@@ -217,12 +209,7 @@ fun ComposerDetailsScreen(
                     navigationIcon = { BackNavBtn(onClick = navigateBack) },
                     actions = {
                         SearchBtn(onClick = navigateToSearch)
-                        MoreOptionsBtn(
-                            onClick = {
-                                showBottomSheet = true
-                                showComposerMoreOptions = true
-                            }
-                        )
+                        MoreOptionsBtn(onClick = { showComposerMoreOptions = true })
                     },
                     collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
                     expandedHeight = TOP_BAR_EXPANDED_HEIGHT,
@@ -269,7 +256,6 @@ fun ComposerDetailsScreen(
                             itemCount = songs.size,
                             onSortClick = {
                                 Log.i(TAG, "Song Sort btn clicked")
-                                showBottomSheet = true
                                 showSortSheet = true
                             },
                             onSelectClick = {
@@ -304,7 +290,6 @@ fun ComposerDetailsScreen(
                             onMoreOptionsClick = {
                                 Log.i(TAG, "Song More Option clicked: ${song.title}")
                                 //onComposerAction(ComposerAction.SongMoreOptionsClicked(song))
-                                //showBottomSheet = true
                                 //showSongMoreOptions = true
                             },
                             isListEditable = false,
