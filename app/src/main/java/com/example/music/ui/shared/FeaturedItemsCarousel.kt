@@ -84,8 +84,8 @@ fun FeaturedAlbumsCarousel(
                     onMoreOptionsClick = { onMoreOptionsClick(album) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable { onClick(album.id) }
                         .clip(MaterialTheme.shapes.medium)
+                        .clickable { onClick(album.id) }
                 )
             }
         }
@@ -134,8 +134,8 @@ fun FeaturedPlaylistsCarousel(
                     onMoreOptionsClick = { onMoreOptionsClick(playlist) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable { onClick(playlist) }
                         .clip(MaterialTheme.shapes.medium)
+                        .clickable { onClick(playlist) }
                 )
             }
         }
