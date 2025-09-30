@@ -537,7 +537,8 @@ private fun PlaylistDetailsHeader(
         val imageSize = min(this.maxWidth / 2, ITEM_IMAGE_CARD_SIZE)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .padding(end = SCREEN_PADDING),
         ) {
             if (playlist.songCount == 0) {
                 AlbumImage(

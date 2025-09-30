@@ -119,7 +119,7 @@ private fun SongListItemRow(
         if (showTrackNumber) {
             SongListItemNumber(
                 number = song.trackNumber,
-                modifier = Modifier.size(ICON_SIZE)
+                modifier = Modifier.size(ICON_SIZE - CONTENT_PADDING, ICON_SIZE)
             )
         }
 

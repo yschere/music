@@ -77,6 +77,7 @@ import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
+import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.BackNavBtn
 import com.example.music.util.MoreOptionsBtn
@@ -519,7 +520,8 @@ fun AlbumDetailsHeader(
         val imageSize = min(this.maxWidth / 2, ITEM_IMAGE_CARD_SIZE)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .padding(end = SCREEN_PADDING),
         ) {
             AlbumImage(
                 albumImage = album.artworkUri,
@@ -635,7 +637,7 @@ fun HeaderAlbumCoverPreview() {
 
 //@SystemLightPreview
 @SystemDarkPreview
-//@LandscapePreview
+@LandscapePreview
 @Composable
 fun AlbumDetailsScreenPreview() {
     MusicTheme {
@@ -644,12 +646,12 @@ fun AlbumDetailsScreenPreview() {
             //songs = PreviewSongs,
 
             //Slow Rain
-            album = PreviewAlbums[2],
-            songs = getSongsInAlbum(PreviewAlbums[2].id),
+//            album = PreviewAlbums[2],
+//            songs = getSongsInAlbum(PreviewAlbums[2].id),
 
             //Kingdom Hearts Piano Collection
-            //album = PreviewAlbums[6],
-            //songs = getSongsInAlbum(307),
+            album = PreviewAlbums[6],
+            songs = getSongsInAlbum(307),
 
             selectSong = getSongsInAlbum(PreviewAlbums[2].id)[0],
             currentSong = PreviewSongs[0],
