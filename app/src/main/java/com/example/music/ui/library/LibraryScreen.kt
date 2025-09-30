@@ -376,7 +376,7 @@ private fun LibraryContent(
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
 
-    val sheetState = rememberModalBottomSheetState(false,)
+    val sheetState = rememberModalBottomSheetState(true)
     var showSortSheet by remember { mutableStateOf(false) }
     var showCreatePlaylist by remember { mutableStateOf(false) }
 

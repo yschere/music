@@ -185,7 +185,7 @@ fun ComposerDetailsScreen(
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
-    val sheetState = rememberModalBottomSheetState(false)
+    val sheetState = rememberModalBottomSheetState(true)
     var showSortSheet by remember { mutableStateOf(false) }
     var showComposerMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf(false) }

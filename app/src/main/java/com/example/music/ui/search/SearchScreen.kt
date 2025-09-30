@@ -177,7 +177,7 @@ fun SearchScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     //val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
-    val sheetState = rememberModalBottomSheetState(false,)
+    val sheetState = rememberModalBottomSheetState(true)
     var showAlbumMoreOptions by remember { mutableStateOf(false) }
     var showArtistMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf(false) }

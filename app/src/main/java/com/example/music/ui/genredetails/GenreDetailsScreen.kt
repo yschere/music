@@ -192,7 +192,7 @@ fun GenreDetailsScreen(
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
 
-    val sheetState = rememberModalBottomSheetState(false)
+    val sheetState = rememberModalBottomSheetState(true)
     var showSortSheet by remember { mutableStateOf(false) }
     var showGenreMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf(false) }

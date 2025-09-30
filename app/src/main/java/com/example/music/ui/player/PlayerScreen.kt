@@ -195,7 +195,7 @@ private fun PlayerScreen(
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val sheetState = rememberModalBottomSheetState(false)
+    val sheetState = rememberModalBottomSheetState(true)
     var showBottomSheet by remember { mutableStateOf(false) }
 
     Scaffold(

@@ -424,7 +424,7 @@ private fun ApplyModalBtn(
 @Composable
 fun SongMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     song: SongInfo,
     songActions: SongActions,
@@ -491,7 +491,7 @@ fun SongMoreOptionsBottomModal(
 @Composable
 fun AlbumMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     album: AlbumInfo,
     albumActions: AlbumActions,
@@ -552,7 +552,7 @@ fun AlbumMoreOptionsBottomModal(
 @Composable
 fun ArtistMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     artist: ArtistInfo,
     artistActions: ArtistActions,
@@ -609,7 +609,7 @@ fun ArtistMoreOptionsBottomModal(
 @Composable
 fun ComposerMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     composer: ComposerInfo,
     composerActions: ComposerActions,
@@ -668,7 +668,7 @@ fun ComposerMoreOptionsBottomModal(
 @Composable
 fun GenreMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     genre: GenreInfo,
     genreActions: GenreActions,
@@ -727,7 +727,7 @@ fun GenreMoreOptionsBottomModal(
 @Composable
 fun PlaylistMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     playlist: PlaylistInfo,
     playlistActions: PlaylistActions,
@@ -790,7 +790,7 @@ fun PlaylistMoreOptionsBottomModal(
 @Composable
 fun PlayerMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     song: SongInfo,
     playerModalActions: PlayerModalActions,
@@ -844,7 +844,7 @@ fun PlayerMoreOptionsBottomModal(
 @Composable
 fun QueueMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     queueActions: QueueActions,
     onClose: () -> Unit = {},
@@ -1146,7 +1146,7 @@ fun SettingsBottomModal(
 @Composable
 fun CreatePlaylistBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     onClose: () -> Unit = {},
     onCreate: () -> Unit = {},

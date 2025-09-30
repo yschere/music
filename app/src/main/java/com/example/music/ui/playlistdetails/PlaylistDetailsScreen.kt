@@ -203,7 +203,7 @@ private fun PlaylistDetailsScreen(
     val listState = rememberLazyGridState()
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
-    val sheetState = rememberModalBottomSheetState(false)
+    val sheetState = rememberModalBottomSheetState(true)
     var showSortSheet by remember { mutableStateOf(false) }
     var showPlaylistMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
@@ -296,7 +296,7 @@ private fun PlaylistDetailsScreen(
                                 }, // want this to nav to multi-select view that shows "add songs to playlist"
                                 onSortClick = {
                                     Log.i(TAG, "Song Sort btn clicked")
-                                    showSortSheet = false
+                                    showSortSheet = true
                                 },
                                 onSelectClick = {
                                     Log.i(TAG, "Multi-Select btn clicked")

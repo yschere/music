@@ -251,7 +251,7 @@ private fun SettingsContent(
 ) {
     Log.i(TAG, "SettingsContent START")
 
-    val sheetState = rememberModalBottomSheetState(true,)
+    val sheetState = rememberModalBottomSheetState(true)
     var showShuffleSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
 

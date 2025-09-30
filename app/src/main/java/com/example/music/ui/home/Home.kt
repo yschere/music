@@ -350,7 +350,7 @@ private fun HomeContent(
     val pLists = featuredAlbums.toPersistentList()
     val pagerState = rememberPagerState { pLists.size }
 
-    val sheetState = rememberModalBottomSheetState(false,)
+    val sheetState = rememberModalBottomSheetState(true)
     var showAlbumMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
 
