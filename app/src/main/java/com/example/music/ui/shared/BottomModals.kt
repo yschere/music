@@ -1075,7 +1075,6 @@ fun DetailsSortSelectionBottomModal(
                 modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
             )
 
-            //radio buttons for selecting ascending or descending
             RadioGroupSet(listOf("Ascending", "Descending"))
 
             Row {
@@ -1101,6 +1100,9 @@ fun DetailsSortSelectionBottomModal(
  *
  **********************************************************************************************/
 
+/**
+ * Bottom Modal for Settings Screen to display preference options
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsBottomModal(
@@ -1131,6 +1133,7 @@ fun SettingsBottomModal(
         }
     }
 }
+
 
 /***********************************************************************************************
  *

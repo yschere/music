@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
  * @param key The key for the grid item.
  * @param contentType The type of content for the grid item.
  * @param content The composable content for the grid item.
- *
  */
 fun LazyGridScope.fullWidthItem(
     key: Any? = null,

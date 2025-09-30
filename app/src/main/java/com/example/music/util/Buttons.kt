@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
@@ -31,10 +32,14 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,6 +60,7 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.MARGIN_PADDING
 import com.example.music.designsys.theme.MINI_PLAYER_HEIGHT
 import com.example.music.designsys.theme.SCROLL_FAB_BOTTOM_PADDING
@@ -88,6 +94,60 @@ fun AddToPlaylistFAB(
 }
 
 /**
+ * Scroll to top floating action btn that appears after scrolling down beyond first few items
+ * @param displayButton defines if the button should be displayed
+ * @param isActive defines if the MiniPlayer is currently active
+ * @param onClick defines the action to take when the button is clicked
+ */
+@Composable
+fun BoxScope.ScrollToTopFAB(
+    displayButton: State<Boolean>,
+    isActive: Boolean,
+    onClick: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = displayButton.value,
+        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+            // align FAB to bottom right in landscape, and bottom center in portrait
+            .align(alignment =
+                if (LocalConfiguration.current.orientation == ORIENTATION_LANDSCAPE) Alignment.BottomEnd
+                else Alignment.BottomCenter
+            )
+            // isActive means button needs extra clearance for MiniPlayer
+            .padding(bottom =
+                if (isActive) MINI_PLAYER_HEIGHT + SCROLL_FAB_BOTTOM_PADDING
+                else SCROLL_FAB_BOTTOM_PADDING
+            )
+            // when in landscape, places fab away from right edge of screen by specific amount
+            .padding(end =
+                if (LocalConfiguration.current.orientation == ORIENTATION_LANDSCAPE) 120.dp
+                else 0.dp
+            ),
+        // Start the slide from 40 (pixels) above where the content is supposed to go, to produce a parallax effect
+        // Animate scale from 0f to 1f using the top center as the pivot point.
+        enter = slideInVertically(initialOffsetY = { -40 }) +
+            expandVertically(expandFrom = Alignment.Top) +
+            scaleIn(transformOrigin = TransformOrigin(0.5f, 0f)) +
+            fadeIn(initialAlpha = 0.3f),
+        exit = slideOutVertically() +
+            shrinkVertically() +
+            fadeOut() +
+            scaleOut(targetScale = 1.2f),
+    ) {
+        DrawIconBtn(
+            icon = Icons.Filled.KeyboardDoubleArrowUp,
+            description = stringResource(R.string.icon_scroll_to_top),
+            onClick = onClick,
+            btnModifier = Modifier
+                .shadow(elevation = 3.dp, shape = CircleShape)
+                .clip(MaterialTheme.shapes.extraLarge)
+                .background(MaterialTheme.colorScheme.primary),
+            tint = MaterialTheme.colorScheme.inversePrimary,
+        )
+    }
+}
+
+/**
  * More button that will navigate to a longer list of the shown items
  * @param onClick defines the action to take when the button is clicked
  * @param modifier defines any modifiers to apply to button
@@ -114,55 +174,51 @@ fun RowScope.NavToMoreBtn(
 }
 
 /**
- * Scroll to top floating action btn that appears after scrolling down beyond first few items
- * @param displayButton defines if the button should be displayed
- * @param isActive defines if the MiniPlayer is currently active
+ * Play button that will begin playback for the list of shown items on the screen
  * @param onClick defines the action to take when the button is clicked
+ * @param modifier defines any modifiers to apply to button
  */
 @Composable
-fun BoxScope.ScrollToTopFAB(
-    displayButton: State<Boolean>,
-    isActive: Boolean,
+fun RowScope.PlayBtn(
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    AnimatedVisibility(
-        visible = displayButton.value,
-        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
-            .align(alignment =
-                if (LocalConfiguration.current.orientation == ORIENTATION_LANDSCAPE) Alignment.BottomEnd
-                else Alignment.BottomCenter
-            ) // align FAB to bottom right in landscape, and bottom center in portrait
-            .padding(bottom =
-                if (isActive) MINI_PLAYER_HEIGHT + SCROLL_FAB_BOTTOM_PADDING
-                else SCROLL_FAB_BOTTOM_PADDING
-            ) // isActive means button needs extra 64dp of clearance
-            .padding(end =
-                if (LocalConfiguration.current.orientation == ORIENTATION_LANDSCAPE) 120.dp
-                else 0.dp
-            ), // when in landscape, try to move fab away from right side screen by some amount
-        enter = slideInVertically(
-            // Start the slide from 40 (pixels) above where the content is supposed to go, to
-            // produce a parallax effect
-            initialOffsetY = { -40 }
-        ) + expandVertically(
-            expandFrom = Alignment.Top
-        ) + scaleIn(
-            // Animate scale from 0f to 1f using the top center as the pivot point.
-            transformOrigin = TransformOrigin(0.5f, 0f)
-        ) + fadeIn(initialAlpha = 0.3f),
-        exit = slideOutVertically() + shrinkVertically() + fadeOut() + scaleOut(targetScale = 1.2f),
-    ) {
-        DrawIconBtn(
-            icon = Icons.Filled.KeyboardDoubleArrowUp,
-            description = stringResource(R.string.icon_scroll_to_top),
-            onClick = onClick,
-            btnModifier = Modifier
-                .shadow(elevation = 3.dp, shape = CircleShape)
-                .clip(MaterialTheme.shapes.extraLarge)
-                .background(MaterialTheme.colorScheme.primary),
-            tint = MaterialTheme.colorScheme.inversePrimary,
-        )
-    }
+    DrawTextBtn(
+        onClick = onClick,
+        icon = Icons.Filled.PlayArrow,
+        description = stringResource(R.string.icon_play),
+        btnModifier = modifier
+            .padding(horizontal = CONTENT_PADDING)
+            .weight(0.5f),
+        colors = ButtonDefaults.buttonColors(
+            contentColor = MaterialTheme.colorScheme.inversePrimary,
+        ),
+        text = "PLAY"
+    )
+}
+
+/**
+ * Shuffle button that will begin and shuffle playback for the list of shown items on the screen
+ * @param onClick defines the action to take when the button is clicked
+ * @param modifier defines any modifiers to apply to button
+ */
+@Composable
+fun RowScope.ShuffleBtn(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    DrawTextBtn(
+        onClick = onClick,
+        icon = Icons.Filled.Shuffle,
+        description = stringResource(R.string.icon_shuffle),
+        btnModifier = modifier
+            .padding(horizontal = CONTENT_PADDING)
+            .weight(0.5f),
+        colors = ButtonDefaults.buttonColors(
+            contentColor = MaterialTheme.colorScheme.inversePrimary,
+        ),
+        text = "SHUFFLE"
+    )
 }
 
 
@@ -250,7 +306,7 @@ fun AddToPlaylistBtn(
     onClick: () -> Unit,
 ) {
     DrawIconBtn(
-        icon = Icons.Filled.Add,
+        icon = Icons.AutoMirrored.Filled.PlaylistAdd,
         description = stringResource(R.string.icon_add_to_playlist),
         onClick = onClick,
     )
@@ -375,7 +431,7 @@ fun ToggleFavoriteBtn(
 
 /***********************************************************************************************
  *
- * ********** Base Icon Button **********
+ * ********** Base Buttons **********
  *
  **********************************************************************************************/
 
@@ -397,6 +453,30 @@ private fun DrawIconBtn(
             contentDescription = description,
             tint = tint,
             modifier = iconModifier,
+        )
+    }
+}
+
+@Composable
+private fun DrawTextBtn(
+    icon: ImageVector,
+    text: String,
+    description: String? = null,
+    onClick: () -> Unit,
+    btnModifier: Modifier = Modifier,
+    colors: ButtonColors,
+) {
+    Button(
+        onClick = onClick,
+        modifier = btnModifier,
+        colors = colors,
+    ) {
+        Icon (
+            imageVector = icon,
+            contentDescription = description,
+        )
+        Text(
+            text = text,
         )
     }
 }

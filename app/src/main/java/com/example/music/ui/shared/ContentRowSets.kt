@@ -4,23 +4,18 @@ import androidx.annotation.PluralsRes
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import com.example.music.R
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.util.AddToPlaylistBtn
 import com.example.music.util.CreatePlaylistBtn
 import com.example.music.util.MultiSelectBtn
+import com.example.music.util.PlayBtn
+import com.example.music.util.ShuffleBtn
 import com.example.music.util.SortBtn
 import com.example.music.util.quantityStringResource
 
@@ -42,9 +37,7 @@ fun ItemCountAndSortSelectButtons(
         Text(
             text = """\s[a-z]""".toRegex().replace(
                 quantityStringResource(id, itemCount, itemCount)
-            ) {
-                it.value.uppercase()
-            },
+            ) { it.value.uppercase() },
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.weight(1f, true)
@@ -78,9 +71,7 @@ fun ItemCountAndPlusSortSelectButtons(
         Text(
             text = """\s[a-z]""".toRegex().replace(
                 quantityStringResource(id, itemCount, itemCount)
-            ) {
-                it.value.uppercase()
-            },
+            ) { it.value.uppercase() },
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.weight(1f, true)
@@ -109,32 +100,7 @@ fun PlayShuffleButtons(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.padding(vertical = CONTENT_PADDING)
     ) {
-        // Play btn
-        Button(
-            onClick = onPlayClick,
-            modifier = Modifier
-                .padding(horizontal = CONTENT_PADDING)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PlayArrow,
-                contentDescription = stringResource(R.string.icon_play)
-            )
-            Text("PLAY")
-        }
-
-        // Shuffle btn
-        Button(
-            onClick = onShuffleClick,
-            modifier = Modifier
-                .padding(horizontal = CONTENT_PADDING)
-                .weight(0.5f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Shuffle,
-                contentDescription = stringResource(R.string.icon_shuffle)
-            )
-            Text("SHUFFLE")
-        }
+        PlayBtn(onClick = onPlayClick)
+        ShuffleBtn(onClick = onShuffleClick)
     }
 }
