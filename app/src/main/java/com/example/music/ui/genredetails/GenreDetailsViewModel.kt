@@ -10,8 +10,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.usecases.GetGenreDetailsV2
-import com.example.music.domain.usecases.GetSongDataV2
+import com.example.music.domain.usecases.GetGenreDetails
+import com.example.music.domain.usecases.GetSongData
 import com.example.music.service.SongController
 import com.example.music.ui.Screen
 import com.example.music.ui.player.MiniPlayerState
@@ -41,20 +41,20 @@ data class GenreUiState (
  */
 @HiltViewModel
 class GenreDetailsViewModel @Inject constructor(
-    getGenreDetailsV2: GetGenreDetailsV2,
+    getGenreDetails: GetGenreDetails,
     savedStateHandle: SavedStateHandle,
 
-    private val getSongDataV2: GetSongDataV2,
+    private val getSongData: GetSongData,
     private val songController: SongController,
 ) : ViewModel(), MiniPlayerState {
 
     private val _genreId: String = savedStateHandle.get<String>(Screen.ARG_GENRE_ID)!!
     private val genreId = _genreId.toLong()
 
-    private val getGenreDetailsData = getGenreDetailsV2(genreId)
+    private val getGenreDetailsData = getGenreDetails(genreId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    private val selectedSong = MutableStateFlow<SongInfo?>(null)
+    private val selectedSong = MutableStateFlow(SongInfo())
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -131,9 +131,9 @@ class GenreDetailsViewModel @Inject constructor(
             songController.events.collect {
                 Log.d(TAG, "get SongController Player Event(s)")
 
-                // if events is empty, take these actions to generate the needed values for populating the Player Screen
+                // if events is empty, take these actions to generate the needed values for populating MiniPlayer
                 if (it == null) {
-                    Log.d(TAG, "init: running start up events to initialize LibraryVM")
+                    Log.d(TAG, "init: running start up events to initialize MiniPlayer")
                     getSongControllerState()
                     onPlayerEvent(event = Player.EVENT_IS_LOADING_CHANGED)
                     onPlayerEvent(event = Player.EVENT_MEDIA_ITEM_TRANSITION)
@@ -170,7 +170,7 @@ class GenreDetailsViewModel @Inject constructor(
                 _isPlaying = songController.isPlaying
                 isActive = songController.isActive
                 Log.d(TAG, "isPlaying changed:\n" +
-                    "isPlaying set to $isPlaying" +
+                    "isPlaying set to $isPlaying\n" +
                     "isActive set to $isActive")
             }
 
@@ -183,7 +183,7 @@ class GenreDetailsViewModel @Inject constructor(
                         delay(100)
                         id = mediaItem?.mediaId
                     }
-                    currentSong = getSongDataV2(id.toLong())
+                    currentSong = getSongData(id.toLong())
                     Log.d(TAG, "Current Song set to ${currentSong.title}")
                     songController.logTrackNumber()
                 }
@@ -198,7 +198,7 @@ class GenreDetailsViewModel @Inject constructor(
     private suspend fun getSongControllerState() {
         val id = songController.currentSong?.mediaId
         if (id != null) {
-            currentSong = getSongDataV2(id.toLong())
+            currentSong = getSongData(id.toLong())
         }
         _isPlaying = songController.isPlaying
         isActive = songController.isActive
@@ -235,7 +235,7 @@ class GenreDetailsViewModel @Inject constructor(
     fun onGenreAction(action: GenreAction) {
         Log.i(TAG, "onGenreAction - $action")
         when (action) {
-            is GenreAction.SongMoreOptionClicked -> onSongMoreOptionClicked(action.song)
+            is GenreAction.SongMoreOptionsClicked -> onSongMoreOptionsClicked(action.song)
 
             is GenreAction.PlaySong -> onPlaySong(action.song)
             is GenreAction.PlaySongNext -> onPlaySongNext(action.song)
@@ -248,8 +248,8 @@ class GenreDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun onSongMoreOptionClicked(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick - ${song.title}")
+    private fun onSongMoreOptionsClicked(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionsClick - ${song.title}")
         selectedSong.value = song
     }
 
@@ -285,7 +285,7 @@ class GenreDetailsViewModel @Inject constructor(
 }
 
 sealed interface GenreAction {
-    data class SongMoreOptionClicked(val song: SongInfo) : GenreAction
+    data class SongMoreOptionsClicked(val song: SongInfo) : GenreAction
 
     data class PlaySong(val song: SongInfo) : GenreAction
     data class PlaySongNext(val song: SongInfo) : GenreAction

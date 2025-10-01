@@ -18,7 +18,8 @@ private const val TAG = "Get Song Artist Data Use Case"
 
 /**
  * Use case to retrieve Flow of [ArtistInfo] for given song [SongInfo]
- * @property artistRepo [ArtistRepo] The repository for accessing Artist data
+ * @property artistRepo The repository for accessing Artist data
+ *
  * NOTE: Because the artistId for song can be null,
  * it's possible for ArtistInfo to return as null.
  * So in this case, it will return flow of empty ArtistInfo

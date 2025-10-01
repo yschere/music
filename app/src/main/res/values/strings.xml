@@ -8,6 +8,7 @@
     <string name="retry_label">Retry</string>
 
     <!-- Home screen specific texts section -->
+    <string name="recent_albums">Recent Albums</string>
     <string name="recent_playlists">Recent Playlists</string>
     <string name="recent_songs">Recently Added Songs</string>
 
@@ -60,8 +61,6 @@
     <string name="song_date_duration">%1$s &#8226; %2$d mins</string>
 
     <!-- Player specific buttons content description section -->
-<!--    <string name="cd_add">Add</string>-->
-<!--    <string name="cd_back">Back</string>-->
     <string name="pb_pause">Pause</string>
     <string name="pb_play">Play</string>
     <string name="pb_skip_next">Skip to next</string>
@@ -89,6 +88,11 @@
     <string name="sbt_song_removed_from_your_queue">Song removed from queue</string>
     <string name="sbt_tags_edited">Tags edited for %s</string>
 
+    <!-- Settings Options -->
+    <string name="setting_theme_default">System default theme option</string>
+    <string name="setting_theme_light">Light Mode theme option</string>
+    <string name="setting_theme_dark">Dark Mode theme option</string>
+
     <!-- Notification section -->
     <string name="media_notification_channel">Music Player</string>
     <string name="media_notification_channel_description">Shows the currently playing music</string>
@@ -100,11 +104,16 @@
     <string name="icon_artist">Go to Artist Details</string>
     <string name="icon_back_nav">Navigate back to previous screen</string>
     <string name="icon_composer">Go to Composer Details</string>
+    <string name="icon_clear_field">Clear Text Field</string>
     <string name="icon_create_new_playlist">Create New Playlist</string>
     <string name="icon_delete_song">Remove from Library</string>
     <string name="icon_delete_playlist">Remove Playlist from Library</string>
     <string name="icon_edit">Edit tags</string>
     <string name="icon_export">Export playlist to device</string>
+    <string name="icon_fave_add">Add Song to Favorites</string>
+    <string name="icon_fave_remove">Remove Song from Favorites</string>
+    <string name="icon_is_fave">Is in Favorites</string>
+    <string name="icon_is_not_fave">Not in Favorites</string>
     <string name="icon_genre">Go to Genre Details</string>
     <string name="icon_more">Show More Options</string>
     <string name="icon_multi_select">Select Item(s) in List</string>

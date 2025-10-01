@@ -15,14 +15,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 
 /**
- * Sends an image request and returns the image scaled 150% overlaid by [overlay] with a blur modifier
- * @param imageId Nullable [String] : represents the image's unique identifier
- * @param imageDescription Nullable [String] : describes the image
- * @param overlay [DrawScope] -> [Unit] : defines the filter overlay to draw onto the image
- * @param modifier [Modifier] : defines the modifiers to apply to image
+ * Sends an image request and returns the image scaled 150% overlaid with [overlay] with a blur modifier
+ * @param imageId represents the image's unique identifier
+ * @param imageDescription describes the image
+ * @param overlay defines the filter overlay to draw onto the image
+ * @param modifier defines the modifiers to apply to image
  */
 @Composable
 internal fun ImageBackground(
@@ -60,10 +60,10 @@ internal fun ImageBackground(
 
 /**
  * Draws an image background with a color filter.
- * @param imageId Nullable [String] : represents the image's url
- * @param imageDescription Nullable [String] : describes the image
- * @param color [Color] : defines the color to apply to filter
- * @param modifier [Modifier] : defines any modifiers to apply to image
+ * @param imageId represents the image's url
+ * @param imageDescription describes the image
+ * @param color defines the color to apply to filter
+ * @param modifier defines any modifiers to apply to image
  */
 @Composable
 fun ImageBackgroundColorFilter(
@@ -84,10 +84,10 @@ fun ImageBackgroundColorFilter(
 
 /**
  * Draws an image background with a multicolor radial gradient filter centered on the bottom left.
- * @param imageId Nullable [String] : represents the image's url
- * @param imageDescription Nullable [String] : describes the image
- * @param colors [List] of [Color] : defines the colors to apply to filter
- * @param modifier [Modifier] : defines any modifiers to apply to image
+ * @param imageId represents the image's url
+ * @param imageDescription describes the image
+ * @param colors defines the colors to apply to filter
+ * @param modifier defines any modifiers to apply to image
  */
 @Composable
 fun ImageBackgroundRadialGradientFilter(
@@ -120,10 +120,10 @@ fun ImageBackgroundRadialGradientFilter(
 
 /**
  * Draws an image background with a color filter.
- * @param imageId Nullable [String] : represents the image's bitmap
- * @param imageDescription Nullable [String] : describes the image
- * @param color [Color] : defines the color to apply to filter
- * @param modifier [Modifier] : defines any modifiers to apply to image
+ * @param imageId represents the image's bitmap
+ * @param imageDescription describes the image
+ * @param color defines the color to apply to filter
+ * @param modifier defines any modifiers to apply to image
  */
 @Composable
 fun ImageBackgroundColorFilter_Bm(
@@ -144,10 +144,10 @@ fun ImageBackgroundColorFilter_Bm(
 
 /**
  * Draws an image background with a multicolor radial gradient filter centered on the bottom left.
- * @param imageId Nullable [String] : represents the image's bitmap
- * @param imageDescription Nullable [String] : describes the image
- * @param colors [List] of [Color] : defines the colors to apply to filter
- * @param modifier [Modifier] : defines any modifiers to apply to image
+ * @param imageId represents the image's bitmap
+ * @param imageDescription describes the image
+ * @param colors defines the colors to apply to filter
+ * @param modifier defines any modifiers to apply to image
  */
 @Composable
 fun ImageBackgroundRadialGradientFilter_Bm(
@@ -180,10 +180,10 @@ fun ImageBackgroundRadialGradientFilter_Bm(
 
 /**
  * Draws an image background with a color filter.
- * @param imageId Nullable [String] : represents the image's Uri
- * @param imageDescription Nullable [String] : describes the image
- * @param color [Color] : defines the color to apply to filter
- * @param modifier [Modifier] : defines any modifiers to apply to image
+ * @param imageId represents the image's Uri
+ * @param imageDescription describes the image
+ * @param color defines the color to apply to filter
+ * @param modifier defines any modifiers to apply to image
  */
 @Composable
 fun ImageBackgroundColorFilter_Uri(
@@ -204,10 +204,10 @@ fun ImageBackgroundColorFilter_Uri(
 
 /**
  * Draws an image background with a multicolor radial gradient filter centered on the bottom left.
- * @param imageId Nullable [String] : represents the image's Uri
- * @param imageDescription Nullable [String] : describes the image
- * @param colors [List] of [Color] : defines the colors to apply to filter
- * @param modifier [Modifier] : defines any modifiers to apply to image
+ * @param imageId represents the image's Uri
+ * @param imageDescription describes the image
+ * @param colors defines the colors to apply to filter
+ * @param modifier defines any modifiers to apply to image
  */
 @Composable
 fun ImageBackgroundRadialGradientFilter_Uri(

@@ -2,6 +2,7 @@ package com.example.music.ui.library.artist
 
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -10,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.Modifier
 import com.example.music.R
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.ui.shared.ArtistListItem
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
@@ -26,8 +28,8 @@ fun LazyListScope.artistItems(
     artists: List<ArtistInfo>,
     navigateToArtistDetails: (ArtistInfo) -> Unit,
     onArtistMoreOptionsClick: (ArtistInfo) -> Unit,
-    onSortClick: () -> Unit,
-    onSelectClick: () -> Unit
+    onSortClick: () -> Unit = {},
+    onSelectClick: () -> Unit = {}
 ) {
     Log.i(TAG, "Lazy List START")
 
@@ -37,7 +39,8 @@ fun LazyListScope.artistItems(
             id = R.plurals.artists,
             itemCount = artists.size,
             onSortClick = onSortClick,
-            onSelectClick = onSelectClick
+            onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 
@@ -72,13 +75,14 @@ fun LazyGridScope.artistItems(
             id = R.plurals.artists,
             itemCount = artists.size,
             onSortClick = onSortClick,
-            onSelectClick = onSelectClick
+            onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 
     // Artist List
     items(
-        artists,
+        items = artists,
         span = { GridItemSpan(maxLineSpan) }
     ) { artist ->
         ArtistListItem(
@@ -110,7 +114,8 @@ fun LazyGridScope.artistItems(
             id = R.plurals.artists,
             itemCount = artistCount,
             onSortClick = onSortClick,
-            onSelectClick = onSelectClick
+            onSelectClick = onSelectClick,
+            modifier = Modifier.padding(horizontal = SMALL_PADDING)
         )
     }
 

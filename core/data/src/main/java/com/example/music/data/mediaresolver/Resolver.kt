@@ -176,15 +176,12 @@ private val AUDIO_PROJECTION
         MediaStore.Audio.AudioColumns.GENRE, // 13
         MediaStore.Audio.AudioColumns.GENRE_ID, // 14
         MediaStore.Audio.AudioColumns.YEAR, // 15
-        MediaStore.Audio.AudioColumns.TRACK, // 16
-        MediaStore.Audio.AudioColumns.DURATION, // 17
-        MediaStore.Audio.AudioColumns.BITRATE, // 18
 
-        //adding for testing what these columns return as
-        MediaStore.Audio.AudioColumns._ID, // 19
+        MediaStore.Audio.AudioColumns.DURATION, // 16
+        MediaStore.Audio.AudioColumns.BITRATE, // 17
+        MediaStore.Audio.AudioColumns.TRACK, // 18
+        MediaStore.MediaColumns.CD_TRACK_NUMBER, // 19
         MediaStore.Audio.AudioColumns.DISC_NUMBER, // 20
-        MediaStore.Audio.AudioColumns.NUM_TRACKS, // 21
-        MediaStore.MediaColumns.CD_TRACK_NUMBER, // 22
     )
 
 /**
@@ -285,7 +282,7 @@ private suspend inline fun ContentResolver.getBucketAudios(
 
 /**
  * Search for [Audio] on [MediaStore.Audio.Media._ID]
- * @param id [Long]
+ * @param id audio _id
  * @return [Cursor] transformed to [Audio]
  */
 suspend fun ContentResolver.findAudio(id: Long): Audio =
@@ -304,11 +301,10 @@ suspend fun ContentResolver.findAudio(id: Long): Audio =
                 "Artist: ${result.artist} \n" +
                 "Album: ${result.album} \n" +
                 "Genre: ${result.genre} \n" +
-                "CD TrackNumber: ${result.cdTrackNumber} \n" +
                 "Date Added: ${result.dateAdded} \n" +
                 "Date Modified: ${result.dateModified} \n" +
+                "CD TrackNumber: ${result.cdTrackNumber} \n" +
                 "Disc Number: ${result.discNumber} \n" +
-                "Src TrackNumber: ${result.srcTrackNumber} \n" +
                 "File Path: ${result.path} \n" +
                 "File Size: ${result.size} \n" +
                 "Year: ${result.year} \n"
@@ -319,7 +315,7 @@ suspend fun ContentResolver.findAudio(id: Long): Audio =
 
 /**
  * Search for [Audio] on [MediaStore.Audio.Media.DATA], limit 1
- * @param path [String]
+ * @param path audio file path
  * @return [Cursor] transformed to [Audio]
  */
 suspend fun ContentResolver.findAudio(path: String): Audio =
@@ -339,11 +335,10 @@ suspend fun ContentResolver.findAudio(path: String): Audio =
                 "Artist: ${result.artist} \n" +
                 "Album: ${result.album} \n" +
                 "Genre: ${result.genre} \n" +
-                "CD TrackNumber: ${result.cdTrackNumber} \n" +
                 "Date Added: ${result.dateAdded} \n" +
                 "Date Modified: ${result.dateModified} \n" +
+                "CD TrackNumber: ${result.cdTrackNumber} \n" +
                 "Disc Number: ${result.discNumber} \n" +
-                "Src TrackNumber: ${result.srcTrackNumber} \n" +
                 "File Path: ${result.path} \n" +
                 "File Size: ${result.size} \n" +
                 "Year: ${result.year}"
@@ -354,7 +349,7 @@ suspend fun ContentResolver.findAudio(path: String): Audio =
 
 /**
  * Search for [Audio] on uri, limit 1
- * @param uri [Uri]
+ * @param uri audio uri
  * @return [Cursor] transformed to [Audio]
  */
 suspend fun ContentResolver.findAudio(uri: Uri): Audio =
@@ -372,11 +367,10 @@ suspend fun ContentResolver.findAudio(uri: Uri): Audio =
                 "Artist: ${result.artist} \n" +
                 "Album: ${result.album} \n" +
                 "Genre: ${result.genre} \n" +
-                "CD TrackNumber: ${result.cdTrackNumber} \n" +
                 "Date Added: ${result.dateAdded} \n" +
                 "Date Modified: ${result.dateModified} \n" +
-                "Disc Number: ${result.discNumber} \n" +
-                "Src TrackNumber: ${result.srcTrackNumber} \n" +
+                "CD TrackNumber: ${result.cdTrackNumber?:" null "} \n" +
+                "Disc Number: ${result.discNumber?:" null "} \n" +
                 "File Path: ${result.path} \n" +
                 "File Size: ${result.size} \n" +
                 "Year: ${result.year}"
@@ -412,7 +406,6 @@ private val ARTIST_PROJECTION
         MediaStore.Audio.Artists.ARTIST,
         MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
         MediaStore.Audio.Artists.NUMBER_OF_ALBUMS,
-        MediaStore.Audio.Artists.DEFAULT_SORT_ORDER,
     )
 
 /**
@@ -502,7 +495,7 @@ suspend fun ContentResolver.getArtistAudiosById(
 
 /**
  * Search for [Artist] on name, limit 1
- * @param name [String]
+ * @param name
  * @return [Cursor] transformed to [Artist]?
  */
 suspend fun ContentResolver.findArtist(name: String): Artist = queryExt(
@@ -527,7 +520,7 @@ suspend fun ContentResolver.findArtist(name: String): Artist = queryExt(
 
 /**
  * Search for [Artist] on _id, limit 1
- * @param id [Long]
+ * @param id
  * @return [Cursor] transformed to [Artist]
  */
 suspend fun ContentResolver.findArtist(id: Long): Artist = queryExt(
@@ -552,7 +545,7 @@ suspend fun ContentResolver.findArtist(id: Long): Artist = queryExt(
 
 /**
  * Trying to find artist info based on album Id, limit 1
- * @param albumId [Long]
+ * @param albumId
  * @return [Cursor] transformed to [Artist]?
  */
 suspend fun ContentResolver.findArtistByAlbumId(albumId: Long): Artist = queryExt(
@@ -617,7 +610,6 @@ private val ALBUM_PROJECTION
         MediaStore.Audio.Albums.ARTIST_ID,
         MediaStore.Audio.Albums.LAST_YEAR,
         MediaStore.Audio.Albums.NUMBER_OF_SONGS,
-        MediaStore.Audio.Albums.DEFAULT_SORT_ORDER,
     )
 
 /**
@@ -707,7 +699,7 @@ suspend fun ContentResolver.getAlbumAudiosById(
 
 /**
  * Search for [Album] on [MediaStore.Audio.Media._ID], limit 1
- * @param id [Long]
+ * @param id
  * @return [Cursor] transformed to [Album]
  */
 suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
@@ -734,7 +726,7 @@ suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
 
 /**
  * Search for [Album] on title, limit 1
- * @param title [String]
+ * @param title
  * @return [Cursor] transformed to [Album]
  */
 suspend fun ContentResolver.findAlbum(title: String): Album = queryExt(
@@ -798,7 +790,6 @@ private val GENRE_PROJECTION
     get() = arrayOf(
         MediaStore.Audio.Genres._ID,
         MediaStore.Audio.Genres.NAME,
-        MediaStore.Audio.Genres.DEFAULT_SORT_ORDER,
     )
 
 /**

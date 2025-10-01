@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -21,7 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -30,8 +31,11 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.MINI_PLAYER_BUTTON_SIZE
+import com.example.music.designsys.theme.MINI_PLAYER_HEIGHT
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.getSongData
 import com.example.music.ui.theme.MusicTheme
@@ -48,9 +52,9 @@ fun MiniPlayer(
     song: SongInfo,
     isPlaying: Boolean = true,
     navigateToPlayer: () -> Unit,
-    onPlayPress: () -> Unit = {},
-    onPausePress: () -> Unit = {},
-    playButtonSize: Dp = 48.dp,
+    onPlay: () -> Unit = {},
+    onPause: () -> Unit = {},
+    playButtonSize: Dp = MINI_PLAYER_BUTTON_SIZE,
     modifier: Modifier = Modifier,
 ) {
     Log.i(TAG, "Song: ${song.title}\n" +
@@ -67,14 +71,14 @@ fun MiniPlayer(
 
     Box(
         contentAlignment = Alignment.BottomCenter,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().height(MINI_PLAYER_HEIGHT),
     ) {
         Surface(
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.45f),
             contentColor = MaterialTheme.colorScheme.onSurface,
             onClick = { navigateToPlayer() },
             modifier = modifier.fillMaxWidth()
-//                .horizontalGradientScrim(MaterialTheme.colorScheme.primaryContainer)
+                //.horizontalGradientScrim(MaterialTheme.colorScheme.primaryContainer)
                 .radialMultiGradientScrimAnyOffset(
                     colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.secondaryContainer),
                     xOffset = 1f,
@@ -83,10 +87,10 @@ fun MiniPlayer(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                modifier = Modifier.padding(CONTENT_PADDING)
             ) {
                 HeaderImage(song.artworkUri, song.title)
-                Column(Modifier.padding(8.dp).weight(1f)) {
+                Column(Modifier.padding(CONTENT_PADDING).weight(1f)) {
                     Text(
                         text = song.title,
                         maxLines = 1,
@@ -112,8 +116,9 @@ fun MiniPlayer(
                         contentScale = ContentScale.Fit,
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                         modifier = playButtonModifier
-                            .padding(4.dp)
-                            .clickable { onPausePress() }
+                            .padding(SMALL_PADDING)
+                            .clip(CircleShape)
+                            .clickable { onPause() }
                     )
                 }
                 else {
@@ -124,8 +129,9 @@ fun MiniPlayer(
                         contentScale = ContentScale.Fit,
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                         modifier = playButtonModifier
-                            .padding(4.dp)
-                            .clickable { onPlayPress() }
+                            .padding(SMALL_PADDING)
+                            .clip(CircleShape)
+                            .clickable { onPlay() }
                     )
                 }
             }
@@ -214,8 +220,8 @@ fun MiniPlayerExpanded(
                         isPlaying = isPlaying,
                         isShuffled = isShuffled,
                         repeatState = repeatState,
-                        onPlayPress = miniPlayerExpandedControlActions.onPlayPress,
-                        onPausePress = miniPlayerExpandedControlActions.onPausePress,
+                        onPlay = miniPlayerExpandedControlActions.onPlay,
+                        onPause = miniPlayerExpandedControlActions.onPause,
                         onNext = miniPlayerExpandedControlActions.onNext,
                         onPrevious = miniPlayerExpandedControlActions.onPrevious,
                         onShuffle = miniPlayerExpandedControlActions.onShuffle,
@@ -239,8 +245,8 @@ fun PreviewMiniPlayer() {
             song = getSongData(6535),
             isPlaying = true,
             navigateToPlayer = {},
-            onPlayPress = {},
-            onPausePress = {},
+            onPlay = {},
+            onPause = {},
         )
     }
 }
@@ -255,8 +261,8 @@ fun PreviewMiniPlayerExpanded() {
             isShuffled = false,
             repeatState = RepeatType.ON,
             miniPlayerExpandedControlActions = MiniPlayerExpandedControlActions(
-                onPlayPress = {},
-                onPausePress = {},
+                onPlay = {},
+                onPause = {},
                 onShuffle = {},
                 onRepeat = {},
                 onNext = {},

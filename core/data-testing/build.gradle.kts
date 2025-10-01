@@ -45,6 +45,6 @@ dependencies {
     coreLibraryDesugaring(libs.core.jdk.desugaring)
 
     // Testing
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
+    //testImplementation(libs.junit)
+    //testImplementation(libs.kotlinx.coroutines.test)
 }

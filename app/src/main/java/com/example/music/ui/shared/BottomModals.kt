@@ -14,21 +14,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.ModalBottomSheet
@@ -64,7 +61,13 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.MusicShapes
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.DEFAULT_PADDING
+import com.example.music.designsys.theme.ICON_SIZE
+import com.example.music.designsys.theme.ITEM_IMAGE_ROW_SIZE
+import com.example.music.designsys.theme.LIST_ITEM_HEIGHT
+import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.ComposerInfo
@@ -73,57 +76,67 @@ import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.library.LibraryCategory
+import com.example.music.ui.player.PlayerModalActions
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.util.fullWidthItem
+import com.example.music.ui.tooling.SystemDarkPreview
+import com.example.music.ui.tooling.SystemLightPreview
+import com.example.music.util.InfoBtn
 import com.example.music.util.quantityStringResource
-import kotlinx.coroutines.CoroutineScope
 
 private const val TAG = "Bottom Modal"
 
+/***********************************************************************************************
+ *
+ * ********** BOTTOM MODAL SUPPORTING COMPOSABLE FUNCTIONS ***********
+ *
+ **********************************************************************************************/
+
 /**
- * More Options Modal Content - Action Options Row Composable
- * contains the Action Item to display and the onClick action to be performed when the row is clicked
- * ActionItem contains the icon, name, and contentDescription of the action to perform
+ * More Options Modal Content - Action Options Row Composable. Contains the Action Item to
+ * display and the onClick action to be performed when the row is clicked. ActionItem contains
+ * the icon, name, and contentDescription of the action to perform.
  */
 @Composable
-fun ActionOptionRow(
+private fun ActionOptionRow(
     item: ActionItem,
-    action: () -> Unit
+    onClick: () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { action() }
-            .height(56.dp)
-            .padding(horizontal = 24.dp)
+        modifier = Modifier.fillMaxWidth()
+            .height(LIST_ITEM_HEIGHT)
+            .clickable { onClick() }
+            .padding(horizontal = MODAL_CONTENT_PADDING)
     ) {
         Icon(
             imageVector = item.icon,
             tint = MaterialTheme.colorScheme.onPrimaryContainer,
             contentDescription = stringResource(item.contentDescription),
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(SMALL_PADDING)
         )
         Text(
             text = item.name,
-            modifier = Modifier.padding(start = 16.dp)
+            modifier = Modifier.padding(start = CONTENT_PADDING)
         )
     }
 }
 
 /**
  * More Options Modal Header
+ * @param title name or title of the item
+ * @param item the info object to show in the header
+ * @param onInfoClick specifically for SongInfo when clicking on the Info icon button
  */
 @Composable
-fun MoreOptionModalHeader(
-    title: String = "", // item's name or title
-    item: Any, // one of the info items ... should these Info types actually come from a base class?
+private fun MoreOptionModalHeader(
+    title: String = "",
+    item: Any,
+    onInfoClick: () -> Unit = {},
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 12.dp)
+        modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
     ) {
         // either item image or item first initial
         when (item) {
@@ -148,7 +161,7 @@ fun MoreOptionModalHeader(
         }
 
         // item name/title and item extraInfo
-        Column(Modifier.padding(8.dp).weight(1f)) {
+        Column(Modifier.padding(start = CONTENT_PADDING).weight(1f)) {
             Text(
                 text = title,
                 maxLines = 1,
@@ -193,52 +206,46 @@ fun MoreOptionModalHeader(
             )
         }
 
-        // if item is a PlayerSong, include info icon to pop up song details
-        if( item is SongInfo ) {
-            IconButton( onClick = {} ) { // whatever way to show song details, still not sure how yet
-                Icon(
-                    imageVector = Icons.Filled.Info,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = stringResource(R.string.icon_song_details),
-                    modifier = Modifier.padding(4.dp)
-                )
-            }
+        if(item is SongInfo) {
+            InfoBtn(onClick = onInfoClick)
+            // whatever way to show song details, still not sure how yet
         }
     }
 }
 
 /**
- * More Options Modal Header - Header Item Image
- * used for SongInfo, PlayerSong, AlbumInfo (maybe should also be fore PlaylistInfo)
+ * More Options Modal Header - Header Item Image. Creates the image icon used for
+ * SongInfo, AlbumInfo
  */
 @Composable
-fun HeaderImage(
+internal fun HeaderImage(
     artworkUri: Uri,
     contentDescription: String = "",
 ) {
     AlbumImage(
-        albumImage = artworkUri, //when this is working, it should be the artwork
-        contentDescription = contentDescription, //song.artwork or song.title when this is working
+        albumImage = artworkUri,
+        contentDescription = contentDescription,
         contentScale = ContentScale.Crop,
         modifier = Modifier
-            .size(56.dp)
-            .clip(MusicShapes.medium) // or extraSmall
+            .size(ITEM_IMAGE_ROW_SIZE)
+            .clip(shapes.small)
     )
 }
 
 /**
- * More Options Modal Header - Header Item First Initial
- * used for ArtistInfo, ComposerInfo, GenreInfo
+ * More Options Modal Header - Header Item First Initial. Creates the icon used for
+ * ArtistInfo, ComposerInfo, GenreInfo, PlaylistInfo
  */
 @Composable
-fun HeaderInitial(
+internal fun HeaderInitial(
     name: String = ""
 ) {
     Box(
         modifier = Modifier
-            .size(56.dp)
-            .clip(MusicShapes.medium)
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))){
+            .size(ICON_SIZE)
+            .clip(shapes.small)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+    ){
         Text(
             text = name[0].toString(),
             minLines = 1,
@@ -253,168 +260,229 @@ fun HeaderInitial(
 }
 
 /**
- * More Options Modal Header - Song Item Subtitle text
+ * More Options Modal Header - SongInfo Subtitle text
  */
-fun SongInfo.setSubtitle(): String =
-    if ((this.artistName != "") && (this.albumTitle != "")) {
+internal fun SongInfo.setSubtitle(): String =
+    if ((this.artistName != "") && (this.albumTitle != ""))
         this.artistName + " • " + this.albumTitle
-    } else {
-        (this.artistName) + (this.albumTitle)
-    }
+    else
+        this.artistName + this.albumTitle
 
 /**
- * More Options Modal Header - Album Item Subtitle text
+ * More Options Modal Header - AlbumInfo Subtitle text
  */
 @Composable
-fun AlbumInfo.setSubtitle(): String =
+private fun AlbumInfo.setSubtitle(): String =
     if (this.albumArtistId == null)
         quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
-    else {
-        this.albumArtistName + " • " +
-                quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
-    }
+    else
+        this.albumArtistName +
+            " • " + quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
 
 /**
- * More Options Modal Header - Artist Item Subtitle text
+ * More Options Modal Header - ArtistInfo Subtitle text
  */
 @Composable
-fun ArtistInfo.setSubtitle(): String =
+private fun ArtistInfo.setSubtitle(): String =
     quantityStringResource(R.plurals.albums, this.albumCount, this.albumCount) +
-            " • " +
-            quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
+        " • " + quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
 
 /**
- * More Options Modal Header - Composer Item Subtitle text
+ * More Options Modal Header - ComposerInfo Subtitle text
  */
 @Composable
-fun ComposerInfo.setSubtitle(): String =
+private fun ComposerInfo.setSubtitle(): String =
     quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
 
 /**
- * More Options Modal Header - Genre Item Subtitle text
+ * More Options Modal Header - GenreInfo Subtitle text
  */
 @Composable
-fun GenreInfo.setSubtitle(): String =
+private fun GenreInfo.setSubtitle(): String =
     quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
 
 /**
- * More Options Modal Header - Playlist Item Subtitle text
+ * More Options Modal Header - PlaylistInfo Subtitle text
  */
 @Composable
-fun PlaylistInfo.setSubtitle(): String =
+private fun PlaylistInfo.setSubtitle(): String =
     quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
 
 @Composable
-fun CustomDragHandle() {
+private fun CustomDragHandle() {
     Box(
         modifier = Modifier
-            .padding(vertical = 12.dp)
-            .width(30.dp)
-            .height(4.dp)
-            .clip(MusicShapes.small)
+            .padding(vertical = DEFAULT_PADDING)
+            .width(32.dp)
+            .height(SMALL_PADDING)
+            .clip(shapes.small)
             .background(MaterialTheme.colorScheme.onBackground)
     )
 }
 
-/**
- * Other ideas that could be done thru bottom modal
- * -edit Artist / Composer / Genre tags (because its just editing the name
- * -edit Playlist details (depends if description is a thing)
- * -view song info (media metadata)
- */
+@Composable
+private fun RadioGroupSet(
+    radioOptions: List<String>,
+    //radio button content: @Composable () -> Unit,
+) {
+    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
+    // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier.selectableGroup()
+    ) {
+        radioOptions.forEach { option ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+                    .height(LIST_ITEM_HEIGHT)
+                    .selectable(
+                        selected = (option == selectedOption),
+                        onClick = { onOptionSelected(option) },
+                        role = Role.RadioButton
+                    )
+                    .padding(horizontal = MODAL_CONTENT_PADDING)
+            ) {
+                RadioButton(
+                    selected = (option == selectedOption),
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = MaterialTheme.colorScheme.primary,
+                        unselectedColor = MaterialTheme.colorScheme.onBackground,
+                    ),
+                    modifier = Modifier.padding(SMALL_PADDING),
+                    onClick = null, // null recommended for accessibility with screen readers
+                )
+                // radio button content here
+                Text(
+                    text = option,
+                    color =
+                    if (option == selectedOption) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(start = CONTENT_PADDING),
+                )
+            }
+        }
+    }
+}
 
-/**
- * Idea for modal: to show action items like a dropdown menu when an item's more options btn is clicked/pressed.
- * First, need to be able to call it from any screen that has a more options btn.
- * Second, need it to show context dependent on the item context
- * aka what type of object the more options btn press was from.
- */
+@Composable
+private fun CloseModalBtn(
+    onClick: () -> Unit,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        colors = buttonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        shape = CircleShape,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(CONTENT_PADDING)
+    ) {
+        Text(text)
+    }
+}
+
+@Composable
+private fun ApplyModalBtn(
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        colors = buttonColors(
+            contentColor = MaterialTheme.colorScheme.background,
+            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        shape = CircleShape,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(CONTENT_PADDING)
+    ) {
+        Text(text)
+    }
+}
+
+
+/***********************************************************************************************
+ *
+ * ********** MORE OPTIONS BOTTOM MODALS ***********
+ *
+ **********************************************************************************************/
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SongMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     song: SongInfo,
-    play: () -> Unit = {},
-    playNext: () -> Unit = {},
-    //addToPlaylist() -> Unit = {},
-    addToQueue: () -> Unit = {},
-    goToArtist: () -> Unit = {},
-    goToAlbum: () -> Unit = {},
+    songActions: SongActions,
     onClose: () -> Unit = {},
     context: String = "",
 ) {
-    ModalBottomSheet(
+    BottomModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
-        dragHandle = { CustomDragHandle() },
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        Column (
+        Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier,
+            modifier = Modifier.verticalScroll(state = rememberScrollState())
         ) {
-            // header section
             MoreOptionModalHeader(song.title, song)
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-
-            val songActions = arrayListOf(
-                Pair(Actions.PlayItem, play),
-                Pair(Actions.PlayItemNext, playNext),
-                //Pair(Actions.AddToPlaylist, addToPlaylist),
-                Pair(Actions.AddToQueue, addToQueue),
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
             )
 
-            // action items, shown items are dependent on this being a song item
-            songActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
-            }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            val actions = arrayListOf(
+                Pair(Actions.PlayItem, songActions.play),
+                Pair(Actions.PlayItemNext, songActions.playNext),
+                //Pair(Actions.AddToPlaylist, songActions.addToPlaylist),
+                Pair(Actions.AddToQueue, songActions.addToQueue),
+            )
+
+            actions.forEach { item -> ActionOptionRow(item.first, item.second) }
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+            )
 
             // if the song has an artist name and current screen is not ArtistDetails
             if (song.artistName != "" && context != "ArtistDetails")
-                ActionOptionRow( Actions.GoToArtist, goToArtist )
+                ActionOptionRow(Actions.GoToArtist, songActions.goToArtist)
 
             // if the song has an album title and current screen is not AlbumDetails
             if (song.albumTitle != "" && context != "AlbumDetails")
-                ActionOptionRow( Actions.GoToAlbum, goToAlbum )
+                ActionOptionRow(Actions.GoToAlbum, songActions.goToAlbum)
 
-            /* //if (song.genreName != "" && context != "GenreDetails")
-                //ActionOptionRow( Pair(Actions.GoToGenre) {} )
-            //if (song.composerName != "" && context != "ComposerDetails")
-                //ActionOptionRow( Pair(Actions.GoToComposer) {} )
-
-            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            /* //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING))
             //ActionOptionRow( Pair(Actions.EditSongTags) {} ) //onClick action would go into lambda edit song tags
 
-            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING))
             //if (context == "PlaylistDetails")
                 //ActionOptionRow( Pair(Actions.RemoveFromPlaylist) {} )
             //if (context == "Queue")
                 //ActionOptionRow( Pair(Actions.RemoveFromQueue) {} )
             //ActionOptionRow( Pair(Actions.DeleteFromLibrary) {} ) */
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE",
+            )
         }
     }
 }
@@ -423,78 +491,59 @@ fun SongMoreOptionsBottomModal(
 @Composable
 fun AlbumMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     album: AlbumInfo,
-    play: () -> Unit = {},
-    playNext: () -> Unit = {},
-    shuffle: () -> Unit = {},
-    //addToPlaylist: () -> Unit = {},
-    addToQueue: () -> Unit = {},
-    goToArtist: () -> Unit = {},
-    goToAlbum: () -> Unit = {}, // if on Library.Albums tab
+    albumActions: AlbumActions,
     onClose: () -> Unit = {},
     context: String = "",
 ) {
-    ModalBottomSheet(
+    BottomModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
-        dragHandle = { CustomDragHandle() },
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
         Column (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier,
+            modifier = Modifier.verticalScroll(state = rememberScrollState())
         ) {
-            // header section
             MoreOptionModalHeader(album.title, album)
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-
-            val albumActions = arrayListOf(
-                Pair(Actions.PlayItem, play),
-                Pair(Actions.PlayItemNext, playNext),
-                Pair(Actions.ShuffleItem, shuffle),
-                //Pair(Actions.AddToPlaylist, addToPlaylist),
-                Pair(Actions.AddToQueue, addToQueue),
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
             )
 
-            // action items, shown items are dependent on this being a song item
-            albumActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
-            }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            val actions = arrayListOf(
+                Pair(Actions.PlayItem, albumActions.play),
+                Pair(Actions.PlayItemNext, albumActions.playNext),
+                Pair(Actions.ShuffleItem, albumActions.shuffle),
+                //Pair(Actions.AddToPlaylist, albumActions.addToPlaylist),
+                Pair(Actions.AddToQueue, albumActions.addToQueue),
+            )
+
+            actions.forEach { item -> ActionOptionRow(item.first, item.second) }
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+            )
 
             // if album has album artist and not already on ArtistDetails screen
             if (album.albumArtistId != null && context != "ArtistDetails")
-                ActionOptionRow(Actions.GoToAlbumArtist, goToArtist)
+                ActionOptionRow(Actions.GoToAlbumArtist, albumActions.goToAlbumArtist)
 
             // if in artistDetails, in library.Albums,
             if (context != "AlbumDetails")
-                ActionOptionRow(Actions.GoToAlbum, goToAlbum)
+                ActionOptionRow(Actions.GoToAlbum, albumActions.goToAlbum)
 
-            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING))
             //ActionOptionRow( Actions.EditAlbumTags, {} )
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE",
+            )
         }
     }
 }
@@ -503,74 +552,55 @@ fun AlbumMoreOptionsBottomModal(
 @Composable
 fun ArtistMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     artist: ArtistInfo,
-    play: () -> Unit = {},
-    playNext: () -> Unit = {},
-    shuffle: () -> Unit = {},
-    //addToPlaylist: () -> Unit = {},
-    addToQueue: () -> Unit = {},
-    goToArtist: () -> Unit = {}, // if on Library.Artists tab
+    artistActions: ArtistActions,
     onClose: () -> Unit = {},
     context: String = "",
 ) {
-    ModalBottomSheet(
+    BottomModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
-        dragHandle = { CustomDragHandle() },
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
         Column (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier,
+            modifier = Modifier.verticalScroll(state = rememberScrollState()),
         ) {
-            // header section
             MoreOptionModalHeader(artist.name, artist)
-
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-
-            val artistActions = arrayListOf(
-                Pair(Actions.PlayItem, play),
-                Pair(Actions.PlayItemNext, playNext),
-                Pair(Actions.ShuffleItem, shuffle),
-                //Pair(Actions.AddToPlaylist, addToPlaylist),
-                Pair(Actions.AddToQueue, addToQueue),
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
             )
 
-            // action items, shown items are dependent on this being an artist item
-            artistActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
-            }
+            val actions = arrayListOf(
+                Pair(Actions.PlayItem, artistActions.play),
+                Pair(Actions.PlayItemNext, artistActions.playNext),
+                Pair(Actions.ShuffleItem, artistActions.shuffle),
+                //Pair(Actions.AddToPlaylist, artistActions.addToPlaylist),
+                Pair(Actions.AddToQueue, artistActions.addToQueue),
+            )
+
+            actions.forEach { item -> ActionOptionRow(item.first, item.second) }
 
             // if on library.artists
             if (context != "ArtistDetails") {
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-                ActionOptionRow( Actions.GoToArtist, goToArtist )
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+                )
+                ActionOptionRow(Actions.GoToArtist, artistActions.goToArtist)
             }
 
-            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING))
             //ActionOptionRow( Actions.EditArtistTags, {} ) //onClick action in the lambda
-
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE",
+            )
         }
     }
 }
@@ -579,75 +609,57 @@ fun ArtistMoreOptionsBottomModal(
 @Composable
 fun ComposerMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     composer: ComposerInfo,
-    play: () -> Unit = {},
-    playNext: () -> Unit = {},
-    shuffle: () -> Unit = {},
-    //addToPlaylist: () -> Unit = {},
-    addToQueue: () -> Unit = {},
-    goToComposer: () -> Unit, // if on Library.Composers tab
+    composerActions: ComposerActions,
     onClose: () -> Unit = {},
     context: String = "",
 ) {
-    ModalBottomSheet(
+    BottomModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
-        dragHandle = { CustomDragHandle() },
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-
         Column (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier,
+            modifier = Modifier.verticalScroll(state = rememberScrollState()),
         ) {
-            // header section
             MoreOptionModalHeader(composer.name, composer)
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+            )
 
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-
-            val composerActions = listOf(
-                Pair(Actions.PlayItem, play),
-                Pair(Actions.PlayItemNext, playNext),
-                Pair(Actions.ShuffleItem, shuffle),
-                //Pair(Actions.AddToPlaylist, addToPlaylist),
-                Pair(Actions.AddToQueue, addToQueue),
+            val actions = listOf(
+                Pair(Actions.PlayItem, composerActions.play),
+                Pair(Actions.PlayItemNext, composerActions.playNext),
+                Pair(Actions.ShuffleItem, composerActions.shuffle),
+                //Pair(Actions.AddToPlaylist, composerActions.addToPlaylist),
+                Pair(Actions.AddToQueue, composerActions.addToQueue),
             )
 
             // action items, shown items are dependent on this being a song item
-            composerActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
-            }
+            actions.forEach { item -> ActionOptionRow(item.first, item.second) }
+
 
             // if on library.composers
             if (context != "ComposerDetails") {
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-                ActionOptionRow(Actions.GoToComposer, goToComposer)
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+                )
+                ActionOptionRow(Actions.GoToComposer, composerActions.goToComposer)
             }
-
-            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING))
             //ActionOptionRow( Actions.EditComposerTags, {} )
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
@@ -656,74 +668,57 @@ fun ComposerMoreOptionsBottomModal(
 @Composable
 fun GenreMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     genre: GenreInfo,
-    play: () -> Unit = {},
-    playNext: () -> Unit = {},
-    shuffle: () -> Unit = {},
-    //addToPlaylist: () -> Unit = {},
-    addToQueue: () -> Unit = {},
-    goToGenre: () -> Unit = {}, // if on Library.Genres tab
+    genreActions: GenreActions,
     onClose: () -> Unit = {},
     context: String = "",
 ) {
-    ModalBottomSheet(
+    BottomModal (
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
-        dragHandle = { CustomDragHandle() },
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
         Column (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
             modifier = Modifier,
         ) {
-            // header section
             MoreOptionModalHeader(genre.name, genre)
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+            )
 
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-
-            val genreActions = listOf(
-                Pair(Actions.PlayItem, play),
-                Pair(Actions.PlayItemNext, playNext),
-                Pair(Actions.ShuffleItem, shuffle),
-                //Pair(Actions.AddToPlaylist, addToPlaylist),
-                Pair(Actions.AddToQueue, addToQueue),
+            val actions = listOf(
+                Pair(Actions.PlayItem, genreActions.play),
+                Pair(Actions.PlayItemNext, genreActions.playNext),
+                Pair(Actions.ShuffleItem, genreActions.shuffle),
+                //Pair(Actions.AddToPlaylist, genreActions.addToPlaylist),
+                Pair(Actions.AddToQueue, genreActions.addToQueue),
             )
 
             // action items, shown items are dependent on this being a song item
-            genreActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
-            }
+            actions.forEach { item -> ActionOptionRow(item.first, item.second) }
 
             // if on library.genres
             if (context != "GenreDetails") {
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-                ActionOptionRow(Actions.GoToGenre, goToGenre)
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+                )
+                ActionOptionRow(Actions.GoToGenre, genreActions.goToGenre)
             }
 
-            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING))
             //ActionOptionRow(Actions.EditGenreTags, {})
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
@@ -732,158 +727,172 @@ fun GenreMoreOptionsBottomModal(
 @Composable
 fun PlaylistMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     playlist: PlaylistInfo,
-    play: () -> Unit = {},
-    playNext: () -> Unit = {},
-    shuffle: () -> Unit = {},
-    //addToPlaylist: () -> Unit = {},
-    addToQueue: () -> Unit = {},
-    goToPlaylist: () -> Unit = {}, // if on Library.Playlists tab
+    playlistActions: PlaylistActions,
     onClose: () -> Unit = {},
     context: String = "",
 ) {
-    ModalBottomSheet(
+    BottomModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
-        dragHandle = { CustomDragHandle() },
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
         Column (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier,
+            modifier = Modifier.verticalScroll(state = rememberScrollState())
         ) {
-            // header section
             MoreOptionModalHeader(playlist.name, playlist)
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+            )
 
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-
-            val playlistActions = listOf(
-                Pair(Actions.PlayItem, play),
-                Pair(Actions.PlayItemNext, playNext),
-                Pair(Actions.ShuffleItem, shuffle),
-                //Pair(Actions.AddToPlaylist, addToPlaylist),
-                Pair(Actions.AddToQueue, addToQueue),
+            val actions = listOf(
+                Pair(Actions.PlayItem, playlistActions.play),
+                Pair(Actions.PlayItemNext, playlistActions.playNext),
+                Pair(Actions.ShuffleItem, playlistActions.shuffle),
+                //Pair(Actions.AddToPlaylist, playlistActions.addToPlaylist),
+                Pair(Actions.AddToQueue, playlistActions.addToQueue),
             )
 
             // action items, shown items are dependent on this being a song item
-            playlistActions.forEach { item ->
-                ActionOptionRow(item.first, item.second)
-            }
+            actions.forEach { item -> ActionOptionRow(item.first, item.second) }
 
             // if on library.playlists
             if (context != "PlaylistDetails") {
-                HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
-                ActionOptionRow(Actions.GoToPlaylist, goToPlaylist)
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+                )
+                ActionOptionRow(Actions.GoToPlaylist, playlistActions.goToPlaylist)
             }
 
-            //ActionOptionRow( Actions.EditPlaylistTags, {} )
+            /* //ActionOptionRow( Actions.EditPlaylistTags, {} )
             //ActionOptionRow( Actions.EditPlaylistOrder, {} )
 
-            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            //HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING))
             //ActionOptionRow( Actions.ExportPlaylist, {} )
-            //ActionOptionRow( Actions.DeletePlaylist, {} )
+            //ActionOptionRow( Actions.DeletePlaylist, {} ) */
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
 
-/**
- * Preemptively adding this since will likely need more options for the queue
- * just not sure how or in what capacity
- *
- * Actual content of this would either need to be dependent on:
- * 1 - is this modal being used for the sake of the current song?
- * 2 - is this modal being used to operate on the queue itself
- * 3 - is this modal being used to operate on the list of songs in the queue
- * 4 - how is the queue itself being displayed in UI
- * each of these contexts would need slightly different actions/modal content
- */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PlayerMoreOptionsBottomModal(
+    onDismissRequest: () -> Unit,
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+
+    song: SongInfo,
+    playerModalActions: PlayerModalActions,
+    onClose: () -> Unit = {},
+) {
+    BottomModal(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+    ) {
+        Column (
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.verticalScroll(state = rememberScrollState()),
+        ) {
+            MoreOptionModalHeader(song.title, song)
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+            )
+
+            val songActions = arrayListOf(
+                //Pair(Actions.PlayItemNext, {}),
+                //Pair(Actions.AddToPlaylist, {}),
+                Pair(Actions.GoToArtist, playerModalActions.goToArtist),
+                Pair(Actions.GoToAlbum, playerModalActions.goToAlbum),
+            )
+
+            songActions.forEach { item -> ActionOptionRow(item.first, item.second) }
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+            )
+
+            val queueActions = arrayListOf(
+                Pair(Actions.ClearQueue, playerModalActions.clearQueue),
+                Pair(Actions.SaveQueueToPlaylist, playerModalActions.saveQueue)
+            )
+
+            queueActions.forEach { item -> ActionOptionRow(item.first, item.second) }
+            CloseModalBtn(
+                onClick = onClose,
+                text = "CLOSE"
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QueueMoreOptionsBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
-    navigateToPlayer: () -> Unit = {},
-    play: () -> Unit = {},
-    playNext: () -> Unit = {},
-    shuffle: () -> Unit = {},
-    addToPlaylist: () -> Unit = {},
-    addToQueue: () -> Unit = {},
-    clearQueue: () -> Unit = {},
+    queueActions: QueueActions,
     onClose: () -> Unit = {},
-    context: String = "",
 ) {
-    ModalBottomSheet(
+    BottomModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
-        dragHandle = { CustomDragHandle() },
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
         Column (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier,
+            modifier = Modifier.verticalScroll(state = rememberScrollState()),
         ) {
-            Row(
-                //verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Text("Now Playing")
-            }
-            HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+            Text(
+                text = "Now Playing",
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
+            )
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+            )
 
-            ActionOptionRow(Actions.AddToPlaylist, addToPlaylist)
-            ActionOptionRow(Actions.ClearQueue, clearQueue)
-            ActionOptionRow(Actions.SaveQueueToPlaylist, {})
+            ActionOptionRow(Actions.AddToPlaylist, queueActions.addToPlaylist)
+            ActionOptionRow(Actions.SaveQueueToPlaylist, queueActions.saveQueueToPlaylist)
+            ActionOptionRow(Actions.ClearQueue, queueActions.clearQueue)
 
-            Button(
+            CloseModalBtn(
                 onClick = onClose,
-                colors = buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
-                shape = MusicShapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text("CLOSE")
-            }
+                text = "CLOSE"
+            )
         }
     }
 }
 
+
+/***********************************************************************************************
+ *
+ * ********** OBJECT SORTING BOTTOM MODALS ***********
+ *
+ **********************************************************************************************/
+
 /**
  * Bottom Modal for Library Screen to use for sorting on the library list's Sort btn
+ * @param libraryCategory the library tab context for the items to sort
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -891,133 +900,106 @@ fun LibrarySortSelectionBottomModal(
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
-    libraryCategory: LibraryCategory,
     onClose: () -> Unit = {},
     onApply: () -> Unit = {},
+    libraryCategory: LibraryCategory,
 ){
-    ModalBottomSheet(
+    BottomModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
-        dragHandle = { CustomDragHandle() },
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        LazyColumn (
+        Column (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier
+            modifier = Modifier.verticalScroll(state = rememberScrollState())
         ) {
-            item {
-                Text(
-                    text = "Sort by",
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            }
+            Text(
+                text = "Sort by:",
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
+            )
 
-            item {
-                //list of radio buttons, set of options determined by context
-                when (libraryCategory) {
+            //list of radio buttons, set of options determined by context
+            when (libraryCategory) {
 
-                    LibraryCategory.Albums -> {
-                        //sorting on library.albums screen
-                        RadioGroupSet(
-                            listOf(
-                                "Title",
-                                "Album Artist",
-                                "Date Last Played",
-                                "Song Count"
-                            )
+                //sorting on library.albums screen
+                LibraryCategory.Albums -> {
+                    RadioGroupSet(
+                        listOf(
+                            "Title",
+                            "Album Artist",
+                            "Date Last Played",
+                            "Song Count"
                         )
-                    }
+                    )
+                }
 
-                    LibraryCategory.Artists -> {
-                        //sorting on library.artists screen
-                        RadioGroupSet(listOf("Name", "Album Count", "Song Count"))
-                    }
-
-                    LibraryCategory.Composers -> {
-                        //sorting on library.composers screen
-                        RadioGroupSet(listOf("Name", "Song Count"))
-                    }
-
-                    LibraryCategory.Genres -> {
-                        //sorting on library.genres screen
-                        RadioGroupSet(listOf("Name", "Song Count"))
-                    }
-
-                    LibraryCategory.Playlists -> {
-                        //sorting on library.playlists screen
-                        RadioGroupSet(
-                            listOf(
-                                "Playlist name",
-                                "Date created",
-                                "Date last accessed",
-                                "Date last played",
-                                "Song Count"
-                            )
+                //sorting on library.artists screen
+                LibraryCategory.Artists -> {
+                    RadioGroupSet(
+                        listOf(
+                            "Name",
+                            "Album Count",
+                            "Song Count"
                         )
-                    }
+                    )
+                }
 
-                    LibraryCategory.Songs -> {
-                        //sorting on library.songs screen
-                        RadioGroupSet(
-                            listOf(
-                                "Song title",
-                                "Artist name",
-                                "Album title",
-                                "Date added",
-                                "Date last played"
-                            )
+                //sorting on library.composers screen
+                LibraryCategory.Composers -> { RadioGroupSet(listOf("Name", "Song Count")) }
+
+                //sorting on library.genres screen
+                LibraryCategory.Genres -> { RadioGroupSet(listOf("Name", "Song Count")) }
+
+                //sorting on library.playlists screen
+                LibraryCategory.Playlists -> {
+                    RadioGroupSet(
+                        listOf(
+                            "Playlist name",
+                            "Date created",
+                            "Date last accessed",
+                            "Date last played",
+                            "Song Count"
                         )
-                    }
+                    )
+                }
+
+                //sorting on library.songs screen
+                LibraryCategory.Songs -> {
+                    RadioGroupSet(
+                        listOf(
+                            "Song title",
+                            "Artist name",
+                            "Album title",
+                            "Date added",
+                            "Date last played"
+                        )
+                    )
                 }
             }
 
-            item { HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) }
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+            )
 
             // radio buttons for selecting ascending or descending
-            item { RadioGroupSet(listOf("Ascending", "Descending")) }
+            RadioGroupSet(listOf("Ascending", "Descending"))
 
-            item {
-                Row {
-                    // Cancel/Exit btn
-                    Button(
-                        onClick = onClose,
-                        colors = buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("CANCEL")
-                    }
-
-                    // Apply btn
-                    Button(
-                        onClick = onApply,
-                        colors = buttonColors(
-                            contentColor = MaterialTheme.colorScheme.background,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("APPLY")
-                    }
-                }
+            Row {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CANCEL",
+                    modifier = Modifier.weight(0.5f)
+                )
+                ApplyModalBtn(
+                    onClick = onApply,
+                    text = "APPLY",
+                    modifier = Modifier.weight(0.5f)
+                )
             }
         }
     }
@@ -1025,6 +1007,8 @@ fun LibrarySortSelectionBottomModal(
 
 /**
  * Bottom Modal for Details Screens to use for selected Details item's Sort btn
+ * @param content the object type of the items to sort // item(s) to be sorted
+ * @param context the screen context // screen containing item(s) to sort
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1034,354 +1018,252 @@ fun DetailsSortSelectionBottomModal(
 
     onClose: () -> Unit = {},
     onApply: () -> Unit = {},
-    content: String = "", // item(s) to be sorted
-    context: String = "", // screen containing item(s) to sort
+    content: String = "",
+    context: String = "",
 ){
-    ModalBottomSheet(
+    BottomModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
-        dragHandle = { CustomDragHandle() },
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        LazyColumn(
+        Column (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier
+            modifier = Modifier.verticalScroll(state = rememberScrollState())
         ) {
-            item {
-                Text(
-                    text = "Sort by",
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            }
+            Text(
+                text = "Sort by:",
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
+            )
 
-            //list of radio buttons, set of options determined by context
-            item {
-                when (content) {
+            //list of radio buttons, set of options determined by content and context
+            when (content) {
+                "AlbumInfo" -> {
+                    //sorting on artist details -> album list screen
+                    RadioGroupSet(listOf("Album Title", "Song Count"))
+                }
 
-                    "AlbumInfo" -> { // is AlbumInfo
-                        //sorting on artist details -> album list screen
-                        RadioGroupSet(listOf("Album Title", "Song Count"))
-                    }
-
-                    "SongInfo" -> { // is SongInfo
+                "SongInfo" -> {
+                    when (context) {
                         //sorting on album details screen -> "Title, Track Number" -found in albumRepo, songRepo
-                        if (context == "AlbumDetails")
-                            RadioGroupSet(listOf("Title", "Track number"))
+                        "AlbumDetails" -> { RadioGroupSet(listOf("Title", "Track number")) }
 
                         //sorting on artist details screen -> "Song Title, Album Title" -songRepo
-                        if (context == "ArtistDetails")
-                            RadioGroupSet(listOf("Title", "Album Title"))
+                        "ArtistDetails" -> { RadioGroupSet(listOf("Title", "Album Title")) }
 
                         //sorting on composer details screen -> "Title -songRepo, date last played -composerRepo
-                        if (context == "ComposerDetails")
-                            RadioGroupSet(listOf("Title", "Date Last Played"))
+                        "ComposerDetails" -> { RadioGroupSet(listOf("Title", "Date Last Played")) }
 
                         //sorting on genre details screen -> "Title, date last played -songRepo, genreRepo
-                        if (context == "GenreDetails")
-                            RadioGroupSet(listOf("Title", "Date Last Played"))
+                        "GenreDetails" -> { RadioGroupSet(listOf("Title", "Date Last Played")) }
 
                         //sorting on playlist details screen -> "Title, track number
-                        if (context == "PlaylistDetails")
-                            RadioGroupSet(listOf("Title", "Track number"))
-                    }
+                        "PlaylistDetails" -> { RadioGroupSet(listOf("Title", "Track number")) }
 
-                    else -> {
-                        Text("this is not a valid object to pass")
+                        else -> { Text("this is not a valid context screen to pass") }
                     }
                 }
+
+                else -> { Text("This is not a valid content type to pass") }
             }
 
-            item { HorizontalDivider(thickness = 1.dp, color = Color.Gray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) }
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+            )
 
-            //radio buttons for selecting ascending or descending
-            item { RadioGroupSet(listOf("Ascending", "Descending")) }
+            RadioGroupSet(listOf("Ascending", "Descending"))
 
-            item {
-                Row {
-                    // Cancel/Exit btn
-                    Button(
-                        onClick = onClose,
-                        colors = buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("CANCEL")
-                    }
-
-                    // Apply btn
-                    Button(
-                        onClick = onApply,
-                        colors = buttonColors(
-                            contentColor = MaterialTheme.colorScheme.background,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("APPLY")
-                    }
-                }
+            Row {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CANCEL",
+                    modifier = Modifier.weight(0.5f)
+                )
+                ApplyModalBtn(
+                    onClick = onApply,
+                    text = "APPLY",
+                    modifier = Modifier.weight(0.5f)
+                )
             }
         }
     }
 }
 
+
+/***********************************************************************************************
+ *
+ * ********** SETTINGS BOTTOM MODAL ***********
+ *
+ **********************************************************************************************/
+
 /**
- * Bottom modal for creating Playlists, from either Add to playlist -> New playlist prompt or on Library.Playlists -> Add btn
+ * Bottom Modal for Settings Screen to display preference options
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsBottomModal(
+    onDismissRequest: () -> Unit,
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+
+    onClose: () -> Unit,
+    onApply: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    BottomModal(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+    ) {
+        content()
+
+        Row {
+            CloseModalBtn(
+                onClick = onClose,
+                text = "CANCEL",
+                modifier = Modifier.weight(0.5f)
+            )
+            ApplyModalBtn(
+                onClick = onApply,
+                text = "APPLY",
+                modifier = Modifier.weight(0.5f)
+            )
+        }
+    }
+}
+
+
+/***********************************************************************************************
+ *
+ * ********** CREATE PLAYLIST BOTTOM MODAL ***********
+ *
+ **********************************************************************************************/
+
+/**
+ * Bottom modal for creating Playlists, from either Add to playlist -> New playlist prompt
+ * or on Library.Playlists -> Add btn
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePlaylistBottomModal(
     onDismissRequest: () -> Unit,
-    sheetState: SheetState = rememberModalBottomSheetState(),
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
-    coroutineScope: CoroutineScope,
     onClose: () -> Unit = {},
     onCreate: () -> Unit = {},
 ) {
     var nameText by remember { mutableStateOf("") }
     var descriptionText by remember { mutableStateOf("") }
-    val errorMessage = "Name cannot be empty"
     val state = rememberTextFieldState()
-    var isError by rememberSaveable { mutableStateOf(false) }
 
     // required text field validation functions
-    fun validate(text: CharSequence) {
-        isError = text.isEmpty()
-    }
-    fun isInvalid(text: CharSequence): Boolean = text.isEmpty()
-    val createEnabled = remember { derivedStateOf { isInvalid(nameText) } }
+    val createEnabled = remember { derivedStateOf { nameText.isNotEmpty() } }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { state.text }.collect{ validate(it) }
+        snapshotFlow { state.text }.collect{
+            Log.i(TAG, "current text is: ${it.chars()}")
+        }
     }
 
+    BottomModal(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+    ) {
+        Column (
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.padding(horizontal = MODAL_CONTENT_PADDING)
+        ) {
+            Text(
+                text = "Create New Playlist",
+                modifier = Modifier.padding(start = CONTENT_PADDING),
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleLarge,
+            )
+
+            //playlist name text field, REQUIRED
+            OutlinedTextField(
+                value = nameText,
+                onValueChange = { nameText = it },
+                singleLine = true,
+                shape = shapes.large,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = DEFAULT_PADDING, vertical = SMALL_PADDING),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedContainerColor = MaterialTheme.colorScheme.onPrimary,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.onPrimary,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                ),
+                label = { Text("Playlist Name") },
+            )
+
+            //playlist description text field, NOT REQUIRED
+            OutlinedTextField(
+                value = descriptionText,
+                onValueChange = { descriptionText = it },
+                singleLine = true,
+                maxLines = 3,
+                shape = shapes.large,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = DEFAULT_PADDING, vertical = SMALL_PADDING),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    focusedContainerColor = MaterialTheme.colorScheme.onPrimary,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.onPrimary,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                ),
+                label = { Text("Description") },
+            )
+
+            Row {
+                CloseModalBtn(
+                    onClick = onClose,
+                    text = "CANCEL",
+                    modifier = Modifier.weight(0.5f)
+                )
+                ApplyModalBtn(
+                    onClick = onCreate,
+                    enabled = createEnabled.value,
+                    text = "CREATE",
+                    modifier = Modifier.weight(0.5f)
+                )
+            }
+        }
+    }
+}
+
+
+/***********************************************************************************************
+ *
+ * ********** BASE BOTTOM MODAL ***********
+ *
+ **********************************************************************************************/
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BottomModal(
+    onDismissRequest: () -> Unit,
+    sheetState: SheetState,
+    content: @Composable () -> Unit,
+) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),// = MaterialTheme.colorScheme.scrim.copy(alpha=0.2f),
+        containerColor = MaterialTheme.colorScheme.background,
+        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(1),
-            verticalArrangement = Arrangement.Top,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier
-                .padding(horizontal = 24.dp)//, vertical = 16.dp)
-        ) {
-            fullWidthItem {
-                Text(
-                    text = "Create New Playlist",
-                    modifier = Modifier.padding(start = 16.dp),
-                    textAlign = TextAlign.Left,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            }
-
-            fullWidthItem {
-                //playlist name text field
-                OutlinedTextField(
-                    value = nameText,
-                    onValueChange = {
-                        nameText = it
-                        validate(nameText)
-                    },
-                    singleLine = true,
-                    isError = isError,
-                    supportingText = {
-                        Row {
-                            Text(
-                                text = if (isError) errorMessage else "",
-                                modifier = Modifier.clearAndSetSemantics {},
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    },
-                    keyboardActions = KeyboardActions { validate(nameText) },
-                    shape = shapes.large,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.primary,
-                        focusedContainerColor = MaterialTheme.colorScheme.onPrimary,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.onPrimary,
-                        //unfocusedIndicatorColor = Color.Green, //border line
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        //unfocusedTextColor = MaterialTheme.colorScheme.onBackground, //seems like default color
-                        //unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    ),
-                    label = { Text("Playlist Name") },
-                )
-            }
-
-            fullWidthItem {
-                //playlist description text field, NOT REQUIRED
-                OutlinedTextField(
-                    value = descriptionText,
-                    onValueChange = { descriptionText = it },
-                    singleLine = true,
-                    maxLines = 3,
-                    shape = shapes.large,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = MaterialTheme.colorScheme.primary,
-                        focusedContainerColor = MaterialTheme.colorScheme.onPrimary,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.onPrimary,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                    ),
-                    label = { Text("Description") },
-                )
-                //TextField()
-                //text field for playlist name, *required
-                //text field for playlist description, not required
-            }
-
-            fullWidthItem {
-                Row {
-                    // Cancel btn
-                    Button(
-                        onClick = onClose,
-                        colors = buttonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onBackground,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("CANCEL")
-                    }
-
-                    // Create playlist btn
-                    Button(
-                        onClick = onCreate,
-                        enabled = !createEnabled.value,
-                        colors = buttonColors(
-                            contentColor = MaterialTheme.colorScheme.background,
-                            disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledContentColor = MaterialTheme.colorScheme.surfaceVariant,
-                        ),
-                        shape = MusicShapes.small,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .weight(0.5f)
-                    ) {
-                        Text("CREATE")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun RadioGroupSet(
-    radioOptions: List<String>,
-) {
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
-    // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier
-            .selectableGroup()
-    ) {
-        radioOptions.forEach { text ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .selectable(
-                        selected = (text == selectedOption),
-                        onClick = { onOptionSelected(text) },
-                        role = Role.RadioButton
-                    ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(
-                    selected = (text == selectedOption),
-                    colors = RadioButtonDefaults.colors(
-                        selectedColor = MaterialTheme.colorScheme.primary,
-                        unselectedColor = MaterialTheme.colorScheme.onBackground,
-                    ),
-                    modifier = Modifier.padding(start = 24.dp),
-                    onClick = null, // null recommended for accessibility with screen readers
-                )
-                Text(
-                    text = text,
-                    color =
-                    if (text == selectedOption)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onBackground,
-                    //style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(start = 16.dp)
-                )
-            }
-        }
-    }
-}
-
-
-/*
-    more options context menu
-    * now playing - add to playlist, go to artist, go to album, clear queue, save queue, view tags(?)
-    * navigation sidebar?
-    * show queue: on queue context - add to playlist, go to artist, go to album, clear queue, save queue
-    * show queue: on song context -  play next, add to playlist, go to artist, go to album, remove from queue, view tags(?)
-    * all songs list: on song context - play next, add to queue, add to playlist, go to artist, go to album, remove from library, delete from device, view tags(?)
-    * all artists list - none(?)
-    * all albums list - shuffle, play next, add to queue, add to playlist, go to artist
-    * all genres list - play next, add to queue
-    * all playlists list - shuffle, play next, add to queue, add to playlist, edit playlist, delete, export(?)
-    * artist’s album list page (from all artists list to selected artist view): on single album context - shuffle, play next, add to queue, add to playlist, go to artist
-    * all artist’s songs page (from selected artist to all albums/songs view): on ‘all my songs’ context - shuffle, play next, add to queue, add to playlist
-    * all artist’s songs page (from selected artist to all albums/songs view): on individual song context - play next, add to queue, add to playlist, go to artist, go to album, delete, view tags(?)
-    * album’s page (from selected artist to selected album view): on artist name context - shuffle, play next, add to queue, add to playlist, go to artist
-    * album’s page (from selected artist to selected album view): on individual song context - play next, add to queue, add to playlist, go to artist, delete, view tags(?)
-    * album’s page (from all albums list to selected album view): on artist name context - shuffle, play next, add to queue, add to playlist, go to artist
-    * album’s page (from all albums list to selected album view): on individual song context - play next, add to queue, add to playlist, go to artist, delete, view tags(?)
-    * playlist page (from all playlists to selected playlist): on my playlist context - shuffle, play next, add to queue, add to playlist, edit playlist, delete, export(?)
-    * playlist page (from all playlists to selected playlist): on individual song context - play next, add to queue, add to playlist, edit playlist, remove from playlist, delete(?), view tags(?)
- */
-
-//@CompLightPreview
-@Composable
-fun PreviewRadioButtons() {
-    MusicTheme {
-        RadioGroupSet(listOf("Ascending", "Descending"))
+        content()
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-//@SystemLightPreview
-//@SystemDarkPreview
+@SystemDarkPreview
 @Composable
 fun PreviewLibrarySortModal() {
     MusicTheme {
@@ -1398,8 +1280,7 @@ fun PreviewLibrarySortModal() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-//@Preview
-//@SystemLightPreview
+@SystemLightPreview
 @Composable
 fun PreviewMoreOptionsModal() {
     MusicTheme {
@@ -1411,6 +1292,27 @@ fun PreviewMoreOptionsModal() {
                 density = Density(1f,1f)
             ),
             song = PreviewSongs[0],
+            songActions = SongActions(),
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@SystemDarkPreview
+@Composable
+fun PreviewDetailSortModal() {
+    MusicTheme {
+        DetailsSortSelectionBottomModal(
+            onDismissRequest = {},
+            sheetState = SheetState(
+                initialValue = SheetValue.Expanded,
+                skipPartiallyExpanded = true,
+                density = Density(1f,1f)
+            ),
+            onClose = {},
+            onApply = {},
+            content = "SongInfo",
+            context = "ComposerDetails"
         )
     }
 }

@@ -76,7 +76,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewModelCompose)
 
     // Image Loading
-    implementation(libs.coil.kt.compose)
     implementation(libs.coil3.kt.compose)
 
     // Testing

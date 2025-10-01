@@ -15,11 +15,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,15 +25,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.systemBarsIgnoringVisibility
-import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
@@ -45,12 +36,10 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SliderDefaults.Thumb
@@ -58,6 +47,11 @@ import androidx.compose.material3.SliderDefaults.Track
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
+import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -92,13 +86,22 @@ import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
 import com.example.music.designsys.component.ImageBackgroundColorFilter_Bm
 import com.example.music.designsys.component.ImageBackgroundRadialGradientFilter_Bm
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.PRIMARY_BUTTON_SIZE
+import com.example.music.designsys.theme.SCREEN_PADDING
+import com.example.music.designsys.theme.SIDE_BUTTON_SIZE
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.shared.Error
+import com.example.music.ui.shared.Loading
+import com.example.music.ui.shared.PlayerMoreOptionsBottomModal
 import com.example.music.ui.shared.formatString
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
+import com.example.music.util.BackNavBtn
+import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.QueueBtn
 import com.example.music.util.isCompact
 import com.example.music.util.isExpanded
 import com.example.music.util.isMedium
@@ -116,6 +119,8 @@ fun PlayerScreen(
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
     navigateBack: () -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     PlayerScreen(
@@ -126,12 +131,15 @@ fun PlayerScreen(
         progress = viewModel.progress,
         timeElapsed = viewModel.position,
         hasNext = viewModel.hasNext,
+        clearQueue = viewModel::onClearQueue,
         windowSizeClass = windowSizeClass,
         displayFeatures = displayFeatures,
         navigateBack = navigateBack,
+        navigateToAlbumDetails = navigateToAlbumDetails,
+        navigateToArtistDetails = navigateToArtistDetails,
         playerControlActions = PlayerControlActions(
-            onPlayPress = viewModel::onPlay,
-            onPausePress = viewModel::onPause,
+            onPlay = viewModel::onPlay,
+            onPause = viewModel::onPause,
             onNext = viewModel::onNext,
             onPrevious = viewModel::onPrevious,
             onSeek = viewModel::onSeek,
@@ -143,21 +151,6 @@ fun PlayerScreen(
     // TODO: determine another invocation point for error handling
     if (state.errorMessage != null) { PlayerScreenError(onRetry = viewModel::refresh) }*/
 }
-
-//wrappers for default class of possible control actions
-data class PlayerControlActions(
-    val onPlayPress: () -> Unit,
-    val onPausePress: () -> Unit,
-    val onNext: () -> Unit,
-    val onPrevious: () -> Unit,
-    val onSeek: (Long) -> Unit,
-    val onShuffle: () -> Unit,
-    val onRepeat: () -> Unit
-)
-data class MiniPlayerControlActions(
-    val onPlayPress: () -> Unit,
-    val onPausePress: () -> Unit,
-)
 
 /**
  * Error Screen
@@ -176,6 +169,7 @@ private fun PlayerScreenError(
 /**
  * Stateless version of Player Screen
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayerScreen(
     currentSong: SongInfo,
@@ -185,21 +179,43 @@ private fun PlayerScreen(
     progress: Float,
     timeElapsed: Long,
     hasNext: Boolean,
+    clearQueue: () -> Unit,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
     navigateBack: () -> Unit,
+    navigateToAlbumDetails: (Long) -> Unit,
+    navigateToArtistDetails: (Long) -> Unit,
     playerControlActions: PlayerControlActions,
     modifier: Modifier = Modifier
 ) {
+    Log.i(TAG, "Player Screen START\n" +
+        "currentSong: $currentSong")
+
     val coroutineScope = rememberCoroutineScope()
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
     val snackbarHostState = remember { SnackbarHostState() }
-    
+
+    val sheetState = rememberModalBottomSheetState(true)
+    var showBottomSheet by remember { mutableStateOf(false) }
+
     Scaffold(
+        topBar = {
+            PlayerTopAppBar(
+                navigateBack = navigateBack,
+                navigateToQueue = {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(snackBarText)
+                    }
+                },
+                onMoreOptionsClick = {
+                    showBottomSheet = true
+                },
+            )
+        },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = modifier, // Note: no window insets padding to modifier so player screen's image background draws behind system bars
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        contentColor = contentColorFor(MaterialTheme.colorScheme.background)
     ) { contentPadding ->
         if (currentSong.id != 0L) { // keeping this explicit check for now, don't want to lose context for the FullScreenLoading function below
             PlayerContentWithBackground(
@@ -212,35 +228,121 @@ private fun PlayerScreen(
                 hasNext = hasNext,
                 windowSizeClass = windowSizeClass,
                 displayFeatures = displayFeatures,
-                navigateBack = navigateBack,
-                navigateToQueue = {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(snackBarText)
-                    }
-                },
                 playerControlActions = playerControlActions,
+                playerModalActions = PlayerModalActions(
+                    onDismissRequest = {
+                        showBottomSheet = false
+                    },
+                    goToArtist = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Player More Options -> Go to Artist clicked :: ${currentSong.artistId}")
+                            navigateToArtistDetails(currentSong.artistId)
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showBottomSheet to FALSE")
+                            if(!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    },
+                    goToAlbum = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Player More Options -> Go to Album clicked :: ${currentSong.albumId}")
+                            navigateToAlbumDetails(currentSong.albumId)
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showBottomSheet to FALSE")
+                            if(!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    },
+                    clearQueue = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Player More Options -> Clear Queue clicked")
+                            clearQueue()
+                            sheetState.hide()
+                            navigateBack()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showBottomSheet to FALSE")
+                            if(!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    },
+                    saveQueue = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Player More Options -> Save Queue clicked")
+                            //onPlayerAction(PlayerAction.SaveQueue())
+                            //navigateToAlbumDetails(currentSong.albumId)
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showBottomSheet to FALSE")
+                            if(!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    },
+                    onClose = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Hide sheet state")
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showBottomSheet to FALSE")
+                            if(!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    },
+                ),
+                sheetState = sheetState,
+                showBottomSheet = showBottomSheet,
                 contentPadding = contentPadding,
             )
         } else {
-            FullScreenLoading()
+            PlayerLoadingScreen(modifier = Modifier.fillMaxSize())
         }
     }
 }
 
 /**
- * Loading Screen: full screen with circular progress indicator
+ * Loading Screen with circular progress indicator in center
  */
 @Composable
-private fun FullScreenLoading(
+private fun PlayerLoadingScreen(
     modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-    ) {
-        CircularProgressIndicator()
-    }
+) { Loading(modifier = modifier) }
+
+/**
+ * Composable for Player Screen's Top App Bar.
+ * FixMe: determine expected functionality for queue icon onClick
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PlayerTopAppBar(
+    //queue: List<SongInfo>,
+    navigateBack: () -> Unit,
+    navigateToQueue: () -> Unit,
+    onMoreOptionsClick: () -> Unit = {},
+){
+    TopAppBar(
+        title = {},
+        navigationIcon = { BackNavBtn(onClick = navigateBack) },
+        actions = {
+            QueueBtn(onClick = navigateToQueue)
+
+            // Current Song More Options btn
+            MoreOptionsBtn(onClick = onMoreOptionsClick)
+        },
+        colors = TopAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = Color.Transparent,
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        scrollBehavior = pinnedScrollBehavior(),
+    )
 }
 
 /**
@@ -259,17 +361,18 @@ private fun PlayerBackground(
         modifier = modifier,
     )
 
-//    ImageBackgroundRadialGradientFilter_Bm(
-//        imageId = currentSong.artworkBitmap,
-//        imageDescription = currentSong.title,
-//        colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.tertiaryContainer),
-//        modifier = modifier,
-//    )
+    /*ImageBackgroundRadialGradientFilter_Bm(
+        imageId = currentSong.artworkBitmap,
+        imageDescription = currentSong.title,
+        colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.tertiaryContainer),
+        modifier = modifier,
+    )*/
 }
 
 /**
  * Composable that begins drawing the background and foreground content of the Player Screen
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerContentWithBackground(
     currentSong: SongInfo,
@@ -281,9 +384,10 @@ fun PlayerContentWithBackground(
     hasNext: Boolean,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
-    navigateBack: () -> Unit,
-    navigateToQueue: () -> Unit,
     playerControlActions: PlayerControlActions,
+    playerModalActions: PlayerModalActions,
+    sheetState: SheetState,
+    showBottomSheet: Boolean,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
@@ -304,9 +408,10 @@ fun PlayerContentWithBackground(
             hasNext = hasNext,
             windowSizeClass = windowSizeClass,
             displayFeatures = displayFeatures,
-            navigateBack = navigateBack,
-            navigateToQueue = navigateToQueue,
             playerControlActions = playerControlActions,
+            playerModalActions = playerModalActions,
+            sheetState = sheetState,
+            showBottomSheet = showBottomSheet,
             modifier = Modifier.padding(contentPadding)
         )
     }
@@ -316,6 +421,7 @@ fun PlayerContentWithBackground(
  * Composable for determining Player Screen layout based on window sizing and device orientation.
  * TODO: Define the layouts for the different window size classes
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerContent(
     currentSong: SongInfo,
@@ -327,9 +433,10 @@ fun PlayerContent(
     hasNext: Boolean,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
-    navigateBack: () -> Unit,
-    navigateToQueue: () -> Unit,
     playerControlActions: PlayerControlActions,
+    playerModalActions: PlayerModalActions,
+    sheetState: SheetState,
+    showBottomSheet: Boolean,
     modifier: Modifier = Modifier
 ) {
     //val foldingFeature = displayFeatures.filterIsInstance<FoldingFeature>().firstOrNull()
@@ -349,7 +456,7 @@ fun PlayerContent(
 
     // else, use default. currently set as the version that would be under isCompact
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         PlayerContentRegular (
             currentSong = currentSong,
@@ -359,10 +466,11 @@ fun PlayerContent(
             progress = progress,
             timeElapsed = timeElapsed,
             hasNext = hasNext,
-            navigateBack = navigateBack,
-            navigateToQueue = navigateToQueue,
             playerControlActions = playerControlActions,
-            modifier = Modifier
+            playerModalActions = playerModalActions,
+            sheetState = sheetState,
+            showBottomSheet = showBottomSheet,
+            modifier = modifier
         )
     }
 }
@@ -372,6 +480,7 @@ fun PlayerContent(
  * Landscape mode is not denied, but the layout does not dynamically adjust to a better layout
  * for it.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayerContentRegular(
     currentSong: SongInfo,
@@ -381,23 +490,19 @@ private fun PlayerContentRegular(
     progress: Float,
     timeElapsed: Long,
     hasNext: Boolean,
-    navigateBack: () -> Unit,
-    navigateToQueue: () -> Unit,
     playerControlActions: PlayerControlActions,
+    playerModalActions: PlayerModalActions,
+    sheetState: SheetState,
+    showBottomSheet: Boolean,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = SCREEN_PADDING)
     ) {
-        PlayerTopAppBar(
-            navigateBack = navigateBack,
-            navigateToQueue = navigateToQueue,
-        )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             SongLyricsSwitch(
                 currentSong = currentSong,
@@ -433,8 +538,8 @@ private fun PlayerContentRegular(
                     isPlaying = isPlaying,
                     isShuffled = isShuffled,
                     repeatState = repeatState,
-                    onPlayPress = playerControlActions.onPlayPress,
-                    onPausePress = playerControlActions.onPausePress,
+                    onPlay = playerControlActions.onPlay,
+                    onPause = playerControlActions.onPause,
                     onNext = playerControlActions.onNext,
                     onPrevious = playerControlActions.onPrevious,
                     onShuffle = playerControlActions.onShuffle,
@@ -445,52 +550,19 @@ private fun PlayerContentRegular(
             Spacer(modifier = Modifier.weight(1f))
         }
     }
-}
 
-/**
- * Top App Bar for Player Screen
- * FixMe: determine expected functionality for queue icon onClick
- */
-@Composable
-private fun PlayerTopAppBar(
-    //queue: List<SongInfo>,
-    navigateBack: () -> Unit,
-    navigateToQueue: () -> Unit,
-    onMoreOptionsClick: () -> Unit = {},
-){
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        // Back btn
-        IconButton(onClick = navigateBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.icon_back_nav),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-
-        //right align objects after this space
-        Spacer(Modifier.weight(1f))
-
-        // navigateToQueue btn
-        IconButton(onClick = navigateToQueue) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.QueueMusic,
-                contentDescription = stringResource(R.string.icon_queue),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
-
-        // More Options btn
-        IconButton(onClick = onMoreOptionsClick) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+    if (showBottomSheet) {
+        Log.i(TAG, "Player Screen Content -> Player More Options is TRUE")
+        PlayerMoreOptionsBottomModal(
+            onDismissRequest = playerModalActions.onDismissRequest,
+            sheetState = sheetState,
+            song = currentSong,
+            //playNext = {},
+            //addToFavorites = {},
+            //addToPlaylist = {},
+            playerModalActions = playerModalActions,
+            onClose = playerModalActions.onClose,
+        )
     }
 }
 
@@ -513,7 +585,8 @@ private fun SongLyricsSwitch(
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+        modifier = Modifier.fillMaxWidth()
+            .padding(CONTENT_PADDING)
     ) {
         Text(
             text = "Song",
@@ -570,8 +643,8 @@ private fun SongLyricsSwitch(
                 text = "Song",
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines =
-                if (hasLyrics) Int.MAX_VALUE
-                else 3,
+                    if (hasLyrics) Int.MAX_VALUE
+                    else 3,
                 overflow = TextOverflow.Ellipsis,
                 onTextLayout = { result ->
                     showLyrics = result.hasVisualOverflow
@@ -620,7 +693,7 @@ private fun PlayerImage(
         modifier = modifier
             .sizeIn(maxWidth = 500.dp, maxHeight = 500.dp)
             .aspectRatio(1f)
-            .clip(MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.extraLarge)
     )
 }
 
@@ -640,7 +713,7 @@ private fun PlayerImageBm(
             .size(250.dp)
             //.sizeIn(maxWidth = 500.dp, maxHeight = 500.dp)
             .aspectRatio(1f)
-            .clip(MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.extraLarge)
     )
 }
 
@@ -692,7 +765,9 @@ fun PlayerSlider(
         var newElapse by remember(progress) { mutableFloatStateOf(progress) }
         val interactionSource = remember { MutableInteractionSource() }
 
-        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
+        Row(Modifier.fillMaxWidth()
+            .padding(horizontal = CONTENT_PADDING)
+        ) {
             Text(
                 text = Duration.ofMillis(timeElapsed).formatString(),
                 style = MaterialTheme.typography.bodyMedium,
@@ -760,15 +835,15 @@ fun PlayerButtons(
     isPlaying: Boolean,
     isShuffled: Boolean,
     repeatState: RepeatType,
-    onPlayPress: () -> Unit,
-    onPausePress: () -> Unit,
+    onPlay: () -> Unit,
+    onPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onShuffle: () -> Unit,
     onRepeat: () -> Unit,
     modifier: Modifier = Modifier,
-    primaryButtonSize: Dp = 72.dp,
-    sideButtonSize: Dp = 48.dp,
+    primaryButtonSize: Dp = PRIMARY_BUTTON_SIZE,
+    sideButtonSize: Dp = SIDE_BUTTON_SIZE,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -776,19 +851,19 @@ fun PlayerButtons(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         val sideButtonsModifier = Modifier
-            .size(sideButtonSize)
             .background(
                 color = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             )
+            .size(sideButtonSize)
             .semantics { role = Role.Button }
 
         val primaryButtonModifier = Modifier
-            .size(primaryButtonSize)
             .background(
                 color = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
             )
+            .size(primaryButtonSize)
             .semantics { role = Role.Button }
 
         // Shuffle btn
@@ -801,6 +876,7 @@ fun PlayerButtons(
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = sideButtonsModifier
                     .clickable { onShuffle() }
+                    .clip(CircleShape)
             )
         }
         else {
@@ -811,6 +887,7 @@ fun PlayerButtons(
                 contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = sideButtonsModifier
+                        .clip(CircleShape)
                     .clickable { onShuffle() }
             )
         }
@@ -822,6 +899,7 @@ fun PlayerButtons(
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
             modifier = sideButtonsModifier
+                .clip(CircleShape)
                 .clickable { onPrevious() }
         )
 
@@ -834,8 +912,9 @@ fun PlayerButtons(
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = primaryButtonModifier
-                    .padding(8.dp)
-                    .clickable { onPausePress() }
+                    .padding(CONTENT_PADDING)
+                        .clip(CircleShape)
+                    .clickable { onPause() }
             )
         }
         else {
@@ -846,8 +925,9 @@ fun PlayerButtons(
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = primaryButtonModifier
-                    .padding(8.dp)
-                    .clickable { onPlayPress() }
+                    .padding(CONTENT_PADDING)
+                        .clip(CircleShape)
+                    .clickable { onPlay() }
             )
         }
 
@@ -858,6 +938,7 @@ fun PlayerButtons(
             contentScale = ContentScale.Inside,
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
             modifier = sideButtonsModifier
+                .clip(CircleShape)
                 .clickable(enabled = hasNext, onClick = onNext)
                 .alpha(if (hasNext) 1f else 0.25f)
         )
@@ -872,6 +953,7 @@ fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                     modifier = sideButtonsModifier
+                        .clip(CircleShape)
                         .clickable { onRepeat() }
                 )
             }
@@ -883,6 +965,7 @@ fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                     modifier = sideButtonsModifier
+                        .clip(CircleShape)
                         .clickable { onRepeat() }
                 )
             }
@@ -894,6 +977,7 @@ fun PlayerButtons(
                     contentScale = ContentScale.Inside,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                     modifier = sideButtonsModifier
+                        .clip(CircleShape)
                         .clickable { onRepeat() }
                 )
             }
@@ -910,8 +994,8 @@ fun PlayerButtonsPreview() {
             isPlaying = true,
             isShuffled = false,
             repeatState = RepeatType.ONE,
-            onPlayPress = {},
-            onPausePress = {},
+            onPlay = {},
+            onPause = {},
             onShuffle = {},
             onRepeat = {},
             onNext = {},
@@ -935,12 +1019,15 @@ fun PlayerScreenPreview() {
                 progress =  154604L / ( PreviewSongs[0].duration.toMillis() ) .toFloat(),
                 timeElapsed = 154604L,
                 hasNext = true,
+                clearQueue = {},
                 displayFeatures = emptyList(),
                 windowSizeClass = WindowSizeClass.compute(maxWidth.value, maxHeight.value),
-                navigateBack = { },
+                navigateBack = {},
+                navigateToAlbumDetails = {},
+                navigateToArtistDetails = {},
                 playerControlActions = PlayerControlActions(
-                    onPlayPress = {},
-                    onPausePress = {},
+                    onPlay = {},
+                    onPause = {},
                     onShuffle = {},
                     onRepeat = {},
                     onSeek = {},

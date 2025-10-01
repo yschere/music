@@ -11,9 +11,9 @@ import androidx.media3.common.Player
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
-import com.example.music.domain.usecases.GetAlbumDetailsV2
-import com.example.music.domain.usecases.GetArtistDetailsV2
-import com.example.music.domain.usecases.GetSongDataV2
+import com.example.music.domain.usecases.GetAlbumDetails
+import com.example.music.domain.usecases.GetArtistDetails
+import com.example.music.domain.usecases.GetSongData
 import com.example.music.service.SongController
 import com.example.music.ui.Screen
 import com.example.music.ui.player.MiniPlayerState
@@ -46,11 +46,11 @@ data class ArtistUiState (
  */
 @HiltViewModel
 class ArtistDetailsViewModel @Inject constructor(
-    getArtistDetailsV2: GetArtistDetailsV2,
+    getArtistDetails: GetArtistDetails,
     savedStateHandle: SavedStateHandle,
 
-    private val getAlbumDetailsV2: GetAlbumDetailsV2,
-    private val getSongDataV2: GetSongDataV2,
+    private val getAlbumDetails: GetAlbumDetails,
+    private val getSongData: GetSongData,
     private val songController: SongController,
 ) : ViewModel(), MiniPlayerState {
 
@@ -58,11 +58,11 @@ class ArtistDetailsViewModel @Inject constructor(
     private val artistId = _artistId.toLong()
 
     //private val getArtistDetailsData = getArtistDetailsUseCase(artistId)
-    private val getArtistDetailsData = getArtistDetailsV2(artistId)
+    private val getArtistDetailsData = getArtistDetails(artistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    private val selectedSong = MutableStateFlow<SongInfo?>(null)
-    private val selectedAlbum = MutableStateFlow<AlbumInfo?>(null)
+    private val selectedSong = MutableStateFlow(SongInfo())
+    private val selectedAlbum = MutableStateFlow(AlbumInfo())
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -98,7 +98,7 @@ class ArtistDetailsViewModel @Inject constructor(
 
             Log.i(TAG, "SongController status:\n" +
                     "isActive?: $isActive\n" +
-                    "player?: ${player?.playbackState}\n")
+                    "player?: ${player?.playbackState}")
 
             combine(
                 refreshing,
@@ -124,8 +124,8 @@ class ArtistDetailsViewModel @Inject constructor(
                     artist = artistDetailsFilterResult.artist,
                     albums = artistDetailsFilterResult.albums,
                     songs = artistDetailsFilterResult.songs,
-                    selectSong = selectSong ?: SongInfo(),
-                    selectAlbum = selectAlbum ?: AlbumInfo(),
+                    selectSong = selectSong,
+                    selectAlbum = selectAlbum,
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")
@@ -144,9 +144,9 @@ class ArtistDetailsViewModel @Inject constructor(
             songController.events.collect {
                 Log.d(TAG, "get SongController Player Event(s)")
 
-                // if events is empty, take these actions to generate the needed values for populating the Player Screen
+                // if events is empty, take these actions to generate initial MiniPlayer values
                 if (it == null) {
-                    Log.d(TAG, "init: running start up events to initialize LibraryVM")
+                    Log.d(TAG, "init: running start up events to initialize MiniPlayer")
                     getSongControllerState()
                     onPlayerEvent(event = Player.EVENT_IS_LOADING_CHANGED)
                     onPlayerEvent(event = Player.EVENT_MEDIA_ITEM_TRANSITION)
@@ -183,7 +183,7 @@ class ArtistDetailsViewModel @Inject constructor(
                 _isPlaying = songController.isPlaying
                 isActive = songController.isActive
                 Log.d(TAG, "isPlaying changed:\n" +
-                    "isPlaying set to $isPlaying" +
+                    "isPlaying set to $isPlaying\n" +
                     "isActive set to $isActive")
             }
 
@@ -196,7 +196,7 @@ class ArtistDetailsViewModel @Inject constructor(
                         delay(100)
                         id = mediaItem?.mediaId
                     }
-                    currentSong = getSongDataV2(id.toLong())
+                    currentSong = getSongData(id.toLong())
                     Log.d(TAG, "Current Song set to ${currentSong.title}")
                     songController.logTrackNumber()
                 }
@@ -211,7 +211,7 @@ class ArtistDetailsViewModel @Inject constructor(
     private suspend fun getSongControllerState() {
         val id = songController.currentSong?.mediaId
         if (id != null) {
-            currentSong = getSongDataV2(id.toLong())
+            currentSong = getSongData(id.toLong())
         }
         _isPlaying = songController.isPlaying
         isActive = songController.isActive
@@ -248,8 +248,8 @@ class ArtistDetailsViewModel @Inject constructor(
     fun onArtistAction(action: ArtistAction) {
         Log.i(TAG, "onArtistAction - $action")
         when (action) {
-            is ArtistAction.AlbumMoreOptionClicked -> onAlbumMoreOptionClicked(action.album) // selects albumMO
-            is ArtistAction.SongMoreOptionClicked -> onSongMoreOptionClicked(action.song) // selects songMO
+            is ArtistAction.AlbumMoreOptionsClicked -> onAlbumMoreOptionsClicked(action.album) // selects albumMO
+            is ArtistAction.SongMoreOptionsClicked -> onSongMoreOptionsClicked(action.song) // selects songMO
 
             is ArtistAction.PlaySong -> onPlaySong(action.song) // songMO-play
             is ArtistAction.PlaySongNext -> onPlaySongNext(action.song) // songMo-playNext
@@ -270,12 +270,12 @@ class ArtistDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun onAlbumMoreOptionClicked(album: AlbumInfo) {
-        Log.i(TAG, "onAlbumMoreOptionClicked - ${album.title}")
+    private fun onAlbumMoreOptionsClicked(album: AlbumInfo) {
+        Log.i(TAG, "onAlbumMoreOptionsClicked - ${album.title}")
         selectedAlbum.value = album
     }
-    private fun onSongMoreOptionClicked(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionClick - ${song.title}")
+    private fun onSongMoreOptionsClicked(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionsClick - ${song.title}")
         selectedSong.value = song
     }
 
@@ -312,36 +312,36 @@ class ArtistDetailsViewModel @Inject constructor(
     private fun onPlayAlbum(album: AlbumInfo) {
         Log.i(TAG, "onPlaySongs -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.play(songs)
         }
     }
     private fun onPlayAlbumNext(album: AlbumInfo) {
         Log.i(TAG, "onPlayAlbumNext -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.addToQueueNext(songs)
         }
     }
     private fun onShuffleAlbum(album: AlbumInfo) {
         Log.i(TAG, "onShuffleAlbum -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.shuffle(songs)
         }
     }
     private fun onQueueAlbum(album: AlbumInfo) {
         Log.i(TAG, "onQueueAlbum -> ${album.title}")
         viewModelScope.launch {
-            val songs = getAlbumDetailsV2(album.id).first().songs
+            val songs = getAlbumDetails(album.id).first().songs
             songController.addToQueue(songs)
         }
     }
 }
 
 sealed interface ArtistAction {
-    data class AlbumMoreOptionClicked(val album: AlbumInfo) : ArtistAction
-    data class SongMoreOptionClicked(val song: SongInfo) : ArtistAction
+    data class AlbumMoreOptionsClicked(val album: AlbumInfo) : ArtistAction
+    data class SongMoreOptionsClicked(val song: SongInfo) : ArtistAction
 
     data class PlaySong(val song: SongInfo) : ArtistAction
     data class PlaySongNext(val song: SongInfo) : ArtistAction

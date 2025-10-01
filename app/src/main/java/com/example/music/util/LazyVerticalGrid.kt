@@ -35,7 +35,10 @@ import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
 
 /**
- * An item that occupies the entire width.
+ * An item that spans the entire width of a lazy grid.
+ * @param key The key for the grid item.
+ * @param contentType The type of content for the grid item.
+ * @param content The composable content for the grid item.
  */
 fun LazyGridScope.fullWidthItem(
     key: Any? = null,
@@ -49,7 +52,8 @@ fun LazyGridScope.fullWidthItem(
 )
 
 /**
- * Composable for drawing item content sticky header
+ * Composable for drawing a sticky header for an item
+ * @param item The item to display in the header
  */
 @Composable
 fun StickyHeader( item: String ) {

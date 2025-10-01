@@ -45,7 +45,6 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.dagger.hilt.android)
     implementation(libs.androidx.activity.compose)
-//    implementation(libs.play.services.cast.framework)
     ksp(libs.dagger.hilt.compiler)
 
     // Logging
@@ -57,11 +56,12 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.session)
     implementation(libs.nextlib)
+    implementation(libs.mp3agic)
 
     // Backwards Compatibility for older APIs to new App versions
     coreLibraryDesugaring(libs.core.jdk.desugaring)
 
     // Testing
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
+    //testImplementation(libs.junit)
+    //testImplementation(libs.kotlinx.coroutines.test)
 }

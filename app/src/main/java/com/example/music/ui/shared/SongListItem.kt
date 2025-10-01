@@ -6,13 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.Reorder
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,21 +17,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.ICON_SIZE
+import com.example.music.designsys.theme.ITEM_IMAGE_ROW_SIZE
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.CompLightPreview
+import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.ReorderItemBtn
 
-/**
- * Original Song List Item
- */
 @Composable
 fun SongListItem(
     song: SongInfo,
@@ -46,10 +43,10 @@ fun SongListItem(
     showAlbumImage: Boolean = false,
     showAlbumTitle: Boolean = false,
     showTrackNumber: Boolean = false,
-    hasBackground: Boolean = true,
+    hasBackground: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(4.dp)) {
+    Box(modifier = modifier) {
         Surface(
             shape = MaterialTheme.shapes.large,
             color =
@@ -65,15 +62,12 @@ fun SongListItem(
                 showAlbumImage = showAlbumImage,
                 showAlbumTitle = showAlbumTitle,
                 showTrackNumber = showTrackNumber,
-                modifier = modifier,
+                modifier = Modifier,
             )
         }
     }
 }
 
-/**
- * Original Song List Item Content
- */
 @Composable
 private fun SongListItemRow(
     song: SongInfo,
@@ -87,7 +81,8 @@ private fun SongListItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(vertical = CONTENT_PADDING)
+            .padding(start = CONTENT_PADDING),
     ) {
         /* // ********* UI Logic Expectations: *********
             // for properties that can be null, replace them with empty string
@@ -114,31 +109,17 @@ private fun SongListItemRow(
 
         // list edit-ability would most likely be for queue list and playlist, when editing list is selected
         if (isListEditable) { // Check if this means songs is meant to be in an editable/movable list
-            //Box(modifier = modifier.size(56.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)))
-            IconButton(
+            ReorderItemBtn(
                 onClick = {},
-                enabled = true,
-                modifier = Modifier.padding(start = 0.dp)//size(56.dp),
-            ) {
-                Icon( // reorder song icon
-                    imageVector = Icons.Outlined.Reorder,
-                    contentDescription = stringResource(R.string.icon_reorder) + " for song " + song.title,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+                title = song.title,
+            )
         }
 
         //show the track number of the song
-        // FixMe: change this so it's not as pronounced, nor shifts over the rest of the row content
         if (showTrackNumber) {
-            Text(
-                text =
-                    if (song.trackNumber == null) ""
-                    else song.trackNumber.toString(),
-                minLines = 1,
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(10.dp),
+            SongListItemNumber(
+                number = song.trackNumber,
+                modifier = Modifier.size(ICON_SIZE - CONTENT_PADDING, ICON_SIZE)
             )
         }
 
@@ -148,8 +129,9 @@ private fun SongListItemRow(
                 artworkUri = song.artworkUri,
             //SongListItemImageBm(
                 //artworkBitmap = song.artworkBitmap,
+                description = song.title,
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(ITEM_IMAGE_ROW_SIZE)
                     .clip(MaterialTheme.shapes.small),
             )
         }
@@ -170,7 +152,10 @@ private fun SongListItemRow(
                 modifier = Modifier.padding(horizontal = 10.dp)
             ) {
                 Text(
-                    text = song.setSubText(showAlbumTitle, showArtistName),
+                    text = song.setSubText(
+                        showArtistName = showArtistName,
+                        showAlbumTitle = showAlbumTitle
+                    ),
                     maxLines = 1,
                     minLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -180,25 +165,19 @@ private fun SongListItemRow(
             }
         }
 
-        // More Options btn
-        IconButton(onClick = onMoreOptionsClick) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
 
 @Composable
 private fun SongListItemImage(
     artworkUri: Uri,
+    description: String = "",
     modifier: Modifier = Modifier
 ) {
     AlbumImage(
         albumImage = artworkUri,
-        contentDescription = null,
+        contentDescription = description,
         modifier = modifier,
     )
 }
@@ -206,13 +185,32 @@ private fun SongListItemImage(
 @Composable
 private fun SongListItemImageBm(
     artworkBitmap: Bitmap?,
+    description: String = "",
     modifier: Modifier = Modifier
 ) {
     AlbumImageBm(
         albumImage = artworkBitmap,
-        contentDescription = null,
+        contentDescription = description,
         modifier = modifier,
     )
+}
+
+@Composable
+private fun SongListItemNumber(
+    number: Int?,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier = modifier) {
+        Text(
+            text = number?.toString() ?: "-",
+            minLines = 1,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.fillMaxWidth()
+                .align(Alignment.CenterVertically)
+        )
+    }
 }
 
 @Composable
@@ -249,7 +247,7 @@ private fun SongListItem_GeneralPreview() {
     }
 }
 
-@CompDarkPreview
+//@CompDarkPreview
 @Composable
 private fun SongListItem_ShowAllPreview() {
     MusicTheme {
@@ -267,7 +265,7 @@ private fun SongListItem_ShowAllPreview() {
     }
 }
 
-//@CompLightPreview
+@CompLightPreview
 @Composable
 private fun SongListItem_AlbumDetailsPreview() {
     MusicTheme {
@@ -276,7 +274,7 @@ private fun SongListItem_AlbumDetailsPreview() {
             onClick = {},
             onMoreOptionsClick = {},
             isListEditable = false,
-            showAlbumImage = true,
+            showAlbumImage = false,
             showArtistName = true,
             showAlbumTitle = false,
             showTrackNumber = true,

@@ -5,7 +5,7 @@ import android.util.Log
 import com.example.music.data.database.model.Album
 import com.example.music.data.database.model.AlbumWithExtraInfo
 import com.example.music.data.mediaresolver.model.artworkUri
-import com.example.music.data.mediaresolver.model.Album as AlbumV2
+import com.example.music.data.mediaresolver.model.Album as AlbumMR
 import com.example.music.data.util.FLAG
 import java.time.OffsetDateTime
 
@@ -13,15 +13,16 @@ private const val TAG = "AlbumInfo"
 
 /**
  * External data layer representation of an album.
+ *
  * Intent: to represent an Album for the UI, with the ability to show artwork,
  * order albums based on song's date last played and song count.
- * @property id [Long] The album's unique ID
- * @property title [String] The title of the album
- * @property albumArtistId [Long] The unique ID for the album's artist, foreign key to the artists table
- * @property artworkUri [Uri] The content uri to access the album's artwork
- * @property dateLastPlayed [OffsetDateTime] The datetime when a song within the album was last played,
+ * @property id The album's unique ID
+ * @property title The title of the album
+ * @property albumArtistId The unique ID for the album's artist, foreign key to the artists table
+ * @property artworkUri The content uri to access the album's artwork
+ * @property dateLastPlayed The datetime when a song within the album was last played,
  * currently set regardless of context where song was played
- * @property songCount [Int] The amount of songs in the album
+ * @property songCount The amount of songs in the album
  */
 data class AlbumInfo(
     val id: Long = 0,
@@ -64,8 +65,8 @@ fun AlbumWithExtraInfo.asExternalModel(): AlbumInfo {
     )
 }
 
-fun AlbumV2.asExternalModel(): AlbumInfo {
-    if (FLAG) Log.i(TAG, "AlbumV2 to AlbumInfo external model constructor: \n ${this.id} + ${this.title}")
+fun AlbumMR.asExternalModel(): AlbumInfo {
+    if (FLAG) Log.i(TAG, "AlbumMR to AlbumInfo external model constructor: \n ${this.id} + ${this.title}")
     return AlbumInfo(
         id = this.albumId,
         title = this.title,

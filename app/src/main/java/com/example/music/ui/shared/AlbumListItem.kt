@@ -2,21 +2,15 @@ package com.example.music.ui.shared
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,21 +19,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.MusicShapes
-import com.example.music.domain.testing.PreviewAlbums
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
+import com.example.music.designsys.theme.ITEM_IMAGE_ROW_SIZE
 import com.example.music.domain.model.AlbumInfo
+import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.ui.tooling.CompLightPreview
-import com.example.music.ui.tooling.SystemLightPreview
+import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
-
-private val FEATURED_ALBUM_IMAGE_SIZE_DP = 160.dp
 
 @Composable
 fun AlbumListItem(
@@ -47,9 +39,10 @@ fun AlbumListItem(
     navigateToAlbumDetails: (AlbumInfo) -> Unit,
     onMoreOptionsClick: () -> Unit,
     cardOrRow: Boolean = true,
+    hasBackground: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(4.dp)) {
+    Box(modifier = modifier) {
         if (cardOrRow) {
             Surface(
                 shape = MaterialTheme.shapes.large,
@@ -65,7 +58,9 @@ fun AlbumListItem(
         } else {
             Surface(
                 shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color =
+                    if (hasBackground) MaterialTheme.colorScheme.surfaceContainer
+                    else Color.Transparent,
                 onClick = { navigateToAlbumDetails(album) }
             ) {
                 AlbumItemRow(
@@ -89,7 +84,7 @@ fun AlbumItemCard(
 ) {
     Column(
         modifier = modifier
-            .width(FEATURED_ALBUM_IMAGE_SIZE_DP)
+            .width(ITEM_IMAGE_CARD_SIZE)
     ) {
         Box(
             contentAlignment = Alignment.BottomStart,
@@ -99,7 +94,7 @@ fun AlbumItemCard(
                 albumImage = album.artworkUri,
                 contentDescription = album.title,
                 modifier = Modifier
-                    .size(FEATURED_ALBUM_IMAGE_SIZE_DP)
+                    .size(ITEM_IMAGE_CARD_SIZE)
                     .clip(MaterialTheme.shapes.medium),
             )
 
@@ -108,13 +103,13 @@ fun AlbumItemCard(
                 text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
                 maxLines = 1,
                 minLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(10.dp)
-                    .border(1.dp,color = Color.Transparent, shape = MusicShapes.small)
                     .background(
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        shape = MusicShapes.small
+                        shape = CircleShape
                     )
                     .padding(4.dp)
             )
@@ -122,6 +117,7 @@ fun AlbumItemCard(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 text = album.title,
@@ -131,14 +127,8 @@ fun AlbumItemCard(
                 modifier = Modifier.padding(4.dp).weight(1f,true)
             )
 
-            // More Options button
-            IconButton(onClick = onMoreOptionsClick) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.icon_more),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+            // More Options btn
+            MoreOptionsBtn(onClick = onMoreOptionsClick)
         }
     }
 }
@@ -154,17 +144,18 @@ fun AlbumItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(vertical = CONTENT_PADDING)
+            .padding(start = CONTENT_PADDING),
     ) {
         AlbumImage(
             albumImage = album.artworkUri,
             contentDescription = album.title,
             modifier = Modifier
-                .size(56.dp)
-                .clip(MaterialTheme.shapes.small),
+                .size(ITEM_IMAGE_ROW_SIZE)
+                .clip(MaterialTheme.shapes.medium),
         )
 
-        Column(modifier.weight(1f)){
+        Column(modifier.weight(1f)) {
             Text(
                 text = album.title,
                 maxLines = 1,
@@ -196,14 +187,7 @@ fun AlbumItemRow(
             }
         }
 
-        // More Options button
-        IconButton(onClick = onMoreOptionsClick) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.icon_more),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
 

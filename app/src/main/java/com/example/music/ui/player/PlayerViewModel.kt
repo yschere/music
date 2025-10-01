@@ -14,7 +14,7 @@ import androidx.media3.common.Player
 import com.example.music.data.repository.RepeatType
 import com.example.music.domain.model.SongInfo
 import com.example.music.service.SongController
-import com.example.music.domain.usecases.GetSongDataV2
+import com.example.music.domain.usecases.GetSongData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24,22 +24,6 @@ import javax.inject.Inject
 import kotlin.math.roundToLong
 
 private const val TAG = "Player View Model"
-
-interface MiniPlayerState {
-    var currentSong: SongInfo
-    var isPlaying: Boolean
-    val player: Player?
-}
-
-interface PlayerState {
-    val currentMedia: MediaItem?
-    var isPlaying: Boolean
-    val player: Player?
-    var progress: Float
-    var position: Long
-    var isShuffled: Boolean
-    var repeatState: RepeatType
-}
 
 /**
  * Tracks the current playback position as a fraction of the current duration.
@@ -54,7 +38,7 @@ val SongController.progress
  */
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val getSongDataV2: GetSongDataV2,
+    private val getSongData: GetSongData,
     private val songController: SongController,
 ) : ViewModel(), PlayerState {
 
@@ -167,7 +151,7 @@ class PlayerViewModel @Inject constructor(
                         delay(100)
                         id = mediaItem?.mediaId
                     }
-                    currentSong = getSongDataV2(id.toLong())
+                    currentSong = getSongData(id.toLong())
                     Log.d(TAG, "Current Song set to ${currentSong.title}")
                     songController.logTrackNumber()
                 }
@@ -254,6 +238,12 @@ class PlayerViewModel @Inject constructor(
         timerJob = null
     }
 
+    fun onClearQueue() {
+        Log.i(TAG, "Clear Queue")
+        songController.clearQueue()
+        onStop()
+    }
+
     fun onPlay() {
         Log.i(TAG,"Hit play btn on Player Screen.")
         songController.play(true)
@@ -262,13 +252,6 @@ class PlayerViewModel @Inject constructor(
     fun onPause() {
         Log.i(TAG, "Hit pause btn on Player Screen")
         songController.pause()
-    }
-
-    fun onStop() {
-        Log.i(TAG, "Stop the Player Screen")
-        _isPlaying = false
-        stopTimer()
-        songController.stop()
     }
 
     fun onPrevious() {
@@ -299,8 +282,15 @@ class PlayerViewModel @Inject constructor(
         songController.onRepeat()
     }
 
-    fun onDestroy() {
+    private fun onStop() {
+        Log.i(TAG, "Stop the Player")
+        _isPlaying = false
         stopTimer()
+        songController.stop()
+        //onDestroy()
+    }
+
+    private fun onDestroy() {
         player?.release()
     }
 
@@ -426,3 +416,14 @@ class PlayerViewModel @Inject constructor(
         Log.d(TAG, "SongController onEvent: -> $event :: $s")
     }
 }
+
+// wrapper for player screen more options modal actions
+data class PlayerModalActions(
+    val onDismissRequest: () -> Unit,
+    //val addToPlaylist: () -> Unit = {},
+    val goToArtist: () -> Unit,
+    val goToAlbum: () -> Unit,
+    val clearQueue: () -> Unit,
+    val saveQueue: () -> Unit,
+    val onClose: () -> Unit,
+)
