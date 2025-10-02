@@ -1,6 +1,5 @@
 package com.example.music.data.repository
 
-import android.content.Context
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
@@ -8,9 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -27,12 +24,10 @@ enum class ShuffleType {
     ONCE, ON_LOOP
 }
 
-//FUTURE THOUGHT: do these need to be renamed to match MS column names?
 enum class AlbumSortOrder {
     TITLE, ARTIST, SONG_COUNT, YEAR // DATE_LAST_PLAYED,
 }
 
-//FUTURE THOUGHT: do these need to be renamed to match MS column names?
 enum class ArtistSortOrder {
     NAME, ALBUM_COUNT, SONG_COUNT
 }
@@ -41,7 +36,6 @@ enum class ComposerSortOrder {
     NAME, SONG_COUNT
 }
 
-//FUTURE THOUGHT: do these need to be renamed to match MS column names?
 enum class GenreSortOrder {
     NAME, SONG_COUNT
 }
@@ -50,7 +44,6 @@ enum class PlaylistSortOrder {
     NAME, SONG_COUNT // DATE_CREATED, DATE_LAST_ACCESSED, DATE_LAST_PLAYED,
 }
 
-//FUTURE THOUGHT: do these need to be renamed to match MS column names?
 enum class SongSortOrder {
     TITLE, ARTIST, ALBUM, DURATION//, DATE_ADDED, LAST_PLAYED, FILE_SIZE
 }
@@ -127,10 +120,92 @@ class AppPreferencesRepo @Inject constructor(
                 isAlbumAsc, isArtistAsc, isComposerAsc, isGenreAsc, isPlaylistAsc, isSongAsc)
         }
 
-    suspend fun updateAlbumSortOrder(albSort: AlbumSortOrder) {
-        Log.i(TAG, "Update Album Sort Order -> $albSort")
+    // used by MediaService to set mediaPlayer's repeat mode
+    suspend fun getRepeatTypeAsInt(): Int {
+        val pref = dataStore.data.first()
+        return RepeatType.valueOf(pref[PreferenceKeys.REPEAT_TYPE] ?: RepeatType.OFF.name).ordinal
+    }
+    //used by SongController to set SongControllerState's repeat mode
+    suspend fun getRepeatType(): RepeatType {
+        val pref = dataStore.data.first()
+        return RepeatType.valueOf(pref[PreferenceKeys.REPEAT_TYPE] ?: RepeatType.OFF.name)
+    }
+
+    suspend fun updateAlbumAsc(isAsc: Boolean) {
+        Log.i(TAG, "Update Album Asc/Desc -> $isAsc")
         dataStore.edit { preferences ->
-            preferences[PreferenceKeys.ALBUM_SORT_ORDER] = albSort.name
+            preferences[PreferenceKeys.IS_ALBUM_ASC] = isAsc
+        }
+    }
+    suspend fun updateAlbumSortOrder(sort: AlbumSortOrder) {
+        Log.i(TAG, "Update Album Sort Order -> $sort")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.ALBUM_SORT_ORDER] = sort.name
+        }
+    }
+
+    suspend fun updateArtistAsc(isAsc: Boolean) {
+        Log.i(TAG, "Update Artist Asc/Desc -> $isAsc")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.IS_ARTIST_ASC] = isAsc
+        }
+    }
+    suspend fun updateArtistSortOrder(sort: ArtistSortOrder) {
+        Log.i(TAG, "Update Artist Sort Order -> $sort")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.ARTIST_SORT_ORDER] = sort.name
+        }
+    }
+
+    suspend fun updateComposerAsc(isAsc: Boolean) {
+        Log.i(TAG, "Update Composer Asc/Desc -> $isAsc")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.IS_COMPOSER_ASC] = isAsc
+        }
+    }
+    suspend fun updateComposerSortOrder(sort: ComposerSortOrder) {
+        Log.i(TAG, "Update Composer Sort Order -> $sort")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.COMPOSER_SORT_ORDER] = sort.name
+        }
+    }
+
+    suspend fun updateGenreAsc(isAsc: Boolean) {
+        Log.i(TAG, "Update Genre Asc/Desc -> $isAsc")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.IS_GENRE_ASC] = isAsc
+        }
+    }
+    suspend fun updateGenreSortOrder(sort: GenreSortOrder) {
+        Log.i(TAG, "Update Genre Sort Order -> $sort")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.GENRE_SORT_ORDER] = sort.name
+        }
+    }
+
+    suspend fun updatePlaylistAsc(isAsc: Boolean) {
+        Log.i(TAG, "Update Playlist Asc/Desc -> $isAsc")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.IS_PLAYLIST_ASC] = isAsc
+        }
+    }
+    suspend fun updatePlaylistSortOrder(sort: PlaylistSortOrder) {
+        Log.i(TAG, "Update Playlist Sort Order -> $sort")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.PLAYLIST_SORT_ORDER] = sort.name
+        }
+    }
+
+    suspend fun updateSongAsc(isAsc: Boolean) {
+        Log.i(TAG, "Update Song Asc/Desc -> $isAsc")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.IS_SONG_ASC] = isAsc
+        }
+    }
+    suspend fun updateSongSortOrder(sort: SongSortOrder) {
+        Log.i(TAG, "Update Song Sort Order -> $sort")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.SONG_SORT_ORDER] = sort.name
         }
     }
 
@@ -140,71 +215,9 @@ class AppPreferencesRepo @Inject constructor(
             preferences[PreferenceKeys.REPEAT_TYPE] = rpType.name
         }
     }
-
     suspend fun updateShuffleType(shType: ShuffleType) {
         dataStore.edit { preferences ->
             preferences[PreferenceKeys.SHUFFLE_TYPE] = shType.name
         }
-    }
-
-    suspend fun updateArtistSortOrder(artSort: ArtistSortOrder) {
-        dataStore.edit { preferences ->
-            preferences[PreferenceKeys.ARTIST_SORT_ORDER] = artSort.name
-        }
-    }
-
-    suspend fun updateComposerSortOrder(cmpSort: ComposerSortOrder) {
-        dataStore.edit { preferences ->
-            preferences[PreferenceKeys.COMPOSER_SORT_ORDER] = cmpSort.name
-        }
-    }
-
-    suspend fun updateGenreSortOrder(genSort: GenreSortOrder) {
-        dataStore.edit { preferences ->
-            preferences[PreferenceKeys.GENRE_SORT_ORDER] = genSort.name
-        }
-    }
-
-    suspend fun updatePlaylistSortOrder(plySort: PlaylistSortOrder) {
-        dataStore.edit { preferences ->
-            preferences[PreferenceKeys.PLAYLIST_SORT_ORDER] = plySort.name
-        }
-    }
-
-    suspend fun updateSongSortOrder(sngSort: SongSortOrder) {
-        dataStore.edit { preferences ->
-            preferences[PreferenceKeys.SONG_SORT_ORDER] = sngSort.name
-        }
-    }
-
-    suspend fun updateAlbumAsc(isAsc: Boolean) {
-        Log.i(TAG, "Update Album Asc/Desc -> $isAsc")
-        dataStore.edit { preferences ->
-            preferences[PreferenceKeys.IS_ALBUM_ASC] = isAsc
-        }
-    }
-
-    suspend fun updateArtistAsc(isAsc: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferenceKeys.IS_ARTIST_ASC] = isAsc
-        }
-    }
-
-    suspend fun updateGenreAsc(isAsc: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferenceKeys.IS_GENRE_ASC] = isAsc
-        }
-    }
-
-    // used by MediaService to set mediaPlayer's repeat mode
-    suspend fun getRepeatTypeAsInt(): Int {
-        val pref = dataStore.data.first()
-        return RepeatType.valueOf(pref[PreferenceKeys.REPEAT_TYPE] ?: RepeatType.OFF.name).ordinal
-    }
-
-    //used by SongController to set SongControllerState's repeat mode
-    suspend fun getRepeatType(): RepeatType {
-        val pref = dataStore.data.first()
-        return RepeatType.valueOf(pref[PreferenceKeys.REPEAT_TYPE] ?: RepeatType.OFF.name)
     }
 }
