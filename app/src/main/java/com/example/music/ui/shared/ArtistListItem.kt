@@ -21,7 +21,11 @@ import com.example.music.designsys.theme.ICON_SIZE
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.util.frontTextPadding
+import com.example.music.util.listItemIconMod
+import com.example.music.util.listItemRowPadding
 import com.example.music.util.quantityStringResource
+import com.example.music.util.textHeightPadding
 
 /**
  * Composable for an Artist Item in a list
@@ -66,7 +70,7 @@ private fun ArtistListItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.itemRowPadding(),
+        modifier = modifier.listItemRowPadding(),
     ) {
         ArtistListItemIcon(artist = artist.name)
         Column(Modifier.frontTextPadding().weight(1f)) {
@@ -83,14 +87,14 @@ private fun ArtistListItemRow(
                     maxLines = 1,
                     minLines = 1,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.heightPadding(),
+                    modifier = Modifier.textHeightPadding(),
                 )
                 Text(
                     text = quantityStringResource(R.plurals.songs, artist.songCount, artist.songCount),
                     maxLines = 1,
                     minLines = 1,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.heightPadding(),
+                    modifier = Modifier.textHeightPadding(),
                 )
             }
         }

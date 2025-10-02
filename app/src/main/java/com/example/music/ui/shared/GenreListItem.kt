@@ -21,7 +21,11 @@ import com.example.music.designsys.theme.ICON_SIZE
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.testing.PreviewGenres
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.util.frontTextPadding
+import com.example.music.util.listItemIconMod
+import com.example.music.util.listItemRowPadding
 import com.example.music.util.quantityStringResource
+import com.example.music.util.textHeightPadding
 
 /**
  * Composable for a Genre Item in a list
@@ -66,7 +70,7 @@ private fun GenreListItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.itemRowPadding(),
+        modifier = modifier.listItemRowPadding(),
     ) {
         GenreListItemIcon(genre = genre.name)
         Column(Modifier.frontTextPadding().weight(1f)) {
@@ -83,7 +87,7 @@ private fun GenreListItemRow(
                     maxLines = 1,
                     minLines = 1,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.heightPadding(),
+                    modifier = Modifier.textHeightPadding(),
                 )
             }
         }

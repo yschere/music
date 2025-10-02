@@ -26,7 +26,12 @@ import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.ui.playlistdetails.PlaylistDetailsThumbnails
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.util.frontTextPadding
+import com.example.music.util.listItemIconMod
+import com.example.music.util.listItemRowPadding
 import com.example.music.util.quantityStringResource
+import com.example.music.util.songCountCard
+import com.example.music.util.textHeightPadding
 
 /**
  * Composable for an Playlist Item in a list
@@ -146,7 +151,7 @@ private fun PlaylistItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.itemRowPadding(),
+        modifier = modifier.listItemRowPadding(),
     ) {
         AlbumImage(
             albumImage =
@@ -168,7 +173,7 @@ private fun PlaylistItemRow(
                     text = quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount),
                     maxLines = 1,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.heightPadding(),
+                    modifier = Modifier.textHeightPadding(),
                 )
             }
         }

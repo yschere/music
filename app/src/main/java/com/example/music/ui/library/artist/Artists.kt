@@ -119,7 +119,7 @@ fun LazyGridScope.artistItems(
  * @param onSortClick defines the actions for clicking on the Sort icon btn
  * @param onSelectClick defines the actions for clicking on the Multi-Select icon btn
  */
-fun LazyGridScope.artistItems(
+fun LazyGridScope.artistItemsWithHeaders(
     mappedArtists: Map<Char,List<ArtistInfo>>,
     artistCount: Int,
     state: LazyGridState,

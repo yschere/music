@@ -80,7 +80,7 @@ import com.example.music.ui.shared.SearchBtn
 import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
-import com.example.music.ui.shared.screenMargin
+import com.example.music.util.screenMargin
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
@@ -209,14 +209,16 @@ fun ArtistDetailsScreen(
             topBar = {
                 LargeTopAppBar(
                     title = {
-                        Text(
-                            text = artist.name,
-                            style = MaterialTheme.typography.headlineMedium,
-                            overflow = TextOverflow.Clip,
-                            modifier =
-                                if (isCollapsed.value) Modifier.basicMarquee()
-                                else Modifier,
-                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = artist.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                overflow = TextOverflow.Clip,
+                                modifier =
+                                    if (isCollapsed.value) Modifier.basicMarquee()
+                                    else Modifier.align(Alignment.CenterStart),
+                            )
+                        }
                     },
                     navigationIcon = { BackNavBtn(onClick = navigateBack) },
                     actions = {

@@ -1,4 +1,4 @@
-package com.example.music.ui.shared
+package com.example.music.util
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
@@ -19,23 +19,10 @@ import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.SMALL_PADDING
 
 /**
- * Standardized modifier for text padding
+ * Standardized modifier for padding between content (left) and text (right)
  */
 fun Modifier.frontTextPadding() =
     this.padding(start = CONTENT_PADDING)
-
-/**
- * Standardized modifier for defining subtitle text height padding
- */
-fun Modifier.heightPadding() =
-    this.padding(vertical = SMALL_PADDING)
-
-/**
- * Standardized modifier for list items in row form
- */
-fun Modifier.itemRowPadding() =
-    this.padding(vertical = CONTENT_PADDING)
-        .padding(start = CONTENT_PADDING)
 
 /**
  * Standardized modifier for list item images and icons
@@ -44,6 +31,13 @@ fun Modifier.itemRowPadding() =
  */
 fun Modifier.listItemIconMod(size: Dp, shape: CornerBasedShape) =
     this.size(size).clip(shape)
+
+/**
+ * Standardized modifier for list items in row form
+ */
+fun Modifier.listItemRowPadding() =
+    this.padding(vertical = CONTENT_PADDING)
+        .padding(start = CONTENT_PADDING)
 
 /**
  * Standardized modifier for Bottom Sheet Modal content
@@ -74,10 +68,16 @@ fun Modifier.screenMargin() =
     this.padding(horizontal = SCREEN_PADDING)
 
 /**
- * Standardized modifier for song count sticker on item cards
+ * Standardized modifier for song count on carousel or list item cards
  * @param color defines the background color for the sticker
  */
 fun Modifier.songCountCard(color: Color) =
     this.padding(CONTENT_PADDING)
         .background(color = color, shape = CircleShape)
         .padding(SMALL_PADDING)
+
+/**
+ * Standardized modifier for defining subtitle text height padding
+ */
+fun Modifier.textHeightPadding() =
+    this.padding(vertical = SMALL_PADDING)

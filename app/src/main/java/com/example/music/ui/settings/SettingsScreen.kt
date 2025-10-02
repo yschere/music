@@ -56,7 +56,6 @@ import androidx.window.layout.DisplayFeature
 import com.example.music.R
 import com.example.music.data.repository.ShuffleType
 import com.example.music.designsys.theme.CONTENT_PADDING
-import com.example.music.designsys.theme.DEFAULT_PADDING
 import com.example.music.designsys.theme.LIST_ITEM_HEIGHT
 import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
 import com.example.music.designsys.theme.ROW_ITEM_HEIGHT
@@ -70,10 +69,9 @@ import com.example.music.ui.shared.SettingsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.shared.NavDrawerBtn
-import com.example.music.ui.shared.frontTextPadding
-import com.example.music.ui.shared.modalHeaderPadding
-import com.example.music.ui.shared.modalPadding
-import com.example.music.ui.shared.screenMargin
+import com.example.music.util.frontTextPadding
+import com.example.music.util.modalHeaderPadding
+import com.example.music.util.screenMargin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

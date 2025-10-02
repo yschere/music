@@ -98,9 +98,9 @@ import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.ui.shared.BackNavBtn
 import com.example.music.ui.shared.MoreOptionsBtn
 import com.example.music.ui.shared.QueueBtn
-import com.example.music.ui.shared.listItemIconMod
-import com.example.music.ui.shared.playerButtonMod
-import com.example.music.ui.shared.screenMargin
+import com.example.music.util.listItemIconMod
+import com.example.music.util.playerButtonMod
+import com.example.music.util.screenMargin
 import com.example.music.util.isCompact
 import com.example.music.util.isExpanded
 import com.example.music.util.isMedium

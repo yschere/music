@@ -26,6 +26,10 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompLightPreview
+import com.example.music.util.frontTextPadding
+import com.example.music.util.listItemIconMod
+import com.example.music.util.listItemRowPadding
+import com.example.music.util.textHeightPadding
 
 @Composable
 fun SongListItem(
@@ -75,7 +79,7 @@ private fun SongListItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.itemRowPadding(),
+        modifier = Modifier.listItemRowPadding(),
     ) {
         /* // ********* UI Logic Expectations: *********
             // for properties that can be null, replace them with empty string
@@ -147,7 +151,7 @@ private fun SongListItemRow(
                     minLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.heightPadding(),
+                    modifier = Modifier.textHeightPadding(),
                 )
             }
         }

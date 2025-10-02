@@ -74,7 +74,12 @@ import com.example.music.ui.player.PlayerModalActions
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
+import com.example.music.util.frontTextPadding
+import com.example.music.util.listItemIconMod
+import com.example.music.util.modalHeaderPadding
+import com.example.music.util.modalPadding
 import com.example.music.util.quantityStringResource
+import com.example.music.util.textHeightPadding
 
 private const val TAG = "Bottom Modal"
 
@@ -1136,7 +1141,7 @@ fun CreatePlaylistBottomModal(
                 onValueChange = { nameText = it },
                 singleLine = true,
                 shape = shapes.large,
-                modifier = Modifier.fillMaxWidth().modalPadding().heightPadding(),
+                modifier = Modifier.fillMaxWidth().modalPadding().textHeightPadding(),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.primary,
                     focusedContainerColor = MaterialTheme.colorScheme.onPrimary,
@@ -1153,7 +1158,7 @@ fun CreatePlaylistBottomModal(
                 singleLine = true,
                 maxLines = 3,
                 shape = shapes.large,
-                modifier = Modifier.fillMaxWidth().modalPadding().heightPadding(),
+                modifier = Modifier.fillMaxWidth().modalPadding().textHeightPadding(),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.primary,
                     focusedContainerColor = MaterialTheme.colorScheme.onPrimary,

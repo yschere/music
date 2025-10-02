@@ -25,7 +25,12 @@ import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.util.frontTextPadding
+import com.example.music.util.listItemIconMod
+import com.example.music.util.listItemRowPadding
 import com.example.music.util.quantityStringResource
+import com.example.music.util.songCountCard
+import com.example.music.util.textHeightPadding
 
 /**
  * Composable for an Album Item in a list
@@ -135,7 +140,7 @@ fun AlbumItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.itemRowPadding(),
+        modifier = modifier.listItemRowPadding(),
     ) {
         AlbumImage(
             albumImage = album.artworkUri,
@@ -160,7 +165,7 @@ fun AlbumItemRow(
                     minLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.heightPadding(),
+                    modifier = Modifier.textHeightPadding(),
                 )
             }
         }

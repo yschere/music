@@ -27,7 +27,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -52,26 +51,30 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
-import com.example.music.designsys.theme.LARGE_TOP_BAR_EXPANDED_HEIGHT
+import com.example.music.designsys.theme.TOP_BAR_IMAGE_EXPANDED_HEIGHT
 import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
-import com.example.music.domain.testing.PreviewPlaylists
-import com.example.music.domain.testing.getPlaylistSongs
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
+import com.example.music.domain.testing.getPlaylistSongs
 import com.example.music.ui.player.MiniPlayerControlActions
+import com.example.music.ui.shared.AddToPlaylistFAB
+import com.example.music.ui.shared.BackNavBtn
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.ItemCountAndPlusSortSelectButtons
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.MiniPlayer
+import com.example.music.ui.shared.MoreOptionsBtn
 import com.example.music.ui.shared.PlayShuffleButtons
 import com.example.music.ui.shared.PlaylistActions
 import com.example.music.ui.shared.PlaylistMoreOptionsBottomModal
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.ScrollToTopFAB
+import com.example.music.ui.shared.SearchBtn
 import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
@@ -80,15 +83,10 @@ import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
-import com.example.music.ui.shared.AddToPlaylistFAB
-import com.example.music.ui.shared.BackNavBtn
-import com.example.music.ui.shared.MoreOptionsBtn
-import com.example.music.ui.shared.ScrollToTopFAB
-import com.example.music.ui.shared.SearchBtn
-import com.example.music.ui.shared.frontTextPadding
-import com.example.music.ui.shared.listItemIconMod
-import com.example.music.ui.shared.screenMargin
+import com.example.music.util.frontTextPadding
 import com.example.music.util.fullWidthItem
+import com.example.music.util.listItemIconMod
+import com.example.music.util.screenMargin
 import kotlinx.coroutines.launch
 
 private const val TAG = "Playlist Details Screen"
@@ -232,7 +230,7 @@ private fun PlaylistDetailsScreen(
                         MoreOptionsBtn(onClick = { showPlaylistMoreOptions = true })
                     },
                     collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
-                    expandedHeight = LARGE_TOP_BAR_EXPANDED_HEIGHT,
+                    expandedHeight = TOP_BAR_IMAGE_EXPANDED_HEIGHT,
                     windowInsets = TopAppBarDefaults.windowInsets,
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
@@ -618,8 +616,8 @@ private fun PlaylistDetailsEmptyList(
     }
 }
 
-//@CompLightPreview
-//@CompDarkPreview
+@CompLightPreview
+@CompDarkPreview
 @Composable
 fun PlaylistDetailsHeaderItemPreview() {
     MusicTheme {
@@ -630,7 +628,7 @@ fun PlaylistDetailsHeaderItemPreview() {
 }
 
 @SystemLightPreview
-//@SystemDarkPreview
+@SystemDarkPreview
 @Composable
 fun PlaylistDetailsScreenPreview() {
     MusicTheme {

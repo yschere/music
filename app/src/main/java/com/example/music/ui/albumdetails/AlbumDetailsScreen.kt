@@ -25,7 +25,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -52,9 +51,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
-import com.example.music.designsys.theme.LARGE_TOP_BAR_EXPANDED_HEIGHT
+import com.example.music.designsys.theme.TOP_BAR_IMAGE_EXPANDED_HEIGHT
 import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
 import com.example.music.domain.testing.PreviewAlbums
@@ -82,9 +80,9 @@ import com.example.music.ui.shared.BackNavBtn
 import com.example.music.ui.shared.MoreOptionsBtn
 import com.example.music.ui.shared.ScrollToTopFAB
 import com.example.music.ui.shared.SearchBtn
-import com.example.music.ui.shared.frontTextPadding
-import com.example.music.ui.shared.listItemIconMod
-import com.example.music.ui.shared.screenMargin
+import com.example.music.util.frontTextPadding
+import com.example.music.util.listItemIconMod
+import com.example.music.util.screenMargin
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
@@ -227,7 +225,7 @@ fun AlbumDetailsScreen(
                         MoreOptionsBtn(onClick = { showAlbumMoreOptions = true })
                     },
                     collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
-                    expandedHeight = LARGE_TOP_BAR_EXPANDED_HEIGHT,
+                    expandedHeight = TOP_BAR_IMAGE_EXPANDED_HEIGHT,
                     windowInsets = TopAppBarDefaults.windowInsets,
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,

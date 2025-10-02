@@ -31,10 +31,10 @@ import com.example.music.domain.model.ComposerInfo
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.shared.MoreOptionsBtn
-import com.example.music.ui.shared.frontTextPadding
-import com.example.music.ui.shared.heightPadding
-import com.example.music.ui.shared.itemRowPadding
-import com.example.music.ui.shared.listItemIconMod
+import com.example.music.util.frontTextPadding
+import com.example.music.util.textHeightPadding
+import com.example.music.util.listItemRowPadding
+import com.example.music.util.listItemIconMod
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
@@ -146,7 +146,7 @@ private fun ComposerListItemRow(
 ){
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.itemRowPadding(),
+        modifier = modifier.listItemRowPadding(),
     ) {
         ComposerListItemIcon(composer = composer.name)
         Column(Modifier.frontTextPadding().weight(1f)) {
@@ -163,7 +163,7 @@ private fun ComposerListItemRow(
                     maxLines = 1,
                     minLines = 1,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.heightPadding(),
+                    modifier = Modifier.textHeightPadding(),
                 )
             }
         }

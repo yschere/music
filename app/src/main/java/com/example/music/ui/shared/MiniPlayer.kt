@@ -36,6 +36,7 @@ import com.example.music.domain.testing.getSongData
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.CompLightPreview
+import com.example.music.util.playerButtonMod
 import com.example.music.util.radialMultiGradientScrimAnyOffset
 
 private const val TAG = "Mini Player"

@@ -41,14 +41,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.music.R
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.MARGIN_PADDING
-import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
@@ -63,19 +61,20 @@ import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
 import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.NavDrawer
+import com.example.music.ui.shared.NavDrawerBtn
+import com.example.music.ui.shared.NavToMoreBtn
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.SearchBtn
 import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
-import com.example.music.ui.shared.NavDrawerBtn
-import com.example.music.ui.shared.NavToMoreBtn
-import com.example.music.ui.shared.SearchBtn
-import com.example.music.ui.shared.screenMargin
 import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
+import com.example.music.util.screenMargin
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -625,9 +624,9 @@ private val ExpandedWindowSizeClass = WindowSizeClass.compute(840f,900f)
 private val CompactWindowSizeClassLandscape = WindowSizeClass.compute(780f,360f)
 private val ExpandedWindowSizeClassLandscape = WindowSizeClass.compute(900f,840f)
 
-//@SystemLightPreview
+@SystemLightPreview
 @SystemDarkPreview
-//@LandscapePreview
+@LandscapePreview
 @Composable
 private fun PreviewHome() {
     MusicTheme {

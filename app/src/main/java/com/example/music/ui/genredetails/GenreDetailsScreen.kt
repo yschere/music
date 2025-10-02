@@ -44,7 +44,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
-import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
 import com.example.music.designsys.theme.TOP_BAR_EXPANDED_HEIGHT
 import com.example.music.domain.testing.PreviewGenres
@@ -71,7 +70,7 @@ import com.example.music.ui.shared.BackNavBtn
 import com.example.music.ui.shared.MoreOptionsBtn
 import com.example.music.ui.shared.ScrollToTopFAB
 import com.example.music.ui.shared.SearchBtn
-import com.example.music.ui.shared.screenMargin
+import com.example.music.util.screenMargin
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
@@ -192,14 +191,16 @@ fun GenreDetailsScreen(
             topBar = {
                 LargeTopAppBar(
                     title = {
-                        Text(
-                            text = genre.name,
-                            style = MaterialTheme.typography.headlineMedium,
-                            overflow = TextOverflow.Clip,
-                            modifier =
-                                if (isCollapsed.value) Modifier.basicMarquee()
-                                else Modifier,
-                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = genre.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                overflow = TextOverflow.Clip,
+                                modifier =
+                                    if (isCollapsed.value) Modifier.basicMarquee()
+                                    else Modifier.align(Alignment.CenterStart),
+                            )
+                        }
                     },
                     navigationIcon = { BackNavBtn(onClick = navigateBack) },
                     actions = {

@@ -66,7 +66,7 @@ import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.shared.BackNavBtn
 import com.example.music.ui.shared.ClearFieldBtn
 import com.example.music.ui.shared.NavToMoreBtn
-import com.example.music.ui.shared.screenMargin
+import com.example.music.util.screenMargin
 import kotlinx.coroutines.launch
 
 private const val TAG = "Search Screen"

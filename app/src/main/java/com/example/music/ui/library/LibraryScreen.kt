@@ -54,7 +54,6 @@ import androidx.window.core.layout.WindowSizeClass
 import com.example.music.R
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.LIBRARY_TAB_PADDING
-import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
@@ -70,6 +69,7 @@ import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.ui.library.album.albumItems
 import com.example.music.ui.library.artist.artistItems
+import com.example.music.ui.library.artist.artistItemsWithHeaders
 import com.example.music.ui.library.composer.composerItems
 import com.example.music.ui.library.genre.genreItems
 import com.example.music.ui.library.playlist.playlistItems
@@ -96,7 +96,7 @@ import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.ui.shared.NavDrawerBtn
 import com.example.music.ui.shared.ScrollToTopFAB
 import com.example.music.ui.shared.SearchBtn
-import com.example.music.ui.shared.screenMargin
+import com.example.music.util.screenMargin
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -425,7 +425,7 @@ private fun LibraryContent(
                 /** single column section **/
                 LibraryCategory.Artists -> {
                     /** practicing with sticky header **/
-                    artistItems(
+                    artistItemsWithHeaders(
                         mappedArtists = groupedArtistItems,
                         artistCount = libraryArtists.size,
                         state = listState,

@@ -35,7 +35,9 @@ import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.util.listItemIconMod
 import com.example.music.util.quantityStringResource
+import com.example.music.util.songCountCard
 import kotlinx.collections.immutable.PersistentList
 
 private const val TAG = "Featured Items Carousel"
