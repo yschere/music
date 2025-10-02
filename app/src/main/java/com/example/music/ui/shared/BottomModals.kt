@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -18,13 +20,13 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedTextField
@@ -154,21 +156,24 @@ private fun MoreOptionModalHeader(
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium,
             )
-            Text(
-                text = when(item) {
-                    is SongInfo -> { item.setSubtitle() }
-                    is PlaylistInfo -> { item.setSubtitle() }
-                    is ArtistInfo -> { item.setSubtitle() }
-                    is AlbumInfo -> { item.setSubtitle() }
-                    is ComposerInfo -> { item.setSubtitle() }
-                    is GenreInfo -> { item.setSubtitle() }
-                    else -> { "" /* TODO need some error handling */ }
-                },
-                maxLines = 1,
-                minLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodySmall,
-            )
+            Row(horizontalArrangement = Arrangement.Start) {
+                Text(
+                    text = when(item) {
+                        is SongInfo -> { item.setSubtitle() }
+                        is PlaylistInfo -> { item.setSubtitle() }
+                        is ArtistInfo -> { item.setSubtitle() }
+                        is AlbumInfo -> { item.setSubtitle() }
+                        is ComposerInfo -> { item.setSubtitle() }
+                        is GenreInfo -> { item.setSubtitle() }
+                        else -> { "" /* TODO need some error handling */ }
+                    },
+                    maxLines = 1,
+                    minLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.textHeightPadding(),
+                )
+            }
         }
 
         if(item is SongInfo) { InfoBtn(onClick = onInfoClick) }
@@ -189,7 +194,7 @@ internal fun HeaderImageIcon(
         albumImage = artworkUri,
         contentDescription = contentDescription,
         contentScale = ContentScale.Crop,
-        modifier = Modifier.listItemIconMod(ITEM_IMAGE_ROW_SIZE, shapes.small)
+        modifier = Modifier.listItemIconMod(ITEM_IMAGE_ROW_SIZE, MaterialTheme.shapes.small)
     )
 }
 
@@ -202,7 +207,7 @@ internal fun HeaderInitialIcon(
     name: String = "",
 ) {
     Row(
-        modifier = Modifier.listItemIconMod(ICON_SIZE, shapes.small)
+        modifier = Modifier.listItemIconMod(ICON_SIZE, MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
     ){
         Text(
@@ -269,7 +274,7 @@ private fun CustomDragHandle() {
             .padding(vertical = DEFAULT_PADDING)
             .width(32.dp)
             .height(SMALL_PADDING)
-            .clip(shapes.small)
+            .clip(MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.onBackground)
     )
 }
@@ -1129,7 +1134,7 @@ fun CreatePlaylistBottomModal(
             modifier = Modifier.verticalScroll(state = rememberScrollState())
         ) {
             Text(
-                text = "Create New Playlist",
+                text = "Create New Playlist:",
                 modifier = Modifier.modalHeaderPadding(),
                 textAlign = TextAlign.Left,
                 style = MaterialTheme.typography.titleLarge,
@@ -1140,8 +1145,10 @@ fun CreatePlaylistBottomModal(
                 value = nameText,
                 onValueChange = { nameText = it },
                 singleLine = true,
-                shape = shapes.large,
-                modifier = Modifier.fillMaxWidth().modalPadding().textHeightPadding(),
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.fillMaxWidth()
+                    .modalPadding()
+                    .padding(SMALL_PADDING),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.primary,
                     focusedContainerColor = MaterialTheme.colorScheme.onPrimary,
@@ -1157,8 +1164,10 @@ fun CreatePlaylistBottomModal(
                 onValueChange = { descriptionText = it },
                 singleLine = true,
                 maxLines = 3,
-                shape = shapes.large,
-                modifier = Modifier.fillMaxWidth().modalPadding().textHeightPadding(),
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.fillMaxWidth()
+                    .modalPadding()
+                    .padding(SMALL_PADDING),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.primary,
                     focusedContainerColor = MaterialTheme.colorScheme.onPrimary,
@@ -1195,7 +1204,7 @@ fun CreatePlaylistBottomModal(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomModal(
+private fun BottomModal(
     onDismissRequest: () -> Unit,
     sheetState: SheetState,
     content: @Composable () -> Unit,
@@ -1203,9 +1212,9 @@ fun BottomModal(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        containerColor = MaterialTheme.colorScheme.background,
-        scrimColor = MaterialTheme.colorScheme.surfaceBright.copy(alpha=0.7f),
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha=0.5f),
         dragHandle = { CustomDragHandle() },
         properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
     ) {
@@ -1216,7 +1225,7 @@ fun BottomModal(
 @OptIn(ExperimentalMaterial3Api::class)
 @SystemDarkPreview
 @Composable
-fun PreviewLibrarySortModal() {
+fun PreviewSortModal() {
     MusicTheme {
         LibrarySortSelectionBottomModal(
             onDismissRequest = {},
@@ -1227,6 +1236,18 @@ fun PreviewLibrarySortModal() {
             ),
             libraryCategory = LibraryCategory.Genres,
         )
+        /*DetailsSortSelectionBottomModal(
+            onDismissRequest = {},
+            sheetState = SheetState(
+                initialValue = SheetValue.Expanded,
+                skipPartiallyExpanded = true,
+                density = Density(1f,1f)
+            ),
+            onClose = {},
+            onApply = {},
+            content = "SongInfo",
+            context = "ComposerDetails"
+        )*/
     }
 }
 
@@ -1251,9 +1272,9 @@ fun PreviewMoreOptionsModal() {
 @OptIn(ExperimentalMaterial3Api::class)
 @SystemDarkPreview
 @Composable
-fun PreviewDetailSortModal() {
+fun PreviewCreatePlaylistModal() {
     MusicTheme {
-        DetailsSortSelectionBottomModal(
+        CreatePlaylistBottomModal(
             onDismissRequest = {},
             sheetState = SheetState(
                 initialValue = SheetValue.Expanded,
@@ -1261,9 +1282,7 @@ fun PreviewDetailSortModal() {
                 density = Density(1f,1f)
             ),
             onClose = {},
-            onApply = {},
-            content = "SongInfo",
-            context = "ComposerDetails"
+            onCreate = {},
         )
     }
 }
