@@ -1,6 +1,7 @@
 package com.example.music.data.repository
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
 import androidx.datastore.preferences.core.Preferences
@@ -16,6 +17,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+private const val TAG = "App Preferences Datastore"
+
 enum class RepeatType {
     OFF, ONE, ON
 }
@@ -26,7 +29,7 @@ enum class ShuffleType {
 
 //FUTURE THOUGHT: do these need to be renamed to match MS column names?
 enum class AlbumSortOrder {
-    TITLE, ALBUM_ARTIST, DATE_LAST_PLAYED, SONG_COUNT
+    TITLE, ARTIST, SONG_COUNT, YEAR // DATE_LAST_PLAYED,
 }
 
 //FUTURE THOUGHT: do these need to be renamed to match MS column names?
@@ -44,18 +47,17 @@ enum class GenreSortOrder {
 }
 
 enum class PlaylistSortOrder {
-    NAME, DATE_CREATED, DATE_LAST_ACCESSED, DATE_LAST_PLAYED, SONG_COUNT
+    NAME, SONG_COUNT // DATE_CREATED, DATE_LAST_ACCESSED, DATE_LAST_PLAYED,
 }
 
 //FUTURE THOUGHT: do these need to be renamed to match MS column names?
 enum class SongSortOrder {
-    TITLE, ARTIST, ALBUM, DATE_ADDED, LAST_PLAYED//, DURATION, FILE_SIZE
+    TITLE, ARTIST, ALBUM, DURATION//, DATE_ADDED, LAST_PLAYED, FILE_SIZE
 }
 
 data class AppPreferences(
     val repeatType: RepeatType, // enum setting for repeating queue'd song. if app queue ends after last song, if app queue continues after last song, if app song playing in queue is the new next song
     val shuffleType: ShuffleType, // enum setting for shuffling once or reshuffle after queue repeat
-    val isShuffleEnabled: Boolean, // if shuffle is enabled
 
     val albumSortOrder: AlbumSortOrder, // enum setting for the album attributes to sort list on
     val artistSortOrder: ArtistSortOrder, // enum setting for the artist attributes to sort list on
@@ -78,7 +80,6 @@ class AppPreferencesRepo @Inject constructor(
     private object PreferenceKeys {
         val REPEAT_TYPE = stringPreferencesKey("repeat_type")
         val SHUFFLE_TYPE = stringPreferencesKey("shuffle_type")
-        val IS_SHUFFLE_ENABLED = booleanPreferencesKey("is_shuffle_enabled")
 
         val ALBUM_SORT_ORDER = stringPreferencesKey("album_sort_order")
         val ARTIST_SORT_ORDER = stringPreferencesKey("artist_sort_order")
@@ -106,7 +107,6 @@ class AppPreferencesRepo @Inject constructor(
         .map { preferences ->
             val repeatType = RepeatType.valueOf(preferences[PreferenceKeys.REPEAT_TYPE] ?: RepeatType.OFF.name)
             val shuffleType = ShuffleType.valueOf(preferences[PreferenceKeys.SHUFFLE_TYPE] ?: ShuffleType.ONCE.name)
-            val isShuffleEnabled = preferences[PreferenceKeys.IS_SHUFFLE_ENABLED] ?: false
 
             val albumSortOrder = AlbumSortOrder.valueOf(preferences[PreferenceKeys.ALBUM_SORT_ORDER] ?: AlbumSortOrder.TITLE.name)
             val artistSortOrder = ArtistSortOrder.valueOf(preferences[PreferenceKeys.ARTIST_SORT_ORDER] ?: ArtistSortOrder.NAME.name)
@@ -122,12 +122,20 @@ class AppPreferencesRepo @Inject constructor(
             val isPlaylistAsc = preferences[PreferenceKeys.IS_PLAYLIST_ASC] ?: true
             val isSongAsc = preferences[PreferenceKeys.IS_SONG_ASC] ?: true
 
-            AppPreferences(repeatType, shuffleType, isShuffleEnabled, albumSortOrder,
+            AppPreferences(repeatType, shuffleType, albumSortOrder,
                 artistSortOrder, composerSortOrder, genreSortOrder, playlistSortOrder, songSortOrder,
                 isAlbumAsc, isArtistAsc, isComposerAsc, isGenreAsc, isPlaylistAsc, isSongAsc)
         }
 
+    suspend fun updateAlbumSortOrder(albSort: AlbumSortOrder) {
+        Log.i(TAG, "Update Album Sort Order -> $albSort")
+        dataStore.edit { preferences ->
+            preferences[PreferenceKeys.ALBUM_SORT_ORDER] = albSort.name
+        }
+    }
+
     suspend fun updateRepeatType(rpType: RepeatType) {
+        Log.i(TAG, "Update Repeat Type -> $rpType")
         dataStore.edit { preferences ->
             preferences[PreferenceKeys.REPEAT_TYPE] = rpType.name
         }
@@ -136,18 +144,6 @@ class AppPreferencesRepo @Inject constructor(
     suspend fun updateShuffleType(shType: ShuffleType) {
         dataStore.edit { preferences ->
             preferences[PreferenceKeys.SHUFFLE_TYPE] = shType.name
-        }
-    }
-
-    suspend fun updateIsShuffleEnabled(shuffle: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferenceKeys.IS_SHUFFLE_ENABLED] = shuffle
-        }
-    }
-
-    suspend fun updateAlbumSortOrder(albSort: AlbumSortOrder) {
-        dataStore.edit { preferences ->
-            preferences[PreferenceKeys.ALBUM_SORT_ORDER] = albSort.name
         }
     }
 
@@ -182,6 +178,7 @@ class AppPreferencesRepo @Inject constructor(
     }
 
     suspend fun updateAlbumAsc(isAsc: Boolean) {
+        Log.i(TAG, "Update Album Asc/Desc -> $isAsc")
         dataStore.edit { preferences ->
             preferences[PreferenceKeys.IS_ALBUM_ASC] = isAsc
         }
@@ -197,12 +194,6 @@ class AppPreferencesRepo @Inject constructor(
         dataStore.edit { preferences ->
             preferences[PreferenceKeys.IS_GENRE_ASC] = isAsc
         }
-    }
-
-    // used by MediaService to set is mediaPlayer's shuffle enabled
-    suspend fun isShuffleEnabled(): Boolean {
-        val pref = dataStore.data.first()
-        return pref[PreferenceKeys.IS_SHUFFLE_ENABLED] ?: false
     }
 
     // used by MediaService to set mediaPlayer's repeat mode
