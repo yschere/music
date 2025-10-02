@@ -32,9 +32,9 @@ data class AlbumInfo(
     val year: Int? = null,
     val trackTotal: Int? = null,
     val discTotal: Int? = null,
+    val songCount: Int = 0,
     val artworkUri: Uri = Uri.parse(""),
     val dateLastPlayed: OffsetDateTime? = null,
-    val songCount: Int = 0,
 )
 
 /**
@@ -60,7 +60,7 @@ fun AlbumWithExtraInfo.asExternalModel(): AlbumInfo {
     if (FLAG) Log.i(TAG, "AlbumWithExtraInfo to AlbumInfo external model constructor: \n ${this.dateLastPlayed} + ${this.songCount} + ${this.album}")
     return this.album.asExternalModel().copy(
         albumArtistName = albumArtistName,
-        dateLastPlayed = dateLastPlayed,
+        //dateLastPlayed = dateLastPlayed,
         songCount = songCount,
     )
 }
@@ -73,10 +73,10 @@ fun AlbumMR.asExternalModel(): AlbumInfo {
         albumArtistId = this.artistId,
         albumArtistName = this.artist,
         year = this.lastYear,
-        //trackTotal = this.numTracksByArtist,
-        //dateLastPlayed = OffsetDateTime.now(),
-        songCount = this.numTracks, //not sure if this is numTracks or need to set this value in a different way
-        //not sure how to set discTotal nor artwork . might need to figure that out within MediaRetriever
+        //trackTotal = this.numTracksByArtist, // TODO: is this accurate?
+        //discTotal // TODO: not sure how to set discTotal. might need to figure that out within MediaRetriever
+        songCount = this.numTracks,
         artworkUri = this.artworkUri,
+        //dateLastPlayed = OffsetDateTime.now(),
     )
 }
