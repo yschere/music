@@ -22,7 +22,7 @@ import com.example.music.ui.playlistdetails.PlaylistDetailsScreen
 import com.example.music.ui.search.SearchScreen
 import com.example.music.ui.settings.SettingsScreen
 
-private const val TAG = "Music App Navigation"
+private const val TAG = "Music App Nav Routes"
 
 /**
  * Composable function for Music App state control and navigation
