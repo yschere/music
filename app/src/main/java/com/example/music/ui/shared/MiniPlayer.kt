@@ -2,7 +2,6 @@ package com.example.music.ui.shared
 
 import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
@@ -26,9 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.example.music.R
@@ -41,9 +36,7 @@ import com.example.music.domain.testing.getSongData
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.CompLightPreview
-import com.example.music.util.horizontalGradientScrim
 import com.example.music.util.radialMultiGradientScrimAnyOffset
-import com.example.music.util.radialMultiGradientScrimBottomRight
 
 private const val TAG = "Mini Player"
 
@@ -61,13 +54,10 @@ fun MiniPlayer(
         "has Artist?: ${song.artistName}\n" +
         "has artwork?: ${song.artworkUri}")
 
-    val playButtonModifier = Modifier
-        .size(playButtonSize)
-        .background(
-            color = MaterialTheme.colorScheme.primary,
-            shape = CircleShape
-        )
-        .semantics { role = Role.Button }
+    val playButtonModifier = Modifier.playerButtonMod(
+        size = playButtonSize,
+        color = MaterialTheme.colorScheme.primary
+    )
 
     Box(
         contentAlignment = Alignment.BottomCenter,
@@ -89,7 +79,7 @@ fun MiniPlayer(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(CONTENT_PADDING)
             ) {
-                HeaderImage(song.artworkUri, song.title)
+                HeaderImageIcon(song.artworkUri, song.title)
                 Column(Modifier.padding(CONTENT_PADDING).weight(1f)) {
                     Text(
                         text = song.title,

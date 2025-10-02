@@ -5,31 +5,34 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.music.R
-import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.ICON_SIZE
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
 
+/**
+ * Composable for an Artist Item in a list
+ * @param artist defines the domain model for an artist item
+ * @param navigateToArtistDetails defines the actions for
+ * navigating to the artist's details screen when the item is clicked
+ * @param onMoreOptionsClick defines the actions for opening the
+ * MoreOptions menu modal when the MoreOptions icon is clicked
+ * @param hasBackground defines if the item should have a background color or not
+ * @param modifier defines any modifiers to apply to item
+ */
 @Composable
 fun ArtistListItem(
     artist: ArtistInfo,
@@ -63,62 +66,45 @@ private fun ArtistListItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = CONTENT_PADDING)
-            .padding(start = CONTENT_PADDING),
+        modifier = modifier.itemRowPadding(),
     ) {
-        ArtistListItemIcon(
-            artist = artist.name,
-            modifier = Modifier
-                .size(ICON_SIZE)
-                .clip(MaterialTheme.shapes.small),
-        )
-
-        Column(modifier.weight(1f)) {
+        ArtistListItemIcon(artist = artist.name)
+        Column(Modifier.frontTextPadding().weight(1f)) {
             Text(
                 text = artist.name,
                 maxLines = 1,
                 minLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
             )
-            Row(
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.padding(horizontal = 10.dp)
-            ) {
+            Row(horizontalArrangement = Arrangement.Start) {
                 Text(
                     text = quantityStringResource(R.plurals.albums, artist.albumCount, artist.albumCount) + " • ",
                     maxLines = 1,
                     minLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp),
+                    modifier = Modifier.heightPadding(),
                 )
                 Text(
                     text = quantityStringResource(R.plurals.songs, artist.songCount, artist.songCount),
                     maxLines = 1,
                     minLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp),
+                    modifier = Modifier.heightPadding(),
                 )
             }
         }
-
         MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
 
-/**
- * Composable for drawing the Artist Item Icon to contain the first initial of an artist's name
- */
 @Composable
 private fun ArtistListItemIcon(
     artist: String,
-    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier
+        modifier = Modifier
+            .listItemIconMod(ICON_SIZE, MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
     ) {
         Text(
@@ -128,7 +114,7 @@ private fun ArtistListItemIcon(
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.fillMaxWidth()
-                .align(Alignment.CenterVertically)
+                .align(Alignment.CenterVertically),
         )
     }
 }

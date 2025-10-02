@@ -15,6 +15,7 @@ val CONTENT_PADDING = 8.dp
 val DEFAULT_PADDING = 12.dp // original horizontal padding in app
 val MARGIN_PADDING = 16.dp
 val SCREEN_PADDING = 16.dp
+val LIBRARY_TAB_PADDING = 24.dp
 val MODAL_CONTENT_PADDING = 24.dp
 
 // Icon and Button size values

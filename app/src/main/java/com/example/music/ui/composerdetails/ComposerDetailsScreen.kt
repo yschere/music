@@ -5,7 +5,6 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +23,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -49,26 +47,27 @@ import com.example.music.R
 import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
 import com.example.music.designsys.theme.TOP_BAR_EXPANDED_HEIGHT
-import com.example.music.domain.testing.PreviewComposers
-import com.example.music.domain.testing.getSongsByComposer
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.testing.PreviewComposers
 import com.example.music.domain.testing.PreviewSongs
+import com.example.music.domain.testing.getSongsByComposer
 import com.example.music.ui.player.MiniPlayerControlActions
+import com.example.music.ui.shared.BackNavBtn
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.MiniPlayer
+import com.example.music.ui.shared.MoreOptionsBtn
 import com.example.music.ui.shared.PlayShuffleButtons
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.ScrollToTopFAB
+import com.example.music.ui.shared.SearchBtn
 import com.example.music.ui.shared.SongListItem
+import com.example.music.ui.shared.screenMargin
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
-import com.example.music.util.BackNavBtn
-import com.example.music.util.MoreOptionsBtn
-import com.example.music.util.ScrollToTopFAB
-import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
@@ -128,12 +127,7 @@ fun ComposerDetailsScreen(
 private fun ComposerDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
 /**
  * Loading Screen with circular progress indicator in center
@@ -144,9 +138,9 @@ private fun ComposerDetailsLoadingScreen(
 ) { Loading(modifier = modifier) }
 
 /**
- * Stateless Composable for Composer Details Screen
+ * Stateless version of Composer Details Screen
  */
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComposerDetailsScreen(
     composer: ComposerInfo,
@@ -172,14 +166,11 @@ fun ComposerDetailsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
-    val appBarScrollBehavior = TopAppBarDefaults
-        .exitUntilCollapsedScrollBehavior(
-            rememberTopAppBarState()
-        )
+    val appBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        rememberTopAppBarState()
+    )
     val isCollapsed = remember {
-        derivedStateOf {
-            appBarScrollBehavior.state.collapsedFraction > 0.5
-        }
+        derivedStateOf { appBarScrollBehavior.state.collapsedFraction > 0.5 }
     }
 
     val listState = rememberLazyGridState()
@@ -190,9 +181,7 @@ fun ComposerDetailsScreen(
     var showComposerMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf(false) }
 
-    ScreenBackground(
-        modifier = modifier
-    ) {
+    ScreenBackground(modifier = modifier) {
         Scaffold(
             topBar = {
                 LargeTopAppBar(
@@ -214,12 +203,9 @@ fun ComposerDetailsScreen(
                     collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
                     expandedHeight = TOP_BAR_EXPANDED_HEIGHT,
                     windowInsets = TopAppBarDefaults.windowInsets,
-                    colors = TopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
-                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
@@ -248,7 +234,7 @@ fun ComposerDetailsScreen(
                     state = listState,
                     modifier = modifier.padding(contentPadding)
                         .fillMaxSize()
-                        .padding(horizontal = SCREEN_PADDING),
+                        .screenMargin(),
                 ) {
                     fullWidthItem {
                         ItemCountAndSortSelectButtons(

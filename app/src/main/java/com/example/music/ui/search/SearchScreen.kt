@@ -63,9 +63,10 @@ import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
-import com.example.music.util.BackNavBtn
-import com.example.music.util.ClearFieldBtn
-import com.example.music.util.NavToMoreBtn
+import com.example.music.ui.shared.BackNavBtn
+import com.example.music.ui.shared.ClearFieldBtn
+import com.example.music.ui.shared.NavToMoreBtn
+import com.example.music.ui.shared.screenMargin
 import kotlinx.coroutines.launch
 
 private const val TAG = "Search Screen"
@@ -108,12 +109,7 @@ fun SearchScreen(
 private fun SearchError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
 @Composable
 fun SearchScreenReady(
@@ -182,9 +178,7 @@ fun SearchScreen(
     var showArtistMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf(false) }
 
-    ScreenBackground(
-        modifier = modifier
-    ) {
+    ScreenBackground(modifier = modifier) {
         Scaffold(
             topBar = {},
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -246,9 +240,7 @@ fun SearchScreen(
                                 navigateToPlayer()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showAlbumMoreOptions to FALSE")
-                                if (!sheetState.isVisible) {
-                                    showAlbumMoreOptions = false
-                                }
+                                if (!sheetState.isVisible) showAlbumMoreOptions = false
                             }
                         },
                         playNext = {
@@ -258,9 +250,7 @@ fun SearchScreen(
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showAlbumMoreOptions to FALSE")
-                                if (!sheetState.isVisible) {
-                                    showAlbumMoreOptions = false
-                                }
+                                if (!sheetState.isVisible) showAlbumMoreOptions = false
                             }
                         },
                         shuffle = {
@@ -271,9 +261,7 @@ fun SearchScreen(
                                 navigateToPlayer()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showAlbumMoreOptions to FALSE")
-                                if (!sheetState.isVisible) {
-                                    showAlbumMoreOptions = false
-                                }
+                                if (!sheetState.isVisible) showAlbumMoreOptions = false
                             }
                         },
                         addToQueue = {
@@ -283,9 +271,7 @@ fun SearchScreen(
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showAlbumMoreOptions to FALSE")
-                                if (!sheetState.isVisible) {
-                                    showAlbumMoreOptions = false
-                                }
+                                if (!sheetState.isVisible) showAlbumMoreOptions = false
                             }
                         },
                         goToAlbumArtist = {
@@ -295,9 +281,7 @@ fun SearchScreen(
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showAlbumMoreOptions to FALSE")
-                                if (!sheetState.isVisible) {
-                                    showAlbumMoreOptions = false
-                                }
+                                if (!sheetState.isVisible) showAlbumMoreOptions = false
                             }
                         },
                         goToAlbum = {
@@ -307,9 +291,7 @@ fun SearchScreen(
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showAlbumMoreOptions to FALSE")
-                                if (!sheetState.isVisible) {
-                                    showAlbumMoreOptions = false
-                                }
+                                if (!sheetState.isVisible) showAlbumMoreOptions = false
                             }
                         },
                     ),
@@ -563,7 +545,7 @@ fun SearchField(
                 LinearProgressIndicator(
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = SCREEN_PADDING)
+                        .screenMargin()
                 )
             }
             when (uiState) {

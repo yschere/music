@@ -1121,7 +1121,7 @@ fun CreatePlaylistBottomModal(
         Column (
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start,
-            modifier = Modifier.modalPadding()
+            modifier = Modifier.verticalScroll(state = rememberScrollState())
         ) {
             Text(
                 text = "Create New Playlist",
@@ -1136,7 +1136,7 @@ fun CreatePlaylistBottomModal(
                 onValueChange = { nameText = it },
                 singleLine = true,
                 shape = shapes.large,
-                modifier = Modifier.fillMaxWidth().heightPadding(),
+                modifier = Modifier.fillMaxWidth().modalPadding().heightPadding(),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.primary,
                     focusedContainerColor = MaterialTheme.colorScheme.onPrimary,
@@ -1153,7 +1153,7 @@ fun CreatePlaylistBottomModal(
                 singleLine = true,
                 maxLines = 3,
                 shape = shapes.large,
-                modifier = Modifier.fillMaxWidth().heightPadding(),
+                modifier = Modifier.fillMaxWidth().modalPadding().heightPadding(),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.primary,
                     focusedContainerColor = MaterialTheme.colorScheme.onPrimary,

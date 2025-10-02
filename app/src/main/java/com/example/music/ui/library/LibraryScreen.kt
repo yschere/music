@@ -2,7 +2,6 @@ package com.example.music.ui.library
 
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -30,7 +29,6 @@ import androidx.compose.material3.TabPosition
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.TopAppBarExpandedHeight
 import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
@@ -44,7 +42,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -55,7 +52,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.music.R
-import com.example.music.designsys.theme.MARGIN_PADDING
+import com.example.music.designsys.theme.CONTENT_PADDING
+import com.example.music.designsys.theme.LIBRARY_TAB_PADDING
+import com.example.music.designsys.theme.SCREEN_PADDING
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewComposers
@@ -92,11 +92,11 @@ import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.ui.tooling.SystemLightPreview
-import com.example.music.util.NavDrawerBtn
-import com.example.music.util.ScrollToTopFAB
-import com.example.music.util.SearchBtn
+import com.example.music.ui.shared.NavDrawerBtn
+import com.example.music.ui.shared.ScrollToTopFAB
+import com.example.music.ui.shared.SearchBtn
+import com.example.music.ui.shared.screenMargin
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -123,7 +123,6 @@ fun LibraryScreen(
     navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
-    Log.i(TAG, "Library Screen START")
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     if (uiState.errorMessage != null) {
@@ -174,12 +173,7 @@ fun LibraryScreen(
 private fun LibraryScreenError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
 /**
  * Stateless Composable for Library Screen and its properties needed to render the
@@ -234,26 +228,20 @@ private fun LibraryScreen(
         drawerState,
         coroutineScope,
     ) {
-        ScreenBackground(
-            modifier = modifier
-        ) {
+        ScreenBackground(modifier = modifier) {
             Scaffold(
                 topBar = {
                     LibraryTopAppBar(
                         navigateToSearch = navigateToSearch,
                         onNavigationIconClick = {
                             coroutineScope.launch {
-                                drawerState.apply {
-                                    if (isClosed) open() else close()
-                                }
+                                drawerState.apply { if (isClosed) open() else close() }
                             }
                         },
                     )
                     if (isLoading) {
                         LinearProgressIndicator(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = MARGIN_PADDING)
+                            Modifier.fillMaxWidth().screenMargin()
                         )
                     }
                 },
@@ -286,7 +274,6 @@ private fun LibraryScreen(
                     librarySongs = librarySongs,
                     isActive = isActive,
 
-                    modifier = Modifier.padding(contentPadding),
                     onLibraryAction = { action ->
                         if (action is LibraryAction.QueueSong) {
                             coroutineScope.launch {
@@ -301,6 +288,7 @@ private fun LibraryScreen(
                     navigateToComposerDetails = navigateToComposerDetails,
                     navigateToGenreDetails = navigateToGenreDetails,
                     navigateToPlaylistDetails = navigateToPlaylistDetails,
+                    modifier = Modifier.padding(contentPadding),
                 )
             }
         }
@@ -315,28 +303,22 @@ private fun LibraryScreen(
 private fun LibraryTopAppBar(
     navigateToSearch: () -> Unit,
     onNavigationIconClick: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     TopAppBar(
         title = {
             Text(
                 text = "Library",
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = MARGIN_PADDING, vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth().padding(CONTENT_PADDING)
             )
         },
         navigationIcon = { NavDrawerBtn(onClick = onNavigationIconClick) },
         actions = { SearchBtn(onClick = navigateToSearch) },
         expandedHeight = TopAppBarExpandedHeight,
         windowInsets = TopAppBarDefaults.windowInsets,
-        colors = TopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = Color.Transparent,
-            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
         scrollBehavior = pinnedScrollBehavior(),
     )
@@ -344,8 +326,9 @@ private fun LibraryTopAppBar(
 
 /**
  * Composable for Library Screen Content
- * Adjusted the library categories so that the selected category determines the grid view
- * new version: want to make a singular vertical grid that has dynamic layout based on tab chosen
+ * The selected library category determines the layout:
+ * - Playlists and Albums show layout as a vertical grid
+ * - Songs, Artists, Genres, and Composers show layout as a vertical list with max span
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -401,9 +384,9 @@ private fun LibraryContent(
     val groupedPlaylistItems = libraryPlaylists.groupBy { it.name.first() }
     val groupedSongItems = librarySongs.groupBy { it.title.first() }
 
-//    groupedArtistItems.forEach { (letter, artist) ->
-//        Log.i(TAG, "Output for groupedArtists Letter: $letter, artist: $artist")
-//    }
+    /*groupedArtistItems.forEach { (letter, artist) ->
+        Log.i(TAG, "Output for groupedArtists Letter: $letter, artist: $artist")
+    }*/
 
     // screen sizing parameters for generating LazyGrid columns
     val config = LocalConfiguration.current
@@ -442,7 +425,7 @@ private fun LibraryContent(
                 /** single column section **/
                 LibraryCategory.Artists -> {
                     /** practicing with sticky header **/
-                    /*artistItems(
+                    artistItems(
                         mappedArtists = groupedArtistItems,
                         artistCount = libraryArtists.size,
                         state = listState,
@@ -462,9 +445,9 @@ private fun LibraryContent(
                         onSelectClick = {
                             Log.i(TAG, "Artist Multi Select btn clicked")
                         }
-                    )*/
+                    )
                     /** original version, not using sticky headers **/
-                    artistItems(
+                    /*artistItems(
                         artists = libraryArtists,
                         navigateToArtistDetails = { artist: ArtistInfo ->
                             Log.i(TAG, "Artist clicked: ${artist.name}")
@@ -482,7 +465,7 @@ private fun LibraryContent(
                         onSelectClick = {
                             Log.i(TAG, "Artist Multi Select btn clicked")
                         }
-                    )
+                    )*/
                 }
 
                 LibraryCategory.Composers -> {
@@ -628,23 +611,16 @@ private fun LibraryContent(
     if (showSortSheet) {
         Log.i(TAG, "Library Content -> $selectedLibraryCategory Sort Modal is TRUE")
         LibrarySortSelectionBottomModal(
-            onDismissRequest = {
-
-                showSortSheet = false
-            },
+            onDismissRequest = { showSortSheet = false },
             sheetState = sheetState,
             libraryCategory = selectedLibraryCategory,
-            // need to show selection
             onClose = {
                 coroutineScope.launch {
                     Log.i(TAG, "Hide sheet state")
                     sheetState.hide()
                 }.invokeOnCompletion {
-                    Log.i(TAG, "set showBottomSheet to FALSE")
-                    if(!sheetState.isVisible) {
-
-                        showSortSheet = false
-                    }
+                    Log.i(TAG, "set showSortSheet to FALSE")
+                    if(!sheetState.isVisible) showSortSheet = false
                 }
             },
             onApply = {
@@ -652,11 +628,8 @@ private fun LibraryContent(
                     Log.i(TAG, "Save sheet state - does nothing atm")
                     sheetState.hide()
                 }.invokeOnCompletion {
-                    Log.i(TAG, "set showBottomSheet to FALSE")
-                    if(!sheetState.isVisible) {
-
-                        showSortSheet = false
-                    }
+                    Log.i(TAG, "set showSortSheet to FALSE")
+                    if(!sheetState.isVisible) showSortSheet = false
                 }
             },
         )
@@ -1069,17 +1042,16 @@ private fun LibraryCategoryTabs(
     selectedLibraryCategory: LibraryCategory,
     onLibraryCategorySelected: (LibraryCategory) -> Unit,
 ) {
-    if (libraryCategories.isEmpty()) {
-        return
-    }
+    if (libraryCategories.isEmpty()) return
+
     val selectedIndex = libraryCategories.indexOfFirst { it == selectedLibraryCategory }
 
     val indicator = @Composable { tabPositions: List<TabPosition> ->
         LibraryCategoryTabIndicator(
-            Modifier.tabIndicatorOffset(
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.tabIndicatorOffset(
                 tabPositions[selectedIndex]
             ),
-            MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
 
@@ -1103,7 +1075,7 @@ private fun LibraryCategoryTabs(
                         style =
                             if (index == selectedIndex) MaterialTheme.typography.titleLarge
                             else MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(CONTENT_PADDING),
                     )
                 },
             )
@@ -1113,14 +1085,12 @@ private fun LibraryCategoryTabs(
 
 @Composable
 private fun LibraryCategoryTabIndicator(
+    color: Color = MaterialTheme.colorScheme.onSurface,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.onSurface
 ) {
-    Spacer(
-        modifier
-            .padding(horizontal = 24.dp)
-            .height(4.dp)
-            .background(color, RoundedCornerShape(topStartPercent = 100, topEndPercent = 100))
+    Spacer(modifier.padding(horizontal = LIBRARY_TAB_PADDING)
+        .height(SMALL_PADDING)
+        .background(color, RoundedCornerShape(topStartPercent = 100, topEndPercent = 100))
     )
 }
 

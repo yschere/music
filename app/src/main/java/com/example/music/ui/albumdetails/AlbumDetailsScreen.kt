@@ -76,13 +76,15 @@ import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
-import com.example.music.util.BackNavBtn
-import com.example.music.util.MoreOptionsBtn
-import com.example.music.util.ScrollToTopFAB
-import com.example.music.util.SearchBtn
+import com.example.music.ui.shared.BackNavBtn
+import com.example.music.ui.shared.MoreOptionsBtn
+import com.example.music.ui.shared.ScrollToTopFAB
+import com.example.music.ui.shared.SearchBtn
+import com.example.music.ui.shared.frontTextPadding
+import com.example.music.ui.shared.listItemIconMod
+import com.example.music.ui.shared.screenMargin
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
@@ -142,12 +144,7 @@ fun AlbumDetailsScreen(
 private fun AlbumDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
 /**
  * Loading Screen with circular progress indicator in center
@@ -222,13 +219,6 @@ fun AlbumDetailsScreen(
                         else {
                             // if false, bar is expanded so use full header
                             AlbumDetailsHeader(album, modifier)
-                            /*//AlbumDetailsHeaderLargeAlbumCover(
-                            //album = album,
-//                                modifier = Modifier.graphicsLayer {
-//                                    alpha = min(1f, 1 - (listState.value / 600f))
-//                                    translationY = -listState.value * 0.1f
-//                                }
-                            // )*/
                         }
                     },
                     navigationIcon = { BackNavBtn(onClick = navigateBack) },
@@ -239,12 +229,9 @@ fun AlbumDetailsScreen(
                     collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
                     expandedHeight = LARGE_TOP_BAR_EXPANDED_HEIGHT,
                     windowInsets = TopAppBarDefaults.windowInsets,
-                    colors = TopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
-                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
@@ -274,7 +261,7 @@ fun AlbumDetailsScreen(
                     state = listState,
                     modifier = Modifier.padding(contentPadding)
                         .fillMaxSize()
-                        .padding(horizontal = SCREEN_PADDING)
+                        .screenMargin()
                 ) {
                     fullWidthItem {
                         ItemCountAndSortSelectButtons(
@@ -526,13 +513,9 @@ fun AlbumDetailsHeader(
             AlbumImage(
                 albumImage = album.artworkUri,
                 contentDescription = album.title,
-                modifier = Modifier
-                    .size(imageSize)
-                    .clip(MaterialTheme.shapes.large),
+                modifier = Modifier.listItemIconMod(imageSize, MaterialTheme.shapes.medium),
             )
-            Column(
-                modifier = Modifier.padding(start = CONTENT_PADDING),
-            ) {
+            Column(modifier = Modifier.frontTextPadding()) {
                 Text(
                     text = album.title,
                     maxLines = 3,

@@ -1,38 +1,43 @@
 package com.example.music.ui.shared
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
 import com.example.music.designsys.theme.ITEM_IMAGE_ROW_SIZE
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.util.MoreOptionsBtn
 import com.example.music.util.quantityStringResource
 
+/**
+ * Composable for an Album Item in a list
+ * @param album defines the domain model for an album item
+ * @param navigateToAlbumDetails defines the actions for
+ * navigating to the album's details screen when the item is clicked
+ * @param onMoreOptionsClick defines the actions to take for opening the
+ * MoreOptions menu modal when the MoreOptions icon is clicked
+ * @param cardOrRow defines if the item should be in card form (true) or row form (false)
+ * @param hasBackground defines if the item should have a background color or not
+ * @param modifier defines any modifiers to apply to item
+ */
 @Composable
 fun AlbumListItem(
     album: AlbumInfo,
@@ -82,10 +87,7 @@ fun AlbumItemCard(
     onMoreOptionsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .width(ITEM_IMAGE_CARD_SIZE)
-    ) {
+    Column(modifier = modifier.width(ITEM_IMAGE_CARD_SIZE)) {
         Box(
             contentAlignment = Alignment.BottomStart,
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -93,9 +95,7 @@ fun AlbumItemCard(
             AlbumImage(
                 albumImage = album.artworkUri,
                 contentDescription = album.title,
-                modifier = Modifier
-                    .size(ITEM_IMAGE_CARD_SIZE)
-                    .clip(MaterialTheme.shapes.medium),
+                modifier = Modifier.listItemIconMod(ITEM_IMAGE_CARD_SIZE, MaterialTheme.shapes.medium)
             )
 
             // Song Count in bottom left of album image
@@ -103,18 +103,11 @@ fun AlbumItemCard(
                 text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
                 maxLines = 1,
                 minLines = 1,
-                overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(10.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        shape = CircleShape
-                    )
-                    .padding(4.dp)
+                modifier = Modifier.songCountCard(MaterialTheme.colorScheme.onPrimaryContainer)
             )
         }
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -124,10 +117,8 @@ fun AlbumItemCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(4.dp).weight(1f,true)
+                modifier = Modifier.padding(start = SMALL_PADDING).weight(1f,true)
             )
-
-            // More Options btn
             MoreOptionsBtn(onClick = onMoreOptionsClick)
         }
     }
@@ -144,55 +135,40 @@ fun AlbumItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = CONTENT_PADDING)
-            .padding(start = CONTENT_PADDING),
+        modifier = modifier.itemRowPadding(),
     ) {
         AlbumImage(
             albumImage = album.artworkUri,
             contentDescription = album.title,
-            modifier = Modifier
-                .size(ITEM_IMAGE_ROW_SIZE)
-                .clip(MaterialTheme.shapes.medium),
+            modifier = Modifier.listItemIconMod(ITEM_IMAGE_ROW_SIZE, MaterialTheme.shapes.small)
         )
-
-        Column(modifier.weight(1f)) {
+        Column(Modifier.frontTextPadding().weight(1f)) {
             Text(
                 text = album.title,
                 maxLines = 1,
                 minLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
             )
-            Row(
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.padding(horizontal = 10.dp)
-            ) {
+            Row(horizontalArrangement = Arrangement.Start) {
                 Text(
                     text =
-                        if (album.albumArtistName != null) album.albumArtistName + " • "
-                        else "",
+                        if (album.albumArtistName != null) album.albumArtistName + " • " +
+                                quantityStringResource(R.plurals.songs, album.songCount, album.songCount)
+                        else quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
                     maxLines = 1,
                     minLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-                Text(
-                    text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
-                    maxLines = 1,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp)
+                    modifier = Modifier.heightPadding(),
                 )
             }
         }
-
         MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
 
 @Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
-//@Preview( name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES )
 @Composable
 private fun AlbumListItem_CARDPreview() {
     MusicTheme {
