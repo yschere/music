@@ -80,11 +80,14 @@ import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
-import com.example.music.util.AddToPlaylistFAB
-import com.example.music.util.BackNavBtn
-import com.example.music.util.MoreOptionsBtn
-import com.example.music.util.ScrollToTopFAB
-import com.example.music.util.SearchBtn
+import com.example.music.ui.shared.AddToPlaylistFAB
+import com.example.music.ui.shared.BackNavBtn
+import com.example.music.ui.shared.MoreOptionsBtn
+import com.example.music.ui.shared.ScrollToTopFAB
+import com.example.music.ui.shared.SearchBtn
+import com.example.music.ui.shared.frontTextPadding
+import com.example.music.ui.shared.listItemIconMod
+import com.example.music.ui.shared.screenMargin
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
@@ -145,12 +148,7 @@ fun PlaylistDetailsScreen(
 private fun PlaylistDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
 /**
  * Loading Screen with circular progress indicator in center
@@ -236,12 +234,9 @@ private fun PlaylistDetailsScreen(
                     collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
                     expandedHeight = LARGE_TOP_BAR_EXPANDED_HEIGHT,
                     windowInsets = TopAppBarDefaults.windowInsets,
-                    colors = TopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
-                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
@@ -271,7 +266,7 @@ private fun PlaylistDetailsScreen(
                     modifier = Modifier
                         .padding(contentPadding)
                         .fillMaxSize()
-                        .padding(horizontal = SCREEN_PADDING)
+                        .screenMargin()
                 ) {
                     if (songs.isEmpty()) {
                         fullWidthItem {
@@ -540,13 +535,11 @@ private fun PlaylistDetailsHeader(
             modifier = Modifier.fillMaxWidth()
                 .padding(end = SCREEN_PADDING),
         ) {
-            if (playlist.songCount == 0) {
+            if (playlist.playlistImage.isEmpty()) {
                 AlbumImage(
                     albumImage = Uri.parse(""),
                     contentDescription = playlist.name,
-                    modifier = Modifier
-                        .size(imageSize)
-                        .clip(MaterialTheme.shapes.large)
+                    modifier = Modifier.listItemIconMod(imageSize, MaterialTheme.shapes.medium),
                 )
             } else {
                 PlaylistDetailsThumbnails(playlist.playlistImage, imageSize / 2)
@@ -556,7 +549,7 @@ private fun PlaylistDetailsHeader(
                 maxLines = 2,
                 overflow = TextOverflow.Visible,
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(start = CONTENT_PADDING).align(Alignment.CenterVertically)
+                modifier = Modifier.frontTextPadding().align(Alignment.CenterVertically)
             )
         }
     }
@@ -566,12 +559,12 @@ private fun PlaylistDetailsHeader(
  * Composable for Playlist Details Screen to display the playlist image as a set of the first few songs of the playlist
  */
 @Composable
-private fun PlaylistDetailsThumbnails(
+fun PlaylistDetailsThumbnails(
     playlistImage: List<Uri>,
     imageSize: Dp,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.clip(MaterialTheme.shapes.large)) {
+    Box(modifier = modifier.clip(MaterialTheme.shapes.medium)) {
         Column {
             Row {
                 AlbumImage(
@@ -620,9 +613,7 @@ private fun PlaylistDetailsEmptyList(
         modifier = Modifier.fillMaxSize()
             .padding(SCREEN_PADDING)
     ) {
-        Text(
-            text = "Add Songs to Playlist"
-        )
+        Text(text = "Add Songs to Playlist")
         AddToPlaylistFAB(onClick = onClick)
     }
 }
