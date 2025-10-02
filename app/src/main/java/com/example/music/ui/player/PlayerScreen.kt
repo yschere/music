@@ -471,31 +471,46 @@ private fun PlayerContentRegular(
     showMoreOptions: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val hasLyrics by remember { mutableStateOf(false) }
+    var showLyrics by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = SCREEN_PADDING)
+            .screenMargin()
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            SongLyricsSwitch(
-                currentSong = currentSong,
+            SongLyricsSwitcher(
+                hasLyrics = hasLyrics,
+                swapVisual = { showLyrics = !showLyrics },
                 modifier = Modifier.weight(0.1f)
             )
 
-            Spacer(modifier = Modifier.weight(1f))
-            PlayerImageBm(
-                albumImage = currentSong.artworkBitmap,
-                modifier = Modifier.weight(10f).background(Color.Transparent)
-            )
-            Spacer(modifier = Modifier.height(32.dp))
+            // song section
+            if (!showLyrics) {
+                Spacer(modifier = Modifier.weight(1f))
+                PlayerImageBm(
+                    albumImage = currentSong.artworkBitmap,
+                    modifier = Modifier.weight(10f).background(Color.Transparent)
+                )
+                Spacer(modifier = Modifier.height(32.dp))
 
-            SongDetails(
-                songTitle = currentSong.title,
-                artistName = currentSong.artistName, 
-                albumTitle = currentSong.albumTitle
-            )
+                SongDetails(
+                    songTitle = currentSong.title,
+                    artistName = currentSong.artistName,
+                    albumTitle = currentSong.albumTitle
+                )
+            } // song section end
+            else {
+                Spacer(modifier = Modifier.weight(1f))
+                LyricsVisual(
+                    currentSong = currentSong,
+                    lyrics = lyric,
+                    modifier = Modifier,
+                )
+            } // show lyrics end
 
             Spacer(modifier = Modifier.height(32.dp))
             Column(
@@ -542,9 +557,10 @@ private fun PlayerContentRegular(
 }
 
 @Composable
-private fun SongLyricsSwitch(
-    currentSong: SongInfo,
-    modifier: Modifier = Modifier
+private fun SongLyricsSwitcher(
+    hasLyrics: Boolean,
+    swapVisual: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     /* TODO:
         check if song has lyrics
@@ -554,8 +570,6 @@ private fun SongLyricsSwitch(
         want the lyrics button to be disabled if no lyrics found for song (or have X on the side?)
         default is to have song side enabled, but if lyrics side enabled, keep that enabled till song side tapped
     */
-    val hasLyrics by remember { mutableStateOf(false) }
-    var showLyrics by remember { mutableStateOf(false) }
 
     Row(
         horizontalArrangement = Arrangement.Center,
@@ -568,12 +582,12 @@ private fun SongLyricsSwitch(
             style = MaterialTheme.typography.titleLarge,
             maxLines = 1,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(SMALL_PADDING)
                 .clickable(
                     enabled = true,
                     onClickLabel = "Show Song Details",
                     role = Role.Button,
-                    onClick = { showLyrics = false }
+                    onClick = swapVisual
                 )
         )
 
@@ -588,68 +602,49 @@ private fun SongLyricsSwitch(
             color =
                 if (hasLyrics) MaterialTheme.colorScheme.onSurface
                 else Color.Gray,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(SMALL_PADDING)
                 .clickable(
                     enabled = hasLyrics,
-                    onClickLabel = "Show Song Details",
+                    onClickLabel = "Show Song Lyrics",
                     role = Role.Button,
-                    onClick = { showLyrics = true }
+                    onClick = swapVisual
                 )
         )
     }
-    if (showLyrics) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Text(
-                text = currentSong.title,
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-                text = currentSong.artistName,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = lyric,
-                style = MaterialTheme.typography.bodyMedium
-            )
+}
 
-            Text(
-                text = "Song",
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines =
-                    if (hasLyrics) Int.MAX_VALUE
-                    else 3,
-                overflow = TextOverflow.Ellipsis,
-                onTextLayout = { result ->
-                    showLyrics = result.hasVisualOverflow
-                },
-                modifier = Modifier.animateContentSize(
-                    animationSpec = tween(
-                        durationMillis = 200,
-                        easing = EaseOutExpo
-                    )
+@Composable
+private fun LyricsVisual(
+    currentSong: SongInfo,
+    lyrics: String = "",
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(12.dp)
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 200,
+                    easing = EaseOutExpo
                 )
             )
-            if (showLyrics) {
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    modifier = Modifier
-                        //.align(Alignment.BottomEnd)
-                        .background(MaterialTheme.colorScheme.surface)
-                ) {
-                    // TODO: Add gradient effect
-                    Text(
-                        text = stringResource(id = R.string.pb_show_lyrics),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            textDecoration = TextDecoration.Underline,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
-            }
-        }
+    ) {
+        Text(
+            text = currentSong.title,
+            style = MaterialTheme.typography.titleLarge,
+        )
+        Text(
+            text = currentSong.artistName,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = lyrics,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(start = SCREEN_PADDING)
+                .align(Alignment.Start)
+        )
     }
 }
 
