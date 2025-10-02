@@ -18,6 +18,13 @@ class GetLibraryGenres @Inject constructor(
         Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
+            "NAME" -> {
+                genresList = mediaRepo.getAllGenres(
+                    order = MediaStore.Audio.Genres.NAME,
+                    ascending = isAscending
+                )
+            }
+
             "SONG_COUNT" -> {
                 genresList = mediaRepo.getAllGenres(
                     order = MediaStore.Audio.Genres._ID,

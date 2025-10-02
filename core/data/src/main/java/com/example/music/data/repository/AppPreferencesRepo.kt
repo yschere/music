@@ -25,7 +25,7 @@ enum class ShuffleType {
 }
 
 enum class AlbumSortOrder {
-    TITLE, ARTIST, SONG_COUNT, YEAR // DATE_LAST_PLAYED,
+    TITLE, ARTIST, SONG_COUNT, YEAR//, DATE_LAST_PLAYED,
 }
 
 enum class ArtistSortOrder {

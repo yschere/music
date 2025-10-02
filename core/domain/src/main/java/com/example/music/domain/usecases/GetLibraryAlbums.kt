@@ -18,6 +18,13 @@ class GetLibraryAlbums @Inject constructor(
         Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
+            "TITLE" -> {
+                albumsList = mediaRepo.getAllAlbums(
+                    order = MediaStore.Audio.Albums.ALBUM,
+                    ascending = isAscending
+                )
+            }
+
             "ARTIST" -> {
                 albumsList = mediaRepo.getAllAlbums(
                     order = MediaStore.Audio.Albums.ARTIST,

@@ -27,26 +27,29 @@ class GetLibraryPlaylists @Inject constructor(
     private val playlistRepo: PlaylistRepo,
     private val mediaRepo: MediaRepo,
 ) {
-    @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(sortOption: String, isAscending: Boolean): Flow<List<PlaylistInfo>> {
         val playlistsList: Flow<List<PlaylistWithExtraInfo>>
-        Log.i(TAG, "Building Playlists List:\n" +
-            "Sort Option: $sortOption, isAscending: $isAscending")
+        Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
 
         //sortOption values changed to support enum values AppPreferences dataStore
         when (sortOption) {
+            "NAME" -> {
+                playlistsList =
+                    if (isAscending) playlistRepo.sortPlaylistsByNameAsc()
+                    else playlistRepo.sortPlaylistsByNameDesc()
+            }
 
-            "DATE_CREATED" -> { //"dateCreated" -> {
+            /*"DATE_CREATED" -> { //"dateCreated" -> {
                 playlistsList =
                     if (isAscending) playlistRepo.sortPlaylistsByDateCreatedAsc()
                     else playlistRepo.sortPlaylistsByDateCreatedDesc()
-            }
+            }*/
 
-            "DATE_LAST_ACCESSED" -> { //"dateLastAccessed" -> {
+            /*"DATE_LAST_ACCESSED" -> { //"dateLastAccessed" -> {
                 playlistsList =
                     if (isAscending) playlistRepo.sortPlaylistsByDateLastAccessedAsc()
                     else playlistRepo.sortPlaylistsByDateLastAccessedDesc()
-            }
+            }*/
 
             /*"DATE_LAST_PLAYED" -> { //"dateLastPlayed" -> {
                 playlistsList =
