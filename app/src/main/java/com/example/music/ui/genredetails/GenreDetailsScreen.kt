@@ -175,7 +175,7 @@ fun GenreDetailsScreen(
         rememberTopAppBarState()
     )
     val isCollapsed = remember {
-        derivedStateOf { appBarScrollBehavior.state.collapsedFraction > 0.5 }
+        derivedStateOf { appBarScrollBehavior.state.collapsedFraction > 0.4 }
     }
 
     val listState = rememberLazyGridState()
@@ -197,7 +197,7 @@ fun GenreDetailsScreen(
                                 style = MaterialTheme.typography.headlineMedium,
                                 overflow = TextOverflow.Clip,
                                 modifier =
-                                    if (isCollapsed.value) Modifier.basicMarquee()
+                                    if (isCollapsed.value) Modifier.align(Alignment.CenterStart).basicMarquee()
                                     else Modifier.align(Alignment.CenterStart),
                             )
                         }
