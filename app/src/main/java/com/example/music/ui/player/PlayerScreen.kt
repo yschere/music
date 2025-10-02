@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -48,7 +47,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -68,12 +67,9 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -85,11 +81,11 @@ import com.example.music.data.repository.RepeatType
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
 import com.example.music.designsys.component.ImageBackgroundColorFilter_Bm
-import com.example.music.designsys.component.ImageBackgroundRadialGradientFilter_Bm
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.PRIMARY_BUTTON_SIZE
 import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.SIDE_BUTTON_SIZE
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.shared.Error
@@ -99,9 +95,12 @@ import com.example.music.ui.shared.formatString
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
-import com.example.music.util.BackNavBtn
-import com.example.music.util.MoreOptionsBtn
-import com.example.music.util.QueueBtn
+import com.example.music.ui.shared.BackNavBtn
+import com.example.music.ui.shared.MoreOptionsBtn
+import com.example.music.ui.shared.QueueBtn
+import com.example.music.util.listItemIconMod
+import com.example.music.util.playerButtonMod
+import com.example.music.util.screenMargin
 import com.example.music.util.isCompact
 import com.example.music.util.isExpanded
 import com.example.music.util.isMedium
@@ -159,12 +158,7 @@ fun PlayerScreen(
 private fun PlayerScreenError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
 /**
  * Stateless version of Player Screen
@@ -196,7 +190,7 @@ private fun PlayerScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val sheetState = rememberModalBottomSheetState(true)
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showMoreOptions by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -207,9 +201,7 @@ private fun PlayerScreen(
                         snackbarHostState.showSnackbar(snackBarText)
                     }
                 },
-                onMoreOptionsClick = {
-                    showBottomSheet = true
-                },
+                onMoreOptionsClick = { showMoreOptions = true },
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -230,19 +222,15 @@ private fun PlayerScreen(
                 displayFeatures = displayFeatures,
                 playerControlActions = playerControlActions,
                 playerModalActions = PlayerModalActions(
-                    onDismissRequest = {
-                        showBottomSheet = false
-                    },
+                    onDismissRequest = { showMoreOptions = false },
                     goToArtist = {
                         coroutineScope.launch {
                             Log.i(TAG, "Player More Options -> Go to Artist clicked :: ${currentSong.artistId}")
                             navigateToArtistDetails(currentSong.artistId)
                             sheetState.hide()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                            }
+                            Log.i(TAG, "set showMoreOptions to FALSE")
+                            if(!sheetState.isVisible) showMoreOptions = false
                         }
                     },
                     goToAlbum = {
@@ -251,10 +239,8 @@ private fun PlayerScreen(
                             navigateToAlbumDetails(currentSong.albumId)
                             sheetState.hide()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                            }
+                            Log.i(TAG, "set showMoreOptions to FALSE")
+                            if(!sheetState.isVisible) showMoreOptions = false
                         }
                     },
                     clearQueue = {
@@ -264,10 +250,8 @@ private fun PlayerScreen(
                             sheetState.hide()
                             navigateBack()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                            }
+                            Log.i(TAG, "set showMoreOptions to FALSE")
+                            if(!sheetState.isVisible) showMoreOptions = false
                         }
                     },
                     saveQueue = {
@@ -277,10 +261,8 @@ private fun PlayerScreen(
                             //navigateToAlbumDetails(currentSong.albumId)
                             sheetState.hide()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                            }
+                            Log.i(TAG, "set showMoreOptions to FALSE")
+                            if(!sheetState.isVisible) showMoreOptions = false
                         }
                     },
                     onClose = {
@@ -288,15 +270,13 @@ private fun PlayerScreen(
                             Log.i(TAG, "Hide sheet state")
                             sheetState.hide()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set showBottomSheet to FALSE")
-                            if(!sheetState.isVisible) {
-                                showBottomSheet = false
-                            }
+                            Log.i(TAG, "set showMoreOptions to FALSE")
+                            if(!sheetState.isVisible) showMoreOptions = false
                         }
                     },
                 ),
                 sheetState = sheetState,
-                showBottomSheet = showBottomSheet,
+                showMoreOptions = showMoreOptions,
                 contentPadding = contentPadding,
             )
         } else {
@@ -330,16 +310,11 @@ private fun PlayerTopAppBar(
         navigationIcon = { BackNavBtn(onClick = navigateBack) },
         actions = {
             QueueBtn(onClick = navigateToQueue)
-
-            // Current Song More Options btn
             MoreOptionsBtn(onClick = onMoreOptionsClick)
         },
-        colors = TopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = Color.Transparent,
-            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
         scrollBehavior = pinnedScrollBehavior(),
     )
@@ -387,7 +362,7 @@ fun PlayerContentWithBackground(
     playerControlActions: PlayerControlActions,
     playerModalActions: PlayerModalActions,
     sheetState: SheetState,
-    showBottomSheet: Boolean,
+    showMoreOptions: Boolean,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
@@ -411,7 +386,7 @@ fun PlayerContentWithBackground(
             playerControlActions = playerControlActions,
             playerModalActions = playerModalActions,
             sheetState = sheetState,
-            showBottomSheet = showBottomSheet,
+            showMoreOptions = showMoreOptions,
             modifier = Modifier.padding(contentPadding)
         )
     }
@@ -436,7 +411,7 @@ fun PlayerContent(
     playerControlActions: PlayerControlActions,
     playerModalActions: PlayerModalActions,
     sheetState: SheetState,
-    showBottomSheet: Boolean,
+    showMoreOptions: Boolean,
     modifier: Modifier = Modifier
 ) {
     //val foldingFeature = displayFeatures.filterIsInstance<FoldingFeature>().firstOrNull()
@@ -469,7 +444,7 @@ fun PlayerContent(
             playerControlActions = playerControlActions,
             playerModalActions = playerModalActions,
             sheetState = sheetState,
-            showBottomSheet = showBottomSheet,
+            showMoreOptions = showMoreOptions,
             modifier = modifier
         )
     }
@@ -493,34 +468,49 @@ private fun PlayerContentRegular(
     playerControlActions: PlayerControlActions,
     playerModalActions: PlayerModalActions,
     sheetState: SheetState,
-    showBottomSheet: Boolean,
+    showMoreOptions: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val hasLyrics by remember { mutableStateOf(false) }
+    var showLyrics by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = SCREEN_PADDING)
+            .screenMargin()
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            SongLyricsSwitch(
-                currentSong = currentSong,
+            SongLyricsSwitcher(
+                hasLyrics = hasLyrics,
+                swapVisual = { showLyrics = !showLyrics },
                 modifier = Modifier.weight(0.1f)
             )
 
-            Spacer(modifier = Modifier.weight(1f))
-            PlayerImageBm(
-                albumImage = currentSong.artworkBitmap,
-                modifier = Modifier.weight(10f).background(Color.Transparent)
-            )
-            Spacer(modifier = Modifier.height(32.dp))
+            // song section
+            if (!showLyrics) {
+                Spacer(modifier = Modifier.weight(1f))
+                PlayerImageBm(
+                    albumImage = currentSong.artworkBitmap,
+                    modifier = Modifier.weight(10f).background(Color.Transparent)
+                )
+                Spacer(modifier = Modifier.height(32.dp))
 
-            SongDetails(
-                songTitle = currentSong.title,
-                artistName = currentSong.artistName, 
-                albumTitle = currentSong.albumTitle
-            )
+                SongDetails(
+                    songTitle = currentSong.title,
+                    artistName = currentSong.artistName,
+                    albumTitle = currentSong.albumTitle
+                )
+            } // song section end
+            else {
+                Spacer(modifier = Modifier.weight(1f))
+                LyricsVisual(
+                    currentSong = currentSong,
+                    lyrics = lyric,
+                    modifier = Modifier,
+                )
+            } // show lyrics end
 
             Spacer(modifier = Modifier.height(32.dp))
             Column(
@@ -551,7 +541,7 @@ private fun PlayerContentRegular(
         }
     }
 
-    if (showBottomSheet) {
+    if (showMoreOptions) {
         Log.i(TAG, "Player Screen Content -> Player More Options is TRUE")
         PlayerMoreOptionsBottomModal(
             onDismissRequest = playerModalActions.onDismissRequest,
@@ -567,9 +557,10 @@ private fun PlayerContentRegular(
 }
 
 @Composable
-private fun SongLyricsSwitch(
-    currentSong: SongInfo,
-    modifier: Modifier = Modifier
+private fun SongLyricsSwitcher(
+    hasLyrics: Boolean,
+    swapVisual: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     /* TODO:
         check if song has lyrics
@@ -579,8 +570,6 @@ private fun SongLyricsSwitch(
         want the lyrics button to be disabled if no lyrics found for song (or have X on the side?)
         default is to have song side enabled, but if lyrics side enabled, keep that enabled till song side tapped
     */
-    val hasLyrics by remember { mutableStateOf(false) }
-    var showLyrics by remember { mutableStateOf(false) }
 
     Row(
         horizontalArrangement = Arrangement.Center,
@@ -593,12 +582,12 @@ private fun SongLyricsSwitch(
             style = MaterialTheme.typography.titleLarge,
             maxLines = 1,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(SMALL_PADDING)
                 .clickable(
                     enabled = true,
                     onClickLabel = "Show Song Details",
                     role = Role.Button,
-                    onClick = { showLyrics = false }
+                    onClick = swapVisual
                 )
         )
 
@@ -613,68 +602,49 @@ private fun SongLyricsSwitch(
             color =
                 if (hasLyrics) MaterialTheme.colorScheme.onSurface
                 else Color.Gray,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(SMALL_PADDING)
                 .clickable(
                     enabled = hasLyrics,
-                    onClickLabel = "Show Song Details",
+                    onClickLabel = "Show Song Lyrics",
                     role = Role.Button,
-                    onClick = { showLyrics = true }
+                    onClick = swapVisual
                 )
         )
     }
-    if (showLyrics) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Text(
-                text = currentSong.title,
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-                text = currentSong.artistName,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = lyric,
-                style = MaterialTheme.typography.bodyMedium
-            )
+}
 
-            Text(
-                text = "Song",
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines =
-                    if (hasLyrics) Int.MAX_VALUE
-                    else 3,
-                overflow = TextOverflow.Ellipsis,
-                onTextLayout = { result ->
-                    showLyrics = result.hasVisualOverflow
-                },
-                modifier = Modifier.animateContentSize(
-                    animationSpec = tween(
-                        durationMillis = 200,
-                        easing = EaseOutExpo
-                    )
+@Composable
+private fun LyricsVisual(
+    currentSong: SongInfo,
+    lyrics: String = "",
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(12.dp)
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 200,
+                    easing = EaseOutExpo
                 )
             )
-            if (showLyrics) {
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    modifier = Modifier
-                        //.align(Alignment.BottomEnd)
-                        .background(MaterialTheme.colorScheme.surface)
-                ) {
-                    // TODO: Add gradient effect
-                    Text(
-                        text = stringResource(id = R.string.pb_show_lyrics),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            textDecoration = TextDecoration.Underline,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
-                }
-            }
-        }
+    ) {
+        Text(
+            text = currentSong.title,
+            style = MaterialTheme.typography.titleLarge,
+        )
+        Text(
+            text = currentSong.artistName,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = lyrics,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(start = SCREEN_PADDING)
+                .align(Alignment.Start)
+        )
     }
 }
 
@@ -710,10 +680,8 @@ private fun PlayerImageBm(
         contentDescription = null,
         contentScale = ContentScale.Fit,
         modifier = modifier
-            .size(250.dp)
-            //.sizeIn(maxWidth = 500.dp, maxHeight = 500.dp)
+            .listItemIconMod(250.dp, MaterialTheme.shapes.extraLarge)
             .aspectRatio(1f)
-            .clip(MaterialTheme.shapes.extraLarge)
     )
 }
 
@@ -846,25 +814,21 @@ fun PlayerButtons(
     sideButtonSize: Dp = SIDE_BUTTON_SIZE,
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = modifier.fillMaxWidth(),
     ) {
-        val sideButtonsModifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.primary,
-                shape = CircleShape
+        val sideButtonsModifier = modifier
+            .playerButtonMod(
+                size = sideButtonSize,
+                color = MaterialTheme.colorScheme.primary
             )
-            .size(sideButtonSize)
-            .semantics { role = Role.Button }
 
-        val primaryButtonModifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.primary,
-                shape = CircleShape
+        val primaryButtonModifier = modifier
+            .playerButtonMod(
+                size = primaryButtonSize,
+                color = MaterialTheme.colorScheme.primary
             )
-            .size(primaryButtonSize)
-            .semantics { role = Role.Button }
 
         // Shuffle btn
         if (isShuffled) {

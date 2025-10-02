@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,13 +29,15 @@ import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.designsys.theme.SUBTITLE_HEIGHT
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.util.MoreOptionsBtn
+import com.example.music.util.listItemIconMod
 import com.example.music.util.quantityStringResource
+import com.example.music.util.songCountCard
 import kotlinx.collections.immutable.PersistentList
 
 private const val TAG = "Featured Items Carousel"
@@ -129,7 +130,9 @@ fun FeaturedPlaylistsCarousel(
                 Log.i(TAG, "Generating Playlist Carousel Item: $page")
                 FeaturedCarouselItem(
                     itemTitle = playlist.name,
-                    itemImage = Uri.parse(""), // FixMe: needs Playlist Image generation
+                    itemImage =
+                        if (playlist.songCount == 0) Uri.parse("")
+                        else playlist.playlistImage[0], // FixMe: need this to account for the 4block set of images
                     itemSize = playlist.songCount,
                     onMoreOptionsClick = { onMoreOptionsClick(playlist) },
                     modifier = Modifier
@@ -161,24 +164,17 @@ private fun FeaturedCarouselItem(
             AlbumImage(
                 albumImage = itemImage,
                 contentDescription = itemTitle,
-                modifier = Modifier
-                    .size(ITEM_IMAGE_CARD_SIZE)
-                    .clip(MaterialTheme.shapes.medium),
+                modifier = Modifier.listItemIconMod(ITEM_IMAGE_CARD_SIZE, MaterialTheme.shapes.medium),
             )
 
-            // Song Count in bottom left of album image
+            // Song Count in bottom left of item image
             Text(
                 text = quantityStringResource(R.plurals.songs, itemSize, itemSize),
                 maxLines = 1,
                 minLines = 1,
                 color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(10.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        shape = CircleShape
-                    )
-                    .padding(4.dp)
+                modifier = Modifier.songCountCard(MaterialTheme.colorScheme.onPrimaryContainer)
             )
         }
         Row(
@@ -190,7 +186,7 @@ private fun FeaturedCarouselItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium, //titleSmall,
-                modifier = Modifier.padding(4.dp).weight(1f,true)
+                modifier = Modifier.padding(start = SMALL_PADDING).weight(1f,true)
             )
             MoreOptionsBtn(onClick = onMoreOptionsClick)
         }

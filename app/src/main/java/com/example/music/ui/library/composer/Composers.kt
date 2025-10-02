@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -21,21 +19,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.music.R
-import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.ICON_SIZE
 import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.testing.PreviewComposers
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.util.MoreOptionsBtn
+import com.example.music.ui.shared.MoreOptionsBtn
+import com.example.music.util.frontTextPadding
+import com.example.music.util.textHeightPadding
+import com.example.music.util.listItemRowPadding
+import com.example.music.util.listItemIconMod
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 
@@ -147,54 +146,38 @@ private fun ComposerListItemRow(
 ){
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = CONTENT_PADDING)
-            .padding(start = CONTENT_PADDING),
+        modifier = modifier.listItemRowPadding(),
     ) {
-        ComposerListItemIcon(
-            composer = composer.name,
-            modifier = Modifier
-                .size(ICON_SIZE)
-                .clip(MaterialTheme.shapes.small),
-        )
-
-        Column(modifier.weight(1f)){
+        ComposerListItemIcon(composer = composer.name)
+        Column(Modifier.frontTextPadding().weight(1f)) {
             Text(
                 text = composer.name,
                 maxLines = 1,
                 minLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
             )
-            Row(
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.padding(horizontal = 10.dp)
-            ) {
+            Row(horizontalArrangement = Arrangement.Start) {
                 Text(
                     text = quantityStringResource(R.plurals.songs, composer.songCount, composer.songCount),
                     maxLines = 1,
                     minLines = 1,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp)
+                    modifier = Modifier.textHeightPadding(),
                 )
             }
-
         }
-
         MoreOptionsBtn(onClick = onMoreOptionsClick)
     }
 }
 
-/**
- * Composable for drawing the Composer Item Icon to contain the first initial of a composer's name
- */
 @Composable
 private fun ComposerListItemIcon(
     composer: String,
-    modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier
+    Row(
+        modifier = Modifier
+            .listItemIconMod(ICON_SIZE, MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
     ) {
         Text(
@@ -203,7 +186,8 @@ private fun ComposerListItemIcon(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
+            modifier = Modifier.fillMaxWidth()
+                .align(Alignment.CenterVertically),
         )
     }
 }

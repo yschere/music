@@ -25,7 +25,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.TopAppBarExpandedHeight
 import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
@@ -42,13 +41,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.music.R
+import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.MARGIN_PADDING
-import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
@@ -63,17 +61,20 @@ import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
 import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.NavDrawer
+import com.example.music.ui.shared.NavDrawerBtn
+import com.example.music.ui.shared.NavToMoreBtn
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.SearchBtn
 import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
-import com.example.music.util.NavDrawerBtn
-import com.example.music.util.NavToMoreBtn
-import com.example.music.util.SearchBtn
+import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
+import com.example.music.util.screenMargin
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -131,13 +132,11 @@ fun MainScreen(
 private fun HomeScreenError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
+/**
+ * Stateful version of Home Screen
+ */
 @Composable
 private fun HomeScreenReady(
     uiState: HomeScreenUiState,
@@ -185,7 +184,7 @@ private fun HomeScreenReady(
 }
 
 /**
- * Composable for Home Screen and its properties needed to render the
+ * Stateless version of Home Screen and its properties needed to render the
  * components of the page.
  */
 @Composable
@@ -201,7 +200,6 @@ private fun HomeScreen(
     isPlaying: Boolean,
 
     onHomeAction: (HomeAction) -> Unit,
-
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToPlayer: () -> Unit,
@@ -231,26 +229,20 @@ private fun HomeScreen(
         drawerState,
         coroutineScope,
     ) {
-        ScreenBackground(
-            modifier = modifier
-        ) {
+        ScreenBackground(modifier = modifier) {
             Scaffold(
                 topBar = {
                     HomeTopAppBar(
                         navigateToSearch = navigateToSearch,
                         onNavigationIconClick = {
                             coroutineScope.launch {
-                                drawerState.apply {
-                                    if (isClosed) open() else close()
-                                }
+                                drawerState.apply { if (isClosed) open() else close() }
                             }
                         },
                     )
                     if (isLoading) {
                         LinearProgressIndicator(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
+                            Modifier.fillMaxWidth().screenMargin()
                         )
                     }
                 },
@@ -304,31 +296,30 @@ private fun HomeScreen(
 private fun HomeTopAppBar(
     onNavigationIconClick: () -> Unit,
     navigateToSearch: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     TopAppBar(
         title = {
             Text(
                 text = "Home",
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.fillMaxWidth().padding(CONTENT_PADDING)
             )
         },
         navigationIcon = { NavDrawerBtn(onClick = onNavigationIconClick) },
         actions = { SearchBtn(onClick = navigateToSearch) },
         expandedHeight = TopAppBarExpandedHeight,
         windowInsets = TopAppBarDefaults.windowInsets,
-        colors = TopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = Color.Transparent,
-            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
-            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
         scrollBehavior = pinnedScrollBehavior(),
     )
 }
 
+/**
+ * Composable for Home Screen Content
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeContent(
@@ -538,14 +529,12 @@ private fun HomeContentGrid(
     navigateToPlayer: () -> Unit,
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(500.dp),
+        columns = GridCells.Fixed(1),
         modifier = modifier.fillMaxSize(),
     ) {
         if (featuredAlbums.isNotEmpty()) {
             fullWidthItem {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = stringResource(R.string.recent_albums),
                         minLines = 1,
@@ -574,9 +563,7 @@ private fun HomeContentGrid(
 
         if (featuredSongs.isNotEmpty()) {
             fullWidthItem {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = stringResource(R.string.recent_songs),
                         minLines = 1,
@@ -590,7 +577,7 @@ private fun HomeContentGrid(
             }
 
             items(items = featuredSongs) { song ->
-                Box(Modifier.padding(horizontal = SCREEN_PADDING)) {
+                Box(Modifier.screenMargin()) {
                     SongListItem(
                         song = song,
                         onClick = {
@@ -637,9 +624,9 @@ private val ExpandedWindowSizeClass = WindowSizeClass.compute(840f,900f)
 private val CompactWindowSizeClassLandscape = WindowSizeClass.compute(780f,360f)
 private val ExpandedWindowSizeClassLandscape = WindowSizeClass.compute(900f,840f)
 
-//@SystemLightPreview
+@SystemLightPreview
 @SystemDarkPreview
-//@LandscapePreview
+@LandscapePreview
 @Composable
 private fun PreviewHome() {
     MusicTheme {

@@ -1,4 +1,4 @@
-package com.example.music.util
+package com.example.music.ui.shared
 
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import androidx.compose.animation.AnimatedVisibility
@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Reorder
@@ -64,6 +63,7 @@ import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.MARGIN_PADDING
 import com.example.music.designsys.theme.MINI_PLAYER_HEIGHT
 import com.example.music.designsys.theme.SCROLL_FAB_BOTTOM_PADDING
+import com.example.music.designsys.theme.SMALL_PADDING
 
 /***********************************************************************************************
  *
@@ -140,7 +140,7 @@ fun BoxScope.ScrollToTopFAB(
             onClick = onClick,
             btnModifier = Modifier
                 .shadow(elevation = 3.dp, shape = CircleShape)
-                .clip(MaterialTheme.shapes.extraLarge)
+                .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary),
             tint = MaterialTheme.colorScheme.inversePrimary,
         )
@@ -159,12 +159,12 @@ fun RowScope.NavToMoreBtn(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.padding(horizontal = MARGIN_PADDING)
-            .align(Alignment.CenterVertically),
         contentPadding = ButtonDefaults.TextButtonContentPadding,
         colors = ButtonDefaults.buttonColors(
             contentColor = MaterialTheme.colorScheme.inversePrimary,
-        )
+        ),
+        modifier = modifier.padding(horizontal = MARGIN_PADDING)
+            .align(Alignment.CenterVertically),
     ) {
         Text(
             text = "More",
@@ -320,7 +320,7 @@ fun InfoBtn(
         icon = Icons.Filled.Info,
         description = stringResource(R.string.icon_song_details),
         onClick = onClick,
-        iconModifier = Modifier.padding(4.dp)
+        iconModifier = Modifier.padding(SMALL_PADDING)
     )
 }
 
@@ -403,27 +403,30 @@ fun ToggleFavoriteBtn(
         iconModifier = Modifier
             .shadow(
                 elevation = animateDpAsState(
-                    if (isFave) 0.dp
-                    else 1.dp,
+                    targetValue =
+                        if (isFave) 0.dp
+                        else 1.dp,
                     label = "shadow"
                 ).value,
                 shape = MaterialTheme.shapes.small
             )
             .background(
                 color = animateColorAsState(
-                    when {
+                    targetValue = when {
                         isFave -> MaterialTheme.colorScheme.primary
                         else -> MaterialTheme.colorScheme.surfaceContainerHighest
-                    }, label = "background"
+                    },
+                    label = "background"
                 ).value,
                 shape = CircleShape
             )
-            .padding(4.dp),
+            .padding(SMALL_PADDING),
         tint = animateColorAsState(
-            when {
+            targetValue = when {
                 isFave -> MaterialTheme.colorScheme.onPrimary
                 else -> MaterialTheme.colorScheme.primary
-            }, label = "tint"
+            },
+            label = "tint"
         ).value,
     )
 }

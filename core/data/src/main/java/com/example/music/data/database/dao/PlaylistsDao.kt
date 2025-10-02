@@ -545,9 +545,10 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
         LEFT JOIN song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
         WHERE playlists.id = :playlistId
         ORDER BY song_playlist_entries.playlist_track_number ASC
+        LIMIT :limit
         """
     )
-    abstract fun getSongsByPlaylistId(playlistId: Long): Flow<List<Long>>
+    abstract fun getSongsByPlaylistId(playlistId: Long, limit: Int): Flow<List<Long>>
 
     //need update function, for updating song_playlist_entries, for removing songs from playlist
     //maybe need delete function / remove hide function

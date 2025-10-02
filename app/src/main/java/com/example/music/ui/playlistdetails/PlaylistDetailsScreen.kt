@@ -27,7 +27,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -52,26 +51,30 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
-import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
-import com.example.music.designsys.theme.LARGE_TOP_BAR_EXPANDED_HEIGHT
+import com.example.music.designsys.theme.TOP_BAR_IMAGE_EXPANDED_HEIGHT
 import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
-import com.example.music.domain.testing.PreviewPlaylists
-import com.example.music.domain.testing.getPlaylistSongs
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.domain.testing.PreviewSongs
+import com.example.music.domain.testing.getPlaylistSongs
 import com.example.music.ui.player.MiniPlayerControlActions
+import com.example.music.ui.shared.AddToPlaylistFAB
+import com.example.music.ui.shared.BackNavBtn
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.ItemCountAndPlusSortSelectButtons
 import com.example.music.ui.shared.Loading
 import com.example.music.ui.shared.MiniPlayer
+import com.example.music.ui.shared.MoreOptionsBtn
 import com.example.music.ui.shared.PlayShuffleButtons
 import com.example.music.ui.shared.PlaylistActions
 import com.example.music.ui.shared.PlaylistMoreOptionsBottomModal
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.ScrollToTopFAB
+import com.example.music.ui.shared.SearchBtn
 import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
@@ -80,12 +83,10 @@ import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
-import com.example.music.util.AddToPlaylistFAB
-import com.example.music.util.BackNavBtn
-import com.example.music.util.MoreOptionsBtn
-import com.example.music.util.ScrollToTopFAB
-import com.example.music.util.SearchBtn
+import com.example.music.util.frontTextPadding
 import com.example.music.util.fullWidthItem
+import com.example.music.util.listItemIconMod
+import com.example.music.util.screenMargin
 import kotlinx.coroutines.launch
 
 private const val TAG = "Playlist Details Screen"
@@ -145,12 +146,7 @@ fun PlaylistDetailsScreen(
 private fun PlaylistDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
 /**
  * Loading Screen with circular progress indicator in center
@@ -234,14 +230,11 @@ private fun PlaylistDetailsScreen(
                         MoreOptionsBtn(onClick = { showPlaylistMoreOptions = true })
                     },
                     collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
-                    expandedHeight = LARGE_TOP_BAR_EXPANDED_HEIGHT,
+                    expandedHeight = TOP_BAR_IMAGE_EXPANDED_HEIGHT,
                     windowInsets = TopAppBarDefaults.windowInsets,
-                    colors = TopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
-                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
@@ -271,7 +264,7 @@ private fun PlaylistDetailsScreen(
                     modifier = Modifier
                         .padding(contentPadding)
                         .fillMaxSize()
-                        .padding(horizontal = SCREEN_PADDING)
+                        .screenMargin()
                 ) {
                     if (songs.isEmpty()) {
                         fullWidthItem {
@@ -540,13 +533,11 @@ private fun PlaylistDetailsHeader(
             modifier = Modifier.fillMaxWidth()
                 .padding(end = SCREEN_PADDING),
         ) {
-            if (playlist.songCount == 0) {
+            if (playlist.playlistImage.isEmpty()) {
                 AlbumImage(
                     albumImage = Uri.parse(""),
                     contentDescription = playlist.name,
-                    modifier = Modifier
-                        .size(imageSize)
-                        .clip(MaterialTheme.shapes.large)
+                    modifier = Modifier.listItemIconMod(imageSize, MaterialTheme.shapes.medium),
                 )
             } else {
                 PlaylistDetailsThumbnails(playlist.playlistImage, imageSize / 2)
@@ -556,7 +547,7 @@ private fun PlaylistDetailsHeader(
                 maxLines = 2,
                 overflow = TextOverflow.Visible,
                 style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(start = CONTENT_PADDING).align(Alignment.CenterVertically)
+                modifier = Modifier.frontTextPadding().align(Alignment.CenterVertically)
             )
         }
     }
@@ -566,12 +557,12 @@ private fun PlaylistDetailsHeader(
  * Composable for Playlist Details Screen to display the playlist image as a set of the first few songs of the playlist
  */
 @Composable
-private fun PlaylistDetailsThumbnails(
+fun PlaylistDetailsThumbnails(
     playlistImage: List<Uri>,
     imageSize: Dp,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.clip(MaterialTheme.shapes.large)) {
+    Box(modifier = modifier.clip(MaterialTheme.shapes.medium)) {
         Column {
             Row {
                 AlbumImage(
@@ -620,15 +611,13 @@ private fun PlaylistDetailsEmptyList(
         modifier = Modifier.fillMaxSize()
             .padding(SCREEN_PADDING)
     ) {
-        Text(
-            text = "Add Songs to Playlist"
-        )
+        Text(text = "Add Songs to Playlist")
         AddToPlaylistFAB(onClick = onClick)
     }
 }
 
-//@CompLightPreview
-//@CompDarkPreview
+@CompLightPreview
+@CompDarkPreview
 @Composable
 fun PlaylistDetailsHeaderItemPreview() {
     MusicTheme {
@@ -639,7 +628,7 @@ fun PlaylistDetailsHeaderItemPreview() {
 }
 
 @SystemLightPreview
-//@SystemDarkPreview
+@SystemDarkPreview
 @Composable
 fun PlaylistDetailsScreenPreview() {
     MusicTheme {

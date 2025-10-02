@@ -29,7 +29,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.TopAppBarExpandedHeight
 import androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior
@@ -50,7 +49,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
@@ -58,11 +56,9 @@ import androidx.window.layout.DisplayFeature
 import com.example.music.R
 import com.example.music.data.repository.ShuffleType
 import com.example.music.designsys.theme.CONTENT_PADDING
-import com.example.music.designsys.theme.DEFAULT_PADDING
 import com.example.music.designsys.theme.LIST_ITEM_HEIGHT
 import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
 import com.example.music.designsys.theme.ROW_ITEM_HEIGHT
-import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.ui.shared.ActionItem
 import com.example.music.ui.shared.Actions
@@ -72,7 +68,10 @@ import com.example.music.ui.shared.ScreenBackground
 import com.example.music.ui.shared.SettingsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
-import com.example.music.util.NavDrawerBtn
+import com.example.music.ui.shared.NavDrawerBtn
+import com.example.music.util.frontTextPadding
+import com.example.music.util.modalHeaderPadding
+import com.example.music.util.screenMargin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -120,15 +119,10 @@ fun SettingsScreen(
 private fun SettingsScreenError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
 /**
- * Stateless Composable for Settings Screen and its properties needed to render the
+ * Stateless version of Settings Screen and its properties needed to render the
  * components of the page.
  */
 @Composable
@@ -137,6 +131,7 @@ private fun SettingsScreen(
     isLoading: Boolean,
     displayFeatures: List<DisplayFeature>,
     totals: List<Int>,
+
     onSettingsAction: (SettingsAction) -> Unit,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
@@ -159,26 +154,19 @@ private fun SettingsScreen(
         drawerState,
         coroutineScope,
     ) {
-        ScreenBackground(
-            modifier = modifier
-        ) {
+        ScreenBackground(modifier = modifier) {
             Scaffold(
                 topBar = {
                     SettingsTopAppBar(
-                        //navigateBack = navigateBack,
                         onNavigationIconClick = {
                             coroutineScope.launch {
-                                drawerState.apply {
-                                    if (isClosed) open() else close()
-                                }
+                                drawerState.apply { if (isClosed) open() else close() }
                             }
                         },
                     )
                     if (isLoading) {
                         LinearProgressIndicator(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
+                            Modifier.fillMaxWidth().screenMargin()
                         )
                     }
                 },
@@ -206,7 +194,6 @@ private fun SettingsScreen(
 @Composable
 private fun SettingsTopAppBar(
     onNavigationIconClick: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     TopAppBar(
         title = {
@@ -220,12 +207,9 @@ private fun SettingsTopAppBar(
         actions = {},
         expandedHeight = TopAppBarExpandedHeight,
         windowInsets = TopAppBarDefaults.windowInsets,
-        colors = TopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
             scrolledContainerColor = Color.Transparent,
-            navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
-            actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
         scrollBehavior = pinnedScrollBehavior(),
     )
@@ -335,9 +319,7 @@ private fun SettingsContent(
                     sheetState.hide()
                 }.invokeOnCompletion {
                     Log.i(TAG, "set showShuffleSheet to FALSE")
-                    if(!sheetState.isVisible) {
-                        showShuffleSheet = false
-                    }
+                    if(!sheetState.isVisible) showShuffleSheet = false
                 }
             },
             onApply = {
@@ -346,9 +328,7 @@ private fun SettingsContent(
                     sheetState.hide()
                 }.invokeOnCompletion {
                     Log.i(TAG, "set showShuffleSheet to FALSE")
-                    if(!sheetState.isVisible) {
-                        showShuffleSheet = false
-                    }
+                    if(!sheetState.isVisible) showShuffleSheet = false
                 }
             },
         ) {
@@ -371,9 +351,7 @@ private fun SettingsContent(
                     sheetState.hide()
                 }.invokeOnCompletion {
                     Log.i(TAG, "set showThemeSheet to FALSE")
-                    if(!sheetState.isVisible) {
-                        showThemeSheet = false
-                    }
+                    if(!sheetState.isVisible) showThemeSheet = false
                 }
             },
             onApply = {
@@ -382,9 +360,7 @@ private fun SettingsContent(
                     sheetState.hide()
                 }.invokeOnCompletion {
                     Log.i(TAG, "set showThemeSheet to FALSE")
-                    if(!sheetState.isVisible) {
-                        showThemeSheet = false
-                    }
+                    if(!sheetState.isVisible) showThemeSheet = false
                 }
             },
         ) {
@@ -414,7 +390,7 @@ private fun SettingRowItem(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .height(ROW_ITEM_HEIGHT)
-                .padding(horizontal = SCREEN_PADDING)
+                .screenMargin()
         ) {
             Column {
                 Text(
@@ -449,7 +425,7 @@ private fun SettingRowItemWithModal(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
                 .height(ROW_ITEM_HEIGHT)
-                .padding(horizontal = SCREEN_PADDING)
+                .screenMargin()
         ) {
             Column {
                 Text(
@@ -482,7 +458,7 @@ private fun ShuffleModalContent(
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.fillMaxWidth()
-                .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
+                .modalHeaderPadding()
         )
         ShuffleRadioGroupSet(
             radioOptions = listOf(ShuffleType.ONCE, ShuffleType.ON_LOOP),
@@ -506,7 +482,7 @@ private fun ThemeModalContent(
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.fillMaxWidth()
-                .padding(horizontal = MODAL_CONTENT_PADDING, vertical = DEFAULT_PADDING)
+                .modalHeaderPadding()
         )
         ThemeRadioGroupSet(
             radioOptions = themeOptions,
@@ -556,7 +532,7 @@ private fun ShuffleRadioGroupSet(
                     color =
                         if (option == selectedOption) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(start = CONTENT_PADDING),
+                    modifier = Modifier.frontTextPadding(),
                 )
             }
         }
@@ -612,7 +588,7 @@ private fun ThemeRadioGroupSet(
                     color =
                         if (option == selectedOption) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(start = CONTENT_PADDING),
+                    modifier = Modifier.frontTextPadding(),
                 )
             }
         }

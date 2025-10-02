@@ -22,7 +22,14 @@ import com.example.music.util.stickyHeader
 private const val TAG = "Library Artists"
 
 /**
- * Overloaded version of lazy list for artistItems
+ * A method of defining artist items in a lazy list scope for the Library Screen
+ * @param artists defines list of artists to display
+ * @param navigateToArtistDetails defines the actions for
+ * navigating to the artist's details screen when the item is clicked
+ * @param onArtistMoreOptionsClick defines the actions for opening the
+ * MoreOptions menu modal when the MoreOptions icon is clicked
+ * @param onSortClick defines the actions for clicking on the Sort icon btn
+ * @param onSelectClick defines the actions for clicking on the Multi-Select icon btn
  */
 fun LazyListScope.artistItems(
     artists: List<ArtistInfo>,
@@ -45,9 +52,7 @@ fun LazyListScope.artistItems(
     }
 
     // Artist List
-    items(
-        items = artists
-    ) { artist ->
+    items(items = artists) { artist ->
         ArtistListItem(
             artist = artist,
             navigateToArtistDetails = { navigateToArtistDetails(artist) },
@@ -58,7 +63,14 @@ fun LazyListScope.artistItems(
 }
 
 /**
- * Overloaded version of lazy grid for artistItems - default grid style
+ * A method of defining artist items in a lazy vertical grid scope for the Library Screen
+ * @param artists defines list of artists to display
+ * @param navigateToArtistDetails defines the actions for
+ * navigating to the artist's details screen when the item is clicked
+ * @param onArtistMoreOptionsClick defines the actions for opening the
+ * MoreOptions menu modal when the MoreOptions icon is clicked
+ * @param onSortClick defines the actions for clicking on the Sort icon btn
+ * @param onSelectClick defines the actions for clicking on the Multi-Select icon btn
  */
 fun LazyGridScope.artistItems(
     artists: List<ArtistInfo>,
@@ -95,9 +107,19 @@ fun LazyGridScope.artistItems(
 }
 
 /**
- * Overloaded version of lazy list for artistItems - sticky headers version
+ * A method of defining artist items in a lazy vertical grid scope for the Library Screen
+ * with sticky headers
+ * @param mappedArtists defines a mapping of the list of artists to display to their header character
+ * @param artistCount defines the amount of artists in the library
+ * @param state defines the current state of the lazy grid
+ * @param navigateToArtistDetails defines the actions for
+ * navigating to the artist's details screen when the item is clicked
+ * @param onArtistMoreOptionsClick defines the actions for opening the
+ * MoreOptions menu modal when the MoreOptions icon is clicked
+ * @param onSortClick defines the actions for clicking on the Sort icon btn
+ * @param onSelectClick defines the actions for clicking on the Multi-Select icon btn
  */
-fun LazyGridScope.artistItems(
+fun LazyGridScope.artistItemsWithHeaders(
     mappedArtists: Map<Char,List<ArtistInfo>>,
     artistCount: Int,
     state: LazyGridState,

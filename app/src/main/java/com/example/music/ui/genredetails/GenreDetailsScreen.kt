@@ -5,7 +5,6 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +23,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -43,11 +41,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
-import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
 import com.example.music.designsys.theme.TOP_BAR_EXPANDED_HEIGHT
 import com.example.music.domain.testing.PreviewGenres
@@ -70,10 +66,11 @@ import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemLightPreview
-import com.example.music.util.BackNavBtn
-import com.example.music.util.MoreOptionsBtn
-import com.example.music.util.ScrollToTopFAB
-import com.example.music.util.SearchBtn
+import com.example.music.ui.shared.BackNavBtn
+import com.example.music.ui.shared.MoreOptionsBtn
+import com.example.music.ui.shared.ScrollToTopFAB
+import com.example.music.ui.shared.SearchBtn
+import com.example.music.util.screenMargin
 import com.example.music.util.fullWidthItem
 import kotlinx.coroutines.launch
 
@@ -134,12 +131,7 @@ fun GenreDetailsScreen(
 private fun GenreDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
 /**
  * Loading Screen with circular progress indicator in center
@@ -150,9 +142,9 @@ private fun GenreDetailsLoadingScreen(
 ) { Loading(modifier = modifier) }
 
 /**
- * Stateless Composable for Genre Details Screen
+ * Stateless version of Genre Details Screen
  */
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GenreDetailsScreen(
     genre: GenreInfo,
@@ -179,39 +171,36 @@ fun GenreDetailsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
-    val appBarScrollBehavior = TopAppBarDefaults
-        .exitUntilCollapsedScrollBehavior(
-            rememberTopAppBarState()
-        )
+    val appBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        rememberTopAppBarState()
+    )
     val isCollapsed = remember {
-        derivedStateOf {
-            appBarScrollBehavior.state.collapsedFraction > 0.5
-        }
+        derivedStateOf { appBarScrollBehavior.state.collapsedFraction > 0.4 }
     }
 
     val listState = rememberLazyGridState()
-    val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
+    val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
     val sheetState = rememberModalBottomSheetState(true)
     var showSortSheet by remember { mutableStateOf(false) }
     var showGenreMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf(false) }
 
-    ScreenBackground(
-        modifier = modifier
-    ) {
+    ScreenBackground(modifier = modifier) {
         Scaffold(
             topBar = {
                 LargeTopAppBar(
                     title = {
-                        Text(
-                            text = genre.name,
-                            style = MaterialTheme.typography.headlineMedium,
-                            overflow = TextOverflow.Clip,
-                            modifier =
-                                if (isCollapsed.value) Modifier.basicMarquee()
-                                else Modifier,
-                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = genre.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                overflow = TextOverflow.Clip,
+                                modifier =
+                                    if (isCollapsed.value) Modifier.align(Alignment.CenterStart).basicMarquee()
+                                    else Modifier.align(Alignment.CenterStart),
+                            )
+                        }
                     },
                     navigationIcon = { BackNavBtn(onClick = navigateBack) },
                     actions = {
@@ -221,12 +210,9 @@ fun GenreDetailsScreen(
                     collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
                     expandedHeight = TOP_BAR_EXPANDED_HEIGHT,
                     windowInsets = TopAppBarDefaults.windowInsets,
-                    colors = TopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
-                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
@@ -255,7 +241,7 @@ fun GenreDetailsScreen(
                     state = listState,
                     modifier = modifier.padding(contentPadding)
                         .fillMaxSize()
-                        .padding(horizontal = SCREEN_PADDING)
+                        .screenMargin()
                 ) {
                     fullWidthItem {
                         ItemCountAndSortSelectButtons(

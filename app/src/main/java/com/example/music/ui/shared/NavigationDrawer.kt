@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.music.R
-import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
 import com.example.music.designsys.theme.NAV_DRAWER_CONTENT_PADDING
 import com.example.music.designsys.theme.NAV_DRAWER_ITEMS_HEIGHT
 import com.example.music.designsys.theme.NAV_DRAWER_MARGINS

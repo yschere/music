@@ -27,7 +27,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -54,36 +53,37 @@ import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
 import com.example.music.designsys.theme.TOP_BAR_EXPANDED_HEIGHT
-import com.example.music.domain.testing.PreviewArtists
-import com.example.music.domain.testing.getAlbumsByArtist
-import com.example.music.domain.testing.getSongsByArtist
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.testing.PreviewArtists
 import com.example.music.domain.testing.PreviewSongs
+import com.example.music.domain.testing.getAlbumsByArtist
+import com.example.music.domain.testing.getSongsByArtist
 import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistActions
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
-import com.example.music.ui.shared.MiniPlayer
+import com.example.music.ui.shared.BackNavBtn
 import com.example.music.ui.shared.DetailsSortSelectionBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.FeaturedAlbumsCarousel
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.shared.Loading
+import com.example.music.ui.shared.MiniPlayer
+import com.example.music.ui.shared.MoreOptionsBtn
 import com.example.music.ui.shared.PlayShuffleButtons
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.ScrollToTopFAB
+import com.example.music.ui.shared.SearchBtn
 import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
+import com.example.music.util.screenMargin
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
-import com.example.music.util.BackNavBtn
-import com.example.music.util.MoreOptionsBtn
-import com.example.music.util.ScrollToTopFAB
-import com.example.music.util.SearchBtn
 import com.example.music.util.fullWidthItem
 import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
@@ -147,12 +147,7 @@ fun ArtistDetailsScreen(
 private fun ArtistDetailsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
-) {
-    Error(
-        onRetry = onRetry,
-        modifier = modifier
-    )
-}
+) { Error(onRetry = onRetry, modifier = modifier) }
 
 /**
  * Loading Screen with circular progress indicator in center
@@ -193,14 +188,11 @@ fun ArtistDetailsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
-    val appBarScrollBehavior = TopAppBarDefaults
-        .exitUntilCollapsedScrollBehavior(
-            rememberTopAppBarState()
-        )
+    val appBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        rememberTopAppBarState()
+    )
     val isCollapsed = remember {
-        derivedStateOf {
-            appBarScrollBehavior.state.collapsedFraction > 0.5
-        }
+        derivedStateOf { appBarScrollBehavior.state.collapsedFraction > 0.4 }
     }
 
     val listState = rememberLazyGridState()
@@ -212,21 +204,21 @@ fun ArtistDetailsScreen(
     var showArtistMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
 
-    ScreenBackground(
-        modifier = modifier
-    ) {
+    ScreenBackground(modifier = modifier) {
         Scaffold(
             topBar = {
                 LargeTopAppBar(
                     title = {
-                        Text(
-                            text = artist.name,
-                            style = MaterialTheme.typography.headlineMedium,
-                            overflow = TextOverflow.Clip,
-                            modifier =
-                                if (isCollapsed.value) Modifier.basicMarquee()
-                                else Modifier,
-                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = artist.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                overflow = TextOverflow.Clip,
+                                modifier =
+                                    if (isCollapsed.value) Modifier.align(Alignment.CenterStart).basicMarquee()
+                                    else Modifier.align(Alignment.CenterStart),
+                            )
+                        }
                     },
                     navigationIcon = { BackNavBtn(onClick = navigateBack) },
                     actions = {
@@ -236,12 +228,9 @@ fun ArtistDetailsScreen(
                     collapsedHeight = TOP_BAR_COLLAPSED_HEIGHT,
                     expandedHeight = TOP_BAR_EXPANDED_HEIGHT,
                     windowInsets = TopAppBarDefaults.windowInsets,
-                    colors = TopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         scrolledContainerColor = Color.Transparent,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        titleContentColor = contentColorFor(MaterialTheme.colorScheme.background),
-                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
                     scrollBehavior = appBarScrollBehavior,
                 )
@@ -271,7 +260,7 @@ fun ArtistDetailsScreen(
                     state = listState,
                     modifier = modifier.padding(contentPadding)
                         .fillMaxSize()
-                        // does not have .padding(horizontal = SCREEN_PADDING) to account for the albums carousel
+                        // does not have .screenMargin() to account for the albums carousel
                 ) {
                     // Albums Section
                     if (albums.isNotEmpty()) {
@@ -280,9 +269,7 @@ fun ArtistDetailsScreen(
                             Text(
                                 text = """\s[a-z]""".toRegex().replace(
                                     quantityStringResource(R.plurals.albums, albums.size, albums.size)
-                                ) {
-                                    it.value.uppercase()
-                                },
+                                ) { it.value.uppercase() },
                                 textAlign = TextAlign.Left,
                                 style = MaterialTheme.typography.titleMedium,
                                 // adding horizontal padding for screen with carousel
@@ -319,7 +306,7 @@ fun ArtistDetailsScreen(
                                     Log.i(TAG, "Multi Select btn clicked")
                                 },
                                 // adding horizontal padding for screen with carousel
-                                modifier = Modifier.padding(horizontal = SCREEN_PADDING)
+                                modifier = Modifier.screenMargin()
                             )
                         }
 
@@ -336,13 +323,13 @@ fun ArtistDetailsScreen(
                                     navigateToPlayer()
                                 },
                                 // adding horizontal padding for screen with carousel
-                                modifier = Modifier.padding(horizontal = SCREEN_PADDING)
+                                modifier = Modifier.screenMargin()
                             )
                         }
 
                         items(items = songs) { song ->
                             // adding horizontal padding for screen with carousel
-                            Box(Modifier.padding(horizontal = SCREEN_PADDING)) {
+                            Box(Modifier.screenMargin()) {
                                 SongListItem(
                                     song = song,
                                     onClick = {

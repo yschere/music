@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -15,11 +14,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.component.AlbumImageBm
 import com.example.music.designsys.theme.CONTENT_PADDING
@@ -28,10 +25,11 @@ import com.example.music.designsys.theme.ITEM_IMAGE_ROW_SIZE
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.theme.MusicTheme
-import com.example.music.ui.tooling.CompDarkPreview
 import com.example.music.ui.tooling.CompLightPreview
-import com.example.music.util.MoreOptionsBtn
-import com.example.music.util.ReorderItemBtn
+import com.example.music.util.frontTextPadding
+import com.example.music.util.listItemIconMod
+import com.example.music.util.listItemRowPadding
+import com.example.music.util.textHeightPadding
 
 @Composable
 fun SongListItem(
@@ -81,8 +79,7 @@ private fun SongListItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = CONTENT_PADDING)
-            .padding(start = CONTENT_PADDING),
+        modifier = Modifier.listItemRowPadding(),
     ) {
         /* // ********* UI Logic Expectations: *********
             // for properties that can be null, replace them with empty string
@@ -130,27 +127,21 @@ private fun SongListItemRow(
             //SongListItemImageBm(
                 //artworkBitmap = song.artworkBitmap,
                 description = song.title,
-                modifier = Modifier
-                    .size(ITEM_IMAGE_ROW_SIZE)
-                    .clip(MaterialTheme.shapes.small),
+                modifier = Modifier.listItemIconMod(ITEM_IMAGE_ROW_SIZE, MaterialTheme.shapes.small),
             )
         }
 
         // Song Title
         // Artist, Album, duration
-        Column(modifier.weight(1f)) {
+        Column(modifier.frontTextPadding().weight(1f)) {
             Text(
                 text = song.title,
                 maxLines = 1,
                 minLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)
             )
-            Row(
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.padding(horizontal = 10.dp)
-            ) {
+            Row(horizontalArrangement = Arrangement.Start) {
                 Text(
                     text = song.setSubText(
                         showArtistName = showArtistName,
@@ -160,7 +151,7 @@ private fun SongListItemRow(
                     minLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(vertical = 2.dp),
+                    modifier = Modifier.textHeightPadding(),
                 )
             }
         }
