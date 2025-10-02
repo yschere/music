@@ -1,4 +1,4 @@
-package com.example.music.util
+package com.example.music.ui.shared
 
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import androidx.compose.animation.AnimatedVisibility
@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Reorder
