@@ -18,6 +18,12 @@ class GetLibrarySongs @Inject constructor(
         Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
+            "TITLE" -> {
+                songsList = mediaRepo.getAllAudios(
+                    order = MediaStore.Audio.Media.TITLE,
+                    ascending = isAscending,
+                )
+            }
 
             "ARTIST" -> {
                 songsList = mediaRepo.getAllAudios(
@@ -43,6 +49,13 @@ class GetLibrarySongs @Inject constructor(
             "DATE_LAST_PLAYED" -> {
                 songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.DATE_MODIFIED,
+                    ascending = isAscending,
+                )
+            }
+
+            "DURATION" -> {
+                songsList = mediaRepo.getAllAudios(
+                    order = MediaStore.Audio.Media.DURATION,
                     ascending = isAscending,
                 )
             }

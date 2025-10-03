@@ -14,15 +14,23 @@ class GetLibraryGenres @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
     suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<GenreInfo> {
-        val genresList: List<Genre>
+        var genresList: List<Genre>
         Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
-            "SONG_COUNT" -> {
+            "NAME" -> {
                 genresList = mediaRepo.getAllGenres(
-                    order = MediaStore.Audio.Genres._ID,
+                    order = MediaStore.Audio.Genres.NAME,
                     ascending = isAscending
                 )
+            }
+
+            "SONG_COUNT" -> {
+                genresList = mediaRepo.getAllGenres(
+                    order = MediaStore.Audio.Genres.NAME,
+                    ascending = isAscending
+                ).sortedBy { it.numTracks }
+                if (!isAscending) genresList = genresList.reversed()
             }
 
             else -> {
@@ -35,7 +43,7 @@ class GetLibraryGenres @Inject constructor(
 
         Log.i(TAG, "********** Library Genres count: ${genresList.size} **********")
         return genresList.map { genre ->
-            Log.i(TAG, "**** Genre: ${genre.id} + ${genre.name} ****")
+            Log.i(TAG, "**** Genre: ${genre.id} + ${genre.name} + ${genre.numTracks} ****")
             genre.asExternalModel()
         }
     }

@@ -18,6 +18,13 @@ class GetLibraryArtists @Inject constructor(
         Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
+            "NAME" -> {
+                artistsList = mediaRepo.getAllArtists(
+                    order = MediaStore.Audio.Artists.ARTIST,
+                    ascending = isAscending,
+                )
+            }
+
             "ALBUM_COUNT" -> {
                 artistsList = mediaRepo.getAllArtists(
                     order = MediaStore.Audio.Artists.NUMBER_OF_ALBUMS,

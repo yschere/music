@@ -15,6 +15,7 @@ import androidx.media3.session.MediaSession.Callback
 import androidx.media3.session.MediaSession.ControllerInfo
 import androidx.media3.session.MediaSessionService
 import com.example.music.data.repository.AppPreferencesRepo
+import com.example.music.data.repository.RepeatType
 import com.example.music.domain.player.model.asLocalMediaItem
 import com.example.music.ui.player.NowPlaying
 import com.example.music.ui.shared.mediaItems
@@ -118,8 +119,6 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
 
         scope.launch{
             Log.i(TAG, "onCreate: scope launch start")
-            Log.i(TAG, "Setting media player shuffle mode from AppPreferences DataStore")
-            mediaPlayer.shuffleModeEnabled = appPreferences.isShuffleEnabled()
 
             Log.i(TAG, "Setting media player repeat mode from AppPreferences DataStore")
             mediaPlayer.repeatMode = appPreferences.getRepeatTypeAsInt()
@@ -215,25 +214,15 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         super.onMediaItemTransition(mediaItem, reason)
     }
 
-    /*override fun onShuffleModeEnabledChanged(
-        shuffleModeEnabled: Boolean
-    ) {
-        scope.launch() {
-            appPreferences.updateIsShuffleEnabled(shuffleModeEnabled)
-            // set the dataStore shuffle type to shuffleModeEnabled
-        }
-        //mediaSession.notifyChildrenChanged(ROOT_QUEUE, 0, null)
-        //super.onShuffleModeEnabledChanged(shuffleModeEnabled)
-    }*/
-
-    /*override fun onRepeatModeChanged(
+    override fun onRepeatModeChanged(
         repeatMode: Int
     ) {
-        scope.launch() {
+        scope.launch {
             appPreferences.updateRepeatType(RepeatType.entries[repeatMode])
-            // set the dataStore repeat type to repeatMode
+            // set the dataStore repeat type to new repeatMode
         }
-    }*/
+        super.onRepeatModeChanged(repeatMode)
+    }
 
     /*override fun onTimelineChanged(
         timeline: Timeline,

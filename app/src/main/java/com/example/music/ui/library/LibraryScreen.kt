@@ -135,6 +135,7 @@ fun LibraryScreen(
             isLoading = uiState.isLoading,
             libraryCategories = uiState.libraryCategories,
             selectedLibraryCategory = uiState.selectedLibraryCategory,
+            selectedSortPair = uiState.selectedSortPair,
             libraryAlbums = uiState.libraryAlbums,
             libraryArtists = uiState.libraryArtists,
             libraryComposers = uiState.libraryComposers,
@@ -184,6 +185,7 @@ private fun LibraryScreen(
     windowSizeClass: WindowSizeClass,
     isLoading: Boolean,
     selectedLibraryCategory: LibraryCategory,
+    selectedSortPair: Pair<String, Boolean>,
     libraryCategories: List<LibraryCategory>,
     libraryAlbums: List<AlbumInfo>,
     libraryArtists: List<ArtistInfo>,
@@ -265,6 +267,7 @@ private fun LibraryScreen(
                 LibraryContent(
                     coroutineScope = coroutineScope,
                     selectedLibraryCategory = selectedLibraryCategory,
+                    selectedSortPair = selectedSortPair,
                     libraryCategories = libraryCategories,
                     libraryAlbums = libraryAlbums,
                     libraryArtists = libraryArtists,
@@ -336,6 +339,7 @@ private fun LibraryContent(
     coroutineScope: CoroutineScope,
 
     selectedLibraryCategory: LibraryCategory,
+    selectedSortPair: Pair<String, Boolean>,
     libraryCategories: List<LibraryCategory>,
     libraryAlbums: List<AlbumInfo>,
     libraryArtists: List<ArtistInfo>,
@@ -425,7 +429,7 @@ private fun LibraryContent(
                 /** single column section **/
                 LibraryCategory.Artists -> {
                     /** practicing with sticky header **/
-                    artistItemsWithHeaders(
+                    /*artistItemsWithHeaders(
                         mappedArtists = groupedArtistItems,
                         artistCount = libraryArtists.size,
                         state = listState,
@@ -445,9 +449,9 @@ private fun LibraryContent(
                         onSelectClick = {
                             Log.i(TAG, "Artist Multi Select btn clicked")
                         }
-                    )
+                    )*/
                     /** original version, not using sticky headers **/
-                    /*artistItems(
+                    artistItems(
                         artists = libraryArtists,
                         navigateToArtistDetails = { artist: ArtistInfo ->
                             Log.i(TAG, "Artist clicked: ${artist.name}")
@@ -465,7 +469,7 @@ private fun LibraryContent(
                         onSelectClick = {
                             Log.i(TAG, "Artist Multi Select btn clicked")
                         }
-                    )*/
+                    )
                 }
 
                 LibraryCategory.Composers -> {
@@ -609,11 +613,12 @@ private fun LibraryContent(
 
     // Library BottomSheet
     if (showSortSheet) {
-        Log.i(TAG, "Library Content -> $selectedLibraryCategory Sort Modal is TRUE")
+        Log.i(TAG, "Library Content -> $selectedLibraryCategory Sort Modal is TRUE\n" +
+            "sort order -> ${selectedSortPair.first} + ${selectedSortPair.second}")
         LibrarySortSelectionBottomModal(
             onDismissRequest = { showSortSheet = false },
             sheetState = sheetState,
-            libraryCategory = selectedLibraryCategory,
+            // need to share the current selection and retrieve back new selection
             onClose = {
                 coroutineScope.launch {
                     Log.i(TAG, "Hide sheet state")
@@ -623,15 +628,18 @@ private fun LibraryContent(
                     if(!sheetState.isVisible) showSortSheet = false
                 }
             },
-            onApply = {
+            onApply = { value1: String, value2: Boolean ->
                 coroutineScope.launch {
-                    Log.i(TAG, "Save sheet state - does nothing atm")
+                    Log.i(TAG, "Save Sort Preferences to Datastore:\n$value1 + $value2")
+                    onLibraryAction(LibraryAction.AppPreferencesUpdate(selectedLibraryCategory, Pair(value1, value2)))
                     sheetState.hide()
                 }.invokeOnCompletion {
                     Log.i(TAG, "set showSortSheet to FALSE")
                     if(!sheetState.isVisible) showSortSheet = false
                 }
             },
+            libraryCategory = selectedLibraryCategory,
+            currSortPair = selectedSortPair,
         )
     }
 
@@ -1105,7 +1113,8 @@ private fun PreviewLibrary() {
             isLoading = false,
 
             libraryCategories = LibraryCategory.entries,
-            selectedLibraryCategory = LibraryCategory.Songs,
+            selectedLibraryCategory = LibraryCategory.Albums,
+            selectedSortPair = Pair("Title",false),
             libraryAlbums = PreviewAlbums,
             libraryArtists = PreviewArtists,
             libraryComposers = PreviewComposers,

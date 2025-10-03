@@ -302,7 +302,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
             FROM song_playlist_entries
             GROUP BY song_playlist_entries.playlist_id
         ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
-        ORDER BY datetime(date_last_accessed) ASC, playlists.name DESC
+        ORDER BY datetime(date_last_accessed) DESC, playlists.name DESC
         LIMIT :limit
         """
     )
@@ -434,7 +434,7 @@ abstract class PlaylistsDao : BaseDao<Playlist> {
             FROM song_playlist_entries
             GROUP BY song_playlist_entries.playlist_id
         ) AS song_playlist_entries ON playlists.id = song_playlist_entries.playlist_id
-        ORDER BY song_count ASC, playlists.name DESC
+        ORDER BY song_count DESC, playlists.name DESC
         LIMIT :limit
         """
     )

@@ -14,7 +14,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 
-private const val TAG = "Music App State Controller"
+private const val TAG = "Navigation Controller"
 
 /**
  * List of navigation accessible screens for [MusicApp]
