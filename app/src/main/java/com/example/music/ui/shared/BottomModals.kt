@@ -57,6 +57,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.data.repository.albumSortOrderList
+import com.example.music.data.repository.artistSortOrderList
+import com.example.music.data.repository.composerSortOrderList
+import com.example.music.data.repository.genreSortOrderList
+import com.example.music.data.repository.playlistSortOrderList
+import com.example.music.data.repository.songSortOrderList
 import com.example.music.data.util.FLAG
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.CONTENT_PADDING
@@ -900,12 +906,7 @@ fun LibrarySortSelectionBottomModal(
                 //sorting on library.albums screen
                 LibraryCategory.Albums -> {
                     RadioGroupSet(
-                        radioOptions = listOf(
-                           "TITLE",//"Title",
-                           "ARTIST",//"Album Artist",
-                           "YEAR",//"Date Last Played"
-                           "SONG_COUNT",//"Song Count"
-                       ),
+                        radioOptions = albumSortOrderList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newVal -> newValue1 = newVal},
                     )
@@ -914,11 +915,7 @@ fun LibrarySortSelectionBottomModal(
                 //sorting on library.artists screen
                 LibraryCategory.Artists -> {
                     RadioGroupSet(
-                        radioOptions = listOf(
-                            "NAME",//"Name",
-                            "ALBUM_COUNT",//"Album Count",
-                            "SONG_COUNT",//"Song Count",
-                        ),
+                        radioOptions = artistSortOrderList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newVal -> newValue1 = newVal},
                     )
@@ -927,10 +924,7 @@ fun LibrarySortSelectionBottomModal(
                 //sorting on library.composers screen
                 LibraryCategory.Composers -> {
                     RadioGroupSet(
-                        radioOptions = listOf(
-                            "NAME",//"Name",
-                            "SONG_COUNT",//"Song Count",
-                        ),
+                        radioOptions = composerSortOrderList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newVal -> newValue1 = newVal},
                     )
@@ -939,10 +933,7 @@ fun LibrarySortSelectionBottomModal(
                 //sorting on library.genres screen
                 LibraryCategory.Genres -> {
                     RadioGroupSet(
-                        radioOptions = listOf(
-                            "NAME",//"Name",
-                            "SONG_COUNT",//"Song Count",
-                        ),
+                        radioOptions = genreSortOrderList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newVal -> newValue1 = newVal},
                     )
@@ -951,13 +942,7 @@ fun LibrarySortSelectionBottomModal(
                 //sorting on library.playlists screen
                 LibraryCategory.Playlists -> {
                     RadioGroupSet(
-                        radioOptions = listOf(
-                            "NAME",//"Name",
-                            "DATE_CREATED",//"Date created",
-                            "DATE_LAST_ACCESSED",//"Date last accessed",
-                            //"Date last played",
-                            "SONG_COUNT",//"Song Count",
-                        ),
+                        radioOptions = playlistSortOrderList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newVal -> newValue1 = newVal},
                     )
@@ -966,13 +951,7 @@ fun LibrarySortSelectionBottomModal(
                 //sorting on library.songs screen
                 LibraryCategory.Songs -> {
                     RadioGroupSet(
-                        radioOptions = listOf(
-                           "TITLE",//"Song title",
-                           "ARTIST",//"Artist name",
-                           "ALBUM",//"Album title",
-                           "DURATION",//"Date added",
-                           //"Date last played",
-                       ),
+                        radioOptions = songSortOrderList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newVal -> newValue1 = newVal},
                     )
