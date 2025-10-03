@@ -429,7 +429,7 @@ private fun LibraryContent(
                 /** single column section **/
                 LibraryCategory.Artists -> {
                     /** practicing with sticky header **/
-                    artistItemsWithHeaders(
+                    /*artistItemsWithHeaders(
                         mappedArtists = groupedArtistItems,
                         artistCount = libraryArtists.size,
                         state = listState,
@@ -449,9 +449,9 @@ private fun LibraryContent(
                         onSelectClick = {
                             Log.i(TAG, "Artist Multi Select btn clicked")
                         }
-                    )
+                    )*/
                     /** original version, not using sticky headers **/
-                    /*artistItems(
+                    artistItems(
                         artists = libraryArtists,
                         navigateToArtistDetails = { artist: ArtistInfo ->
                             Log.i(TAG, "Artist clicked: ${artist.name}")
@@ -469,7 +469,7 @@ private fun LibraryContent(
                         onSelectClick = {
                             Log.i(TAG, "Artist Multi Select btn clicked")
                         }
-                    )*/
+                    )
                 }
 
                 LibraryCategory.Composers -> {
@@ -632,7 +632,7 @@ private fun LibraryContent(
             },
             onApply = { value1: String, value2: Boolean ->
                 coroutineScope.launch {
-                    Log.i(TAG, "ATTEMPT: SAVE ALBUM SORT PREF TO APP PREF REPO")
+                    Log.i(TAG, "ATTEMPT: SAVE SORT PREF TO APP PREF REPO")
                     onLibraryAction(LibraryAction.AppPreferencesUpdate(selectedLibraryCategory, Pair(value1, value2)))
                     sheetState.hide()
                 }.invokeOnCompletion {
