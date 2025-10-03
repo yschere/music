@@ -870,8 +870,8 @@ fun LibrarySortSelectionBottomModal(
     libraryCategory: LibraryCategory,
     currentValuePair: Pair<String, Boolean>,
 ){
-    var newValue1 = ""
-    var newValue2 = false
+    var newValue1 = currentValuePair.first
+    var newValue2 = currentValuePair.second
 
     BottomModal(
         onDismissRequest = onDismissRequest,
@@ -896,62 +896,86 @@ fun LibrarySortSelectionBottomModal(
                 LibraryCategory.Albums -> {
                     //AlbumSortOrder: TITLE, ARTIST, SONG_COUNT, YEAR
                     RadioGroupSet(
-                        listOf(
+                        radioOptions = listOf(
                             "TITLE",//"Title",
                             "ARTIST",//"Album Artist",
                             "YEAR",//"Date Last Played"
                             "SONG_COUNT",//"Song Count"
                         ),
-                        currentValuePair.first,
-                        { newVal -> newValue1 = newVal},
+                        initialValue = currentValuePair.first,
+                        onOptionSelect = { newVal -> newValue1 = newVal},
                     )
                 }
 
                 //sorting on library.artists screen
                 LibraryCategory.Artists -> {
+                    //ArtistSortOrder: NAME, ALBUM_COUNT, SONG_COUNT
                     RadioGroupSet(
-                        listOf(
-                            "Name",
-                            "Album Count",
-                            "Song Count"
+                        radioOptions = listOf(
+                            "NAME",//"Name",
+                            "ALBUM_COUNT",//"Album Count",
+                            "SONG_COUNT",//"Song Count",
                         ),
-                        currentValuePair.first,
+                        initialValue = currentValuePair.first,
+                        onOptionSelect = { newVal -> newValue1 = newVal},
                     )
                 }
 
                 //sorting on library.composers screen
-                LibraryCategory.Composers -> { RadioGroupSet(listOf("Name", "Song Count"),
-                    currentValuePair.first,) }
+                LibraryCategory.Composers -> {
+                    //ComposerSortOrder: NAME, SONG_COUNT
+                    RadioGroupSet(
+                        radioOptions = listOf(
+                            "NAME",//"Name",
+                            "SONG_COUNT",//"Song Count",
+                        ),
+                        initialValue = currentValuePair.first,
+                        onOptionSelect = { newVal -> newValue1 = newVal},
+                    )
+                }
 
                 //sorting on library.genres screen
-                LibraryCategory.Genres -> { RadioGroupSet(listOf("Name", "Song Count"),
-                    currentValuePair.first,) }
+                LibraryCategory.Genres -> {
+                    //GenreSortOrder: NAME, SONG_COUNT
+                    RadioGroupSet(
+                        radioOptions = listOf(
+                            "NAME",//"Name",
+                            "SONG_COUNT",//"Song Count",
+                        ),
+                        initialValue = currentValuePair.first,
+                        onOptionSelect = { newVal -> newValue1 = newVal},
+                    )
+                }
 
                 //sorting on library.playlists screen
                 LibraryCategory.Playlists -> {
+                    //PlaylistSortOrder: NAME, SONG_COUNT
                     RadioGroupSet(
-                        listOf(
-                            "Playlist name",
-                            "Date created",
-                            "Date last accessed",
-                            "Date last played",
-                            "Song Count"
+                        radioOptions = listOf(
+                            "NAME",//"Name",
+                            //"Date created",
+                            //"Date last accessed",
+                            //"Date last played",
+                            "SONG_COUNT",//"Song Count",
                         ),
-                        currentValuePair.first,
+                        initialValue = currentValuePair.first,
+                        onOptionSelect = { newVal -> newValue1 = newVal},
                     )
                 }
 
                 //sorting on library.songs screen
                 LibraryCategory.Songs -> {
+                    //SongSortOrder: TITLE, ARTIST, ALBUM, DURATION
                     RadioGroupSet(
-                        listOf(
-                            "Song title",
-                            "Artist name",
-                            "Album title",
-                            "Date added",
-                            "Date last played"
+                        radioOptions = listOf(
+                            "TITLE",//"Song title",
+                            "ARTIST",//"Artist name",
+                            "ALBUM",//"Album title",
+                            "DURATION",//"Date added",
+                            //"Date last played",
                         ),
-                        currentValuePair.first,
+                        initialValue = currentValuePair.first,
+                        onOptionSelect = { newVal -> newValue1 = newVal},
                     )
                 }
             }
@@ -964,7 +988,10 @@ fun LibrarySortSelectionBottomModal(
 
             // radio buttons for selecting ascending or descending
             RadioGroupSet(
-                radioOptions = listOf("Ascending", "Descending"),
+                radioOptions = listOf(
+                    "Ascending",
+                    "Descending"
+                ),
                 initialValue =
                     if (currentValuePair.second) "Ascending"
                     else "Descending",
