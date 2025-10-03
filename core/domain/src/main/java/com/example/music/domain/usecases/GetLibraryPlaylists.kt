@@ -39,17 +39,17 @@ class GetLibraryPlaylists @Inject constructor(
                     else playlistRepo.sortPlaylistsByNameDesc()
             }
 
-            /*"DATE_CREATED" -> { //"dateCreated" -> {
+            "DATE_CREATED" -> { //"dateCreated" -> {
                 playlistsList =
                     if (isAscending) playlistRepo.sortPlaylistsByDateCreatedAsc()
                     else playlistRepo.sortPlaylistsByDateCreatedDesc()
-            }*/
+            }
 
-            /*"DATE_LAST_ACCESSED" -> { //"dateLastAccessed" -> {
+            "DATE_LAST_ACCESSED" -> { //"dateLastAccessed" -> {
                 playlistsList =
                     if (isAscending) playlistRepo.sortPlaylistsByDateLastAccessedAsc()
                     else playlistRepo.sortPlaylistsByDateLastAccessedDesc()
-            }*/
+            }
 
             /*"DATE_LAST_PLAYED" -> { //"dateLastPlayed" -> {
                 playlistsList =
