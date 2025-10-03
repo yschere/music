@@ -930,31 +930,11 @@ suspend fun ContentResolver.findGenre(id: Long): Genre = queryExt(
 ) {
     it.moveToFirst()
     val result = it.toGenre(
-        getGenreAudioCount(
-            it.getLong(0)
-        )
+        getGenreAudioCount( it.getLong(0) )
     )
     it.close()
     result
 }
-
-/**
- * Find count of audios in genre by genre id
- * @return [Int] audio count
- */
-/*suspend fun ContentResolver.getGenreWithAudioCount(id: Long): Genre {
-    val gen = findGenre(id)
-    val count = queryExt(
-        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-        arrayOf(MediaStore.Audio.Media._ID),
-        "${MediaStore.Audio.Media.GENRE_ID} == ?",
-        arrayOf("$id"),
-    ) {
-        it.moveToFirst()
-        it.count
-    }
-    return Genre(id, gen.name, count)
-}*/
 
 suspend fun ContentResolver.getGenreAudioCount(id: Long): Int = queryExt(
     uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -965,29 +945,6 @@ suspend fun ContentResolver.getGenreAudioCount(id: Long): Int = queryExt(
     it.moveToFirst()
     it.count
 }
-
-/**
- * External function for content resolver to retrieve genres
- */
-/*fun ContentResolver.genres(
-    sQuery: String? = null,
-    order: String = MediaStore.Audio.Genres.NAME,
-    ascending: Boolean = true,
-) = observe(MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI).map {
-    getGenres(sQuery, order, ascending)
-}*/
-
-/**
- * External function for content resolver to retrieve genre audios
- */
-/*fun ContentResolver.genreAudios(
-    name: String,
-    sQuery: String? = null,
-    order: String = DEFAULT_AUDIO_ORDER,
-    ascending: Boolean = true,
-) = observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI).map {
-    getGenreAudios(name, sQuery, order, ascending)
-}*/
 
 
 /***********************************************************************************************
