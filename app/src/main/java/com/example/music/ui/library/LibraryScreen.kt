@@ -618,8 +618,6 @@ private fun LibraryContent(
         LibrarySortSelectionBottomModal(
             onDismissRequest = { showSortSheet = false },
             sheetState = sheetState,
-            libraryCategory = selectedLibraryCategory,
-            currentValuePair = selectedSortPair,
             // need to share the current selection and retrieve back new selection
             onClose = {
                 coroutineScope.launch {
@@ -632,7 +630,7 @@ private fun LibraryContent(
             },
             onApply = { value1: String, value2: Boolean ->
                 coroutineScope.launch {
-                    Log.i(TAG, "ATTEMPT: SAVE SORT PREF TO APP PREF REPO")
+                    Log.i(TAG, "Save Sort Preferences to Datastore:\n$value1 + $value2")
                     onLibraryAction(LibraryAction.AppPreferencesUpdate(selectedLibraryCategory, Pair(value1, value2)))
                     sheetState.hide()
                 }.invokeOnCompletion {
@@ -640,6 +638,8 @@ private fun LibraryContent(
                     if(!sheetState.isVisible) showSortSheet = false
                 }
             },
+            libraryCategory = selectedLibraryCategory,
+            currSortPair = selectedSortPair,
         )
     }
 
