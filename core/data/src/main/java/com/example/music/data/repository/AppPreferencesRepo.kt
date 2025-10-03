@@ -25,7 +25,7 @@ enum class ShuffleType {
 }
 
 enum class AlbumSortOrder {
-    TITLE, ARTIST, SONG_COUNT, YEAR//, DATE_LAST_PLAYED,
+    TITLE, ARTIST, SONG_COUNT, YEAR
 }
 
 enum class ArtistSortOrder {
@@ -41,12 +41,19 @@ enum class GenreSortOrder {
 }
 
 enum class PlaylistSortOrder {
-    NAME, SONG_COUNT // DATE_CREATED, DATE_LAST_ACCESSED, DATE_LAST_PLAYED,
+    NAME, SONG_COUNT, DATE_CREATED, DATE_LAST_ACCESSED//, DATE_LAST_PLAYED,
 }
 
 enum class SongSortOrder {
-    TITLE, ARTIST, ALBUM, DURATION//, DATE_ADDED, LAST_PLAYED, FILE_SIZE
+    TITLE, ARTIST, ALBUM, DURATION, DATE_ADDED, DATE_MODIFIED//, TRACK_NUMBER//, LAST_PLAYED, FILE_SIZE
 }
+
+val albumSortOrderList = AlbumSortOrder.entries.map { it.name }
+val artistSortOrderList = ArtistSortOrder.entries.map { it.name }
+val composerSortOrderList = ComposerSortOrder.entries.map { it.name }
+val genreSortOrderList = GenreSortOrder.entries.map { it.name }
+val playlistSortOrderList = PlaylistSortOrder.entries.map { it.name }
+val songSortOrderList = SongSortOrder.entries.map { it.name }
 
 data class AppPreferences(
     val repeatType: RepeatType, // enum setting for repeating queue'd song. if app queue ends after last song, if app queue continues after last song, if app song playing in queue is the new next song
