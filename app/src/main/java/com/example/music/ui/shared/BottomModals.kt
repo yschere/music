@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -20,7 +18,6 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -78,6 +75,7 @@ import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
+import com.example.music.ui.albumdetails.AlbumSongSortOptions
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.player.PlayerModalActions
 import com.example.music.ui.theme.MusicTheme
@@ -1053,13 +1051,7 @@ fun DetailsSortSelectionBottomModal(
                         //sorting on album details screen
                         "AlbumDetails" -> {
                             RadioGroupSet(
-                                radioOptions = listOf(
-                                    "TITLE",//"Title",
-                                    "TRACK_NUMBER",//"Track number",
-                                    "DATE_ADDED",
-                                    "DATE_MODIFIED",
-                                    "DURATION"
-                                ),
+                                radioOptions = AlbumSongSortOptions,
                                 initialValue = currSortPair.first,
                                 onOptionSelect = { newVal -> newValue1 = newVal},
                             )

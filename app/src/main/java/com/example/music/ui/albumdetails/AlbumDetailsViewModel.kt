@@ -37,6 +37,15 @@ data class AlbumUiState (
     val artist: ArtistInfo = ArtistInfo(),
     val songs: List<SongInfo> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
+    val selectedSortPair: Pair<String, Boolean> = Pair("Track Number",true),
+)
+
+val AlbumSongSortOptions = listOf(
+    "Title",
+    "Track Number",
+    "Date Added",
+    "Date Modified",
+    "Duration"
 )
 
 /**
@@ -55,8 +64,11 @@ class AlbumDetailsViewModel @Inject constructor(
     private val _albumId: String = savedStateHandle.get<String>(Screen.ARG_ALBUM_ID)!!
     private val albumId = _albumId.toLong()
 
+    // sets sort default to album track number
+    private var selectedSortPair = MutableStateFlow(Pair("Track Number", true))
+
     private val getAlbumDetailsData = getAlbumDetails(albumId)
-            .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     private val selectedSong = MutableStateFlow(SongInfo())
 
@@ -100,24 +112,56 @@ class AlbumDetailsViewModel @Inject constructor(
                 refreshing,
                 getAlbumDetailsData,
                 selectedSong,
+                selectedSortPair,
             ) {
                 refreshing,
                 albumDetailsFilterResult,
-                selectSong ->
+                selectSong,
+                selectSort, ->
                 Log.i(TAG, "AlbumUiState combine START\n" +
                     "albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}\n" +
                     "albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}\n" +
+                    "albumDetails sort order: ${selectSort.first} + ${selectSort.second}\n" +
                     "is SongController available: ${songController.isConnected()}\n" +
                     "isReady?: ${!refreshing}")
 
                 getSongControllerState()
+                val sortedSongs = when(selectSort.first) {
+                    //AlbumSongSortOptions[0]/*"Title"*/
+                    "Title" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs.sortedBy { it.title.lowercase() }
+                        else albumDetailsFilterResult.songs.sortedByDescending { it.title.lowercase() }
+                    } // works
+                    //AlbumSongSortOptions[1]
+                    "Track Number" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs // default song sort
+                        else albumDetailsFilterResult.songs.reversed()
+                    } // works
+                    //AlbumSongSortOptions[2]
+                    "Date Added" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs.sortedBy { it.dateAdded }
+                        else albumDetailsFilterResult.songs.sortedByDescending { it.dateAdded }
+                    } // works
+                    //AlbumSongSortOptions[3]
+                    "Date Modified" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs.sortedBy { it.dateModified }
+                        else albumDetailsFilterResult.songs.sortedByDescending { it.dateModified }
+                    } // works
+                    //AlbumSongSortOptions[4]
+                    "Duration" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs.sortedBy { it.duration }
+                        else albumDetailsFilterResult.songs.sortedByDescending { it.duration }
+                    } // works
+                    else -> { albumDetailsFilterResult.songs }
+                }
 
                 AlbumUiState(
                     isReady = !refreshing,
                     album = albumDetailsFilterResult.album,
                     artist = albumDetailsFilterResult.artist,
-                    songs = albumDetailsFilterResult.songs,
+                    songs = sortedSongs,
                     selectSong = selectSong,
+                    selectedSortPair = selectSort,
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")
@@ -241,6 +285,7 @@ class AlbumDetailsViewModel @Inject constructor(
         Log.i(TAG, "onAlbumAction - $action")
         when (action) {
             is AlbumAction.SongMoreOptionsClicked -> onSongMoreOptionsClick(action.song)
+            is AlbumAction.SongSortUpdate -> onSongSortUpdate(action.newValue)
 
             is AlbumAction.PlaySong -> onPlaySong(action.song) // songMO-play
             is AlbumAction.PlaySongNext -> onPlaySongNext(action.song) // songMO-playNext
@@ -258,6 +303,10 @@ class AlbumDetailsViewModel @Inject constructor(
     private fun onSongMoreOptionsClick(song: SongInfo) {
         Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
         selectedSong.value = song
+    }
+    private fun onSongSortUpdate(newValue: Pair<String, Boolean>) {
+        Log.i(TAG, "onSongSortUpdate -> ${newValue.first} + ${newValue.second}")
+        selectedSortPair.value = newValue
     }
 
     private fun onPlaySong(song: SongInfo) {
@@ -293,6 +342,7 @@ class AlbumDetailsViewModel @Inject constructor(
 
 sealed interface AlbumAction {
     data class SongMoreOptionsClicked(val song: SongInfo) : AlbumAction
+    data class SongSortUpdate(val newValue: Pair<String, Boolean>) : AlbumAction
 
     data class PlaySong(val song: SongInfo) : AlbumAction
     data class PlaySongNext(val song: SongInfo) : AlbumAction

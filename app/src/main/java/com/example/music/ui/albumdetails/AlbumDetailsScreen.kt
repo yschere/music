@@ -112,6 +112,7 @@ fun AlbumDetailsScreen(
                 album = uiState.album,
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
+                selectSortPair = uiState.selectedSortPair,
                 currentSong = viewModel.currentSong,
                 isActive = viewModel.isActive, // if playback is active
                 isPlaying = viewModel.isPlaying,
@@ -161,6 +162,7 @@ fun AlbumDetailsScreen(
     album: AlbumInfo,
     songs: List<SongInfo>,
     selectSong: SongInfo,
+    selectSortPair: Pair<String,Boolean>,
     currentSong: SongInfo,
     isActive: Boolean,
     isPlaying: Boolean,
@@ -340,9 +342,10 @@ fun AlbumDetailsScreen(
                             if(!sheetState.isVisible) showSortSheet = false
                         }
                     },
-                    onApply = {
+                    onApply = { value1: String, value2: Boolean ->
                         coroutineScope.launch {
-                            Log.i(TAG, "Save sheet state - does nothing atm")
+                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n$value1 + $value2")
+                            onAlbumAction(AlbumAction.SongSortUpdate( Pair(value1, value2) ))
                             sheetState.hide()
                         }.invokeOnCompletion {
                             Log.i(TAG, "set Song Sort to FALSE")
@@ -351,6 +354,7 @@ fun AlbumDetailsScreen(
                     },
                     content = "SongInfo",
                     context = "AlbumDetails",
+                    currSortPair = selectSortPair,
                 )
             }
 
@@ -635,6 +639,7 @@ fun AlbumDetailsScreenPreview() {
             songs = getSongsInAlbum(307),
 
             selectSong = getSongsInAlbum(PreviewAlbums[2].id)[0],
+            selectSortPair = Pair("TRACK_NUMBER",true),
             currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,
