@@ -112,7 +112,7 @@ fun AlbumDetailsScreen(
                 album = uiState.album,
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
-                selectSortPair = uiState.selectedSortPair,
+                selectSortPair = uiState.selectSortPair,
                 currentSong = viewModel.currentSong,
                 isActive = viewModel.isActive, // if playback is active
                 isPlaying = viewModel.isPlaying,

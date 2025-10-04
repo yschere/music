@@ -37,7 +37,7 @@ data class AlbumUiState (
     val artist: ArtistInfo = ArtistInfo(),
     val songs: List<SongInfo> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
-    val selectedSortPair: Pair<String, Boolean> = Pair("Track Number",true),
+    val selectSortPair: Pair<String, Boolean> = Pair("Track Number",true),
 )
 
 val AlbumSongSortOptions = listOf(
@@ -161,7 +161,7 @@ class AlbumDetailsViewModel @Inject constructor(
                     artist = albumDetailsFilterResult.artist,
                     songs = sortedSongs,
                     selectSong = selectSong,
-                    selectedSortPair = selectSort,
+                    selectSortPair = selectSort,
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")
