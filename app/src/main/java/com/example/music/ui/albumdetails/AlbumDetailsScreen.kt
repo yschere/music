@@ -183,14 +183,11 @@ fun AlbumDetailsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //use this to hold the little popup text that appears after an onClick event
 
-    val appBarScrollBehavior = TopAppBarDefaults
-        .exitUntilCollapsedScrollBehavior(
-            rememberTopAppBarState()
-        )
+    val appBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        rememberTopAppBarState()
+    )
     val isCollapsed = remember {
-        derivedStateOf {
-            appBarScrollBehavior.state.collapsedFraction > 0.8
-        }
+        derivedStateOf { appBarScrollBehavior.state.collapsedFraction > 0.8 }
     }
 
     val listState = rememberLazyGridState()
@@ -639,7 +636,7 @@ fun AlbumDetailsScreenPreview() {
             songs = getSongsInAlbum(307),
 
             selectSong = getSongsInAlbum(PreviewAlbums[2].id)[0],
-            selectSortPair = Pair("TRACK_NUMBER",true),
+            selectSortPair = Pair("Track Number",true),
             currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,

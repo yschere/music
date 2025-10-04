@@ -64,13 +64,13 @@ class AlbumDetailsViewModel @Inject constructor(
     private val _albumId: String = savedStateHandle.get<String>(Screen.ARG_ALBUM_ID)!!
     private val albumId = _albumId.toLong()
 
-    // sets sort default to album track number
-    private var selectedSortPair = MutableStateFlow(Pair("Track Number", true))
-
     private val getAlbumDetailsData = getAlbumDetails(albumId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     private val selectedSong = MutableStateFlow(SongInfo())
+
+    // sets sort default to album track number
+    private var selectedSortPair = MutableStateFlow(Pair("Track Number", true))
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -127,7 +127,7 @@ class AlbumDetailsViewModel @Inject constructor(
 
                 getSongControllerState()
                 val sortedSongs = when(selectSort.first) {
-                    //AlbumSongSortOptions[0]/*"Title"*/
+                    //AlbumSongSortOptions[0]
                     "Title" -> {
                         if (selectSort.second) albumDetailsFilterResult.songs.sortedBy { it.title.lowercase() }
                         else albumDetailsFilterResult.songs.sortedByDescending { it.title.lowercase() }
