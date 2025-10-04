@@ -78,8 +78,10 @@ import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.albumdetails.AlbumSongSortOptions
 import com.example.music.ui.artistdetails.ArtistAlbumSortOptions
 import com.example.music.ui.artistdetails.ArtistSongSortOptions
+import com.example.music.ui.genredetails.GenreSongSortOptions
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.player.PlayerModalActions
+import com.example.music.ui.playlistdetails.PlaylistSongSortOptions
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
@@ -1010,8 +1012,9 @@ fun DetailsSortSelectionBottomModal(
     context: String = "",
     currSortPair: Pair<String, Boolean>,
 ){
-    var newValue1 = currSortPair.first
-    var newValue2 = currSortPair.second
+    // temporary variables for bottom modal to store sort pair values
+    var sortColumn = currSortPair.first
+    var isAscending = currSortPair.second
 
     BottomModal(
         onDismissRequest = onDismissRequest,
@@ -1032,7 +1035,7 @@ fun DetailsSortSelectionBottomModal(
             if (FLAG) Log.i(TAG, "Details Sort Modal:\n" +
                 "Context -> $context\n" +
                 "Content -> $content\n" +
-                "Sort pair -> ${currSortPair.first} + ${currSortPair.second}")
+                "Sort pair -> $sortColumn + $isAscending")
             //list of radio buttons, set of options determined by content and context
             when (content) {
                 "AlbumInfo" -> {
@@ -1040,7 +1043,7 @@ fun DetailsSortSelectionBottomModal(
                     RadioGroupSet(
                         radioOptions = ArtistAlbumSortOptions,
                         initialValue = currSortPair.first,
-                        onOptionSelect = { newVal -> newValue1 = newVal},
+                        onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
 
@@ -1051,7 +1054,7 @@ fun DetailsSortSelectionBottomModal(
                             RadioGroupSet(
                                 radioOptions = AlbumSongSortOptions,
                                 initialValue = currSortPair.first,
-                                onOptionSelect = { newVal -> newValue1 = newVal},
+                                onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
 
@@ -1060,11 +1063,11 @@ fun DetailsSortSelectionBottomModal(
                             RadioGroupSet(
                                 radioOptions = ArtistSongSortOptions,
                                 initialValue = currSortPair.first,
-                                onOptionSelect = { newVal -> newValue1 = newVal},
+                                onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
 
-                        //sorting on composer details screen
+                        //sorting on composer details screen **NOT IN USE
                         "ComposerDetails" -> {
                             RadioGroupSet(
                                 radioOptions = listOf(
@@ -1073,32 +1076,25 @@ fun DetailsSortSelectionBottomModal(
                                     "DATE_ADDED",
                                 ),
                                 initialValue = currSortPair.first,
-                                onOptionSelect = { newVal -> newValue1 = newVal},
+                                onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
 
                         //sorting on genre details screen
                         "GenreDetails" -> {
                             RadioGroupSet(
-                                radioOptions = listOf(
-                                    "TITLE",//"Title",
-                                    "DURATION",//"Date Last Played"
-                                    "DATE_ADDED",
-                                ),
+                                radioOptions = GenreSongSortOptions,
                                 initialValue = currSortPair.first,
-                                onOptionSelect = { newVal -> newValue1 = newVal},
+                                onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
 
                         //sorting on playlist details screen
                         "PlaylistDetails" -> {
                             RadioGroupSet(
-                                radioOptions = listOf(
-                                    "TITLE",//"Title",
-                                    "TRACK_NUMBER",//"Track number"
-                                ),
+                                radioOptions = PlaylistSongSortOptions,
                                 initialValue = currSortPair.first,
-                                onOptionSelect = { newVal -> newValue1 = newVal},
+                                onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
 
@@ -1118,7 +1114,7 @@ fun DetailsSortSelectionBottomModal(
             RadioGroupSet(
                 radioOptions = listOf("Ascending", "Descending"),
                 initialValue = if (currSortPair.second) "Ascending" else "Descending",
-                onOptionSelect = { newVal -> newValue2 = (newVal == "Ascending") },
+                onOptionSelect = { newIsAsc -> isAscending = (newIsAsc == "Ascending") },
             )
 
             Row {
@@ -1130,9 +1126,9 @@ fun DetailsSortSelectionBottomModal(
                 ApplyModalBtn(
                     onClick = {
                         Log.i(TAG, "After Apply clicked:\n" +
-                                "new sort col: $newValue1\n" +
-                                "new asc/desc: $newValue2")
-                        onApply(newValue1, newValue2)
+                                "new sort col: $sortColumn\n" +
+                                "new asc/desc: $isAscending")
+                        onApply(sortColumn, isAscending)
                     },
                     text = "APPLY",
                     modifier = Modifier.weight(0.5f)

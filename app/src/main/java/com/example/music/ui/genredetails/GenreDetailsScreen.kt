@@ -100,6 +100,7 @@ fun GenreDetailsScreen(
                 genre = uiState.genre,
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
+                selectSortPair = uiState.selectSortPair,
                 currentSong = viewModel.currentSong,
                 isActive = viewModel.isActive, // if playback is active
                 isPlaying = viewModel.isPlaying,
@@ -150,6 +151,7 @@ fun GenreDetailsScreen(
     genre: GenreInfo,
     songs: List<SongInfo>,
     selectSong: SongInfo,
+    selectSortPair: Pair<String,Boolean>,
     currentSong: SongInfo,
     isActive: Boolean,
     isPlaying: Boolean,
@@ -309,7 +311,7 @@ fun GenreDetailsScreen(
 
             // GenreDetails BottomSheet
             if (showSortSheet) {
-                Log.i(TAG, "GenreDetails Content -> Song Sort Modal is TRUE")
+                Log.i(TAG, "GenreDetails Content -> show Song Sort Modal is TRUE")
                 DetailsSortSelectionBottomModal(
                     onDismissRequest = { showSortSheet = false },
                     sheetState = sheetState,
@@ -318,21 +320,23 @@ fun GenreDetailsScreen(
                             Log.i(TAG, "Hide sheet state")
                             sheetState.hide()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set Song Sort to FALSE")
+                            Log.i(TAG, "set showSortSheet to FALSE")
                             if(!sheetState.isVisible) showSortSheet = false
                         }
                     },
-                    onApply = {
+                    onApply = { sortColumn: String, isAscending: Boolean ->
                         coroutineScope.launch {
-                            Log.i(TAG, "Save sheet state - does nothing atm")
+                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n$sortColumn + $isAscending")
+                            onGenreAction(GenreAction.SongSortUpdate( Pair(sortColumn, isAscending) ))
                             sheetState.hide()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set Song Sort to FALSE")
+                            Log.i(TAG, "set showSortSheet to FALSE")
                             if(!sheetState.isVisible) showSortSheet = false
                         }
                     },
                     content = "SongInfo",
                     context = "GenreDetails",
+                    currSortPair = selectSortPair,
                 )
             }
 
@@ -507,7 +511,9 @@ fun GenreDetailsScreenPreview() {
             //JPop
             genre = PreviewGenres[3],
             songs = getSongsInGenre(3),
+
             selectSong = getSongsInGenre(3)[0],
+            selectSortPair = Pair("Title",true),
             currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,

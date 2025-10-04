@@ -33,7 +33,17 @@ data class GenreUiState (
     val errorMessage: String? = null,
     val genre: GenreInfo = GenreInfo(),
     val songs: List<SongInfo> = emptyList(),
-    val selectSong: SongInfo = SongInfo()
+    val selectSong: SongInfo = SongInfo(),
+    val selectSortPair: Pair<String,Boolean> = Pair("Title", true)
+)
+
+val GenreSongSortOptions = listOf(
+    "Title",
+    "Artist",
+    "Album",
+    "Date Added",
+    "Date Modified",
+    "Duration"
 )
 
 /**
@@ -55,6 +65,9 @@ class GenreDetailsViewModel @Inject constructor(
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     private val selectedSong = MutableStateFlow(SongInfo())
+
+    // sets sort default
+    private var selectedSortPair = MutableStateFlow(Pair("Title", true))
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -90,29 +103,84 @@ class GenreDetailsViewModel @Inject constructor(
 
             Log.i(TAG, "SongController status:\n" +
                 "isActive?: $isActive\n" +
-                "player?: ${player?.playbackState}\n")
+                "player?: ${player?.playbackState}")
 
             combine(
                 refreshing,
                 getGenreDetailsData,
                 selectedSong,
+                selectedSortPair,
             ) {
                 refreshing,
                 genreDetailsFilterResult,
-                selectSong ->
+                selectSong,
+                selectSort, ->
                 Log.i(TAG, "GenreUiState combine START\n" +
                     "genreDetailsFilterResult ID: ${genreDetailsFilterResult.genre.id}\n" +
                     "genreDetailsFilterResult songs: ${genreDetailsFilterResult.songs.size}\n" +
+                    "genreDetails sort order: ${selectSort.first} + ${selectSort.second}\n" +
                     "is SongController available: ${songController.isConnected()}\n" +
                     "isReady?: ${!refreshing}")
 
                 getSongControllerState()
+                val sortedSongs = when(selectSort.first) {
+                    "Title" -> {
+                        if (selectSort.second) genreDetailsFilterResult.songs
+                            .sortedBy { it.title.lowercase() }
+                        else genreDetailsFilterResult.songs
+                            .sortedByDescending { it.title.lowercase() }
+                    }
+                    "Artist" -> {
+                        if (selectSort.second) genreDetailsFilterResult.songs
+                            .sortedWith(
+                                compareBy<SongInfo> { it.artistName.lowercase() }
+                                    .thenBy { it.title.lowercase() }
+                            )
+                        else genreDetailsFilterResult.songs
+                            .sortedWith(
+                                compareByDescending<SongInfo> { it.artistName.lowercase() }
+                                    .thenByDescending { it.title.lowercase() }
+                            )
+                    }
+                    "Album" -> {
+                        if (selectSort.second) genreDetailsFilterResult.songs
+                            .sortedWith(
+                                compareBy<SongInfo> { it.albumTitle.lowercase() }
+                                    .thenBy { it.trackNumber }
+                            )
+                        else genreDetailsFilterResult.songs
+                            .sortedWith(
+                                compareByDescending<SongInfo> { it.albumTitle.lowercase() }
+                                    .thenByDescending { it.trackNumber }
+                            )
+                    }
+                    "Date Added" -> {
+                        if (selectSort.second) genreDetailsFilterResult.songs
+                            .sortedBy { it.dateAdded }
+                        else genreDetailsFilterResult.songs
+                            .sortedByDescending { it.dateAdded }
+                    }
+                    "Date Modified" -> {
+                        if (selectSort.second) genreDetailsFilterResult.songs
+                            .sortedBy { it.dateModified }
+                        else genreDetailsFilterResult.songs
+                            .sortedByDescending { it.dateModified }
+                    }
+                    "Duration" -> {
+                        if (selectSort.second) genreDetailsFilterResult.songs
+                            .sortedBy { it.duration }
+                        else genreDetailsFilterResult.songs
+                            .sortedByDescending { it.duration }
+                    }
+                    else -> { genreDetailsFilterResult.songs }
+                }
 
                 GenreUiState(
                     isReady = !refreshing,
                     genre = genreDetailsFilterResult.genre,
-                    songs = genreDetailsFilterResult.songs,
-                    selectSong = selectSong ?: SongInfo(),
+                    songs = sortedSongs,
+                    selectSong = selectSong,
+                    selectSortPair = selectSort,
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")
@@ -122,9 +190,7 @@ class GenreDetailsViewModel @Inject constructor(
                         errorMessage = throwable.message
                     )
                 )
-            }.collect{
-                _state.value = it
-            }
+            }.collect{ _state.value = it }
         }
 
         viewModelScope.launch {
@@ -236,6 +302,7 @@ class GenreDetailsViewModel @Inject constructor(
         Log.i(TAG, "onGenreAction - $action")
         when (action) {
             is GenreAction.SongMoreOptionsClicked -> onSongMoreOptionsClicked(action.song)
+            is GenreAction.SongSortUpdate -> onSongSortUpdate(action.newSort)
 
             is GenreAction.PlaySong -> onPlaySong(action.song)
             is GenreAction.PlaySongNext -> onPlaySongNext(action.song)
@@ -249,20 +316,24 @@ class GenreDetailsViewModel @Inject constructor(
     }
 
     private fun onSongMoreOptionsClicked(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionsClick - ${song.title}")
+        Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
         selectedSong.value = song
+    }
+    private fun onSongSortUpdate(newSort: Pair<String, Boolean>) {
+        Log.i(TAG, "onSongSortUpdate -> ${newSort.first} + ${newSort.second}")
+        selectedSortPair.value = newSort
     }
 
     private fun onPlaySong(song: SongInfo) {
-        Log.i(TAG, "onPlaySong - ${song.title}")
+        Log.i(TAG, "onPlaySong -> ${song.title}")
         songController.play(song)
     }
     private fun onPlaySongNext(song: SongInfo) {
-        Log.i(TAG, "onPlaySongNext - ${song.title}")
+        Log.i(TAG, "onPlaySongNext -> ${song.title}")
         songController.addToQueueNext(song)
     }
     private fun onQueueSong(song: SongInfo) {
-        Log.i(TAG, "onQueueSong - ${song.title}")
+        Log.i(TAG, "onQueueSong -> ${song.title}")
         songController.addToQueue(song)
     }
 
@@ -275,17 +346,18 @@ class GenreDetailsViewModel @Inject constructor(
         songController.addToQueueNext(songs)
     }
     private fun onShuffleSongs(songs: List<SongInfo>) {
-        Log.i(TAG, "onShuffleSongs - ${songs.size}")
+        Log.i(TAG, "onShuffleSongs -> ${songs.size}")
         songController.shuffle(songs)
     }
     private fun onQueueSongs(songs: List<SongInfo>) {
-        Log.i(TAG, "onQueueSongs - ${songs.size}")
+        Log.i(TAG, "onQueueSongs -> ${songs.size}")
         songController.addToQueue(songs)
     }
 }
 
 sealed interface GenreAction {
     data class SongMoreOptionsClicked(val song: SongInfo) : GenreAction
+    data class SongSortUpdate(val newSort: Pair<String, Boolean>) : GenreAction
 
     data class PlaySong(val song: SongInfo) : GenreAction
     data class PlaySongNext(val song: SongInfo) : GenreAction
