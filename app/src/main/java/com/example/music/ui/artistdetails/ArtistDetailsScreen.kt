@@ -117,6 +117,8 @@ fun ArtistDetailsScreen(
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
                 selectAlbum = uiState.selectAlbum,
+                selectAlbumSortPair = uiState.selectAlbumSortPair,
+                selectSongSortPair = uiState.selectSongSortPair,
                 currentSong = viewModel.currentSong,
                 isActive = viewModel.isActive, // if playback is active
                 isPlaying = viewModel.isPlaying,
@@ -168,6 +170,8 @@ fun ArtistDetailsScreen(
     songs: List<SongInfo>,
     selectSong: SongInfo,
     selectAlbum: AlbumInfo,
+    selectAlbumSortPair: Pair<String,Boolean>,
+    selectSongSortPair: Pair<String,Boolean>,
     currentSong: SongInfo,
     isActive: Boolean,
     isPlaying: Boolean,
@@ -199,7 +203,8 @@ fun ArtistDetailsScreen(
     val displayButton = remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
 
     val sheetState = rememberModalBottomSheetState(true)
-    var showSortSheet by remember { mutableStateOf(false) }
+    var showAlbumSortSheet by remember { mutableStateOf(false) }
+    var showSongSortSheet by remember { mutableStateOf(false) }
     var showAlbumMoreOptions by remember { mutableStateOf(false) }
     var showArtistMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf( false ) }
@@ -265,15 +270,18 @@ fun ArtistDetailsScreen(
                     // Albums Section
                     if (albums.isNotEmpty()) {
                         fullWidthItem {
-                            // this item is only for listing count of albums, so not using sorting or selection here
-                            Text(
-                                text = """\s[a-z]""".toRegex().replace(
-                                    quantityStringResource(R.plurals.albums, albums.size, albums.size)
-                                ) { it.value.uppercase() },
-                                textAlign = TextAlign.Left,
-                                style = MaterialTheme.typography.titleMedium,
+                            ItemCountAndSortSelectButtons(
+                                id = R.plurals.albums,
+                                itemCount = albums.size,
+                                onSortClick = {
+                                    Log.i(TAG, "Song Sort btn clicked")
+                                    showAlbumSortSheet = true
+                                },
+                                onSelectClick = {
+                                    Log.i(TAG, "Multi Select btn clicked")
+                                },
                                 // adding horizontal padding for screen with carousel
-                                modifier = Modifier.padding(horizontal = SCREEN_PADDING, vertical = CONTENT_PADDING)
+                                modifier = Modifier.screenMargin()
                             )
                         }
 
@@ -300,7 +308,7 @@ fun ArtistDetailsScreen(
                                 itemCount = songs.size,
                                 onSortClick = {
                                     Log.i(TAG, "Song Sort btn clicked")
-                                    showSortSheet = true
+                                    showSongSortSheet = true
                                 },
                                 onSelectClick = {
                                     Log.i(TAG, "Multi Select btn clicked")
@@ -367,31 +375,63 @@ fun ArtistDetailsScreen(
             }
 
             // ArtistDetails BottomSheet
-            if (showSortSheet) {
-                Log.i(TAG, "ArtistDetails Content -> Song Sort Modal is TRUE")
+            if (showAlbumSortSheet) {
+                Log.i(TAG, "ArtistDetails Content -> Album Sort Modal is TRUE")
                 DetailsSortSelectionBottomModal(
-                    onDismissRequest = { showSortSheet = false },
+                    onDismissRequest = { showAlbumSortSheet = false },
                     sheetState = sheetState,
                     onClose = {
                         coroutineScope.launch {
                             Log.i(TAG, "Hide sheet state")
                             sheetState.hide()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set Song Sort to FALSE")
-                            if(!sheetState.isVisible) showSortSheet = false
+                            Log.i(TAG, "set showAlbumSortSheet to FALSE")
+                            if(!sheetState.isVisible) showAlbumSortSheet = false
                         }
                     },
-                    onApply = {
+                    onApply = { value1: String, value2: Boolean ->
                         coroutineScope.launch {
-                            Log.i(TAG, "Save sheet state - does nothing atm")
+                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n$value1 + $value2")
+                            onArtistAction(ArtistAction.AlbumSortUpdate( Pair(value1, value2) ))
                             sheetState.hide()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set Song Sort to FALSE")
-                            if(!sheetState.isVisible) showSortSheet = false
+                            Log.i(TAG, "set showAlbumSortSheet to FALSE")
+                            if(!sheetState.isVisible) showAlbumSortSheet = false
+                        }
+                    },
+                    content = "AlbumInfo",
+                    context = "ArtistDetails",
+                    currSortPair = selectAlbumSortPair,
+                )
+            }
+
+            if (showSongSortSheet) {
+                Log.i(TAG, "ArtistDetails Content -> Song Sort Modal is TRUE")
+                DetailsSortSelectionBottomModal(
+                    onDismissRequest = { showSongSortSheet = false },
+                    sheetState = sheetState,
+                    onClose = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Hide sheet state")
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showSongSortSheet to FALSE")
+                            if(!sheetState.isVisible) showSongSortSheet = false
+                        }
+                    },
+                    onApply = { value1: String, value2: Boolean ->
+                        coroutineScope.launch {
+                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n$value1 + $value2")
+                            onArtistAction(ArtistAction.SongSortUpdate( Pair(value1, value2) ))
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showSongSortSheet to FALSE")
+                            if(!sheetState.isVisible) showSongSortSheet = false
                         }
                     },
                     content = "SongInfo",
                     context = "ArtistDetails",
+                    currSortPair = selectSongSortPair,
                 )
             }
 
@@ -664,6 +704,8 @@ fun ArtistDetailsScreenPreview() {
 
             selectSong = getSongsByArtist(PreviewArtists[0].id)[0],
             selectAlbum = getAlbumsByArtist(113)[0],
+            selectAlbumSortPair = Pair("Title", true),
+            selectSongSortPair = Pair("Title", true),
             currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,

@@ -76,6 +76,8 @@ import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.testing.PreviewSongs
 import com.example.music.ui.albumdetails.AlbumSongSortOptions
+import com.example.music.ui.artistdetails.ArtistAlbumSortOptions
+import com.example.music.ui.artistdetails.ArtistSongSortOptions
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.player.PlayerModalActions
 import com.example.music.ui.theme.MusicTheme
@@ -1036,11 +1038,7 @@ fun DetailsSortSelectionBottomModal(
                 "AlbumInfo" -> {
                     //sorting on artist details screen -> album carousel
                     RadioGroupSet(
-                        radioOptions = listOf(
-                            "TITLE",//"Title",
-                            "YEAR",
-                            "SONG_COUNT",//"Song Count"
-                        ),
+                        radioOptions = ArtistAlbumSortOptions,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newVal -> newValue1 = newVal},
                     )
@@ -1060,11 +1058,7 @@ fun DetailsSortSelectionBottomModal(
                         //sorting on artist details screen
                         "ArtistDetails" -> {
                             RadioGroupSet(
-                                radioOptions = listOf(
-                                    "TITLE",//"Title",
-                                    "ALBUM",//"Album Title"
-                                    "DURATION",
-                                ),
+                                radioOptions = ArtistSongSortOptions,
                                 initialValue = currSortPair.first,
                                 onOptionSelect = { newVal -> newValue1 = newVal},
                             )
