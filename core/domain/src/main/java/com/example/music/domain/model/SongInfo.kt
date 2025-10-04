@@ -1,5 +1,6 @@
 package com.example.music.domain.model
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
@@ -17,7 +18,15 @@ import com.example.music.data.mediaresolver.model.artworkUri
 import com.example.music.data.mediaresolver.model.uri
 import com.example.music.data.util.FLAG
 import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.TimeZone
 
 private const val TAG = "SongInfo"
 
@@ -40,31 +49,33 @@ private const val TAG = "SongInfo"
  */
 data class SongInfo(
     val id: Long = 0,
-    val uri: Uri = Uri.parse(""),
     val title: String = "",
-    //val artistId: Long? = 0,
-    val artistId: Long = 0,
+    val artistId: Long = 0, //val artistId: Long? = 0,
     val artistName: String = "",
-    //val albumId: Long? = 0,
-    val albumId: Long = 0,
+    val albumId: Long = 0, //val albumId: Long? = 0,
     val albumTitle: String = "",
+
     val genreId: Long? = 0,
     val genreName: String? = null,
     val composerId: Long? = null,
     val composerName: String? = null,
+
     val duration: Duration = Duration.ZERO,
-    val dateAdded: OffsetDateTime? = null,
-    val dateModified: OffsetDateTime? = null,
-    val dateLastPlayed: OffsetDateTime? = null,
     val size: Long = 0,
     val year: Int? = null,
+
     val trackNumber: Int? = null,
     val trackTotal: Int? = null,
     val discNumber: Int? = null,
     val discTotal: Int? = null,
+
+    val dateAdded: OffsetDateTime? = null,
+    val dateModified: OffsetDateTime? = null,
+    val dateLastPlayed: OffsetDateTime? = null,
+
+    val uri: Uri = Uri.parse(""),
     val artworkUri: Uri = Uri.parse(""),
     val artworkBitmap: Bitmap? = null,
-    //fileSize
 )
 
 /**
@@ -108,6 +119,7 @@ fun MediaItem.toSongInfo(): SongInfo =
 /**
  * Transform resolver's Audio model to SongInfo
  */
+@SuppressLint("SimpleDateFormat")
 fun Audio.asExternalModel(): SongInfo {
     /* // there's four currently known possible scenarios that determine the value for track total and disc total
     // 1. the cdTrackNumber had a normal value in x/y format, so the total is the y number
@@ -117,11 +129,21 @@ fun Audio.asExternalModel(): SongInfo {
     val totalTrack = this.cdTrackNumber?.substringAfter('/')?.removeSuffix("/")
     val totalDisc = this.discNumber?.substringAfter('/')?.removeSuffix("/")
 
-    if (FLAG) Log.i(TAG, "Audio to SongInfo:" +
+    val localOffset = OffsetDateTime.now().offset
+    val dateAdded = OffsetDateTime.parse(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date(this.dateAdded)) + localOffset)
+    val dateModified = OffsetDateTime.parse(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date(this.dateModified)) + localOffset)
+
+    Log.i(TAG, "Audio to SongInfo:" +
         "ID: ${this.id}\n" +
         "Title: ${this.title}\n" +
         "Artist: ${this.artist}\n" +
-        "Album: ${this.album}\n" +
+        "Album: ${this.album}\n\n" +
+
+        "OG date added: ${this.dateAdded}\n" +
+        "Date Added: $dateAdded\n" +
+        "OG date modified: ${this.dateModified}\n" +
+        "Date Modified: $dateModified\n\n" +
+
         "Track Number: ${this.cdTrackNumber?.substringBefore('/')?.toInt() ?: "null"}\n" +
         "Track Total: ${totalTrack ?: "null"}\n" +
         "Disc Number: ${this.discNumber?.substringBefore('/')?.toInt() ?: "null"}\n" +
@@ -129,14 +151,19 @@ fun Audio.asExternalModel(): SongInfo {
 
     return  SongInfo(
         id = this.id,
-        uri = this.uri,
         title = this.title,
         artistId = this.artistId,
         artistName = this.artist,
         albumId = this.albumId,
         albumTitle = this.album,
+
         genreId = this.genreId,
+        composerName = this.composer,
+
         duration = Duration.ofMillis(this.duration.toLong()),
+        size = this.size,
+        year = this.year,
+
         trackNumber = this.cdTrackNumber?.substringBefore('/')?.toInt(),
         trackTotal =
             if (totalTrack == "") null
@@ -145,8 +172,11 @@ fun Audio.asExternalModel(): SongInfo {
         discTotal =
             if (totalDisc == "") null
             else totalDisc?.toInt(),
-        dateLastPlayed = OffsetDateTime.now(), //this.dateModified,
-        year = this.year,
+
+        dateAdded = dateAdded,
+        dateModified = dateModified,
+
+        uri = this.uri,
         artworkUri = this.artworkUri,
     )
 }
