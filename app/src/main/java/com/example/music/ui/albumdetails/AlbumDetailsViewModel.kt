@@ -41,8 +41,8 @@ data class AlbumUiState (
 )
 
 val AlbumSongSortOptions = listOf(
-    "Title",
     "Track Number",
+    "Title",
     "Date Added",
     "Date Modified",
     "Duration"
@@ -69,7 +69,7 @@ class AlbumDetailsViewModel @Inject constructor(
 
     private val selectedSong = MutableStateFlow(SongInfo())
 
-    // sets sort default to album track number
+    // sets sort default
     private var selectedSortPair = MutableStateFlow(Pair("Track Number", true))
 
     // bottom player section
@@ -127,31 +127,34 @@ class AlbumDetailsViewModel @Inject constructor(
 
                 getSongControllerState()
                 val sortedSongs = when(selectSort.first) {
-                    //AlbumSongSortOptions[0]
-                    "Title" -> {
-                        if (selectSort.second) albumDetailsFilterResult.songs.sortedBy { it.title.lowercase() }
-                        else albumDetailsFilterResult.songs.sortedByDescending { it.title.lowercase() }
-                    } // works
-                    //AlbumSongSortOptions[1]
                     "Track Number" -> {
-                        if (selectSort.second) albumDetailsFilterResult.songs // default song sort
+                        if (selectSort.second) albumDetailsFilterResult.songs
                         else albumDetailsFilterResult.songs.reversed()
-                    } // works
-                    //AlbumSongSortOptions[2]
+                    }
+                    "Title" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs
+                            .sortedBy { it.title.lowercase() }
+                        else albumDetailsFilterResult.songs
+                            .sortedByDescending { it.title.lowercase() }
+                    }
                     "Date Added" -> {
-                        if (selectSort.second) albumDetailsFilterResult.songs.sortedBy { it.dateAdded }
-                        else albumDetailsFilterResult.songs.sortedByDescending { it.dateAdded }
-                    } // works
-                    //AlbumSongSortOptions[3]
+                        if (selectSort.second) albumDetailsFilterResult.songs
+                            .sortedBy { it.dateAdded }
+                        else albumDetailsFilterResult.songs
+                            .sortedByDescending { it.dateAdded }
+                    }
                     "Date Modified" -> {
-                        if (selectSort.second) albumDetailsFilterResult.songs.sortedBy { it.dateModified }
-                        else albumDetailsFilterResult.songs.sortedByDescending { it.dateModified }
-                    } // works
-                    //AlbumSongSortOptions[4]
+                        if (selectSort.second) albumDetailsFilterResult.songs
+                            .sortedBy { it.dateModified }
+                        else albumDetailsFilterResult.songs
+                            .sortedByDescending { it.dateModified }
+                    }
                     "Duration" -> {
-                        if (selectSort.second) albumDetailsFilterResult.songs.sortedBy { it.duration }
-                        else albumDetailsFilterResult.songs.sortedByDescending { it.duration }
-                    } // works
+                        if (selectSort.second) albumDetailsFilterResult.songs
+                            .sortedBy { it.duration }
+                        else albumDetailsFilterResult.songs
+                            .sortedByDescending { it.duration }
+                    }
                     else -> { albumDetailsFilterResult.songs }
                 }
 
@@ -171,9 +174,7 @@ class AlbumDetailsViewModel @Inject constructor(
                         errorMessage = throwable.message
                     )
                 )
-            }.collect{
-                _state.value = it
-            }
+            }.collect{ _state.value = it }
         }
 
         viewModelScope.launch {
@@ -285,7 +286,7 @@ class AlbumDetailsViewModel @Inject constructor(
         Log.i(TAG, "onAlbumAction - $action")
         when (action) {
             is AlbumAction.SongMoreOptionsClicked -> onSongMoreOptionsClick(action.song)
-            is AlbumAction.SongSortUpdate -> onSongSortUpdate(action.newValue)
+            is AlbumAction.SongSortUpdate -> onSongSortUpdate(action.newSort)
 
             is AlbumAction.PlaySong -> onPlaySong(action.song) // songMO-play
             is AlbumAction.PlaySongNext -> onPlaySongNext(action.song) // songMO-playNext
@@ -304,9 +305,9 @@ class AlbumDetailsViewModel @Inject constructor(
         Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
         selectedSong.value = song
     }
-    private fun onSongSortUpdate(newValue: Pair<String, Boolean>) {
-        Log.i(TAG, "onSongSortUpdate -> ${newValue.first} + ${newValue.second}")
-        selectedSortPair.value = newValue
+    private fun onSongSortUpdate(newSort: Pair<String, Boolean>) {
+        Log.i(TAG, "onSongSortUpdate -> ${newSort.first} + ${newSort.second}")
+        selectedSortPair.value = newSort
     }
 
     private fun onPlaySong(song: SongInfo) {
@@ -342,7 +343,7 @@ class AlbumDetailsViewModel @Inject constructor(
 
 sealed interface AlbumAction {
     data class SongMoreOptionsClicked(val song: SongInfo) : AlbumAction
-    data class SongSortUpdate(val newValue: Pair<String, Boolean>) : AlbumAction
+    data class SongSortUpdate(val newSort: Pair<String, Boolean>) : AlbumAction
 
     data class PlaySong(val song: SongInfo) : AlbumAction
     data class PlaySongNext(val song: SongInfo) : AlbumAction

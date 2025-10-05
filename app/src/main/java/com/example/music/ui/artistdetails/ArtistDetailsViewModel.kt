@@ -147,39 +147,61 @@ class ArtistDetailsViewModel @Inject constructor(
 
                 val sortedAlbums = when (selectAlbumSort.first) {
                     "Title" -> {
-                        if (selectAlbumSort.second) artistDetailsFilterResult.albums.sortedBy { it.title.lowercase() }
-                        else artistDetailsFilterResult.albums.sortedByDescending { it.title.lowercase() }
+                        if (selectAlbumSort.second) artistDetailsFilterResult.albums
+                            .sortedBy { it.title.lowercase() }
+                        else artistDetailsFilterResult.albums
+                            .sortedByDescending { it.title.lowercase() }
                     }
                     "Year" -> {
-                        if (selectAlbumSort.second) artistDetailsFilterResult.albums.sortedBy { it.year }
-                        else artistDetailsFilterResult.albums.sortedByDescending { it.year }
+                        if (selectAlbumSort.second) artistDetailsFilterResult.albums
+                            .sortedBy { it.year }
+                        else artistDetailsFilterResult.albums
+                            .sortedByDescending { it.year }
                     }
                     "Song Count" -> {
-                        if (selectAlbumSort.second) artistDetailsFilterResult.albums.sortedBy { it.songCount }
-                        else artistDetailsFilterResult.albums.sortedByDescending { it.songCount }
+                        if (selectAlbumSort.second) artistDetailsFilterResult.albums
+                            .sortedBy { it.songCount }
+                        else artistDetailsFilterResult.albums
+                            .sortedByDescending { it.songCount }
                     }
                     else -> { artistDetailsFilterResult.albums }
                 }
                 val sortedSongs = when (selectSongSort.first) {
                     "Title" -> {
-                        if (selectSongSort.second) artistDetailsFilterResult.songs.sortedBy { it.title.lowercase() } // default sort order
-                        else artistDetailsFilterResult.songs.sortedByDescending { it.title.lowercase() }
+                        if (selectSongSort.second) artistDetailsFilterResult.songs
+                            .sortedBy { it.title.lowercase() }
+                        else artistDetailsFilterResult.songs
+                            .sortedByDescending { it.title.lowercase() }
                     }
                     "Album" -> {
-                        if (selectSongSort.second) artistDetailsFilterResult.songs.sortedBy { it.albumTitle.lowercase() }
-                        else artistDetailsFilterResult.songs.sortedByDescending { it.albumTitle.lowercase() }
+                        if (selectSongSort.second) artistDetailsFilterResult.songs
+                            .sortedWith(
+                                compareBy<SongInfo> { it.albumTitle.lowercase() }
+                                    .thenBy { it.trackNumber }
+                            )
+                        else artistDetailsFilterResult.songs
+                            .sortedWith(
+                                compareByDescending<SongInfo> { it.albumTitle.lowercase() }
+                                    .thenByDescending { it.trackNumber }
+                            )
                     }
                     "Date Added" -> {
-                        if (selectSongSort.second) artistDetailsFilterResult.songs.sortedBy { it.dateAdded }
-                        else artistDetailsFilterResult.songs.sortedByDescending { it.dateAdded }
+                        if (selectSongSort.second) artistDetailsFilterResult.songs
+                            .sortedBy { it.dateAdded }
+                        else artistDetailsFilterResult.songs
+                            .sortedByDescending { it.dateAdded }
                     }
                     "Date Modified" -> {
-                        if (selectSongSort.second) artistDetailsFilterResult.songs.sortedBy { it.dateModified }
-                        else artistDetailsFilterResult.songs.sortedByDescending { it.dateModified }
+                        if (selectSongSort.second) artistDetailsFilterResult.songs
+                            .sortedBy { it.dateModified }
+                        else artistDetailsFilterResult.songs
+                            .sortedByDescending { it.dateModified }
                     }
                     "Duration" -> {
-                        if (selectSongSort.second) artistDetailsFilterResult.songs.sortedBy { it.duration }
-                        else artistDetailsFilterResult.songs.sortedByDescending { it.duration }
+                        if (selectSongSort.second) artistDetailsFilterResult.songs
+                            .sortedBy { it.duration }
+                        else artistDetailsFilterResult.songs
+                            .sortedByDescending { it.duration }
                     }
                     else -> { artistDetailsFilterResult.songs }
                 }
@@ -202,9 +224,7 @@ class ArtistDetailsViewModel @Inject constructor(
                         errorMessage = throwable.message
                     )
                 )
-            }.collect{
-                _state.value = it
-            }
+            }.collect{ _state.value = it }
         }
 
         viewModelScope.launch {
@@ -316,9 +336,9 @@ class ArtistDetailsViewModel @Inject constructor(
         Log.i(TAG, "onArtistAction - $action")
         when (action) {
             is ArtistAction.AlbumMoreOptionsClicked -> onAlbumMoreOptionsClicked(action.album) // selects albumMO
-            is ArtistAction.AlbumSortUpdate -> onAlbumSortUpdate(action.newValue)
+            is ArtistAction.AlbumSortUpdate -> onAlbumSortUpdate(action.newSort)
             is ArtistAction.SongMoreOptionsClicked -> onSongMoreOptionsClicked(action.song) // selects songMO
-            is ArtistAction.SongSortUpdate -> onSongSortUpdate(action.newValue)
+            is ArtistAction.SongSortUpdate -> onSongSortUpdate(action.newSort)
 
             is ArtistAction.PlaySong -> onPlaySong(action.song) // songMO-play
             is ArtistAction.PlaySongNext -> onPlaySongNext(action.song) // songMo-playNext
@@ -343,17 +363,17 @@ class ArtistDetailsViewModel @Inject constructor(
         Log.i(TAG, "onAlbumMoreOptionsClicked - ${album.title}")
         selectedAlbum.value = album
     }
-    private fun onAlbumSortUpdate(newValue: Pair<String, Boolean>) {
-        Log.i(TAG, "onAlbumSortUpdate -> ${newValue.first} + ${newValue.second}")
-        selectedAlbumSortPair.value = newValue
+    private fun onAlbumSortUpdate(newSort: Pair<String, Boolean>) {
+        Log.i(TAG, "onAlbumSortUpdate -> ${newSort.first} + ${newSort.second}")
+        selectedAlbumSortPair.value = newSort
     }
     private fun onSongMoreOptionsClicked(song: SongInfo) {
         Log.i(TAG, "onSongMoreOptionsClick - ${song.title}")
         selectedSong.value = song
     }
-    private fun onSongSortUpdate(newValue: Pair<String, Boolean>) {
-        Log.i(TAG, "onSongSortUpdate -> ${newValue.first} + ${newValue.second}")
-        selectedSongSortPair.value = newValue
+    private fun onSongSortUpdate(newSort: Pair<String, Boolean>) {
+        Log.i(TAG, "onSongSortUpdate -> ${newSort.first} + ${newSort.second}")
+        selectedSongSortPair.value = newSort
     }
 
     private fun onPlaySong(song: SongInfo) {
@@ -418,9 +438,9 @@ class ArtistDetailsViewModel @Inject constructor(
 
 sealed interface ArtistAction {
     data class AlbumMoreOptionsClicked(val album: AlbumInfo) : ArtistAction
-    data class AlbumSortUpdate(val newValue: Pair<String, Boolean>) : ArtistAction
+    data class AlbumSortUpdate(val newSort: Pair<String, Boolean>) : ArtistAction
     data class SongMoreOptionsClicked(val song: SongInfo) : ArtistAction
-    data class SongSortUpdate(val newValue: Pair<String, Boolean>) : ArtistAction
+    data class SongSortUpdate(val newSort: Pair<String, Boolean>) : ArtistAction
 
     data class PlaySong(val song: SongInfo) : ArtistAction
     data class PlaySongNext(val song: SongInfo) : ArtistAction

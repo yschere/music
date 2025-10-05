@@ -49,8 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.music.R
-import com.example.music.designsys.theme.CONTENT_PADDING
-import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.TOP_BAR_COLLAPSED_HEIGHT
 import com.example.music.designsys.theme.TOP_BAR_EXPANDED_HEIGHT
 import com.example.music.domain.model.AlbumInfo
@@ -85,7 +83,6 @@ import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.LandscapePreview
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.fullWidthItem
-import com.example.music.util.quantityStringResource
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
@@ -376,7 +373,7 @@ fun ArtistDetailsScreen(
 
             // ArtistDetails BottomSheet
             if (showAlbumSortSheet) {
-                Log.i(TAG, "ArtistDetails Content -> Album Sort Modal is TRUE")
+                Log.i(TAG, "ArtistDetails Content -> show Album Sort Modal is TRUE")
                 DetailsSortSelectionBottomModal(
                     onDismissRequest = { showAlbumSortSheet = false },
                     sheetState = sheetState,
@@ -389,10 +386,10 @@ fun ArtistDetailsScreen(
                             if(!sheetState.isVisible) showAlbumSortSheet = false
                         }
                     },
-                    onApply = { value1: String, value2: Boolean ->
+                    onApply = { sortColumn: String, isAscending: Boolean ->
                         coroutineScope.launch {
-                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n$value1 + $value2")
-                            onArtistAction(ArtistAction.AlbumSortUpdate( Pair(value1, value2) ))
+                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n$sortColumn + $isAscending")
+                            onArtistAction(ArtistAction.AlbumSortUpdate( Pair(sortColumn, isAscending) ))
                             sheetState.hide()
                         }.invokeOnCompletion {
                             Log.i(TAG, "set showAlbumSortSheet to FALSE")
@@ -406,7 +403,7 @@ fun ArtistDetailsScreen(
             }
 
             if (showSongSortSheet) {
-                Log.i(TAG, "ArtistDetails Content -> Song Sort Modal is TRUE")
+                Log.i(TAG, "ArtistDetails Content -> show Song Sort Modal is TRUE")
                 DetailsSortSelectionBottomModal(
                     onDismissRequest = { showSongSortSheet = false },
                     sheetState = sheetState,
@@ -419,10 +416,10 @@ fun ArtistDetailsScreen(
                             if(!sheetState.isVisible) showSongSortSheet = false
                         }
                     },
-                    onApply = { value1: String, value2: Boolean ->
+                    onApply = { sortColumn: String, isAscending: Boolean ->
                         coroutineScope.launch {
-                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n$value1 + $value2")
-                            onArtistAction(ArtistAction.SongSortUpdate( Pair(value1, value2) ))
+                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n$sortColumn + $isAscending")
+                            onArtistAction(ArtistAction.SongSortUpdate( Pair(sortColumn, isAscending) ))
                             sheetState.hide()
                         }.invokeOnCompletion {
                             Log.i(TAG, "set showSongSortSheet to FALSE")
