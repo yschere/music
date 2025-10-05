@@ -880,8 +880,9 @@ fun LibrarySortSelectionBottomModal(
     libraryCategory: LibraryCategory,
     currSortPair: Pair<String, Boolean>,
 ){
-    var newValue1 = currSortPair.first
-    var newValue2 = currSortPair.second
+    // temporary variables for bottom modal to store sort pair values
+    var sortColumn = currSortPair.first
+    var isAscending = currSortPair.second
 
     BottomModal(
         onDismissRequest = onDismissRequest,
@@ -901,61 +902,49 @@ fun LibrarySortSelectionBottomModal(
 
             if (FLAG) Log.i(TAG, "Library Sort Modal:\n" +
                     "Library Tab -> $libraryCategory\n" +
-                    "Sort pair -> ${currSortPair.first} + ${currSortPair.second}")
-            //list of radio buttons, set of options determined by context
-            when (libraryCategory) {
+                    "Sort pair -> $sortColumn + $isAscending")
 
-                //sorting on library.albums screen
+            when (libraryCategory) {
                 LibraryCategory.Albums -> {
                     RadioGroupSet(
                         radioOptions = albumSortOrderList,
                         initialValue = currSortPair.first,
-                        onOptionSelect = { newVal -> newValue1 = newVal},
+                        onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
-
-                //sorting on library.artists screen
                 LibraryCategory.Artists -> {
                     RadioGroupSet(
                         radioOptions = artistSortOrderList,
                         initialValue = currSortPair.first,
-                        onOptionSelect = { newVal -> newValue1 = newVal},
+                        onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
-
-                //sorting on library.composers screen
                 LibraryCategory.Composers -> {
                     RadioGroupSet(
                         radioOptions = composerSortOrderList,
                         initialValue = currSortPair.first,
-                        onOptionSelect = { newVal -> newValue1 = newVal},
+                        onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
-
-                //sorting on library.genres screen
                 LibraryCategory.Genres -> {
                     RadioGroupSet(
                         radioOptions = genreSortOrderList,
                         initialValue = currSortPair.first,
-                        onOptionSelect = { newVal -> newValue1 = newVal},
+                        onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
-
-                //sorting on library.playlists screen
                 LibraryCategory.Playlists -> {
                     RadioGroupSet(
                         radioOptions = playlistSortOrderList,
                         initialValue = currSortPair.first,
-                        onOptionSelect = { newVal -> newValue1 = newVal},
+                        onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
-
-                //sorting on library.songs screen
                 LibraryCategory.Songs -> {
                     RadioGroupSet(
                         radioOptions = songSortOrderList,
                         initialValue = currSortPair.first,
-                        onOptionSelect = { newVal -> newValue1 = newVal},
+                        onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
             }
@@ -966,11 +955,10 @@ fun LibrarySortSelectionBottomModal(
                 modifier = Modifier.modalPadding()
             )
 
-            // radio buttons for selecting ascending or descending
             RadioGroupSet(
                 radioOptions = listOf("Ascending", "Descending"),
                 initialValue = if (currSortPair.second) "Ascending" else "Descending",
-                onOptionSelect = { newVal -> newValue2 = (newVal == "Ascending") },
+                onOptionSelect = { newIsAsc -> isAscending = (newIsAsc == "Ascending") },
             )
 
             Row {
@@ -982,9 +970,9 @@ fun LibrarySortSelectionBottomModal(
                 ApplyModalBtn(
                     onClick = {
                         Log.i(TAG, "After Apply clicked:\n" +
-                            "new sort col: $newValue1\n" +
-                            "new asc/desc: $newValue2")
-                        onApply(newValue1, newValue2)
+                            "new sort col: $sortColumn\n" +
+                            "new asc/desc: $isAscending")
+                        onApply(sortColumn, isAscending)
                     },
                     text = "APPLY",
                     modifier = Modifier.weight(0.5f)
@@ -1036,20 +1024,17 @@ fun DetailsSortSelectionBottomModal(
                 "Context -> $context\n" +
                 "Content -> $content\n" +
                 "Sort pair -> $sortColumn + $isAscending")
-            //list of radio buttons, set of options determined by content and context
+
             when (content) {
-                "AlbumInfo" -> {
-                    //sorting on artist details screen -> album carousel
+                "AlbumInfo" -> { //sorting on artist details screen -> album carousel
                     RadioGroupSet(
                         radioOptions = ArtistAlbumSortOptions,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
-
                 "SongInfo" -> {
                     when (context) {
-                        //sorting on album details screen
                         "AlbumDetails" -> {
                             RadioGroupSet(
                                 radioOptions = AlbumSongSortOptions,
@@ -1057,8 +1042,6 @@ fun DetailsSortSelectionBottomModal(
                                 onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
-
-                        //sorting on artist details screen
                         "ArtistDetails" -> {
                             RadioGroupSet(
                                 radioOptions = ArtistSongSortOptions,
@@ -1066,21 +1049,20 @@ fun DetailsSortSelectionBottomModal(
                                 onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
-
-                        //sorting on composer details screen **NOT IN USE
-                        "ComposerDetails" -> {
+                        "ComposerDetails" -> { //sorting on composer details screen **NOT IN USE
                             RadioGroupSet(
                                 radioOptions = listOf(
-                                    "TITLE",//"Title",
-                                    "DURATION",//"Date Last Played"
-                                    "DATE_ADDED",
+                                    "Title",
+                                    "Artist",
+                                    "Album",
+                                    "Date Added",
+                                    "Date Modified",
+                                    "Duration",
                                 ),
                                 initialValue = currSortPair.first,
                                 onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
-
-                        //sorting on genre details screen
                         "GenreDetails" -> {
                             RadioGroupSet(
                                 radioOptions = GenreSongSortOptions,
@@ -1088,8 +1070,6 @@ fun DetailsSortSelectionBottomModal(
                                 onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
-
-                        //sorting on playlist details screen
                         "PlaylistDetails" -> {
                             RadioGroupSet(
                                 radioOptions = PlaylistSongSortOptions,
@@ -1097,11 +1077,9 @@ fun DetailsSortSelectionBottomModal(
                                 onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
-
                         else -> { Text("this is not a valid context screen to pass") }
                     }
                 }
-
                 else -> { Text("This is not a valid content type to pass") }
             }
 
