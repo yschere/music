@@ -19,7 +19,7 @@ class GetAlbumDetails @Inject constructor(
     private val mediaRepo: MediaRepo,
 ) {
     operator fun invoke(albumId: Long): Flow<AlbumDetailsFilterResult> {
-        Log.i(TAG, "START -- albumID: $albumId")
+        Log.i(TAG, "START --- albumID: $albumId")
         val albumItem: Flow<Album> = mediaRepo.getAlbumFlow(albumId)
         val artistItem: Flow<Artist> = mediaRepo.getArtistByAlbumIdFlow(albumId)
 
@@ -31,16 +31,16 @@ class GetAlbumDetails @Inject constructor(
                 mediaRepo.getAlbumAudios(it.albumId, order = MediaStore.Audio.Media.TRACK)
             }
         ) { album, artist, songs ->
-            Log.i(TAG, "ALBUM: $album --- \n" +
-                "Album ID: ${album.albumId} \n" +
-                "Album Title: ${album.title} \n" +
+            Log.i(TAG, "ALBUM: $album ---\n" +
+                "Album ID: ${album.albumId}\n" +
+                "Album Title: ${album.title}\n" +
                 "Artist: ${album.artist}"
             )
-            Log.i(TAG, "ALBUM ARTIST: $artist --- \n" +
-                "Artist ID: ${artist.id} \n" +
-                "Artist Name: ${artist.name} \n" +
-                "Number Songs: ${artist.numTracks} \n" +
-                "Number Albums: ${artist.numAlbums}"
+            Log.i(TAG, "ALBUM ARTIST: $artist ---\n" +
+                "Artist ID: ${artist.id}\n" +
+                "Artist Name: ${artist.name}\n" +
+                "Number Albums: ${artist.numAlbums}\n" +
+                "Number Songs: ${artist.numTracks}"
             )
             AlbumDetailsFilterResult(
                 album = album.asExternalModel(),

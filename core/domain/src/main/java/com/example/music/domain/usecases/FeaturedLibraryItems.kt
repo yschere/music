@@ -19,11 +19,9 @@ class FeaturedLibraryItems @Inject constructor(
 
         // albumItems should return albumRepo date created desc limit 5
         val albumIdsFlow = mediaRepo.mostRecentAlbumsIds(5)
-        Log.i(TAG, "album items == $albumIdsFlow")
 
         // mediaItems should return songRepo date created desc limit 10
         val mediaIdsFlow = mediaRepo.mostRecentSongsIds(10)
-        Log.i(TAG, "media items == $mediaIdsFlow")
 
         return combine(
             mediaIdsFlow,
