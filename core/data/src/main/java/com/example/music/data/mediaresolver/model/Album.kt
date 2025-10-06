@@ -4,6 +4,7 @@ import android.database.Cursor
 import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.runtime.Stable
+import androidx.core.database.getIntOrNull
 import com.example.music.data.mediaresolver.MediaRepo.Companion.toAlbumArtUri
 import com.example.music.data.util.FLAG
 
@@ -19,7 +20,7 @@ data class Album(
     @JvmField val albumId: Long,
     @JvmField val artist: String,
     @JvmField val artistId: Long,
-    @JvmField val lastYear: Int,
+    @JvmField val lastYear: Int?,
     @JvmField val numTracks: Int,
 )
 
@@ -38,7 +39,7 @@ fun Cursor.toAlbum(): Album {
         albumId = getLong(2),
         artist = getString(3) ?: MediaStore.UNKNOWN_STRING,
         artistId = getLong(4),
-        lastYear = getInt(5),
+        lastYear = getIntOrNull(5),
         numTracks = getInt(6),
     )
 }

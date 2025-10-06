@@ -66,7 +66,10 @@ fun AlbumWithExtraInfo.asExternalModel(): AlbumInfo {
 }
 
 fun AlbumMR.asExternalModel(): AlbumInfo {
-    if (FLAG) Log.i(TAG, "AlbumMR to AlbumInfo external model constructor: \n ${this.id} + ${this.title}")
+    if (FLAG) Log.i(TAG, "AlbumMR to AlbumInfo:" +
+        "ID: ${this.id}\n" +
+        "Title: ${this.title}")
+
     return AlbumInfo(
         id = this.albumId,
         title = this.title,

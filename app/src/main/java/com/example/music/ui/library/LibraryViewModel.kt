@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
 import com.example.music.data.repository.AlbumSortOrder
+import com.example.music.data.repository.AlbumSortList
 import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.data.repository.ArtistSortOrder
 import com.example.music.data.repository.ComposerSortOrder
@@ -82,14 +83,6 @@ class LibraryViewModel @Inject constructor(
     private val getSongData: GetSongData,
     private val songController: SongController
 ) : ViewModel(), MiniPlayerState {
-    /* ------ Current running UI needs:  ------
-        library needs to have categories: playlists, songs, artists, albums, genres, composers
-        need to hold selected category, and the list of items to show with that category
-        objects: SongSortModel, PlaylistSortModel, ArtistSortModel, AlbumSortModel, GenreSortModel
-            each model contains list of each type's objects in library, and count of type's objects
-        means of retrieving objects: GetLibrarySongs, GetLibraryPlaylists,
-            GetLibraryArtists, GetLibraryAlbums, GetLibraryGenres
-     */
 
     @Inject
     lateinit var appPreferences: AppPreferencesRepo
@@ -100,38 +93,6 @@ class LibraryViewModel @Inject constructor(
     // Holds our currently selected category
     private val selectedLibraryCategory = MutableStateFlow(LibraryCategory.Playlists)
     private var selectedSortPair by mutableStateOf(Pair("", false))
-
-    /*// setup with values that retrieve sortOptions from preferences data store
-    private val sortedSongs = getLibrarySongs("title", true)
-        //.stateIn(viewModelScope)//, SharingStarted.WhileSubscribed())
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    private val sortedPlaylists = getLibraryPlaylists("name", true)
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    private val sortedAlbums = getLibraryAlbums("title", true)
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    private val sortedArtists = getLibraryArtists("name", true)
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    private val sortedComposers = getLibraryComposers("name", true)
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    private val sortedGenres = getLibraryGenres("name", true)
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())*/
-
-    /* ------ Objects used in previous iterations:  ------
-    private val songs = songRepo.getAllSongs()
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    private val playlists1 = MutableStateFlow(GetLibraryPlaylists(playlistRepo))
-
-    private val playlists = playlistRepo.getAllPlaylists()
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    private val playlistSortModel = playlists1.value
-    */
 
     private val appPreferencesFlow = getAppPreferences()
 
@@ -196,13 +157,13 @@ class LibraryViewModel @Inject constructor(
                 var librarySongs: List<SongInfo> = emptyList()
 
                 when (libraryCategory) {
+                    LibraryCategory.Albums -> {
+                        selectedSortPair = Pair(appPreferences.albumSortColumn, appPreferences.isAlbumAsc)
+                        libraryAlbums = getLibraryAlbums(appPreferences.albumSortColumn, appPreferences.isAlbumAsc)
+                    }
                     LibraryCategory.Artists -> {
                         selectedSortPair = Pair(appPreferences.artistSortOrder.name, appPreferences.isArtistAsc)
                         libraryArtists = getLibraryArtists(appPreferences.artistSortOrder.name, appPreferences.isArtistAsc)
-                    }
-                    LibraryCategory.Albums -> {
-                        selectedSortPair = Pair(appPreferences.albumSortOrder.name, appPreferences.isAlbumAsc)
-                        libraryAlbums = getLibraryAlbums(appPreferences.albumSortOrder.name, appPreferences.isAlbumAsc)
                     }
                     LibraryCategory.Composers -> {
                         selectedSortPair = Pair(appPreferences.composerSortOrder.name, appPreferences.isComposerAsc)
@@ -388,9 +349,9 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch {
             when(libraryCategory) {
                 LibraryCategory.Albums -> {
-                    if (selectedSortPair.first != newValue.first && newValue.first.isNotBlank()) {
+                    if (selectedSortPair.first != newValue.first && AlbumSortList.contains(newValue.first)) {
                         Log.i(TAG, "Updating Albums Sort Order -> ${newValue.first}")
-                        appPreferences.updateAlbumSortOrder(AlbumSortOrder.valueOf(newValue.first))
+                        appPreferences.updateAlbumSortOrder(newValue.first)
                     }
                     if (selectedSortPair.second != newValue.second) {
                         Log.i(TAG, "Updating Albums Asc/Desc -> ${newValue.second}")
@@ -585,13 +546,3 @@ sealed interface LibraryAction {
     data class PlayGenre(val genre: GenreInfo) : LibraryAction
     data class ShuffleGenre(val genre: GenreInfo) : LibraryAction
 }
-
-/* sealed interface LibraryScreenUiState {
-    data object Loading : LibraryScreenUiState
-    data class Ready(
-        val libraryCategories: List<LibraryCategory> = emptyList(),
-        val selectedLibraryCategory: LibraryCategory = LibraryCategory.PlaylistView,
-        val librarySongsModel: SongAppModel = SongSortModel(),
-        val libraryPlaylistsModel: PlaylistSortModel = PlaylistSortModel(),
-    ) : LibraryScreenUiState
-} */

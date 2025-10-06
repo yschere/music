@@ -645,9 +645,7 @@ suspend fun ContentResolver.getAlbums(
             else -> "on '$sQuery'"
         }
         if (FLAG) Log.i(TAG, "Get Albums Search $s:\n" +
-            "Album(s) count returned: ${c.count}\n" +
-            "Album column names: ${c.columnNames}"
-        )
+            "Album(s) count returned: ${c.count}")
         if (c.count == 0) return emptyList()
 
         val result = List(c.count) {

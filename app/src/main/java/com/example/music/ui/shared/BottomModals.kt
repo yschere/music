@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.data.repository.AlbumSortList
 import com.example.music.data.repository.albumSortOrderList
 import com.example.music.data.repository.artistSortOrderList
 import com.example.music.data.repository.composerSortOrderList
@@ -907,7 +908,7 @@ fun LibrarySortSelectionBottomModal(
             when (libraryCategory) {
                 LibraryCategory.Albums -> {
                     RadioGroupSet(
-                        radioOptions = albumSortOrderList,
+                        radioOptions = AlbumSortList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )

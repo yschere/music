@@ -27,6 +27,7 @@ enum class ShuffleType {
 enum class AlbumSortOrder {
     TITLE, ARTIST, SONG_COUNT, YEAR
 }
+val AlbumSortList = listOf("Title", "Artist", "Song Count", "Year")
 
 enum class ArtistSortOrder {
     NAME, ALBUM_COUNT, SONG_COUNT
@@ -41,11 +42,11 @@ enum class GenreSortOrder {
 }
 
 enum class PlaylistSortOrder {
-    NAME, SONG_COUNT, DATE_CREATED, DATE_LAST_ACCESSED//, DATE_LAST_PLAYED,
+    NAME, SONG_COUNT, DATE_CREATED, DATE_LAST_ACCESSED
 }
 
 enum class SongSortOrder {
-    TITLE, ARTIST, ALBUM, DURATION, DATE_ADDED, DATE_MODIFIED//, TRACK_NUMBER//, LAST_PLAYED, FILE_SIZE
+    TITLE, ARTIST, ALBUM, DATE_ADDED, DATE_MODIFIED, DURATION
 }
 
 val albumSortOrderList = AlbumSortOrder.entries.map { it.name }
@@ -59,7 +60,7 @@ data class AppPreferences(
     val repeatType: RepeatType, // enum setting for repeating queue'd song. if app queue ends after last song, if app queue continues after last song, if app song playing in queue is the new next song
     val shuffleType: ShuffleType, // enum setting for shuffling once or reshuffle after queue repeat
 
-    val albumSortOrder: AlbumSortOrder, // enum setting for the album attributes to sort list on
+    val albumSortColumn: String, // string for the album attributes to sort list on
     val artistSortOrder: ArtistSortOrder, // enum setting for the artist attributes to sort list on
     val composerSortOrder: ComposerSortOrder, // enum setting for the composer attributes to sort list on
     val genreSortOrder: GenreSortOrder, // enum setting for the genre attributes to sort list on
@@ -81,7 +82,7 @@ class AppPreferencesRepo @Inject constructor(
         val REPEAT_TYPE = stringPreferencesKey("repeat_type")
         val SHUFFLE_TYPE = stringPreferencesKey("shuffle_type")
 
-        val ALBUM_SORT_ORDER = stringPreferencesKey("album_sort_order")
+        val ALBUM_SORT_COLUMN = stringPreferencesKey("album_sort_column")
         val ARTIST_SORT_ORDER = stringPreferencesKey("artist_sort_order")
         val COMPOSER_SORT_ORDER = stringPreferencesKey("composer_sort_order")
         val GENRE_SORT_ORDER = stringPreferencesKey("genre_sort_order")
@@ -108,7 +109,7 @@ class AppPreferencesRepo @Inject constructor(
             val repeatType = RepeatType.valueOf(preferences[PreferenceKeys.REPEAT_TYPE] ?: RepeatType.OFF.name)
             val shuffleType = ShuffleType.valueOf(preferences[PreferenceKeys.SHUFFLE_TYPE] ?: ShuffleType.ONCE.name)
 
-            val albumSortOrder = AlbumSortOrder.valueOf(preferences[PreferenceKeys.ALBUM_SORT_ORDER] ?: AlbumSortOrder.TITLE.name)
+            val albumSortColumn = preferences[PreferenceKeys.ALBUM_SORT_COLUMN] ?: AlbumSortList[0]
             val artistSortOrder = ArtistSortOrder.valueOf(preferences[PreferenceKeys.ARTIST_SORT_ORDER] ?: ArtistSortOrder.NAME.name)
             val composerSortOrder = ComposerSortOrder.valueOf(preferences[PreferenceKeys.COMPOSER_SORT_ORDER] ?: ComposerSortOrder.NAME.name)
             val genreSortOrder = GenreSortOrder.valueOf(preferences[PreferenceKeys.GENRE_SORT_ORDER] ?: GenreSortOrder.NAME.name)
@@ -122,7 +123,7 @@ class AppPreferencesRepo @Inject constructor(
             val isPlaylistAsc = preferences[PreferenceKeys.IS_PLAYLIST_ASC] ?: true
             val isSongAsc = preferences[PreferenceKeys.IS_SONG_ASC] ?: true
 
-            AppPreferences(repeatType, shuffleType, albumSortOrder,
+            AppPreferences(repeatType, shuffleType, albumSortColumn,
                 artistSortOrder, composerSortOrder, genreSortOrder, playlistSortOrder, songSortOrder,
                 isAlbumAsc, isArtistAsc, isComposerAsc, isGenreAsc, isPlaylistAsc, isSongAsc)
         }
@@ -144,10 +145,10 @@ class AppPreferencesRepo @Inject constructor(
             preferences[PreferenceKeys.IS_ALBUM_ASC] = isAsc
         }
     }
-    suspend fun updateAlbumSortOrder(sort: AlbumSortOrder) {
+    suspend fun updateAlbumSortOrder(sort: String) {
         Log.i(TAG, "Update Album Sort Order -> $sort")
         dataStore.edit { preferences ->
-            preferences[PreferenceKeys.ALBUM_SORT_ORDER] = sort.name
+            preferences[PreferenceKeys.ALBUM_SORT_COLUMN] = sort
         }
     }
 
