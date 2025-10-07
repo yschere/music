@@ -55,8 +55,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.data.repository.AlbumSortList
-import com.example.music.data.repository.albumSortOrderList
-import com.example.music.data.repository.artistSortOrderList
+import com.example.music.data.repository.ArtistSortList
 import com.example.music.data.repository.composerSortOrderList
 import com.example.music.data.repository.genreSortOrderList
 import com.example.music.data.repository.playlistSortOrderList
@@ -902,8 +901,8 @@ fun LibrarySortSelectionBottomModal(
             )
 
             if (FLAG) Log.i(TAG, "Library Sort Modal:\n" +
-                    "Library Tab -> $libraryCategory\n" +
-                    "Sort pair -> $sortColumn + $isAscending")
+                "Library Tab -> $libraryCategory\n" +
+                "Sort pair -> $sortColumn + $isAscending")
 
             when (libraryCategory) {
                 LibraryCategory.Albums -> {
@@ -915,7 +914,7 @@ fun LibrarySortSelectionBottomModal(
                 }
                 LibraryCategory.Artists -> {
                     RadioGroupSet(
-                        radioOptions = artistSortOrderList,
+                        radioOptions = ArtistSortList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )

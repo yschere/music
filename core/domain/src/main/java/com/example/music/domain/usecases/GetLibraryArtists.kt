@@ -6,6 +6,7 @@ import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.model.Artist
 import com.example.music.data.mediaresolver.MediaRepo
+import com.example.music.data.repository.ArtistSortList
 import javax.inject.Inject
 
 private const val TAG = "Get Library Artists"
@@ -13,30 +14,42 @@ private const val TAG = "Get Library Artists"
 class GetLibraryArtists @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
-    suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<ArtistInfo> {
-        val artistsList: List<Artist>
-        Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
+    suspend operator fun invoke(
+        sortOption: String,
+        isAscending: Boolean
+    ): List<ArtistInfo> {
+        var artistsList: List<Artist>
+        Log.i(TAG, "START --- sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
-            "NAME" -> {
+            ArtistSortList[0] -> { //"Name"
                 artistsList = mediaRepo.getAllArtists(
                     order = MediaStore.Audio.Artists.ARTIST,
                     ascending = isAscending,
-                )
+                ).sortedBy { it.name.lowercase() }
+                if (!isAscending) artistsList = artistsList.reversed()
             }
 
-            "ALBUM_COUNT" -> {
+            ArtistSortList[1] -> { //"Album Count"
                 artistsList = mediaRepo.getAllArtists(
                     order = MediaStore.Audio.Artists.NUMBER_OF_ALBUMS,
                     ascending = isAscending,
+                ).sortedWith(
+                    compareBy<Artist> { it.numAlbums }
+                        .thenBy { it.name.lowercase() }
                 )
+                if (!isAscending) artistsList = artistsList.reversed()
             }
 
-            "SONG_COUNT" -> {
+            ArtistSortList[2] -> { //"Song Count"
                 artistsList = mediaRepo.getAllArtists(
                     order = MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
                     ascending = isAscending,
+                ).sortedWith(
+                    compareBy<Artist> { it.numTracks }
+                        .thenBy { it.name.lowercase() }
                 )
+                if (!isAscending) artistsList = artistsList.reversed()
             }
 
             else -> {

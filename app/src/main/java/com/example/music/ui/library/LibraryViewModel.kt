@@ -8,10 +8,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
-import com.example.music.data.repository.AlbumSortOrder
 import com.example.music.data.repository.AlbumSortList
 import com.example.music.data.repository.AppPreferencesRepo
-import com.example.music.data.repository.ArtistSortOrder
+import com.example.music.data.repository.ArtistSortList
 import com.example.music.data.repository.ComposerSortOrder
 import com.example.music.data.repository.GenreSortOrder
 import com.example.music.data.repository.PlaylistSortOrder
@@ -162,8 +161,8 @@ class LibraryViewModel @Inject constructor(
                         libraryAlbums = getLibraryAlbums(appPreferences.albumSortColumn, appPreferences.isAlbumAsc)
                     }
                     LibraryCategory.Artists -> {
-                        selectedSortPair = Pair(appPreferences.artistSortOrder.name, appPreferences.isArtistAsc)
-                        libraryArtists = getLibraryArtists(appPreferences.artistSortOrder.name, appPreferences.isArtistAsc)
+                        selectedSortPair = Pair(appPreferences.artistSortColumn, appPreferences.isArtistAsc)
+                        libraryArtists = getLibraryArtists(appPreferences.artistSortColumn, appPreferences.isArtistAsc)
                     }
                     LibraryCategory.Composers -> {
                         selectedSortPair = Pair(appPreferences.composerSortOrder.name, appPreferences.isComposerAsc)
@@ -350,8 +349,8 @@ class LibraryViewModel @Inject constructor(
             when(libraryCategory) {
                 LibraryCategory.Albums -> {
                     if (selectedSortPair.first != newValue.first && AlbumSortList.contains(newValue.first)) {
-                        Log.i(TAG, "Updating Albums Sort Order -> ${newValue.first}")
-                        appPreferences.updateAlbumSortOrder(newValue.first)
+                        Log.i(TAG, "Updating Albums Sort Column -> ${newValue.first}")
+                        appPreferences.updateAlbumSortColumn(newValue.first)
                     }
                     if (selectedSortPair.second != newValue.second) {
                         Log.i(TAG, "Updating Albums Asc/Desc -> ${newValue.second}")
@@ -359,9 +358,9 @@ class LibraryViewModel @Inject constructor(
                     }
                 }
                 LibraryCategory.Artists -> {
-                    if (selectedSortPair.first != newValue.first && newValue.first.isNotBlank()) {
-                        Log.i(TAG, "Updating Artists Sort Order -> ${newValue.first}")
-                        appPreferences.updateArtistSortOrder(ArtistSortOrder.valueOf(newValue.first))
+                    if (selectedSortPair.first != newValue.first && ArtistSortList.contains(newValue.first)) {
+                        Log.i(TAG, "Updating Artists Sort Column -> ${newValue.first}")
+                        appPreferences.updateArtistSortColumn(newValue.first)
                     }
                     if (selectedSortPair.second != newValue.second) {
                         Log.i(TAG, "Updating Artists Asc/Desc -> ${newValue.second}")
@@ -525,9 +524,9 @@ sealed interface LibraryAction {
     data class AppPreferencesUpdate(val libraryCategory: LibraryCategory, val newValue: Pair<String, Boolean>) : LibraryAction
     data class LibraryCategorySelected(val libraryCategory: LibraryCategory) : LibraryAction
 
-    data class PlaySong(val song: SongInfo) : LibraryAction // songMO-play
-    data class PlaySongNext(val song: SongInfo) : LibraryAction // songMO-playNext
-    data class QueueSong(val song: SongInfo) : LibraryAction // songMO-queue
+    data class PlaySong(val song: SongInfo) : LibraryAction
+    data class PlaySongNext(val song: SongInfo) : LibraryAction
+    data class QueueSong(val song: SongInfo) : LibraryAction
 
     data class PlaySongs(val songs: List<SongInfo>) : LibraryAction
     data class QueueSongs(val songs: List<SongInfo>) : LibraryAction
