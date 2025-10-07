@@ -6,6 +6,7 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.model.Audio
 import com.example.music.data.mediaresolver.MediaRepo
+import com.example.music.data.repository.SongSortList
 import javax.inject.Inject
 
 private const val TAG = "Get Library Songs"
@@ -13,47 +14,59 @@ private const val TAG = "Get Library Songs"
 class GetLibrarySongs @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
-    suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<SongInfo> {
-        val songsList: List<Audio>
-        Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
+    suspend operator fun invoke(
+        sortOption: String,
+        isAscending: Boolean
+    ): List<SongInfo> {
+        var songsList: List<Audio>
+        Log.i(TAG, "START --- sortOption: $sortOption - isAscending: $isAscending")
 
         when (sortOption) {
-            "TITLE" -> {
+            SongSortList[0] -> { // "Title"
                 songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.TITLE,
                     ascending = isAscending,
-                )
+                ).sortedBy { it.title.lowercase() }
+                if (!isAscending) songsList = songsList.reversed()
             }
 
-            "ARTIST" -> {
+            SongSortList[1] -> { // "Artist"
                 songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.ARTIST,
                     ascending = isAscending,
+                ).sortedWith(
+                    compareBy<Audio> { it.artist.lowercase() }
+                        .thenBy { it.title.lowercase() }
                 )
+                if (!isAscending) songsList = songsList.reversed()
             }
 
-            "ALBUM" -> {
+            SongSortList[2] -> { // "Album"
                 songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.ALBUM,
                     ascending = isAscending,
+                ).sortedWith(
+                    compareBy<Audio> { it.album.lowercase() }
+                        .thenBy { it.title.lowercase() }
                 )
+                if (!isAscending) songsList = songsList.reversed()
             }
 
-            "DATE_ADDED" -> {
+            SongSortList[3] -> { // "Date Added"
                 songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.DATE_ADDED,
                     ascending = isAscending,
                 )
             }
 
-            "DATE_LAST_PLAYED" -> {
+            SongSortList[4] -> { // "Date Modified"
                 songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.DATE_MODIFIED,
                     ascending = isAscending,
                 )
             }
 
-            "DURATION" -> {
+            SongSortList[5] -> { // "Duration"
                 songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.DURATION,
                     ascending = isAscending,

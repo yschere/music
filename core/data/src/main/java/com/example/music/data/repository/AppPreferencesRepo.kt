@@ -28,19 +28,8 @@ val AlbumSortList = listOf("Title", "Artist", "Song Count", "Year")
 val ArtistSortList = listOf("Name", "Album Count", "Song Count")
 val ComposerSortList = listOf("Name", "Song Count")
 val GenreSortList = listOf("Name", "Song Count")
-
-enum class PlaylistSortOrder {
-    NAME, SONG_COUNT, DATE_CREATED, DATE_LAST_ACCESSED
-}
 val PlaylistSortList = listOf("Name", "Song Count", "Date Created", "Date Last Accessed")
-
-enum class SongSortOrder {
-    TITLE, ARTIST, ALBUM, DATE_ADDED, DATE_MODIFIED, DURATION
-}
 val SongSortList = listOf("Title", "Artist", "Album", "Date Added", "Date Modified", "Duration")
-
-val playlistSortOrderList = PlaylistSortOrder.entries.map { it.name }
-val songSortOrderList = SongSortOrder.entries.map { it.name }
 
 data class AppPreferences(
     val repeatType: RepeatType, // enum setting for repeating queue'd song. if app queue ends after last song, if app queue continues after last song, if app song playing in queue is the new next song
@@ -50,8 +39,8 @@ data class AppPreferences(
     val artistSortColumn: String, // string for the artist attributes to sort list on
     val composerSortColumn: String, // string for the composer attributes to sort list on
     val genreSortColumn: String, // string for the genre attributes to sort list on
-    val playlistSortOrder: PlaylistSortOrder, // enum setting for the playlist attributes to sort list on
-    val songSortOrder: SongSortOrder, // enum setting for the song attributes to sort list on
+    val playlistSortColumn: String, // string for the playlist attributes to sort list on
+    val songSortColumn: String, // string for the song attributes to sort list on
 
     val isAlbumAsc: Boolean, // if album list is in ascending or descending order
     val isArtistAsc: Boolean, // if artist list is in ascending or descending order
@@ -72,8 +61,8 @@ class AppPreferencesRepo @Inject constructor(
         val ARTIST_SORT_COLUMN = stringPreferencesKey("artist_sort_column")
         val COMPOSER_SORT_COLUMN = stringPreferencesKey("composer_sort_column")
         val GENRE_SORT_COLUMN = stringPreferencesKey("genre_sort_column")
-        val PLAYLIST_SORT_ORDER = stringPreferencesKey("playlist_sort_order")
-        val SONG_SORT_ORDER = stringPreferencesKey("song_sort_order")
+        val PLAYLIST_SORT_COLUMN = stringPreferencesKey("playlist_sort_column")
+        val SONG_SORT_COLUMN = stringPreferencesKey("song_sort_column")
 
         val IS_ALBUM_ASC = booleanPreferencesKey("is_album_asc")
         val IS_ARTIST_ASC = booleanPreferencesKey("is_artist_asc")
@@ -99,8 +88,8 @@ class AppPreferencesRepo @Inject constructor(
             val artistSortColumn = preferences[PreferenceKeys.ARTIST_SORT_COLUMN] ?: ArtistSortList[0]
             val composerSortColumn = preferences[PreferenceKeys.COMPOSER_SORT_COLUMN] ?: ComposerSortList[0]
             val genreSortColumn = preferences[PreferenceKeys.GENRE_SORT_COLUMN] ?: GenreSortList[0]
-            val playlistSortOrder = PlaylistSortOrder.valueOf(preferences[PreferenceKeys.PLAYLIST_SORT_ORDER] ?: PlaylistSortOrder.NAME.name)
-            val songSortOrder = SongSortOrder.valueOf(preferences[PreferenceKeys.SONG_SORT_ORDER] ?: SongSortOrder.TITLE.name)
+            val playlistSortColumn = preferences[PreferenceKeys.PLAYLIST_SORT_COLUMN] ?: PlaylistSortList[0]
+            val songSortColumn = preferences[PreferenceKeys.SONG_SORT_COLUMN] ?: SongSortList[0]
 
             val isAlbumAsc = preferences[PreferenceKeys.IS_ALBUM_ASC] ?: true
             val isArtistAsc = preferences[PreferenceKeys.IS_ARTIST_ASC] ?: true
@@ -110,7 +99,7 @@ class AppPreferencesRepo @Inject constructor(
             val isSongAsc = preferences[PreferenceKeys.IS_SONG_ASC] ?: true
 
             AppPreferences(repeatType, shuffleType, albumSortColumn, artistSortColumn,
-                composerSortColumn, genreSortColumn, playlistSortOrder, songSortOrder,
+                composerSortColumn, genreSortColumn, playlistSortColumn, songSortColumn,
                 isAlbumAsc, isArtistAsc, isComposerAsc, isGenreAsc, isPlaylistAsc, isSongAsc)
         }
 
@@ -183,10 +172,10 @@ class AppPreferencesRepo @Inject constructor(
             preferences[PreferenceKeys.IS_PLAYLIST_ASC] = isAsc
         }
     }
-    suspend fun updatePlaylistSortOrder(sort: PlaylistSortOrder) {
-        Log.i(TAG, "Update Playlist Sort Order -> $sort")
+    suspend fun updatePlaylistSortColumn(sort: String) {
+        Log.i(TAG, "Update Playlist Sort Column -> $sort")
         dataStore.edit { preferences ->
-            preferences[PreferenceKeys.PLAYLIST_SORT_ORDER] = sort.name
+            preferences[PreferenceKeys.PLAYLIST_SORT_COLUMN] = sort
         }
     }
 
@@ -196,10 +185,10 @@ class AppPreferencesRepo @Inject constructor(
             preferences[PreferenceKeys.IS_SONG_ASC] = isAsc
         }
     }
-    suspend fun updateSongSortOrder(sort: SongSortOrder) {
-        Log.i(TAG, "Update Song Sort Order -> $sort")
+    suspend fun updateSongSortColumn(sort: String) {
+        Log.i(TAG, "Update Song Sort Column -> $sort")
         dataStore.edit { preferences ->
-            preferences[PreferenceKeys.SONG_SORT_ORDER] = sort.name
+            preferences[PreferenceKeys.SONG_SORT_COLUMN] = sort
         }
     }
 

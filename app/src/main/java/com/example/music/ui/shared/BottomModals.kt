@@ -58,8 +58,8 @@ import com.example.music.data.repository.AlbumSortList
 import com.example.music.data.repository.ArtistSortList
 import com.example.music.data.repository.ComposerSortList
 import com.example.music.data.repository.GenreSortList
-import com.example.music.data.repository.playlistSortOrderList
-import com.example.music.data.repository.songSortOrderList
+import com.example.music.data.repository.PlaylistSortList
+import com.example.music.data.repository.SongSortList
 import com.example.music.data.util.FLAG
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.CONTENT_PADDING
@@ -935,14 +935,14 @@ fun LibrarySortSelectionBottomModal(
                 }
                 LibraryCategory.Playlists -> {
                     RadioGroupSet(
-                        radioOptions = playlistSortOrderList,
+                        radioOptions = PlaylistSortList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
                 LibraryCategory.Songs -> {
                     RadioGroupSet(
-                        radioOptions = songSortOrderList,
+                        radioOptions = SongSortList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )

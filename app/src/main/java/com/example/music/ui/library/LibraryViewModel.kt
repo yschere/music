@@ -11,10 +11,10 @@ import androidx.media3.common.Player
 import com.example.music.data.repository.AlbumSortList
 import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.data.repository.ArtistSortList
-import com.example.music.data.repository.ComposerSortOrder
-import com.example.music.data.repository.GenreSortOrder
-import com.example.music.data.repository.PlaylistSortOrder
-import com.example.music.data.repository.SongSortOrder
+import com.example.music.data.repository.ComposerSortList
+import com.example.music.data.repository.GenreSortList
+import com.example.music.data.repository.PlaylistSortList
+import com.example.music.data.repository.SongSortList
 import com.example.music.data.util.combine
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
@@ -165,20 +165,20 @@ class LibraryViewModel @Inject constructor(
                         libraryArtists = getLibraryArtists(appPreferences.artistSortColumn, appPreferences.isArtistAsc)
                     }
                     LibraryCategory.Composers -> {
-                        selectedSortPair = Pair(appPreferences.composerSortOrder.name, appPreferences.isComposerAsc)
+                        selectedSortPair = Pair(appPreferences.composerSortColumn, appPreferences.isComposerAsc)
                         libraryComposers = getLibraryComposers(selectedSortPair.first, selectedSortPair.second).first()
                     }
                     LibraryCategory.Genres -> {
-                        selectedSortPair = Pair(appPreferences.genreSortOrder.name, appPreferences.isGenreAsc)
-                        libraryGenres = getLibraryGenres(appPreferences.genreSortOrder.name, appPreferences.isGenreAsc)
+                        selectedSortPair = Pair(appPreferences.genreSortColumn, appPreferences.isGenreAsc)
+                        libraryGenres = getLibraryGenres(appPreferences.genreSortColumn, appPreferences.isGenreAsc)
                     }
                     LibraryCategory.Playlists -> {
-                        selectedSortPair = Pair(appPreferences.playlistSortOrder.name, appPreferences.isPlaylistAsc)
+                        selectedSortPair = Pair(appPreferences.playlistSortColumn, appPreferences.isPlaylistAsc)
                         libraryPlaylists = getLibraryPlaylists(selectedSortPair.first, selectedSortPair.second).first()
                     }
                     LibraryCategory.Songs -> {
-                        selectedSortPair = Pair(appPreferences.songSortOrder.name, appPreferences.isSongAsc)
-                        librarySongs = getLibrarySongs(appPreferences.songSortOrder.name, appPreferences.isSongAsc)
+                        selectedSortPair = Pair(appPreferences.songSortColumn, appPreferences.isSongAsc)
+                        librarySongs = getLibrarySongs(appPreferences.songSortColumn, appPreferences.isSongAsc)
                     }
                 }
 
@@ -368,9 +368,9 @@ class LibraryViewModel @Inject constructor(
                     }
                 }
                 LibraryCategory.Composers -> {
-                    if (selectedSortPair.first != newValue.first && newValue.first.isNotBlank()) {
-                        Log.i(TAG, "Updating Composers Sort Order -> ${newValue.first}")
-                        appPreferences.updateComposerSortOrder(ComposerSortOrder.valueOf(newValue.first))
+                    if (selectedSortPair.first != newValue.first && ComposerSortList.contains(newValue.first)) {
+                        Log.i(TAG, "Updating Composers Sort Column -> ${newValue.first}")
+                        appPreferences.updateComposerSortColumn(newValue.first)
                     }
                     if (selectedSortPair.second != newValue.second) {
                         Log.i(TAG, "Updating Composers Asc/Desc -> ${newValue.second}")
@@ -378,9 +378,9 @@ class LibraryViewModel @Inject constructor(
                     }
                 }
                 LibraryCategory.Genres -> {
-                    if (selectedSortPair.first != newValue.first && newValue.first.isNotBlank()) {
-                        Log.i(TAG, "Updating Genres Sort Order -> ${newValue.first}")
-                        appPreferences.updateGenreSortOrder(GenreSortOrder.valueOf(newValue.first))
+                    if (selectedSortPair.first != newValue.first && GenreSortList.contains(newValue.first)) {
+                        Log.i(TAG, "Updating Genres Sort Column -> ${newValue.first}")
+                        appPreferences.updateGenreSortColumn(newValue.first)
                     }
                     if (selectedSortPair.second != newValue.second) {
                         Log.i(TAG, "Updating Genres Asc/Desc -> ${newValue.second}")
@@ -388,9 +388,9 @@ class LibraryViewModel @Inject constructor(
                     }
                 }
                 LibraryCategory.Playlists -> {
-                    if (selectedSortPair.first != newValue.first && newValue.first.isNotBlank()) {
-                        Log.i(TAG, "Updating Playlists Sort Order -> ${newValue.first}")
-                        appPreferences.updatePlaylistSortOrder(PlaylistSortOrder.valueOf(newValue.first))
+                    if (selectedSortPair.first != newValue.first && PlaylistSortList.contains(newValue.first)) {
+                        Log.i(TAG, "Updating Playlists Sort Column -> ${newValue.first}")
+                        appPreferences.updatePlaylistSortColumn(newValue.first)
                     }
                     if (selectedSortPair.second != newValue.second) {
                         Log.i(TAG, "Updating Playlists Asc/Desc -> ${newValue.second}")
@@ -398,9 +398,9 @@ class LibraryViewModel @Inject constructor(
                     }
                 }
                 LibraryCategory.Songs -> {
-                    if (selectedSortPair.first != newValue.first && newValue.first.isNotBlank()) {
-                        Log.i(TAG, "Updating Songs Sort Order -> ${newValue.first}")
-                        appPreferences.updateSongSortOrder(SongSortOrder.valueOf(newValue.first))
+                    if (selectedSortPair.first != newValue.first && SongSortList.contains(newValue.first)) {
+                        Log.i(TAG, "Updating Songs Sort Column -> ${newValue.first}")
+                        appPreferences.updateSongSortColumn(newValue.first)
                     }
                     if (selectedSortPair.second != newValue.second) {
                         Log.i(TAG, "Updating Songs Asc/Desc -> ${newValue.second}")
