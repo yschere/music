@@ -56,8 +56,8 @@ import androidx.compose.ui.unit.dp
 import com.example.music.R
 import com.example.music.data.repository.AlbumSortList
 import com.example.music.data.repository.ArtistSortList
-import com.example.music.data.repository.composerSortOrderList
-import com.example.music.data.repository.genreSortOrderList
+import com.example.music.data.repository.ComposerSortList
+import com.example.music.data.repository.GenreSortList
 import com.example.music.data.repository.playlistSortOrderList
 import com.example.music.data.repository.songSortOrderList
 import com.example.music.data.util.FLAG
@@ -921,14 +921,14 @@ fun LibrarySortSelectionBottomModal(
                 }
                 LibraryCategory.Composers -> {
                     RadioGroupSet(
-                        radioOptions = composerSortOrderList,
+                        radioOptions = ComposerSortList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
                 LibraryCategory.Genres -> {
                     RadioGroupSet(
-                        radioOptions = genreSortOrderList,
+                        radioOptions = GenreSortList,
                         initialValue = currSortPair.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )

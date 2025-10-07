@@ -206,8 +206,6 @@ suspend fun ContentResolver.getAudios(
 ): List<Audio> {
     val id = MediaStore.Audio.Media._ID
     val title = MediaStore.Audio.Media.TITLE
-    //val artist = MediaStore.Audio.Media.ARTIST
-    //val album = MediaStore.Audio.Media.ALBUM
 
     return queryExt(
         uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -228,9 +226,7 @@ suspend fun ContentResolver.getAudios(
                 else -> "on '$sQuery'"
             }
             if (FLAG) Log.i(TAG, "Get Audios Search $s:\n" +
-                "Audio(s) count returned: ${c.count}\n" +
-                "Audio column names: ${c.columnNames}"
-            )
+                "Audio(s) count returned: ${c.count}")
             if (c.count == 0) return emptyList()
 
             val result = List(c.count) {
@@ -265,9 +261,7 @@ private suspend inline fun ContentResolver.getBucketAudios(
         limit = limit,
         transform = {  c ->
             if (FLAG) Log.i(TAG, "Get Bucket Audios Search on selection $selection:\n" +
-                "Audio(s) count returned: ${c.count}\n" +
-                "Audio column names: ${c.columnNames}"
-            )
+                "Audio(s) count returned: ${c.count}")
             if (c.count == 0) return emptyList()
 
             val result = List(c.count) {
@@ -295,20 +289,19 @@ suspend fun ContentResolver.findAudio(id: Long): Audio =
             c.moveToFirst()
             val result = c.toAudio()
             c.close()
-            if (FLAG) Log.i(TAG, "Find Audio Search via audioId $id - AUDIO DATA: \n" +
-                "ID: ${result.id} \n" +
-                "Title: ${result.title} \n" +
-                "Artist: ${result.artist} \n" +
-                "Album: ${result.album} \n" +
-                "Genre: ${result.genre} \n" +
-                "Date Added: ${result.dateAdded} \n" +
-                "Date Modified: ${result.dateModified} \n" +
-                "CD TrackNumber: ${result.cdTrackNumber} \n" +
-                "Disc Number: ${result.discNumber} \n" +
-                "File Path: ${result.path} \n" +
-                "File Size: ${result.size} \n" +
-                "Year: ${result.year} \n"
-            )
+            if (FLAG) Log.i(TAG, "Find Audio Search via audioId $id - AUDIO DATA:\n" +
+                "ID: ${result.id}\n" +
+                "Title: ${result.title}\n" +
+                "Artist: ${result.artist}\n" +
+                "Album: ${result.album}\n" +
+                "Genre: ${result.genre}\n" +
+                "Date Added: ${result.dateAdded}\n" +
+                "Date Modified: ${result.dateModified}\n" +
+                "CD TrackNumber: ${result.cdTrackNumber}\n" +
+                "Disc Number: ${result.discNumber}\n" +
+                "File Path: ${result.path}\n" +
+                "File Size: ${result.size}\n" +
+                "Year: ${result.year}")
             result
         },
     )
@@ -379,17 +372,6 @@ suspend fun ContentResolver.findAudio(uri: Uri): Audio =
         },
     )
 
-/**
- * External function for content resolver to retrieve audios
- */
-/*fun ContentResolver.audios(
-    sQuery: String? = null,
-    order: String = DEFAULT_AUDIO_ORDER,
-    ascending: Boolean = true,
-) = observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI).map {
-    getAudios(sQuery, order, ascending)
-}*/
-
 
 /***********************************************************************************************
  *
@@ -404,8 +386,8 @@ private val ARTIST_PROJECTION
     get() = arrayOf(
         MediaStore.Audio.Artists._ID,
         MediaStore.Audio.Artists.ARTIST,
-        MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
         MediaStore.Audio.Artists.NUMBER_OF_ALBUMS,
+        MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
     )
 
 /**
@@ -441,9 +423,7 @@ suspend fun ContentResolver.getArtists(
             else -> "on '$sQuery'"
         }
         if (FLAG) Log.i(TAG, "Get Artists Search $s:\n" +
-            "Artist(s) count returned: ${c.count}\n" +
-            "Artist column names: ${c.columnNames}"
-        )
+            "Artist(s) count returned: ${c.count}")
         if (c.count == 0) return emptyList()
 
         val result = List(c.count) {
@@ -567,29 +547,6 @@ suspend fun ContentResolver.findArtistByAlbumId(albumId: Long): Artist = queryEx
         result
     },
 )
-
-/**
- * External function for content resolver to retrieve artists
- */
-/*fun ContentResolver.artists(
-    sQuery: String? = null,
-    order: String = DEFAULT_ARTIST_ORDER,
-    ascending: Boolean = true,
-) = observe(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI).map {
-    getArtists(sQuery, order, ascending)
-}*/
-
-/**
- * External function for content resolver to retrieve artist audios
- */
-/*fun ContentResolver.artistAudios(
-    name: String,
-    sQuery: String? = null,
-    order: String = DEFAULT_AUDIO_ORDER,
-    ascending: Boolean = true,
-) = observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI).map {
-    getArtistAudios(name, sQuery, order, ascending)
-}*/
 
 
 /***********************************************************************************************
@@ -749,31 +706,6 @@ suspend fun ContentResolver.findAlbum(title: String): Album = queryExt(
     },
 )
 
-/**
- * External function for content resolver to retrieve albums
- */
-/*fun ContentResolver.albums(
-    sQuery: String? = null,
-    order: String = DEFAULT_ALBUM_ORDER,
-    ascending: Boolean = true,
-) = observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI).map {
-    Log.i(TAG, "Get Albums query")
-    getAlbums(sQuery, order, ascending)
-}*/
-
-/**
- * External function for content resolver to retrieve album audios
- */
-/*fun ContentResolver.albumAudios(
-    title: String,
-    sQuery: String? = null,
-    order: String = DEFAULT_AUDIO_ORDER,
-    ascending: Boolean = true,
-) = observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI).map {
-    Log.i(TAG, "Get Album Audios query")
-    getAlbumAudios(title, sQuery, order, ascending)
-}*/
-
 
 /***********************************************************************************************
  *
@@ -823,9 +755,7 @@ suspend fun ContentResolver.getGenres(
             else -> "on '$sQuery'"
         }
         if (FLAG) Log.i(TAG, "Get Genres Search $s:\n" +
-            "Genre(s) count returned: ${c.count}\n" +
-            "Genre column names: ${c.columnNames}"
-        )
+            "Genre(s) count returned: ${c.count}")
         if (c.count == 0) return emptyList()
 
         val result = List(c.count) {

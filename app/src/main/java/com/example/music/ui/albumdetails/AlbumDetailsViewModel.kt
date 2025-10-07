@@ -288,16 +288,14 @@ class AlbumDetailsViewModel @Inject constructor(
             is AlbumAction.SongMoreOptionsClicked -> onSongMoreOptionsClick(action.song)
             is AlbumAction.SongSortUpdate -> onSongSortUpdate(action.newSort)
 
-            is AlbumAction.PlaySong -> onPlaySong(action.song) // songMO-play
-            is AlbumAction.PlaySongNext -> onPlaySongNext(action.song) // songMO-playNext
-            //is AlbumAction.AddSongToPlaylist -> onAddToPlaylist(action.song) // songMO-addToPlaylist
-            is AlbumAction.QueueSong -> onQueueSong(action.song) // songMO-addToQueue
+            is AlbumAction.PlaySong -> onPlaySong(action.song)
+            is AlbumAction.PlaySongNext -> onPlaySongNext(action.song)
+            is AlbumAction.QueueSong -> onQueueSong(action.song)
 
-            is AlbumAction.PlaySongs -> onPlaySongs(action.songs) // albumMO-play
-            is AlbumAction.PlaySongsNext -> onPlaySongsNext(action.songs) // albumMO-playNext
-            is AlbumAction.ShuffleSongs -> onShuffleSongs(action.songs) // albumMO-shuffle
-            //is AlbumAction.AddAlbumToPlaylist -> onAddToPlaylist(action.songs) // albumMO-addToPlaylist
-            is AlbumAction.QueueSongs -> onQueueSongs(action.songs) // albumMO-addToQueue
+            is AlbumAction.PlaySongs -> onPlaySongs(action.songs)
+            is AlbumAction.PlaySongsNext -> onPlaySongsNext(action.songs)
+            is AlbumAction.ShuffleSongs -> onShuffleSongs(action.songs)
+            is AlbumAction.QueueSongs -> onQueueSongs(action.songs)
         }
     }
 
@@ -354,54 +352,3 @@ sealed interface AlbumAction {
     data class ShuffleSongs(val songs: List<SongInfo>) : AlbumAction
     data class QueueSongs(val songs: List<SongInfo>) : AlbumAction
 }
-
-/**
- * ---------ORIGINAL VERSION: ViewModel that handles the business logic and screen state of the Artist details screen.
- */
-/*
-sealed interface AlbumUiState {
-    data object Loading : AlbumUiState
-    data class Ready(
-        val album: AlbumInfo,
-        val songs: List<SongInfo>, //PersistentList<SongInfo> = persistentListOf(),
-    ) : AlbumUiState
-}
-
-/**
- * ViewModel that handles the business logic and screen state of the Album details screen.
- */
-@HiltViewModel(assistedFactory = AlbumDetailsViewModel.AlbumDetailsViewModelFactory::class)
-class AlbumDetailsViewModel @AssistedInject constructor(
-    private val songRepo: SongRepo,
-    private val songPlayer: SongPlayer,
-    private val albumRepo: AlbumRepo,
-    @Assisted val albumId: Long,
-    //albumId is an argument needed for the selected album details to view
-) : ViewModel() {
-
-    @AssistedFactory
-    interface AlbumDetailsViewModelFactory {
-        fun create(albumId: Long): AlbumDetailsViewModel
-    }
-
-    val state: StateFlow<AlbumUiState> =
-        combine( //want to use this to store the information needed to correctly determine the album and songs to view
-            albumRepo.getAlbumWithExtraInfo(albumId),
-            songRepo.getSongsAndAlbumByAlbumId(albumId)
-        ) { album, songsToAlbum ->
-            val songs = songsToAlbum.map { it.song.asExternalModel() }
-            AlbumUiState.Ready(
-                album = album.album.asExternalModel(),
-                songs = songs,//toPersistentList(),
-            )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = AlbumUiState.Loading
-        )
-
-    fun onQueueSong(playerSong: PlayerSong) {
-        songPlayer.addToQueue(playerSong)
-    }
-
-}*/
