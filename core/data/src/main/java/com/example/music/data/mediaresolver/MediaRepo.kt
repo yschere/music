@@ -293,7 +293,7 @@ class MediaRepo (
      */
     suspend fun getArtist(
         id: Long
-    ): Artist = resolver.findArtist(id)
+    ): Artist = resolver.getArtist(id)
 
     /**
      * Search for Artist based on id
@@ -304,7 +304,7 @@ class MediaRepo (
     ): Flow<Artist> = observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
         .map {
             Log.i(TAG, "Flow Get Artist by ID: $artistId")
-            resolver.findArtist(artistId)
+            resolver.getArtist(artistId)
         }
 
     /**
@@ -317,7 +317,7 @@ class MediaRepo (
         Log.i(TAG, "Get Artist by Album ID: $albumId")
         val album = resolver.findAlbum(albumId)
         Log.i(TAG, "Get Artist by AlbumArtistId: ${album.artistId}")
-        return resolver.findArtist(album.artistId)
+        return resolver.getArtist(album.artistId)
     }
 
     /**
@@ -331,7 +331,7 @@ class MediaRepo (
             Log.i(TAG, "Flow Get Artist by Album ID: $albumId")
             val album = resolver.findAlbum(albumId)
             Log.i(TAG, "Flow Get Artist by AlbumArtistId: ${album.artistId}")
-            resolver.findArtist(album.artistId)
+            resolver.getArtist(album.artistId)
         }
 
     /**

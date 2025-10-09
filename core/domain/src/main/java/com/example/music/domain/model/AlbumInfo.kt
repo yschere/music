@@ -71,7 +71,7 @@ fun AlbumMR.asExternalModel(): AlbumInfo {
         "Title: ${this.title}")
 
     return AlbumInfo(
-        id = this.albumId,
+        id = this.id,
         title = this.title,
         albumArtistId = this.artistId,
         albumArtistName = this.artist,

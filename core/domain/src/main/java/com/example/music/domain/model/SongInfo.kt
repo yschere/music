@@ -52,6 +52,7 @@ data class SongInfo(
     val title: String = "",
     val artistId: Long = 0, //val artistId: Long? = 0,
     val artistName: String = "",
+    val albumArtist: String? = null,
     val albumId: Long = 0, //val albumId: Long? = 0,
     val albumTitle: String = "",
 
@@ -137,6 +138,7 @@ fun Audio.asExternalModel(): SongInfo {
         "ID: ${this.id}\n" +
         "Title: ${this.title}\n" +
         "Artist: ${this.artist}\n" +
+        "Album Artist: ${this.albumArtist}\n" +
         "Album: ${this.album}\n\n" +
 
         "OG date added: ${this.dateAdded}\n" +
@@ -154,6 +156,7 @@ fun Audio.asExternalModel(): SongInfo {
         title = this.title,
         artistId = this.artistId,
         artistName = this.artist,
+        albumArtist = this.albumArtist,
         albumId = this.albumId,
         albumTitle = this.album,
 
