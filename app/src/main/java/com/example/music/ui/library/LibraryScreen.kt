@@ -471,7 +471,6 @@ private fun LibraryContent(
                         }
                     )
                 }
-
                 LibraryCategory.Composers -> {
                     composerItems(
                         composers = libraryComposers,
@@ -493,7 +492,6 @@ private fun LibraryContent(
                         },
                     )
                 }
-
                 LibraryCategory.Genres -> {
                     genreItems(
                         genres = libraryGenres,
@@ -515,7 +513,6 @@ private fun LibraryContent(
                         },
                     )
                 }
-
                 LibraryCategory.Songs -> {
                     songItems(
                         songs = librarySongs,
@@ -571,7 +568,6 @@ private fun LibraryContent(
                         },
                     )
                 }
-
                 LibraryCategory.Playlists -> {
                     playlistItems(
                         playlists = libraryPlaylists,
@@ -693,8 +689,8 @@ private fun LibraryContent(
                 },
                 goToAlbumArtist = {
                     coroutineScope.launch {
-                        Log.i(TAG, "Album More Options Modal -> Go To Artist clicked :: ${selectedAlbum.albumArtistId ?: "null id"}")
-                        navigateToArtistDetails(selectedAlbum.albumArtistId ?: 0L) // not a good check, would break if bottom modal didn't have null check too
+                        Log.i(TAG, "Album More Options Modal -> Go To Artist clicked :: ${selectedAlbum.artistId ?: "null id"}")
+                        navigateToArtistDetails(selectedAlbum.artistId ?: 0L) // not a good check, would break if bottom modal didn't have null check too
                         sheetState.hide()
                     }.invokeOnCompletion {
                         Log.i(TAG, "set AlbumMoreOptions to FALSE")

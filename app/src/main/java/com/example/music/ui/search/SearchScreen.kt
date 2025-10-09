@@ -276,8 +276,8 @@ fun SearchScreen(
                         },
                         goToAlbumArtist = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> Go To Album Artist clicked :: ${selectAlbum.albumArtistId}")
-                                navigateToArtistDetails(selectAlbum.albumArtistId ?: 0)
+                                Log.i(TAG, "Album More Options Modal -> Go To Album Artist clicked :: ${selectAlbum.artistId}")
+                                navigateToArtistDetails(selectAlbum.artistId ?: 0)
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set showAlbumMoreOptions to FALSE")

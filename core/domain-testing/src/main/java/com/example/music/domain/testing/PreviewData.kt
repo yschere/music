@@ -480,8 +480,8 @@ val PreviewAlbums = listOf(
     AlbumInfo(
         id = 1145,
         title = "88 / ...With Vampire - Single",
-        albumArtistId = 113,
-        albumArtistName = "LM.C",
+        artistId = 113,
+        artistName = "LM.C",
         year = 2007,
         artworkUri = Uri.parse(""),
         dateLastPlayed = OffsetDateTime.of(
@@ -495,8 +495,8 @@ val PreviewAlbums = listOf(
     AlbumInfo(
         id = 71,
         title = "Wonderful Wonderholic",
-        albumArtistId = 113,
-        albumArtistName = "LM.C",
+        artistId = 113,
+        artistName = "LM.C",
         year = 2009,
         dateLastPlayed = OffsetDateTime.of(
             2023, 12, 9, 4,
@@ -510,8 +510,8 @@ val PreviewAlbums = listOf(
     AlbumInfo(
         id = 281,
         title = "Slow Rain",
-        albumArtistId = 9381,
-        albumArtistName = "ACIDMAN",
+        artistId = 9381,
+        artistName = "ACIDMAN",
         year = 2008,
         dateLastPlayed = null,
         trackTotal = 3,
@@ -522,8 +522,8 @@ val PreviewAlbums = listOf(
     AlbumInfo(
         id = 123,
         title = "Riot!",
-        albumArtistId = 22,
-        albumArtistName = "Paramore",
+        artistId = 22,
+        artistName = "Paramore",
         year = 2007,
         dateLastPlayed = null,
         trackTotal = 11,
@@ -534,8 +534,8 @@ val PreviewAlbums = listOf(
     AlbumInfo(
         id = 124,
         title = "Brand New Eyes",
-        albumArtistId = 22,
-        albumArtistName = "Paramore",
+        artistId = 22,
+        artistName = "Paramore",
         year = 2009,
         dateLastPlayed = null,
         trackTotal = 10,
@@ -546,8 +546,8 @@ val PreviewAlbums = listOf(
     AlbumInfo(
         id = 125,
         title = "After Laughter",
-        albumArtistId = 22,
-        albumArtistName = "Paramore",
+        artistId = 22,
+        artistName = "Paramore",
         year = 2012,
         dateLastPlayed = null,
         trackTotal = 14,
@@ -558,8 +558,8 @@ val PreviewAlbums = listOf(
     AlbumInfo(
         id = 307,
         title = "Kingdom Hearts Piano Collections - Field & Battle",
-        albumArtistId = 6,
-        albumArtistName = "Yoko Shimomura",
+        artistId = 6,
+        artistName = "Yoko Shimomura",
         year = 2009,
         dateLastPlayed = OffsetDateTime.of(
             2025, 1, 3, 16,
@@ -573,8 +573,8 @@ val PreviewAlbums = listOf(
     AlbumInfo(
         id = 216,
         title = "Sleep Walking Orchestra - Single",
-        albumArtistId = 1,
-        albumArtistName = "BUMP OF CHICKEN",
+        artistId = 1,
+        artistName = "BUMP OF CHICKEN",
         dateLastPlayed = OffsetDateTime.of(
             2025, 2, 1, 21,
             18, 30, 283, ZoneOffset.of("-0800")
@@ -588,8 +588,8 @@ val PreviewAlbums = listOf(
     AlbumInfo(
         id = 964,
         title = "Scar - Single",
-        albumArtistId = 77,
-        albumArtistName = "Tatsuya Kitani 「キタニタツヤ」",
+        artistId = 77,
+        artistName = "Tatsuya Kitani 「キタニタツヤ」",
         year = 2024,
         dateLastPlayed = OffsetDateTime.of(
             2025, 1, 27, 11,
@@ -603,8 +603,8 @@ val PreviewAlbums = listOf(
     AlbumInfo(
         id = 8,
         title = "Kingdom Hearts Original Soundtrack Complete (Disc 1 ~ Kingdom Hearts)",
-        albumArtistId = 6,
-        albumArtistName = "Yoko Shimomura",
+        artistId = 6,
+        artistName = "Yoko Shimomura",
         year = 2002,
         dateLastPlayed = OffsetDateTime.of(
             2023, 8, 10, 21,
@@ -720,7 +720,7 @@ fun getPlaylistSongs(playlistId: Long): List<SongInfo> =
         .map { song -> getSongData(song.songId) }
 
 fun getSongsInAlbum(albumId: Long): List<SongInfo> = PreviewSongs.filter { entry -> entry.albumId == albumId }
-fun getAlbumsByArtist(albumArtistId: Long): List<AlbumInfo> = PreviewAlbums.filter{ entry -> entry.albumArtistId == albumArtistId }
+fun getAlbumsByArtist(artistId: Long): List<AlbumInfo> = PreviewAlbums.filter{ entry -> entry.artistId == artistId }
 fun getSongsByArtist(artistId: Long): List<SongInfo> = PreviewSongs.filter { entry -> entry.artistId == artistId }
 fun getSongsByComposer(composerId: Long): List<SongInfo> = PreviewSongs.filter { entry -> (entry.composerId != null) && (entry.composerId == composerId) }
 fun getSongsInGenre(genreId: Long): List<SongInfo> = PreviewSongs.filter{ entry -> entry.genreId == genreId }

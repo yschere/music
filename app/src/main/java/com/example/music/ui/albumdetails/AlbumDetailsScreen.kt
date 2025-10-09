@@ -406,8 +406,8 @@ fun AlbumDetailsScreen(
                         },
                         goToAlbumArtist = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> GoToArtist clicked :: ${album.albumArtistId ?: "null id"}")
-                                navigateToArtistDetails(album.albumArtistId ?: 0L) // not a good check for if this is null
+                                Log.i(TAG, "Album More Options Modal -> GoToArtist clicked :: ${album.artistId ?: "null id"}")
+                                navigateToArtistDetails(album.artistId ?: 0L) // not a good check for if this is null
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set AlbumMoreOptions to FALSE")
@@ -522,7 +522,7 @@ fun AlbumDetailsHeader(
                     style = MaterialTheme.typography.headlineMedium
                 )
                 Text(
-                    text = album.albumArtistName ?: "",
+                    text = album.artistName ?: "",
                     maxLines = 2,
                     overflow = TextOverflow.Visible,
                     style = MaterialTheme.typography.titleMedium
@@ -598,7 +598,7 @@ fun AlbumDetailsHeaderLargeCover(
                 modifier = Modifier.basicMarquee().padding(vertical = 8.dp)
             )
             Text(
-                text = album.albumArtistName ?: "",
+                text = album.artistName ?: "",
                 maxLines = 1,
                 overflow = TextOverflow.Visible,
                 style = MaterialTheme.typography.titleLarge
