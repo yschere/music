@@ -28,11 +28,11 @@ class GetAlbumDetails @Inject constructor(
             artistItem,
             albumItem.map {
                 Log.i(TAG, "Fetching songs from album $albumId")
-                mediaRepo.getAlbumAudios(it.albumId, order = MediaStore.Audio.Media.TRACK)
+                mediaRepo.getAlbumAudios(albumId = it.id, order = MediaStore.Audio.Media.TRACK)
             }
         ) { album, artist, songs ->
             Log.i(TAG, "ALBUM: $album ---\n" +
-                "Album ID: ${album.albumId}\n" +
+                "Album ID: ${album.id}\n" +
                 "Album Title: ${album.title}\n" +
                 "Artist: ${album.artist}"
             )
