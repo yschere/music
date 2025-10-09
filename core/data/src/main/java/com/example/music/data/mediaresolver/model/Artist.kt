@@ -4,7 +4,6 @@ import android.database.Cursor
 import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.runtime.Stable
-import androidx.core.database.getIntOrNull
 import com.example.music.data.util.FLAG
 
 private const val TAG = "MediaResolver Artist"

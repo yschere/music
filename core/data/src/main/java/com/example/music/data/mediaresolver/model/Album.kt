@@ -17,7 +17,6 @@ private const val TAG = "MediaResolver Album"
 data class Album(
     @JvmField val id: Long,
     @JvmField val title: String,
-    @JvmField val albumId: Long,
     @JvmField val artist: String,
     @JvmField val artistId: Long,
     @JvmField val lastYear: Int?,
@@ -28,19 +27,18 @@ data class Album(
  * Transform Cursor to type Album
  */
 fun Cursor.toAlbum(): Album {
-    if (FLAG) Log.i(TAG, "Cursor to Album: \n" +
+    if (FLAG) Log.i(TAG, "Cursor to Album:\n" +
         "ID: ${getLong(0)} \n" +
         "Title: ${getString(1) ?: MediaStore.UNKNOWN_STRING}\n" +
-        "Artist: ${getString(3) ?: MediaStore.UNKNOWN_STRING}"
-    )
+        "Artist: ${getString(2) ?: MediaStore.UNKNOWN_STRING}")
+
     return Album(
         id = getLong(0),
         title = getString(1) ?: MediaStore.UNKNOWN_STRING,
-        albumId = getLong(2),
-        artist = getString(3) ?: MediaStore.UNKNOWN_STRING,
-        artistId = getLong(4),
-        lastYear = getIntOrNull(5),
-        numTracks = getInt(6),
+        artist = getString(2) ?: MediaStore.UNKNOWN_STRING,
+        artistId = getLong(3),
+        lastYear = getIntOrNull(4),
+        numTracks = getInt(5),
     )
 }
 

@@ -30,7 +30,7 @@ data class Audio(
     @JvmField val artistId: Long,
     @JvmField val album: String,
     @JvmField val albumId: Long,
-    @JvmField val albumArtist: String,
+    @JvmField val albumArtist: String?,
     @JvmField val composer: String,
     @JvmField val genre: String,
     @JvmField val genreId: Long,
@@ -47,29 +47,22 @@ data class Audio(
  * Transform Cursor to type Audio
  */
 fun Cursor.toAudio(): Audio {
-    if (FLAG) Log.i(TAG, "Cursor to Audio: \n" +
-        "ID: ${getLong(0)} \n" +
+    Log.i(TAG, "Cursor to Audio:\n" +
+        "ID: ${getLong(0)}\n" +
         "Title: ${getString(1)}\n" +
-        "File Path: ${getString(3)}\n" +
-        "Date Added: ${getLong(4)}\n\n" +
-
-        "Size: ${getIntOrNull(6)}\n" +
-        "Composer: ${getStringOrNull(12)}\n" +
-        "Genre: ${getStringOrNull(13)}\n" +
-        "Year: ${getIntOrNull(15)}\n" +
-        "Duration: ${getIntOrNull(16)}\n" +
-        "Bitrate: ${getIntOrNull(17)}\n\n" +
-
-        "CD Track number: ${getStringOrNull(19)}\n" +
-        "Disc number: ${getStringOrNull(20)}\n"
+        "Artist: ${getString(7)}\n" +
+        "Artist ID: ${getLong(8)}\n" +
+        "Album: ${getString(9)}\n" +
+        "Album ID: ${getLong(10)}\n" +
+        "Album Artist: ${getStringOrNull(11)}\n"
     )
     return Audio(
         id = getLong(0),
         title = getString(1) ?: MediaStore.UNKNOWN_STRING,
         mimeType = getString(2) ?: MediaStore.UNKNOWN_STRING,
         path = getString(3) ?: MediaStore.UNKNOWN_STRING,
-        dateAdded = getLong(4) * 1000, //normally return in ms, so multiply by 1000 to turn into seconds
-        dateModified = getLong(5) * 1000, //normally return in ms, so multiply by 1000 to turn into seconds
+        dateAdded = getLong(4) * 1000,
+        dateModified = getLong(5) * 1000,
         size = getLong(6),
 
         artist = getString(7) ?: MediaStore.UNKNOWN_STRING,
