@@ -64,7 +64,7 @@ import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.MiniPlayer
-import com.example.music.ui.shared.DetailsSortSelectionBottomModal
+import com.example.music.ui.shared.DetailsSortOrderBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.shared.Loading
@@ -112,7 +112,7 @@ fun AlbumDetailsScreen(
                 album = uiState.album,
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
-                selectSortPair = uiState.selectSortPair,
+                selectSortOrder = uiState.selectSortOrder,
                 currentSong = viewModel.currentSong,
                 isActive = viewModel.isActive, // if playback is active
                 isPlaying = viewModel.isPlaying,
@@ -162,7 +162,7 @@ fun AlbumDetailsScreen(
     album: AlbumInfo,
     songs: List<SongInfo>,
     selectSong: SongInfo,
-    selectSortPair: Pair<String,Boolean>,
+    selectSortOrder: Pair<String,Boolean>,
     currentSong: SongInfo,
     isActive: Boolean,
     isPlaying: Boolean,
@@ -326,8 +326,9 @@ fun AlbumDetailsScreen(
 
             // AlbumDetails BottomSheet
             if (showSortSheet) {
-                Log.i(TAG, "AlbumDetails Content -> show Song Sort Modal is TRUE")
-                DetailsSortSelectionBottomModal(
+                Log.i(TAG, "AlbumDetails Content -> show Song Sort Modal is TRUE\n" +
+                    "sort order -> ${selectSortOrder.first} + ${selectSortOrder.second}")
+                DetailsSortOrderBottomModal(
                     onDismissRequest = { showSortSheet = false },
                     sheetState = sheetState,
                     onClose = {
@@ -341,8 +342,13 @@ fun AlbumDetailsScreen(
                     },
                     onApply = { sortColumn: String, isAscending: Boolean ->
                         coroutineScope.launch {
-                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n$sortColumn + $isAscending")
-                            onAlbumAction(AlbumAction.SongSortUpdate( Pair(sortColumn, isAscending) ))
+                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n" +
+                                "$sortColumn + $isAscending")
+                            onAlbumAction(
+                                AlbumAction.SongSortUpdate(
+                                    newSort = Pair(sortColumn, isAscending)
+                                )
+                            )
                             sheetState.hide()
                         }.invokeOnCompletion {
                             Log.i(TAG, "set showSortSheet to FALSE")
@@ -351,7 +357,7 @@ fun AlbumDetailsScreen(
                     },
                     content = "SongInfo",
                     context = "AlbumDetails",
-                    currSortPair = selectSortPair,
+                    currentSortOrder = selectSortOrder,
                 )
             }
 
@@ -636,7 +642,7 @@ fun AlbumDetailsScreenPreview() {
             songs = getSongsInAlbum(307),
 
             selectSong = getSongsInAlbum(PreviewAlbums[2].id)[0],
-            selectSortPair = Pair("Track Number",true),
+            selectSortOrder = Pair("Track Number",true),
             currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,

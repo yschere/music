@@ -29,13 +29,13 @@ class GetLibraryPlaylists @Inject constructor(
     private val mediaRepo: MediaRepo,
 ) {
     operator fun invoke(
-        sortOption: String,
+        sortColumn: String,
         isAscending: Boolean
     ): Flow<List<PlaylistInfo>> {
         val playlistsList: Flow<List<PlaylistWithExtraInfo>>
-        Log.i(TAG, "START --- sortOption: $sortOption - isAscending: $isAscending")
+        Log.i(TAG, "START --- sortColumn: $sortColumn - isAscending: $isAscending")
 
-        when (sortOption) {
+        when (sortColumn) {
             PlaylistSortList[0] -> { //"Name"
                 playlistsList =
                     if (isAscending) playlistRepo.sortPlaylistsByNameAsc()

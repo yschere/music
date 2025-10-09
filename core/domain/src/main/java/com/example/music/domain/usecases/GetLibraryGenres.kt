@@ -15,13 +15,13 @@ class GetLibraryGenres @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
     suspend operator fun invoke(
-        sortOption: String,
+        sortColumn: String,
         isAscending: Boolean
     ): List<GenreInfo> {
         var genresList: List<Genre>
-        Log.i(TAG, "START --- sortOption: $sortOption - isAscending: $isAscending")
+        Log.i(TAG, "START --- sortColumn: $sortColumn - isAscending: $isAscending")
 
-        when (sortOption) {
+        when (sortColumn) {
             GenreSortList[0] -> { // "Name"
                 genresList = mediaRepo.getAllGenres(
                     order = MediaStore.Audio.Genres.NAME,

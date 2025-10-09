@@ -15,13 +15,13 @@ class GetLibrarySongs @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
     suspend operator fun invoke(
-        sortOption: String,
+        sortColumn: String,
         isAscending: Boolean
     ): List<SongInfo> {
         var songsList: List<Audio>
-        Log.i(TAG, "START --- sortOption: $sortOption - isAscending: $isAscending")
+        Log.i(TAG, "START --- sortColumn: $sortColumn - isAscending: $isAscending")
 
-        when (sortOption) {
+        when (sortColumn) {
             SongSortList[0] -> { // "Title"
                 songsList = mediaRepo.getAllAudios(
                     order = MediaStore.Audio.Media.TITLE,

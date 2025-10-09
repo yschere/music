@@ -20,13 +20,13 @@ class GetLibraryComposers @Inject constructor(
     private val composerRepo: ComposerRepo
 ) {
     operator fun invoke(
-        sortOption: String,
+        sortColumn: String,
         isAscending: Boolean
     ): Flow<List<ComposerInfo>> {
         val composersList: Flow<List<ComposerWithExtraInfo>>
-        Log.i(TAG, "START --- sortOption: $sortOption - isAscending: $isAscending")
+        Log.i(TAG, "START --- sortColumn: $sortColumn - isAscending: $isAscending")
 
-        when (sortOption) {
+        when (sortColumn) {
             ComposerSortList[0] -> { //"Name"
                 composersList =
                     if (isAscending) composerRepo.sortComposersByNameAsc()

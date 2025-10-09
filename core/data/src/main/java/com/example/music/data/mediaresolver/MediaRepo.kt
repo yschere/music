@@ -340,7 +340,7 @@ class MediaRepo (
      */
     fun getAlbumsByArtistId(
         artistId: Long,
-        sortOrder: String = MediaStore.Audio.Albums.ALBUM,
+        order: String = MediaStore.Audio.Albums.ALBUM,
         ascending: Boolean = true,
     ): Flow<List<Album>> = observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
         .map {
@@ -349,7 +349,7 @@ class MediaRepo (
                 projection = arrayOf(MediaStore.Audio.Albums.ALBUM_ID),
                 selection = "${MediaStore.Audio.Albums.ARTIST_ID} == ?",
                 args = arrayOf("$artistId"),
-                order = sortOrder,
+                order = order,
                 ascending = ascending,
                 transform = { c ->
                     Array(c.count) {

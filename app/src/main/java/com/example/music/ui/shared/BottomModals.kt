@@ -244,8 +244,8 @@ internal fun SongInfo.setSubtitle(): String =
  */
 @Composable
 private fun AlbumInfo.setSubtitle(): String =
-    if (this.albumArtistId == null) quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
-    else this.albumArtistName + " • " + quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
+    if (this.artistId == null) quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
+    else this.artistName + " • " + quantityStringResource(R.plurals.songs, this.songCount, this.songCount)
 
 /**
  * More Options Modal Header - ArtistInfo Subtitle text
@@ -502,7 +502,7 @@ fun AlbumMoreOptionsBottomModal(
             )
 
             // if album has album artist and not already on ArtistDetails screen
-            if (album.albumArtistId != null && context != "ArtistDetails")
+            if (album.artistId != null && context != "ArtistDetails")
                 ActionOptionRow(Actions.GoToAlbumArtist, albumActions.goToAlbumArtist)
 
             // if in artistDetails, in library.Albums,
@@ -867,22 +867,22 @@ fun QueueMoreOptionsBottomModal(
 /**
  * Bottom Modal for Library Screen to use for sorting on the library list's Sort btn
  * @param libraryCategory the library tab context for the items to sort
- * @param currSortPair the currently selected sort order for modal to show
+ * @param currentSortOrder the currently selected sort order for modal to show
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibrarySortSelectionBottomModal(
+fun LibrarySortOrderBottomModal(
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     onClose: () -> Unit = {},
     onApply: (String, Boolean) -> Unit = {_, _ -> },
     libraryCategory: LibraryCategory,
-    currSortPair: Pair<String, Boolean>,
+    currentSortOrder: Pair<String, Boolean>,
 ){
     // temporary variables for bottom modal to store sort pair values
-    var sortColumn = currSortPair.first
-    var isAscending = currSortPair.second
+    var sortColumn = currentSortOrder.first
+    var isAscending = currentSortOrder.second
 
     BottomModal(
         onDismissRequest = onDismissRequest,
@@ -908,42 +908,42 @@ fun LibrarySortSelectionBottomModal(
                 LibraryCategory.Albums -> {
                     RadioGroupSet(
                         radioOptions = AlbumSortList,
-                        initialValue = currSortPair.first,
+                        initialValue = currentSortOrder.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
                 LibraryCategory.Artists -> {
                     RadioGroupSet(
                         radioOptions = ArtistSortList,
-                        initialValue = currSortPair.first,
+                        initialValue = currentSortOrder.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
                 LibraryCategory.Composers -> {
                     RadioGroupSet(
                         radioOptions = ComposerSortList,
-                        initialValue = currSortPair.first,
+                        initialValue = currentSortOrder.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
                 LibraryCategory.Genres -> {
                     RadioGroupSet(
                         radioOptions = GenreSortList,
-                        initialValue = currSortPair.first,
+                        initialValue = currentSortOrder.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
                 LibraryCategory.Playlists -> {
                     RadioGroupSet(
                         radioOptions = PlaylistSortList,
-                        initialValue = currSortPair.first,
+                        initialValue = currentSortOrder.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
                 LibraryCategory.Songs -> {
                     RadioGroupSet(
                         radioOptions = SongSortList,
-                        initialValue = currSortPair.first,
+                        initialValue = currentSortOrder.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
@@ -957,7 +957,7 @@ fun LibrarySortSelectionBottomModal(
 
             RadioGroupSet(
                 radioOptions = listOf("Ascending", "Descending"),
-                initialValue = if (currSortPair.second) "Ascending" else "Descending",
+                initialValue = if (currentSortOrder.second) "Ascending" else "Descending",
                 onOptionSelect = { newIsAsc -> isAscending = (newIsAsc == "Ascending") },
             )
 
@@ -986,11 +986,11 @@ fun LibrarySortSelectionBottomModal(
  * Bottom Modal for Details Screens to use for selected Details item's Sort btn
  * @param content the object type of the items to sort // item(s) to be sorted
  * @param context the screen context // screen containing item(s) to sort
- * @param currSortPair the currently selected sort order for modal to show
+ * @param currentSortOrder the currently selected sort order for modal to show
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailsSortSelectionBottomModal(
+fun DetailsSortOrderBottomModal(
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
@@ -998,11 +998,11 @@ fun DetailsSortSelectionBottomModal(
     onApply: (String, Boolean) -> Unit = {_, _ -> },
     content: String = "",
     context: String = "",
-    currSortPair: Pair<String, Boolean>,
+    currentSortOrder: Pair<String, Boolean>,
 ){
     // temporary variables for bottom modal to store sort pair values
-    var sortColumn = currSortPair.first
-    var isAscending = currSortPair.second
+    var sortColumn = currentSortOrder.first
+    var isAscending = currentSortOrder.second
 
     BottomModal(
         onDismissRequest = onDismissRequest,
@@ -1029,7 +1029,7 @@ fun DetailsSortSelectionBottomModal(
                 "AlbumInfo" -> { //sorting on artist details screen -> album carousel
                     RadioGroupSet(
                         radioOptions = ArtistAlbumSortOptions,
-                        initialValue = currSortPair.first,
+                        initialValue = currentSortOrder.first,
                         onOptionSelect = { newCol -> sortColumn = newCol},
                     )
                 }
@@ -1038,14 +1038,14 @@ fun DetailsSortSelectionBottomModal(
                         "AlbumDetails" -> {
                             RadioGroupSet(
                                 radioOptions = AlbumSongSortOptions,
-                                initialValue = currSortPair.first,
+                                initialValue = currentSortOrder.first,
                                 onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
                         "ArtistDetails" -> {
                             RadioGroupSet(
                                 radioOptions = ArtistSongSortOptions,
-                                initialValue = currSortPair.first,
+                                initialValue = currentSortOrder.first,
                                 onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
@@ -1059,21 +1059,21 @@ fun DetailsSortSelectionBottomModal(
                                     "Date Modified",
                                     "Duration",
                                 ),
-                                initialValue = currSortPair.first,
+                                initialValue = currentSortOrder.first,
                                 onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
                         "GenreDetails" -> {
                             RadioGroupSet(
                                 radioOptions = GenreSongSortOptions,
-                                initialValue = currSortPair.first,
+                                initialValue = currentSortOrder.first,
                                 onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
                         "PlaylistDetails" -> {
                             RadioGroupSet(
                                 radioOptions = PlaylistSongSortOptions,
-                                initialValue = currSortPair.first,
+                                initialValue = currentSortOrder.first,
                                 onOptionSelect = { newCol -> sortColumn = newCol},
                             )
                         }
@@ -1091,7 +1091,7 @@ fun DetailsSortSelectionBottomModal(
 
             RadioGroupSet(
                 radioOptions = listOf("Ascending", "Descending"),
-                initialValue = if (currSortPair.second) "Ascending" else "Descending",
+                initialValue = if (currentSortOrder.second) "Ascending" else "Descending",
                 onOptionSelect = { newIsAsc -> isAscending = (newIsAsc == "Ascending") },
             )
 
@@ -1293,7 +1293,7 @@ private fun BottomModal(
 @Composable
 fun PreviewSortModal() {
     MusicTheme {
-        LibrarySortSelectionBottomModal(
+        LibrarySortOrderBottomModal(
             onDismissRequest = {},
             sheetState = SheetState(
                 initialValue = SheetValue.Expanded,
@@ -1301,9 +1301,9 @@ fun PreviewSortModal() {
                 density = Density(1f,1f)
             ),
             libraryCategory = LibraryCategory.Genres,
-            currSortPair = Pair("Name",false),
+            currentSortOrder = Pair("Name",false),
         )
-        /*DetailsSortSelectionBottomModal(
+        /*DetailsSortOrderBottomModal(
             onDismissRequest = {},
             sheetState = SheetState(
                 initialValue = SheetValue.Expanded,

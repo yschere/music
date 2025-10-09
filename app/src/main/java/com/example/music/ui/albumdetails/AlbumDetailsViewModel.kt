@@ -37,7 +37,7 @@ data class AlbumUiState (
     val artist: ArtistInfo = ArtistInfo(),
     val songs: List<SongInfo> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
-    val selectSortPair: Pair<String, Boolean> = Pair("Track Number",true),
+    val selectSortOrder: Pair<String, Boolean> = Pair("Track Number",true),
 )
 
 val AlbumSongSortOptions = listOf(
@@ -70,7 +70,7 @@ class AlbumDetailsViewModel @Inject constructor(
     private val selectedSong = MutableStateFlow(SongInfo())
 
     // sets sort default
-    private var selectedSortPair = MutableStateFlow(Pair("Track Number", true))
+    private var selectedSortOrder = MutableStateFlow(Pair("Track Number", true))
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -112,7 +112,7 @@ class AlbumDetailsViewModel @Inject constructor(
                 refreshing,
                 getAlbumDetailsData,
                 selectedSong,
-                selectedSortPair,
+                selectedSortOrder,
             ) {
                 refreshing,
                 albumDetailsFilterResult,
@@ -164,7 +164,7 @@ class AlbumDetailsViewModel @Inject constructor(
                     artist = albumDetailsFilterResult.artist,
                     songs = sortedSongs,
                     selectSong = selectSong,
-                    selectSortPair = selectSort,
+                    selectSortOrder = selectSort,
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")
@@ -305,7 +305,7 @@ class AlbumDetailsViewModel @Inject constructor(
     }
     private fun onSongSortUpdate(newSort: Pair<String, Boolean>) {
         Log.i(TAG, "onSongSortUpdate -> ${newSort.first} + ${newSort.second}")
-        selectedSortPair.value = newSort
+        selectedSortOrder.value = newSort
     }
 
     private fun onPlaySong(song: SongInfo) {

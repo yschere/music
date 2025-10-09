@@ -38,9 +38,9 @@ data class ArtistUiState (
     val albums: List<AlbumInfo> = emptyList(),
     val songs: List<SongInfo> = emptyList(),
     val selectAlbum: AlbumInfo = AlbumInfo(),
-    val selectAlbumSortPair: Pair<String, Boolean> = Pair("Title", true),
+    val selectAlbumSortOrder: Pair<String, Boolean> = Pair("Title", true),
     val selectSong: SongInfo = SongInfo(),
-    val selectSongSortPair: Pair<String, Boolean> = Pair("Title", true),
+    val selectSongSortOrder: Pair<String, Boolean> = Pair("Title", true),
 )
 
 val ArtistAlbumSortOptions = listOf(
@@ -212,9 +212,9 @@ class ArtistDetailsViewModel @Inject constructor(
                     albums = sortedAlbums,
                     songs = sortedSongs,
                     selectAlbum = selectAlbum,
-                    selectAlbumSortPair = selectAlbumSort,
+                    selectAlbumSortOrder = selectAlbumSort,
                     selectSong = selectSong,
-                    selectSongSortPair = selectSongSort,
+                    selectSongSortOrder = selectSongSort,
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")

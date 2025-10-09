@@ -15,7 +15,6 @@ import com.example.music.data.util.combine
 import com.example.music.domain.usecases.GetPlaylistDetails
 import com.example.music.domain.usecases.GetSongData
 import com.example.music.service.SongController
-import com.example.music.ui.genredetails.GenreAction
 import com.example.music.ui.player.MiniPlayerState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -35,7 +34,7 @@ data class PlaylistUiState(
     val playlist: PlaylistInfo = PlaylistInfo(),
     val songs: List<SongInfo> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
-    val selectSortPair: Pair<String,Boolean> = Pair("Track Number", true)
+    val selectSortOrder: Pair<String,Boolean> = Pair("Track Number", true)
 )
 
 val PlaylistSongSortOptions = listOf(
@@ -74,7 +73,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     private val selectedSong = MutableStateFlow(SongInfo())
 
     // sets sort default
-    private var selectedSortPair = MutableStateFlow(Pair("Track Number", true))
+    private var selectedSortOrder = MutableStateFlow(Pair("Track Number", true))
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -116,7 +115,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                 refreshing,
                 getPlaylistDetailsData,
                 selectedSong,
-                selectedSortPair,
+                selectedSortOrder,
             ) {
                 refreshing,
                 playlistDetailsFilterResult,
@@ -191,7 +190,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                     playlist = playlistDetailsFilterResult.playlist,
                     songs = sortedSongs,
                     selectSong = selectSong,
-                    selectSortPair = selectSort,
+                    selectSortOrder = selectSort,
                 )
             }
             .catch { throwable ->
@@ -333,7 +332,7 @@ class PlaylistDetailsViewModel @Inject constructor(
     }
     private fun onSongSortUpdate(newSort: Pair<String, Boolean>) {
         Log.i(TAG, "onSongSortUpdate -> ${newSort.first} + ${newSort.second}")
-        selectedSortPair.value = newSort
+        selectedSortOrder.value = newSort
     }
 
     private fun onPlaySong(song: SongInfo) {

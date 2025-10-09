@@ -84,7 +84,7 @@ import com.example.music.ui.shared.MiniPlayer
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.GenreActions
 import com.example.music.ui.shared.GenreMoreOptionsBottomModal
-import com.example.music.ui.shared.LibrarySortSelectionBottomModal
+import com.example.music.ui.shared.LibrarySortOrderBottomModal
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.PlaylistActions
 import com.example.music.ui.shared.PlaylistMoreOptionsBottomModal
@@ -135,7 +135,7 @@ fun LibraryScreen(
             isLoading = uiState.isLoading,
             libraryCategories = uiState.libraryCategories,
             selectedLibraryCategory = uiState.selectedLibraryCategory,
-            selectedSortPair = uiState.selectedSortPair,
+            selectSortOrder = uiState.selectSortOrder,
             libraryAlbums = uiState.libraryAlbums,
             libraryArtists = uiState.libraryArtists,
             libraryComposers = uiState.libraryComposers,
@@ -185,7 +185,7 @@ private fun LibraryScreen(
     windowSizeClass: WindowSizeClass,
     isLoading: Boolean,
     selectedLibraryCategory: LibraryCategory,
-    selectedSortPair: Pair<String, Boolean>,
+    selectSortOrder: Pair<String, Boolean>,
     libraryCategories: List<LibraryCategory>,
     libraryAlbums: List<AlbumInfo>,
     libraryArtists: List<ArtistInfo>,
@@ -267,7 +267,7 @@ private fun LibraryScreen(
                 LibraryContent(
                     coroutineScope = coroutineScope,
                     selectedLibraryCategory = selectedLibraryCategory,
-                    selectedSortPair = selectedSortPair,
+                    selectSortOrder = selectSortOrder,
                     libraryCategories = libraryCategories,
                     libraryAlbums = libraryAlbums,
                     libraryArtists = libraryArtists,
@@ -339,7 +339,7 @@ private fun LibraryContent(
     coroutineScope: CoroutineScope,
 
     selectedLibraryCategory: LibraryCategory,
-    selectedSortPair: Pair<String, Boolean>,
+    selectSortOrder: Pair<String, Boolean>,
     libraryCategories: List<LibraryCategory>,
     libraryAlbums: List<AlbumInfo>,
     libraryArtists: List<ArtistInfo>,
@@ -415,10 +415,10 @@ private fun LibraryContent(
                 LibraryCategoryTabs(
                     libraryCategories = libraryCategories,
                     selectedLibraryCategory = selectedLibraryCategory,
-                    onLibraryCategorySelected = {
+                    onLibraryCategorySelected = { category ->
                         onLibraryAction(
                             LibraryAction.LibraryCategorySelected(
-                                it
+                                libraryCategory = category
                             )
                         )
                     },
@@ -610,8 +610,8 @@ private fun LibraryContent(
     // Library BottomSheet
     if (showSortSheet) {
         Log.i(TAG, "Library Content -> $selectedLibraryCategory Sort Modal is TRUE\n" +
-            "sort order -> ${selectedSortPair.first} + ${selectedSortPair.second}")
-        LibrarySortSelectionBottomModal(
+            "sort order -> ${selectSortOrder.first} + ${selectSortOrder.second}")
+        LibrarySortOrderBottomModal(
             onDismissRequest = { showSortSheet = false },
             sheetState = sheetState,
             onClose = {
@@ -626,7 +626,12 @@ private fun LibraryContent(
             onApply = { sortColumn: String, isAscending: Boolean ->
                 coroutineScope.launch {
                     Log.i(TAG, "Save Sort Preferences to Datastore:\n$sortColumn + $isAscending")
-                    onLibraryAction(LibraryAction.AppPreferencesUpdate(selectedLibraryCategory, Pair(sortColumn, isAscending)))
+                    onLibraryAction(
+                        LibraryAction.AppPreferencesUpdate(
+                            libraryCategory = selectedLibraryCategory,
+                            newSort = Pair(sortColumn, isAscending)
+                        )
+                    )
                     sheetState.hide()
                 }.invokeOnCompletion {
                     Log.i(TAG, "set showSortSheet to FALSE")
@@ -634,7 +639,7 @@ private fun LibraryContent(
                 }
             },
             libraryCategory = selectedLibraryCategory,
-            currSortPair = selectedSortPair,
+            currentSortOrder = selectSortOrder,
         )
     }
 
@@ -1109,7 +1114,7 @@ private fun PreviewLibrary() {
 
             libraryCategories = LibraryCategory.entries,
             selectedLibraryCategory = LibraryCategory.Albums,
-            selectedSortPair = Pair("Title",false),
+            selectSortOrder = Pair("Title",false),
             libraryAlbums = PreviewAlbums,
             libraryArtists = PreviewArtists,
             libraryComposers = PreviewComposers,
