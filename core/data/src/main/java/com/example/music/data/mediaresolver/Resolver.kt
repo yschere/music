@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import androidx.core.database.getStringOrNull
 import com.example.music.data.mediaresolver.model.Album
 import com.example.music.data.mediaresolver.model.Artist
 import com.example.music.data.mediaresolver.model.Audio
@@ -610,10 +611,13 @@ suspend fun ContentResolver.getAlbums(
 
         val result = List(c.count) {
             c.moveToPosition(it)
-            val album = c.toAlbum()
-            val firstSong = getAlbumAudiosById(id = album.id)[0]
-            val artist = findArtist(firstSong.albumArtist) ?: findArtist(firstSong.artist) ?: Artist(id = 0, name = "null", numAlbums = 0, numTracks = 0)
-            album.copy(artist = artist.name, artistId = artist.id)
+            var album = c.toAlbum()
+            val firstTrackAlbumArtist = findFirstTrackAlbumArtist(id = album.id)
+            if (album.artist != firstTrackAlbumArtist && album.artistId == 0L) {
+                val artist = findArtist(firstTrackAlbumArtist) ?: Artist(id = 0, name = "Unknown artist", numAlbums = 0, numTracks = 0)
+                album = album.copy(artist = artist.name, artistId = artist.id)
+            }
+            album
         }
         c.close()
         result
@@ -659,6 +663,31 @@ suspend fun ContentResolver.getAlbumAudiosById(
 }
 
 /**
+ * @return album artist from the first track of an album based on album's id
+ */
+suspend fun ContentResolver.findFirstTrackAlbumArtist(
+    id: Long
+): String? = queryExt(
+    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+    projection = arrayOf(
+        MediaStore.Audio.Media._ID,
+        MediaStore.Audio.Media.TRACK,
+        MediaStore.Audio.Media.ALBUM_ARTIST,
+    ),
+    selection = "${MediaStore.Audio.Media.ALBUM_ID} == ?",
+    args = arrayOf("$id"),
+    order = MediaStore.Audio.Media.TRACK,
+    limit = 1,
+    transform = { c ->
+        c.moveToFirst()
+        val result = c.getStringOrNull(2)
+        c.close()
+        if (FLAG) Log.i(TAG, "From Album $id -> Get First Track Album Artist: $result")
+        result
+    }
+)
+
+/**
  * Search for [Album] on [MediaStore.Audio.Media._ID], limit 1
  * @param id
  * @return [Cursor] transformed to [Album]
@@ -672,11 +701,12 @@ suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
     transform = { c ->
         c.moveToFirst()
         var result = c.toAlbum()
-        val firstSong = getAlbumAudiosById(id = result.id)[0]
-        val artist = findArtist(firstSong.albumArtist) ?: findArtist(firstSong.artist) ?: Artist(id = 0, name = "null", numAlbums = 0, numTracks = 0)
-        result = result.copy(artist = artist.name, artistId = artist.id)
-
         c.close()
+        val firstTrackAlbumArtist = findFirstTrackAlbumArtist(id = result.id)
+        if (result.artist != firstTrackAlbumArtist) {
+            val artist = findArtist(firstTrackAlbumArtist) ?: Artist(id = 0, name = "null", numAlbums = 0, numTracks = 0)
+            result = result.copy(artist = artist.name, artistId = artist.id)
+        }
         if (FLAG) Log.i(TAG, "Find Album Search via albumId $id - ALBUM DATA: \n" +
             "ID: ${result.id} \n" +
             "Title: ${result.title} \n" +

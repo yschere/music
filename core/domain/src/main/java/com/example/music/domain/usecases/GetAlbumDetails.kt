@@ -10,6 +10,7 @@ import com.example.music.domain.model.AlbumDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -21,14 +22,15 @@ class GetAlbumDetails @Inject constructor(
     operator fun invoke(albumId: Long): Flow<AlbumDetailsFilterResult> {
         Log.i(TAG, "START --- albumID: $albumId")
         val albumItem: Flow<Album> = mediaRepo.getAlbumFlow(albumId)
-        val artistItem: Flow<Artist> = mediaRepo.getArtistByAlbumIdFlow(albumId)
 
         return combine(
             albumItem,
-            artistItem,
+            albumItem.map { mediaRepo.getArtist(id = it.artistId) },
             albumItem.map {
-                Log.i(TAG, "Fetching songs from album $albumId")
-                mediaRepo.getAlbumAudios(albumId = it.id, order = MediaStore.Audio.Media.TRACK)
+                mediaRepo.getAlbumAudios(
+                    albumId = it.id,
+                    order = MediaStore.Audio.Media.TRACK
+                )
             }
         ) { album, artist, songs ->
             Log.i(TAG, "ALBUM: $album ---\n" +

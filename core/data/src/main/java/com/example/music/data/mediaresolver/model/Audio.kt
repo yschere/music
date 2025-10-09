@@ -47,15 +47,16 @@ data class Audio(
  * Transform Cursor to type Audio
  */
 fun Cursor.toAudio(): Audio {
-    Log.i(TAG, "Cursor to Audio:\n" +
+    if (FLAG) Log.i(TAG, "Cursor to Audio:\n" +
         "ID: ${getLong(0)}\n" +
         "Title: ${getString(1)}\n" +
         "Artist: ${getString(7)}\n" +
         "Artist ID: ${getLong(8)}\n" +
         "Album: ${getString(9)}\n" +
         "Album ID: ${getLong(10)}\n" +
-        "Album Artist: ${getStringOrNull(11)}\n"
+        "Album Artist: ${getStringOrNull(11)}"
     )
+
     return Audio(
         id = getLong(0),
         title = getString(1) ?: MediaStore.UNKNOWN_STRING,
@@ -69,7 +70,7 @@ fun Cursor.toAudio(): Audio {
         artistId = getLong(8),
         album = getString(9) ?: MediaStore.UNKNOWN_STRING,
         albumId = getLong(10),
-        albumArtist = getString(11) ?: MediaStore.UNKNOWN_STRING,
+        albumArtist = getStringOrNull(11),
         composer = getString(12) ?: MediaStore.UNKNOWN_STRING,
         genre = getString(13) ?: MediaStore.UNKNOWN_STRING,
         genreId = getLong(14),

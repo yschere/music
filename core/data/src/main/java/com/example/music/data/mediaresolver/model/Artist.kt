@@ -27,7 +27,8 @@ fun Cursor.toArtist(): Artist {
         "ID: ${getLong(0)}\n" +
         "Name: ${getString(1) ?: MediaStore.UNKNOWN_STRING}\n" +
         "Album count: ${getInt(2)}\n" +
-        "Song count: ${getInt(3)}")
+        "Song count: ${getInt(3)}"
+    )
 
     return Artist(
         id = getLong(0),

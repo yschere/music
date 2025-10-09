@@ -30,7 +30,8 @@ fun Cursor.toAlbum(): Album {
     if (FLAG) Log.i(TAG, "Cursor to Album:\n" +
         "ID: ${getLong(0)} \n" +
         "Title: ${getString(1) ?: MediaStore.UNKNOWN_STRING}\n" +
-        "Artist: ${getString(2) ?: MediaStore.UNKNOWN_STRING}")
+        "Artist: ${getString(2) ?: MediaStore.UNKNOWN_STRING}"
+    )
 
     return Album(
         id = getLong(0),

@@ -134,7 +134,7 @@ fun Audio.asExternalModel(): SongInfo {
     val dateAdded = OffsetDateTime.parse(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date(this.dateAdded)) + localOffset)
     val dateModified = OffsetDateTime.parse(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date(this.dateModified)) + localOffset)
 
-    Log.i(TAG, "Audio to SongInfo:" +
+    Log.i(TAG, "Audio to SongInfo:\n" +
         "ID: ${this.id}\n" +
         "Title: ${this.title}\n" +
         "Artist: ${this.artist}\n" +
