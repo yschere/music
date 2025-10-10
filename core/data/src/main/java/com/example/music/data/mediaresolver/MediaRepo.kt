@@ -325,11 +325,11 @@ class MediaRepo (
      * @return [Flow] of [Artist]
      */
     fun getArtistByAlbumIdFlow(
-        albumId: Long
+        id: Long
     ): Flow<Artist> = observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
         .map {
-            Log.i(TAG, "Flow Get Artist by Album ID: $albumId")
-            val album = resolver.findAlbum(albumId)
+            Log.i(TAG, "Flow Get Artist by Album ID: $id")
+            val album = resolver.findAlbum(id)
             Log.i(TAG, "Flow Get Artist by AlbumArtistId: ${album.artistId}")
             resolver.getArtist(album.artistId)
         }

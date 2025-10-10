@@ -613,9 +613,12 @@ suspend fun ContentResolver.getAlbums(
             c.moveToPosition(it)
             var album = c.toAlbum()
             val firstTrackAlbumArtist = findFirstTrackAlbumArtist(id = album.id)
-            if (album.artist != firstTrackAlbumArtist && album.artistId == 0L) {
-                val artist = findArtist(firstTrackAlbumArtist) ?: Artist(id = 0, name = "Unknown artist", numAlbums = 0, numTracks = 0)
-                album = album.copy(artist = artist.name, artistId = artist.id)
+            if (album.artist != firstTrackAlbumArtist) {
+                val artist = findArtist(firstTrackAlbumArtist)
+                album = album.copy(
+                    artist = artist?.name ?: album.artist ?: "null",
+                    artistId = artist?.id ?: album.artistId ?: 0L
+                )
             }
             album
         }
@@ -704,8 +707,11 @@ suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
         c.close()
         val firstTrackAlbumArtist = findFirstTrackAlbumArtist(id = result.id)
         if (result.artist != firstTrackAlbumArtist) {
-            val artist = findArtist(firstTrackAlbumArtist) ?: Artist(id = 0, name = "null", numAlbums = 0, numTracks = 0)
-            result = result.copy(artist = artist.name, artistId = artist.id)
+            val artist = findArtist(firstTrackAlbumArtist)
+            result = result.copy(
+                artist = artist?.name ?: result.artist ?: "null",
+                artistId = artist?.id ?: result.artistId ?: 0L
+            )
         }
         if (FLAG) Log.i(TAG, "Find Album Search via albumId $id - ALBUM DATA: \n" +
             "ID: ${result.id} \n" +
