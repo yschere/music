@@ -139,7 +139,7 @@ val Audio.toMediaItem
         title = title,
         artist = artist,
         album = album,
-        albumArtist = albumArtist,
+        albumArtist = albumArtist.toString(),
         year = year,
         duration = duration.toLong(),
         artworkUri = artworkUri,

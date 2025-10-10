@@ -34,6 +34,17 @@ data class PlaylistUiState(
     val playlist: PlaylistInfo = PlaylistInfo(),
     val songs: List<SongInfo> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
+    val selectSortOrder: Pair<String,Boolean> = Pair("Track Number", true)
+)
+
+val PlaylistSongSortOptions = listOf(
+    "Track Number",
+    "Title",
+    "Artist",
+    "Album",
+    "Date Added",
+    "Date Modified",
+    "Duration"
 )
 
 @HiltViewModel
@@ -60,6 +71,9 @@ class PlaylistDetailsViewModel @Inject constructor(
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())*/
 
     private val selectedSong = MutableStateFlow(SongInfo())
+
+    // sets sort default
+    private var selectedSortOrder = MutableStateFlow(Pair("Track Number", true))
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -101,23 +115,82 @@ class PlaylistDetailsViewModel @Inject constructor(
                 refreshing,
                 getPlaylistDetailsData,
                 selectedSong,
+                selectedSortOrder,
             ) {
                 refreshing,
                 playlistDetailsFilterResult,
-                selectSong ->
+                selectSong,
+                selectSort, ->
                 Log.i(TAG, "PlaylistUiState combine START\n" +
                     "playlistDetailsFilterResult ID: ${playlistDetailsFilterResult.playlist.id}\n" +
                     "playlistDetailsFilterResult songs: ${playlistDetailsFilterResult.songs.size}\n" +
+                    "playlistDetails sort order: ${selectSort.first} + ${selectSort.second}\n" +
                     "is SongController available: ${songController.isConnected()}\n" +
                     "isReady?: ${!refreshing}")
 
                 getSongControllerState()
+                val sortedSongs = when(selectSort.first) {
+                    "Track Number" -> {
+                        if (selectSort.second) playlistDetailsFilterResult.songs
+                        else playlistDetailsFilterResult.songs.reversed()
+                    }
+                    "Title" -> {
+                        if (selectSort.second) playlistDetailsFilterResult.songs
+                            .sortedBy { it.title.lowercase() }
+                        else playlistDetailsFilterResult.songs
+                            .sortedByDescending { it.title.lowercase() }
+                    }
+                    "Artist" -> {
+                        if (selectSort.second) playlistDetailsFilterResult.songs
+                            .sortedWith(
+                                compareBy<SongInfo> { it.artistName.lowercase() }
+                                    .thenBy { it.title.lowercase() }
+                            )
+                        else playlistDetailsFilterResult.songs
+                            .sortedWith(
+                                compareByDescending<SongInfo> { it.artistName.lowercase() }
+                                    .thenByDescending { it.title.lowercase() }
+                            )
+                    }
+                    "Album" -> {
+                        if (selectSort.second) playlistDetailsFilterResult.songs
+                            .sortedWith(
+                                compareBy<SongInfo> { it.albumTitle.lowercase() }
+                                    .thenBy { it.trackNumber }
+                            )
+                        else playlistDetailsFilterResult.songs
+                            .sortedWith(
+                                compareByDescending<SongInfo> { it.albumTitle.lowercase() }
+                                    .thenByDescending { it.trackNumber }
+                            )
+                    }
+                    "Date Added" -> {
+                        if (selectSort.second) playlistDetailsFilterResult.songs
+                            .sortedBy { it.dateAdded }
+                        else playlistDetailsFilterResult.songs
+                            .sortedByDescending { it.dateAdded }
+                    }
+                    "Date Modified" -> {
+                        if (selectSort.second) playlistDetailsFilterResult.songs
+                            .sortedBy { it.dateModified }
+                        else playlistDetailsFilterResult.songs
+                            .sortedByDescending { it.dateModified }
+                    }
+                    "Duration" -> {
+                        if (selectSort.second) playlistDetailsFilterResult.songs
+                            .sortedBy { it.duration }
+                        else playlistDetailsFilterResult.songs
+                            .sortedByDescending { it.duration }
+                    }
+                    else -> { playlistDetailsFilterResult.songs }
+                }
 
                 PlaylistUiState(
                     isReady = !refreshing,
                     playlist = playlistDetailsFilterResult.playlist,
-                    songs = playlistDetailsFilterResult.songs,
+                    songs = sortedSongs,
                     selectSong = selectSong,
+                    selectSortOrder = selectSort,
                 )
             }
             .catch { throwable ->
@@ -128,9 +201,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                         errorMessage = throwable.message,
                     )
                 )
-            }.collect{
-                _state.value = it
-            }
+            }.collect{ _state.value = it }
         }
 
         viewModelScope.launch {
@@ -242,6 +313,7 @@ class PlaylistDetailsViewModel @Inject constructor(
         Log.i(TAG, "onPlaylistAction - $action")
         when (action) {
             is PlaylistAction.SongMoreOptionsClicked -> onSongMoreOptionsClick(action.song)
+            is PlaylistAction.SongSortUpdate -> onSongSortUpdate(action.newSort)
 
             is PlaylistAction.PlaySong -> onPlaySong(action.song)
             is PlaylistAction.PlaySongNext -> onPlaySongNext(action.song)
@@ -257,6 +329,10 @@ class PlaylistDetailsViewModel @Inject constructor(
     private fun onSongMoreOptionsClick(song: SongInfo) {
         Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
         selectedSong.value = song
+    }
+    private fun onSongSortUpdate(newSort: Pair<String, Boolean>) {
+        Log.i(TAG, "onSongSortUpdate -> ${newSort.first} + ${newSort.second}")
+        selectedSortOrder.value = newSort
     }
 
     private fun onPlaySong(song: SongInfo) {
@@ -292,6 +368,7 @@ class PlaylistDetailsViewModel @Inject constructor(
 
 sealed interface PlaylistAction {
     data class SongMoreOptionsClicked(val song: SongInfo) : PlaylistAction
+    data class SongSortUpdate(val newSort: Pair<String, Boolean>) : PlaylistAction
 
     data class PlaySong(val song: SongInfo) : PlaylistAction
     data class PlaySongNext(val song: SongInfo) : PlaylistAction
@@ -302,58 +379,3 @@ sealed interface PlaylistAction {
     data class ShuffleSongs(val songs: List<SongInfo>) : PlaylistAction
     data class QueueSongs(val songs: List<SongInfo>) : PlaylistAction
 }
-
-
-/**
- * ---------ORIGINAL VERSION: ViewModel that handles the business logic and screen state of the Playlist details screen.
- * Note: currently using this screen and view model to compare SongInfo and PlayerSong and which one is better to use across screens that have SongListItem
- */
-/*
-sealed interface PlaylistUiState {
-    data object Loading : PlaylistUiState
-    data class Ready(
-        val playlist: PlaylistInfo,
-        val songs: List<SongInfo>,
-    ) : PlaylistUiState
-}
-
-@HiltViewModel(assistedFactory = PlaylistDetailsViewModel.PlaylistDetailsViewModelFactory::class)
-class PlaylistDetailsViewModel @AssistedInject constructor(
-    private val getSongDataUseCase: GetSongDataUseCase,
-    private val songPlayer: SongPlayer,
-    private val playlistRepo: PlaylistRepo,
-    @Assisted val playlistId: Long,
-    savedStateHandle: SavedStateHandle
-) : ViewModel() {
-
-    @AssistedFactory
-    interface PlaylistDetailsViewModelFactory {
-        fun create(playlistId: Long): PlaylistDetailsViewModel
-    }
-
-    val playlist = playlistRepo.getPlaylistWithExtraInfo(playlistId)
-
-    val state: StateFlow<PlaylistUiState> =
-        combine( //want to use this to store the information needed to correctly determine the album and songs to view
-            //playlistRepo.getPlaylistWithExtraInfo(playlistId), //original code: gets Flow<PlaylistWithExtraInfo>
-            //playlistRepo.sortSongsInPlaylistByTrackNumberAsc(playlistId) //original code: gets Flow<List<SongInfo>>
-            playlist,
-            playlistRepo.sortSongsInPlaylistByTrackNumberAsc(playlistId), //keeping this for now for comparison of using SongInfo against using PlayerSong to populate SongListItems
-        ) { playlist, songs, ->
-            PlaylistUiState.Ready(
-                //original code: playlist = playlist.asExternalModel(),
-                //original code: songs = songs.map{ it.asExternalModel() },
-                playlist = playlist.asExternalModel(),
-                songs = songs.map{ it.asExternalModel() },
-            )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = PlaylistUiState.Loading
-        )
-
-    fun onQueueSong(songInfo: SongInfo) {
-        songPlayer.addToQueue(songInfo)
-    }
-
-}*/

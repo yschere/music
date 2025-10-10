@@ -3,6 +3,7 @@ package com.example.music.domain.usecases
 import android.util.Log
 import com.example.music.data.database.model.ComposerWithExtraInfo
 import com.example.music.data.repository.ComposerRepo
+import com.example.music.data.repository.ComposerSortList
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
@@ -18,25 +19,27 @@ private const val TAG = "Get Library Composers"
 class GetLibraryComposers @Inject constructor(
     private val composerRepo: ComposerRepo
 ) {
-    operator fun invoke(sortOption: String, isAscending: Boolean): Flow<List<ComposerInfo>> {
+    operator fun invoke(
+        sortColumn: String,
+        isAscending: Boolean
+    ): Flow<List<ComposerInfo>> {
         val composersList: Flow<List<ComposerWithExtraInfo>>
-        Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
+        Log.i(TAG, "START --- sortColumn: $sortColumn - isAscending: $isAscending")
 
-        //sortOption values changed to support enum values AppPreferences dataStore
-        when (sortOption) {
-            "NAME" -> {
+        when (sortColumn) {
+            ComposerSortList[0] -> { //"Name"
                 composersList =
                     if (isAscending) composerRepo.sortComposersByNameAsc()
                     else composerRepo.sortComposersByNameDesc()
             }
 
-            "SONG_COUNT" -> { //"songCount" -> {
+            ComposerSortList[1] -> { // "Song Count"
                 composersList =
                     if (isAscending) composerRepo.sortComposersBySongCountAsc()
                     else composerRepo.sortComposersBySongCountDesc()
             }
 
-            else -> { //"NAME" //"name"
+            else -> {
                 composersList =
                     if (isAscending) composerRepo.sortComposersByNameAsc()
                     else composerRepo.sortComposersByNameDesc()

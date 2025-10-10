@@ -6,6 +6,7 @@ import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.model.Genre
 import com.example.music.data.mediaresolver.MediaRepo
+import com.example.music.data.repository.GenreSortList
 import javax.inject.Inject
 
 private const val TAG = "Get Library Genres"
@@ -13,19 +14,23 @@ private const val TAG = "Get Library Genres"
 class GetLibraryGenres @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
-    suspend operator fun invoke( sortOption: String, isAscending: Boolean ): List<GenreInfo> {
+    suspend operator fun invoke(
+        sortColumn: String,
+        isAscending: Boolean
+    ): List<GenreInfo> {
         var genresList: List<Genre>
-        Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
+        Log.i(TAG, "START --- sortColumn: $sortColumn - isAscending: $isAscending")
 
-        when (sortOption) {
-            "NAME" -> {
+        when (sortColumn) {
+            GenreSortList[0] -> { // "Name"
                 genresList = mediaRepo.getAllGenres(
                     order = MediaStore.Audio.Genres.NAME,
                     ascending = isAscending
-                )
+                ).sortedBy { it.name.lowercase() }
+                if (!isAscending) genresList = genresList.reversed()
             }
 
-            "SONG_COUNT" -> {
+            GenreSortList[1] -> { // "Song Count"
                 genresList = mediaRepo.getAllGenres(
                     order = MediaStore.Audio.Genres.NAME,
                     ascending = isAscending

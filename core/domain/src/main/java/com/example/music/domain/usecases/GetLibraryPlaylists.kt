@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.music.data.database.model.PlaylistWithExtraInfo
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.repository.PlaylistRepo
+import com.example.music.data.repository.PlaylistSortList
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
@@ -27,25 +28,33 @@ class GetLibraryPlaylists @Inject constructor(
     private val playlistRepo: PlaylistRepo,
     private val mediaRepo: MediaRepo,
 ) {
-    operator fun invoke(sortOption: String, isAscending: Boolean): Flow<List<PlaylistInfo>> {
+    operator fun invoke(
+        sortColumn: String,
+        isAscending: Boolean
+    ): Flow<List<PlaylistInfo>> {
         val playlistsList: Flow<List<PlaylistWithExtraInfo>>
-        Log.i(TAG, "START - sortOption: $sortOption - isAscending: $isAscending")
+        Log.i(TAG, "START --- sortColumn: $sortColumn - isAscending: $isAscending")
 
-        //sortOption values changed to support enum values AppPreferences dataStore
-        when (sortOption) {
-            "NAME" -> {
+        when (sortColumn) {
+            PlaylistSortList[0] -> { //"Name"
                 playlistsList =
                     if (isAscending) playlistRepo.sortPlaylistsByNameAsc()
                     else playlistRepo.sortPlaylistsByNameDesc()
             }
 
-            "DATE_CREATED" -> { //"dateCreated" -> {
+            PlaylistSortList[1] -> { //"Song Count"
+                playlistsList =
+                    if (isAscending) playlistRepo.sortPlaylistsBySongCountAsc()
+                    else playlistRepo.sortPlaylistsBySongCountDesc()
+            }
+
+            PlaylistSortList[2] -> { //"Date Created"
                 playlistsList =
                     if (isAscending) playlistRepo.sortPlaylistsByDateCreatedAsc()
                     else playlistRepo.sortPlaylistsByDateCreatedDesc()
             }
 
-            "DATE_LAST_ACCESSED" -> { //"dateLastAccessed" -> {
+            PlaylistSortList[3] -> { //"Date Last Accessed"
                 playlistsList =
                     if (isAscending) playlistRepo.sortPlaylistsByDateLastAccessedAsc()
                     else playlistRepo.sortPlaylistsByDateLastAccessedDesc()
@@ -57,13 +66,7 @@ class GetLibraryPlaylists @Inject constructor(
                     else playlistRepo.sortPlaylistsByDateLastPlayedDesc()
             }*/
 
-            "SONG_COUNT" -> { //"songCount" -> {
-                playlistsList =
-                    if (isAscending) playlistRepo.sortPlaylistsBySongCountAsc()
-                    else playlistRepo.sortPlaylistsBySongCountDesc()
-            }
-
-            else -> { //"NAME" //"name"
+            else -> {
                 playlistsList =
                     if (isAscending) playlistRepo.sortPlaylistsByNameAsc()
                     else playlistRepo.sortPlaylistsByNameDesc()

@@ -158,7 +158,7 @@ fun AlbumItemRow(
             Row(horizontalArrangement = Arrangement.Start) {
                 Text(
                     text =
-                        if (album.albumArtistName != null) album.albumArtistName + " • " +
+                        if (album.artistName != null) album.artistName + " • " +
                                 quantityStringResource(R.plurals.songs, album.songCount, album.songCount)
                         else quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
                     maxLines = 1,

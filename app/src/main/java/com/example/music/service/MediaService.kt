@@ -112,6 +112,7 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         // Moved mediaSession builder here so that it will be created as part of the creation of the service
         Log.i(TAG, "Building Media Session")
         mediaSession = MediaSession.Builder(this, mediaPlayer)
+            .setId("Musicality")
             .setSessionActivity(activity)
             .setCallback(this)
             .build()

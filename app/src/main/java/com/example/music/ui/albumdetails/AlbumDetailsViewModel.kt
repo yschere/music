@@ -37,6 +37,15 @@ data class AlbumUiState (
     val artist: ArtistInfo = ArtistInfo(),
     val songs: List<SongInfo> = emptyList(),
     val selectSong: SongInfo = SongInfo(),
+    val selectSortOrder: Pair<String, Boolean> = Pair("Track Number",true),
+)
+
+val AlbumSongSortOptions = listOf(
+    "Track Number",
+    "Title",
+    "Date Added",
+    "Date Modified",
+    "Duration"
 )
 
 /**
@@ -56,9 +65,12 @@ class AlbumDetailsViewModel @Inject constructor(
     private val albumId = _albumId.toLong()
 
     private val getAlbumDetailsData = getAlbumDetails(albumId)
-            .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     private val selectedSong = MutableStateFlow(SongInfo())
+
+    // sets sort default
+    private var selectedSortOrder = MutableStateFlow(Pair("Track Number", true))
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -100,24 +112,59 @@ class AlbumDetailsViewModel @Inject constructor(
                 refreshing,
                 getAlbumDetailsData,
                 selectedSong,
+                selectedSortOrder,
             ) {
                 refreshing,
                 albumDetailsFilterResult,
-                selectSong ->
+                selectSong,
+                selectSort, ->
                 Log.i(TAG, "AlbumUiState combine START\n" +
                     "albumDetailsFilterResult ID: ${albumDetailsFilterResult.album.id}\n" +
                     "albumDetailsFilterResult songs: ${albumDetailsFilterResult.songs.size}\n" +
+                    "albumDetails sort order: ${selectSort.first} + ${selectSort.second}\n" +
                     "is SongController available: ${songController.isConnected()}\n" +
                     "isReady?: ${!refreshing}")
 
                 getSongControllerState()
+                val sortedSongs = when(selectSort.first) {
+                    "Track Number" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs
+                        else albumDetailsFilterResult.songs.reversed()
+                    }
+                    "Title" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs
+                            .sortedBy { it.title.lowercase() }
+                        else albumDetailsFilterResult.songs
+                            .sortedByDescending { it.title.lowercase() }
+                    }
+                    "Date Added" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs
+                            .sortedBy { it.dateAdded }
+                        else albumDetailsFilterResult.songs
+                            .sortedByDescending { it.dateAdded }
+                    }
+                    "Date Modified" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs
+                            .sortedBy { it.dateModified }
+                        else albumDetailsFilterResult.songs
+                            .sortedByDescending { it.dateModified }
+                    }
+                    "Duration" -> {
+                        if (selectSort.second) albumDetailsFilterResult.songs
+                            .sortedBy { it.duration }
+                        else albumDetailsFilterResult.songs
+                            .sortedByDescending { it.duration }
+                    }
+                    else -> { albumDetailsFilterResult.songs }
+                }
 
                 AlbumUiState(
                     isReady = !refreshing,
                     album = albumDetailsFilterResult.album,
                     artist = albumDetailsFilterResult.artist,
-                    songs = albumDetailsFilterResult.songs,
+                    songs = sortedSongs,
                     selectSong = selectSong,
+                    selectSortOrder = selectSort,
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")
@@ -127,9 +174,7 @@ class AlbumDetailsViewModel @Inject constructor(
                         errorMessage = throwable.message
                     )
                 )
-            }.collect{
-                _state.value = it
-            }
+            }.collect{ _state.value = it }
         }
 
         viewModelScope.launch {
@@ -241,23 +286,26 @@ class AlbumDetailsViewModel @Inject constructor(
         Log.i(TAG, "onAlbumAction - $action")
         when (action) {
             is AlbumAction.SongMoreOptionsClicked -> onSongMoreOptionsClick(action.song)
+            is AlbumAction.SongSortUpdate -> onSongSortUpdate(action.newSort)
 
-            is AlbumAction.PlaySong -> onPlaySong(action.song) // songMO-play
-            is AlbumAction.PlaySongNext -> onPlaySongNext(action.song) // songMO-playNext
-            //is AlbumAction.AddSongToPlaylist -> onAddToPlaylist(action.song) // songMO-addToPlaylist
-            is AlbumAction.QueueSong -> onQueueSong(action.song) // songMO-addToQueue
+            is AlbumAction.PlaySong -> onPlaySong(action.song)
+            is AlbumAction.PlaySongNext -> onPlaySongNext(action.song)
+            is AlbumAction.QueueSong -> onQueueSong(action.song)
 
-            is AlbumAction.PlaySongs -> onPlaySongs(action.songs) // albumMO-play
-            is AlbumAction.PlaySongsNext -> onPlaySongsNext(action.songs) // albumMO-playNext
-            is AlbumAction.ShuffleSongs -> onShuffleSongs(action.songs) // albumMO-shuffle
-            //is AlbumAction.AddAlbumToPlaylist -> onAddToPlaylist(action.songs) // albumMO-addToPlaylist
-            is AlbumAction.QueueSongs -> onQueueSongs(action.songs) // albumMO-addToQueue
+            is AlbumAction.PlaySongs -> onPlaySongs(action.songs)
+            is AlbumAction.PlaySongsNext -> onPlaySongsNext(action.songs)
+            is AlbumAction.ShuffleSongs -> onShuffleSongs(action.songs)
+            is AlbumAction.QueueSongs -> onQueueSongs(action.songs)
         }
     }
 
     private fun onSongMoreOptionsClick(song: SongInfo) {
         Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
         selectedSong.value = song
+    }
+    private fun onSongSortUpdate(newSort: Pair<String, Boolean>) {
+        Log.i(TAG, "onSongSortUpdate -> ${newSort.first} + ${newSort.second}")
+        selectedSortOrder.value = newSort
     }
 
     private fun onPlaySong(song: SongInfo) {
@@ -293,6 +341,7 @@ class AlbumDetailsViewModel @Inject constructor(
 
 sealed interface AlbumAction {
     data class SongMoreOptionsClicked(val song: SongInfo) : AlbumAction
+    data class SongSortUpdate(val newSort: Pair<String, Boolean>) : AlbumAction
 
     data class PlaySong(val song: SongInfo) : AlbumAction
     data class PlaySongNext(val song: SongInfo) : AlbumAction
@@ -303,54 +352,3 @@ sealed interface AlbumAction {
     data class ShuffleSongs(val songs: List<SongInfo>) : AlbumAction
     data class QueueSongs(val songs: List<SongInfo>) : AlbumAction
 }
-
-/**
- * ---------ORIGINAL VERSION: ViewModel that handles the business logic and screen state of the Artist details screen.
- */
-/*
-sealed interface AlbumUiState {
-    data object Loading : AlbumUiState
-    data class Ready(
-        val album: AlbumInfo,
-        val songs: List<SongInfo>, //PersistentList<SongInfo> = persistentListOf(),
-    ) : AlbumUiState
-}
-
-/**
- * ViewModel that handles the business logic and screen state of the Album details screen.
- */
-@HiltViewModel(assistedFactory = AlbumDetailsViewModel.AlbumDetailsViewModelFactory::class)
-class AlbumDetailsViewModel @AssistedInject constructor(
-    private val songRepo: SongRepo,
-    private val songPlayer: SongPlayer,
-    private val albumRepo: AlbumRepo,
-    @Assisted val albumId: Long,
-    //albumId is an argument needed for the selected album details to view
-) : ViewModel() {
-
-    @AssistedFactory
-    interface AlbumDetailsViewModelFactory {
-        fun create(albumId: Long): AlbumDetailsViewModel
-    }
-
-    val state: StateFlow<AlbumUiState> =
-        combine( //want to use this to store the information needed to correctly determine the album and songs to view
-            albumRepo.getAlbumWithExtraInfo(albumId),
-            songRepo.getSongsAndAlbumByAlbumId(albumId)
-        ) { album, songsToAlbum ->
-            val songs = songsToAlbum.map { it.song.asExternalModel() }
-            AlbumUiState.Ready(
-                album = album.album.asExternalModel(),
-                songs = songs,//toPersistentList(),
-            )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = AlbumUiState.Loading
-        )
-
-    fun onQueueSong(playerSong: PlayerSong) {
-        songPlayer.addToQueue(playerSong)
-    }
-
-}*/

@@ -15,22 +15,25 @@ private const val TAG = "MediaResolver Artist"
 data class Artist(
     @JvmField val id: Long,
     @JvmField val name: String,
-    @JvmField val numTracks: Int,
     @JvmField val numAlbums: Int,
+    @JvmField val numTracks: Int,
 )
 
 /**
  * Transform Cursor to type Artist
  */
 fun Cursor.toArtist(): Artist {
-    if (FLAG) Log.i(TAG, "Cursor to Artist: \n" +
+    if (FLAG) Log.i(TAG, "Cursor to Artist:\n" +
         "ID: ${getLong(0)}\n" +
-        "Name: ${getString(1) ?: MediaStore.UNKNOWN_STRING}"
+        "Name: ${getString(1) ?: MediaStore.UNKNOWN_STRING}\n" +
+        "Album count: ${getInt(2)}\n" +
+        "Song count: ${getInt(3)}"
     )
+
     return Artist(
         id = getLong(0),
         name = getString(1) ?: MediaStore.UNKNOWN_STRING,
-        numTracks = getInt(2),
-        numAlbums = getInt(3),
+        numAlbums = getInt(2),
+        numTracks = getInt(3),
     )
 }

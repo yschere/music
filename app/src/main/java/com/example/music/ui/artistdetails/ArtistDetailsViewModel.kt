@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
+import com.example.music.data.util.combine
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
@@ -38,7 +38,23 @@ data class ArtistUiState (
     val albums: List<AlbumInfo> = emptyList(),
     val songs: List<SongInfo> = emptyList(),
     val selectAlbum: AlbumInfo = AlbumInfo(),
-    val selectSong: SongInfo = SongInfo()
+    val selectAlbumSortOrder: Pair<String, Boolean> = Pair("Title", true),
+    val selectSong: SongInfo = SongInfo(),
+    val selectSongSortOrder: Pair<String, Boolean> = Pair("Title", true),
+)
+
+val ArtistAlbumSortOptions = listOf(
+    "Title",
+    "Year",
+    "Song Count"
+)
+
+val ArtistSongSortOptions = listOf(
+    "Title",
+    "Album",
+    "Date Added",
+    "Date Modified",
+    "Duration"
 )
 
 /**
@@ -61,8 +77,12 @@ class ArtistDetailsViewModel @Inject constructor(
     private val getArtistDetailsData = getArtistDetails(artistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    private val selectedSong = MutableStateFlow(SongInfo())
     private val selectedAlbum = MutableStateFlow(AlbumInfo())
+    private val selectedSong = MutableStateFlow(SongInfo())
+
+    // sets sort defaults
+    private var selectedAlbumSortPair = MutableStateFlow(Pair("Title", true))
+    private var selectedSongSortPair = MutableStateFlow(Pair("Title", true))
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -103,29 +123,98 @@ class ArtistDetailsViewModel @Inject constructor(
             combine(
                 refreshing,
                 getArtistDetailsData,
-                selectedSong,
                 selectedAlbum,
+                selectedSong,
+                selectedAlbumSortPair,
+                selectedSongSortPair,
             ) {
                 refreshing,
                 artistDetailsFilterResult,
+                selectAlbum,
                 selectSong,
-                selectAlbum ->
+                selectAlbumSort,
+                selectSongSort, ->
                 Log.i(TAG, "ArtistUiState combine START\n" +
                     "artistDetailsFilterResult ID: ${artistDetailsFilterResult.artist.id}\n" +
                     "artistDetailsFilterResult albums: ${artistDetailsFilterResult.albums.size}\n" +
                     "artistDetailsFilterResult songs: ${artistDetailsFilterResult.songs.size}\n" +
+                    "artistDetails Album sort order: ${selectAlbumSort.first} + ${selectAlbumSort.second}\n" +
+                    "artistDetails Song sort order: ${selectSongSort.first} + ${selectSongSort.second}\n" +
                     "is SongController available: ${songController.isConnected()}\n" +
                     "isReady?: ${!refreshing}")
 
                 getSongControllerState()
 
+                val sortedAlbums = when (selectAlbumSort.first) {
+                    "Title" -> {
+                        if (selectAlbumSort.second) artistDetailsFilterResult.albums
+                            .sortedBy { it.title.lowercase() }
+                        else artistDetailsFilterResult.albums
+                            .sortedByDescending { it.title.lowercase() }
+                    }
+                    "Year" -> {
+                        if (selectAlbumSort.second) artistDetailsFilterResult.albums
+                            .sortedBy { it.year }
+                        else artistDetailsFilterResult.albums
+                            .sortedByDescending { it.year }
+                    }
+                    "Song Count" -> {
+                        if (selectAlbumSort.second) artistDetailsFilterResult.albums
+                            .sortedBy { it.songCount }
+                        else artistDetailsFilterResult.albums
+                            .sortedByDescending { it.songCount }
+                    }
+                    else -> { artistDetailsFilterResult.albums }
+                }
+                val sortedSongs = when (selectSongSort.first) {
+                    "Title" -> {
+                        if (selectSongSort.second) artistDetailsFilterResult.songs
+                            .sortedBy { it.title.lowercase() }
+                        else artistDetailsFilterResult.songs
+                            .sortedByDescending { it.title.lowercase() }
+                    }
+                    "Album" -> {
+                        if (selectSongSort.second) artistDetailsFilterResult.songs
+                            .sortedWith(
+                                compareBy<SongInfo> { it.albumTitle.lowercase() }
+                                    .thenBy { it.trackNumber }
+                            )
+                        else artistDetailsFilterResult.songs
+                            .sortedWith(
+                                compareByDescending<SongInfo> { it.albumTitle.lowercase() }
+                                    .thenByDescending { it.trackNumber }
+                            )
+                    }
+                    "Date Added" -> {
+                        if (selectSongSort.second) artistDetailsFilterResult.songs
+                            .sortedBy { it.dateAdded }
+                        else artistDetailsFilterResult.songs
+                            .sortedByDescending { it.dateAdded }
+                    }
+                    "Date Modified" -> {
+                        if (selectSongSort.second) artistDetailsFilterResult.songs
+                            .sortedBy { it.dateModified }
+                        else artistDetailsFilterResult.songs
+                            .sortedByDescending { it.dateModified }
+                    }
+                    "Duration" -> {
+                        if (selectSongSort.second) artistDetailsFilterResult.songs
+                            .sortedBy { it.duration }
+                        else artistDetailsFilterResult.songs
+                            .sortedByDescending { it.duration }
+                    }
+                    else -> { artistDetailsFilterResult.songs }
+                }
+
                 ArtistUiState(
                     isReady = !refreshing,
                     artist = artistDetailsFilterResult.artist,
-                    albums = artistDetailsFilterResult.albums,
-                    songs = artistDetailsFilterResult.songs,
-                    selectSong = selectSong,
+                    albums = sortedAlbums,
+                    songs = sortedSongs,
                     selectAlbum = selectAlbum,
+                    selectAlbumSortOrder = selectAlbumSort,
+                    selectSong = selectSong,
+                    selectSongSortOrder = selectSongSort,
                 )
             }.catch { throwable ->
                 Log.i(TAG, "Error Caught: ${throwable.message}")
@@ -135,9 +224,7 @@ class ArtistDetailsViewModel @Inject constructor(
                         errorMessage = throwable.message
                     )
                 )
-            }.collect{
-                _state.value = it
-            }
+            }.collect{ _state.value = it }
         }
 
         viewModelScope.launch {
@@ -249,7 +336,9 @@ class ArtistDetailsViewModel @Inject constructor(
         Log.i(TAG, "onArtistAction - $action")
         when (action) {
             is ArtistAction.AlbumMoreOptionsClicked -> onAlbumMoreOptionsClicked(action.album) // selects albumMO
+            is ArtistAction.AlbumSortUpdate -> onAlbumSortUpdate(action.newSort)
             is ArtistAction.SongMoreOptionsClicked -> onSongMoreOptionsClicked(action.song) // selects songMO
+            is ArtistAction.SongSortUpdate -> onSongSortUpdate(action.newSort)
 
             is ArtistAction.PlaySong -> onPlaySong(action.song) // songMO-play
             is ArtistAction.PlaySongNext -> onPlaySongNext(action.song) // songMo-playNext
@@ -274,9 +363,17 @@ class ArtistDetailsViewModel @Inject constructor(
         Log.i(TAG, "onAlbumMoreOptionsClicked - ${album.title}")
         selectedAlbum.value = album
     }
+    private fun onAlbumSortUpdate(newSort: Pair<String, Boolean>) {
+        Log.i(TAG, "onAlbumSortUpdate -> ${newSort.first} + ${newSort.second}")
+        selectedAlbumSortPair.value = newSort
+    }
     private fun onSongMoreOptionsClicked(song: SongInfo) {
         Log.i(TAG, "onSongMoreOptionsClick - ${song.title}")
         selectedSong.value = song
+    }
+    private fun onSongSortUpdate(newSort: Pair<String, Boolean>) {
+        Log.i(TAG, "onSongSortUpdate -> ${newSort.first} + ${newSort.second}")
+        selectedSongSortPair.value = newSort
     }
 
     private fun onPlaySong(song: SongInfo) {
@@ -310,7 +407,7 @@ class ArtistDetailsViewModel @Inject constructor(
     }
 
     private fun onPlayAlbum(album: AlbumInfo) {
-        Log.i(TAG, "onPlaySongs -> ${album.title}")
+        Log.i(TAG, "onPlayAlbum -> ${album.title}")
         viewModelScope.launch {
             val songs = getAlbumDetails(album.id).first().songs
             songController.play(songs)
@@ -341,7 +438,9 @@ class ArtistDetailsViewModel @Inject constructor(
 
 sealed interface ArtistAction {
     data class AlbumMoreOptionsClicked(val album: AlbumInfo) : ArtistAction
+    data class AlbumSortUpdate(val newSort: Pair<String, Boolean>) : ArtistAction
     data class SongMoreOptionsClicked(val song: SongInfo) : ArtistAction
+    data class SongSortUpdate(val newSort: Pair<String, Boolean>) : ArtistAction
 
     data class PlaySong(val song: SongInfo) : ArtistAction
     data class PlaySongNext(val song: SongInfo) : ArtistAction

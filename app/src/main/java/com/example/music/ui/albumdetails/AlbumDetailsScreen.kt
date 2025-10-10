@@ -64,7 +64,7 @@ import com.example.music.ui.player.MiniPlayerControlActions
 import com.example.music.ui.shared.AlbumActions
 import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.MiniPlayer
-import com.example.music.ui.shared.DetailsSortSelectionBottomModal
+import com.example.music.ui.shared.DetailsSortOrderBottomModal
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.ItemCountAndSortSelectButtons
 import com.example.music.ui.shared.Loading
@@ -112,6 +112,7 @@ fun AlbumDetailsScreen(
                 album = uiState.album,
                 songs = uiState.songs,
                 selectSong = uiState.selectSong,
+                selectSortOrder = uiState.selectSortOrder,
                 currentSong = viewModel.currentSong,
                 isActive = viewModel.isActive, // if playback is active
                 isPlaying = viewModel.isPlaying,
@@ -161,6 +162,7 @@ fun AlbumDetailsScreen(
     album: AlbumInfo,
     songs: List<SongInfo>,
     selectSong: SongInfo,
+    selectSortOrder: Pair<String,Boolean>,
     currentSong: SongInfo,
     isActive: Boolean,
     isPlaying: Boolean,
@@ -181,14 +183,11 @@ fun AlbumDetailsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue) //use this to hold the little popup text that appears after an onClick event
 
-    val appBarScrollBehavior = TopAppBarDefaults
-        .exitUntilCollapsedScrollBehavior(
-            rememberTopAppBarState()
-        )
+    val appBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        rememberTopAppBarState()
+    )
     val isCollapsed = remember {
-        derivedStateOf {
-            appBarScrollBehavior.state.collapsedFraction > 0.8
-        }
+        derivedStateOf { appBarScrollBehavior.state.collapsedFraction > 0.8 }
     }
 
     val listState = rememberLazyGridState()
@@ -327,8 +326,9 @@ fun AlbumDetailsScreen(
 
             // AlbumDetails BottomSheet
             if (showSortSheet) {
-                Log.i(TAG, "AlbumDetails Content -> Song Sort Modal is TRUE")
-                DetailsSortSelectionBottomModal(
+                Log.i(TAG, "AlbumDetails Content -> show Song Sort Modal is TRUE\n" +
+                    "sort order -> ${selectSortOrder.first} + ${selectSortOrder.second}")
+                DetailsSortOrderBottomModal(
                     onDismissRequest = { showSortSheet = false },
                     sheetState = sheetState,
                     onClose = {
@@ -336,21 +336,28 @@ fun AlbumDetailsScreen(
                             Log.i(TAG, "Hide sheet state")
                             sheetState.hide()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set Song Sort to FALSE")
+                            Log.i(TAG, "set showSortSheet to FALSE")
                             if(!sheetState.isVisible) showSortSheet = false
                         }
                     },
-                    onApply = {
+                    onApply = { sortColumn: String, isAscending: Boolean ->
                         coroutineScope.launch {
-                            Log.i(TAG, "Save sheet state - does nothing atm")
+                            Log.i(TAG, "Save Sort Preferences to ViewModel:\n" +
+                                "$sortColumn + $isAscending")
+                            onAlbumAction(
+                                AlbumAction.SongSortUpdate(
+                                    newSort = Pair(sortColumn, isAscending)
+                                )
+                            )
                             sheetState.hide()
                         }.invokeOnCompletion {
-                            Log.i(TAG, "set Song Sort to FALSE")
+                            Log.i(TAG, "set showSortSheet to FALSE")
                             if(!sheetState.isVisible) showSortSheet = false
                         }
                     },
                     content = "SongInfo",
                     context = "AlbumDetails",
+                    currentSortOrder = selectSortOrder,
                 )
             }
 
@@ -405,8 +412,8 @@ fun AlbumDetailsScreen(
                         },
                         goToAlbumArtist = {
                             coroutineScope.launch {
-                                Log.i(TAG, "Album More Options Modal -> GoToArtist clicked :: ${album.albumArtistId ?: "null id"}")
-                                navigateToArtistDetails(album.albumArtistId ?: 0L) // not a good check for if this is null
+                                Log.i(TAG, "Album More Options Modal -> GoToArtist clicked :: ${album.artistId ?: "null id"}")
+                                navigateToArtistDetails(album.artistId ?: 0L) // not a good check for if this is null
                                 sheetState.hide()
                             }.invokeOnCompletion {
                                 Log.i(TAG, "set AlbumMoreOptions to FALSE")
@@ -521,7 +528,7 @@ fun AlbumDetailsHeader(
                     style = MaterialTheme.typography.headlineMedium
                 )
                 Text(
-                    text = album.albumArtistName ?: "",
+                    text = album.artistName ?: "",
                     maxLines = 2,
                     overflow = TextOverflow.Visible,
                     style = MaterialTheme.typography.titleMedium
@@ -597,7 +604,7 @@ fun AlbumDetailsHeaderLargeCover(
                 modifier = Modifier.basicMarquee().padding(vertical = 8.dp)
             )
             Text(
-                text = album.albumArtistName ?: "",
+                text = album.artistName ?: "",
                 maxLines = 1,
                 overflow = TextOverflow.Visible,
                 style = MaterialTheme.typography.titleLarge
@@ -635,6 +642,7 @@ fun AlbumDetailsScreenPreview() {
             songs = getSongsInAlbum(307),
 
             selectSong = getSongsInAlbum(PreviewAlbums[2].id)[0],
+            selectSortOrder = Pair("Track Number",true),
             currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,

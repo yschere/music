@@ -17,16 +17,11 @@ private const val TAG = "Get Artist Details"
 
 class GetArtistDetails @Inject constructor(
     private val mediaRepo: MediaRepo,
-    //private val getAppPref: GetAppPreferencesUseCase,
 ) {
     operator fun invoke(artistId: Long): Flow<ArtistDetailsFilterResult> {
-        Log.i(TAG, "Start: ArtistID: $artistId")
+        Log.i(TAG, "START --- artistID: $artistId")
         val artistItem: Flow<Artist> = mediaRepo.getArtistFlow(artistId)
         val albumsList: Flow<List<Album>> = mediaRepo.getAlbumsByArtistId(artistId)
-//        var order: SongSortOrder = SongSortOrder.TITLE
-//        val songSortFlow = getAppPref().map { pref ->
-//            order = pref.songSortOrder
-//        }
 
         return combine(
             artistItem,
@@ -36,11 +31,11 @@ class GetArtistDetails @Inject constructor(
                 mediaRepo.getArtistAudios(it.id, order = MediaStore.Audio.Media.TITLE)
             },
         ) { artist, albums, songs ->
-            Log.i(TAG, "ARTIST: $artist --- \n" +
-                "Artist ID: ${artist.id} \n" +
-                "Artist Name: ${artist.name}" +
-                "Number Songs: ${artist.numTracks} \n" +
-                "Number Albums: ${artist.numAlbums}"
+            Log.i(TAG, "ARTIST: $artist ---\n" +
+                "Artist ID: ${artist.id}\n" +
+                "Artist Name: ${artist.name}\n" +
+                "Number Albums: ${artist.numAlbums}\n" +
+                "Number Songs: ${artist.numTracks}"
             )
 
             ArtistDetailsFilterResult(

@@ -51,7 +51,12 @@ fun ArtistWithExtraInfo.asExternalModel(): ArtistInfo {
  * Transform Artist from MediaResolver to ArtistInfo domain model
  */
 fun ArtistMR.asExternalModel(): ArtistInfo {
-    if (FLAG) Log.i(TAG, "ArtistMR to ArtistInfo external model constructor: \n ${this.id} + ${this.name}")
+    if (FLAG) Log.i(TAG, "ArtistMR to ArtistInfo:\n" +
+        "ID: ${this.id}\n" +
+        "Name: ${this.name}\n" +
+        "Album count: ${this.numAlbums}\n" +
+        "Song count: ${this.numTracks}")
+
     return ArtistInfo(
         id = this.id,
         name = this.name,
