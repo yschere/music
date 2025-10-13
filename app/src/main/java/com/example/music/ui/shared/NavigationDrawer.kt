@@ -184,7 +184,7 @@ fun PreviewNavDrawer() {
     MusicTheme {
         NavDrawer(
             selectedLabel = "Home Page",
-            totals = listOf(6922,298,30,9,85),
+            totals = listOf(6373, 990, 1427, 35, 9),
             navigateToHome = {},
             navigateToLibrary = {},
             navigateToSettings = {},
