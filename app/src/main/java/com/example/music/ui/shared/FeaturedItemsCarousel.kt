@@ -78,7 +78,14 @@ fun FeaturedAlbumsCarousel(
             ) { page ->
                 Log.i(TAG, "Generating Album Carousel Item: $page")
                 val album = items[page]
-                FeaturedCarouselItem(
+                AlbumListItem(
+                    album = album,
+                    navigateToAlbumDetails = { onClick(album.id) },
+                    onMoreOptionsClick = { onMoreOptionsClick(album) },
+                    cardOrRow = true,
+                    textStyle = MaterialTheme.typography.titleMedium,
+                )
+                /*FeaturedCarouselItem(
                     itemTitle = album.title,
                     itemImage = album.artworkUri,
                     itemSize = album.songCount,
@@ -87,7 +94,7 @@ fun FeaturedAlbumsCarousel(
                         .fillMaxSize()
                         .clip(MaterialTheme.shapes.medium)
                         .clickable { onClick(album.id) }
-                )
+                )*/
             }
         }
     }
@@ -128,7 +135,14 @@ fun FeaturedPlaylistsCarousel(
             ) { page ->
                 val playlist = items[page]
                 Log.i(TAG, "Generating Playlist Carousel Item: $page")
-                FeaturedCarouselItem(
+                PlaylistItem(
+                    playlist = playlist,
+                    navigateToPlaylistDetails = { onClick(playlist) },
+                    onMoreOptionsClick = { onMoreOptionsClick(playlist) },
+                    cardOrRow = true,
+                    textStyle = MaterialTheme.typography.titleMedium,
+                )
+                /*FeaturedCarouselItem(
                     itemTitle = playlist.name,
                     itemImage =
                         if (playlist.songCount == 0) Uri.parse("")
@@ -139,7 +153,7 @@ fun FeaturedPlaylistsCarousel(
                         .fillMaxSize()
                         .clip(MaterialTheme.shapes.medium)
                         .clickable { onClick(playlist) }
-                )
+                )*/
             }
         }
     }
@@ -185,7 +199,7 @@ private fun FeaturedCarouselItem(
                 text = itemTitle,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium, //titleSmall,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(start = SMALL_PADDING).weight(1f,true)
             )
             MoreOptionsBtn(onClick = onMoreOptionsClick)
@@ -199,7 +213,7 @@ private fun PreviewCard() {
     MusicTheme {
         FeaturedCarouselItem(
             itemTitle = PreviewAlbums[0].title,
-            itemImage = Uri.parse(""),//album.artwork!!,
+            itemImage = Uri.parse(""),
             onMoreOptionsClick = {},
             modifier = Modifier
                 .size(ITEM_IMAGE_CARD_SIZE, ITEM_IMAGE_CARD_SIZE + SUBTITLE_HEIGHT)
