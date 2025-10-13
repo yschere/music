@@ -1,9 +1,16 @@
 package com.example.music.domain.model
 
+import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import com.example.music.data.database.model.Playlist
 import com.example.music.data.database.model.PlaylistWithExtraInfo
+import com.example.music.data.mediaresolver.model.Playlist as PlaylistMR
+import com.example.music.data.util.FLAG
 import java.time.OffsetDateTime
+import java.util.Date
+
+private const val TAG = "PlaylistInfo"
 
 /**
  * External data layer representation of a playlist.
@@ -52,6 +59,34 @@ fun PlaylistWithExtraInfo.asExternalModel(): PlaylistInfo =
         dateLastPlayed = dateLastPlayed, //would be acquired from the song with the latest dateLastPlayed value
         songCount = songCount, //would be acquired from the total count of songs in playlist
     )
+
+@SuppressLint("SimpleDateFormat")
+fun PlaylistMR.asExternalModel(): PlaylistInfo {
+    val localOffset = OffsetDateTime.now().offset
+    val dateAdded = OffsetDateTime.parse(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(
+        Date(this.dateAdded)
+    ) + localOffset)
+    val dateModified = OffsetDateTime.parse(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(
+        Date(this.dateModified)
+    ) + localOffset)
+
+    if (FLAG) Log.i(TAG, "PlaylistMR to PlaylistInfo:\n" +
+        "ID: ${this.id}\n" +
+        "Name: ${this.name}\n" +
+        "Description: ${this.displayName}\n" +
+        "Date Created: ${this.dateAdded}\n" +
+        "Date Last Accessed: ${this.dateModified}\n" +
+        "Song Count: ${this.numTracks}")
+
+    return PlaylistInfo(
+        id = this.id,
+        name = this.name,
+        description = this.displayName,
+        dateCreated = dateAdded,
+        dateLastAccessed = dateModified,
+        songCount = this.numTracks,
+    )
+}
 
 /**
  * Get the artwork Uris of the first four songs of a playlist.

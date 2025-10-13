@@ -174,7 +174,8 @@ class LibraryViewModel @Inject constructor(
                     }
                     LibraryCategory.Playlists -> {
                         selectedSortOrder = Pair(appPreferences.playlistSortColumn, appPreferences.isPlaylistAsc)
-                        libraryPlaylists = getLibraryPlaylists(selectedSortOrder.first, selectedSortOrder.second).first()
+                        libraryPlaylists = getLibraryPlaylists(appPreferences.playlistSortColumn, appPreferences.isPlaylistAsc)
+//                        libraryPlaylists = getLibraryPlaylists(selectedSortOrder.first, selectedSortOrder.second).first()
                     }
                     LibraryCategory.Songs -> {
                         selectedSortOrder = Pair(appPreferences.songSortColumn, appPreferences.isSongAsc)

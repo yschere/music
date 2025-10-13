@@ -222,13 +222,13 @@ private fun LibraryScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     NavDrawer(
-        "Library",
-        totals,
-        navigateToHome,
-        navigateToLibrary,
-        navigateToSettings,
-        drawerState,
-        coroutineScope,
+        selectedLabel = "Library",
+        totals = totals,
+        navigateToHome = navigateToHome,
+        navigateToLibrary = navigateToLibrary,
+        navigateToSettings = navigateToSettings,
+        drawerState = drawerState,
+        coroutineScope = coroutineScope,
     ) {
         ScreenBackground(modifier = modifier) {
             Scaffold(
@@ -1121,11 +1121,7 @@ private fun PreviewLibrary() {
             libraryGenres = PreviewGenres,
             libraryPlaylists = PreviewPlaylists,
             librarySongs = PreviewSongs,
-            totals = listOf(
-                PreviewSongs.size,
-                PreviewArtists.size,
-                PreviewAlbums.size,
-                PreviewPlaylists.size),
+            totals = listOf(6373, 990, 1427, 35, 9),
             currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,

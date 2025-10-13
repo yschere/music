@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.music.R
@@ -51,6 +52,7 @@ fun PlaylistItem(
     onMoreOptionsClick: () -> Unit,
     cardOrRow: Boolean = true,
     hasBackground: Boolean = false,
+    textStyle: TextStyle = MaterialTheme.typography.titleSmall,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -63,6 +65,7 @@ fun PlaylistItem(
                 PlaylistItemCard(
                     playlist = playlist,
                     onMoreOptionsClick = onMoreOptionsClick,
+                    textStyle = textStyle,
                     modifier = Modifier,
                 )
             }
@@ -92,6 +95,7 @@ fun PlaylistItem(
 fun PlaylistItemCard(
     playlist: PlaylistInfo,
     onMoreOptionsClick: () -> Unit,
+    textStyle: TextStyle = MaterialTheme.typography.titleSmall,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -118,7 +122,6 @@ fun PlaylistItemCard(
             Text(
                 text = quantityStringResource(R.plurals.songs, playlist.songCount, playlist.songCount),
                 maxLines = 1,
-                minLines = 1,
                 color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.songCountCard(MaterialTheme.colorScheme.onPrimaryContainer)
@@ -132,7 +135,7 @@ fun PlaylistItemCard(
                 text = playlist.name,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleSmall,
+                style = textStyle,
                 modifier = Modifier.padding(start = SMALL_PADDING).weight(1f,true)
             )
             MoreOptionsBtn(onClick = onMoreOptionsClick)
@@ -156,7 +159,7 @@ private fun PlaylistItemRow(
         AlbumImage(
             albumImage =
                 if (playlist.songCount == 0) Uri.parse("")
-                else playlist.playlistImage[0], // FixMe: need this to account for the 4block set of images
+                else playlist.playlistImage[0], // In row form, use the first image only
             contentDescription = playlist.name,
             modifier = Modifier.listItemIconMod(ITEM_IMAGE_ROW_SIZE, MaterialTheme.shapes.small),
         )

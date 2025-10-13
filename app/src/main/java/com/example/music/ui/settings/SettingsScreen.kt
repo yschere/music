@@ -146,13 +146,13 @@ private fun SettingsScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     NavDrawer(
-        "Settings",
-        totals,
-        navigateToHome,
-        navigateToLibrary,
-        navigateToSettings,
-        drawerState,
-        coroutineScope,
+        selectedLabel = "Settings",
+        totals = totals,
+        navigateToHome = navigateToHome,
+        navigateToLibrary = navigateToLibrary,
+        navigateToSettings = navigateToSettings,
+        drawerState = drawerState,
+        coroutineScope = coroutineScope,
     ) {
         ScreenBackground(modifier = modifier) {
             Scaffold(
@@ -607,7 +607,7 @@ private fun PreviewSettings() {
                 windowSizeClass = WindowSizeClass.compute(maxWidth.value, maxHeight.value),
                 isLoading = false,
                 displayFeatures = emptyList(),
-                totals = listOf(6373, 990, 1427, 35),
+                totals = listOf(6373, 990, 1427, 35, 9),
                 onSettingsAction = {},
                 navigateToHome = {},
                 navigateToLibrary = {},
