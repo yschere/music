@@ -222,13 +222,13 @@ private fun LibraryScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     NavDrawer(
-        "Library",
-        totals,
-        navigateToHome,
-        navigateToLibrary,
-        navigateToSettings,
-        drawerState,
-        coroutineScope,
+        selectedLabel = "Library",
+        totals = totals,
+        navigateToHome = navigateToHome,
+        navigateToLibrary = navigateToLibrary,
+        navigateToSettings = navigateToSettings,
+        drawerState = drawerState,
+        coroutineScope = coroutineScope,
     ) {
         ScreenBackground(modifier = modifier) {
             Scaffold(
