@@ -11,6 +11,9 @@ import javax.inject.Inject
 
 private const val TAG = "Featured Library Items"
 
+/**
+ * Generates featured library items of ALBUMS and SONGS from MediaStore
+ */
 class FeaturedLibraryItems @Inject constructor(
     private val mediaRepo: MediaRepo,
 ) {

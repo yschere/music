@@ -1,21 +1,18 @@
 package com.example.music.domain.usecases
 
+import android.provider.MediaStore
 import android.util.Log
 import com.example.music.data.database.model.PlaylistWithExtraInfo
 import com.example.music.data.mediaresolver.MediaRepo
+import com.example.music.data.mediaresolver.model.Playlist
 import com.example.music.data.repository.PlaylistRepo
 import com.example.music.data.repository.PlaylistSortList
 import com.example.music.domain.model.PlaylistInfo
-import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.model.getArtworkUris
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import javax.inject.Inject
 
 private const val TAG = "Get Library Playlists"
@@ -23,12 +20,13 @@ private const val TAG = "Get Library Playlists"
 /**
  * Use case for retrieving library playlists to populate Playlists List in Library Screen.
  * @property playlistRepo The repository for accessing Playlist and SongPlaylistEntry data
+ * @property mediaRepo Content Resolver for MediaStore
  */
 class GetLibraryPlaylists @Inject constructor(
-    private val playlistRepo: PlaylistRepo,
+//    private val playlistRepo: PlaylistRepo,
     private val mediaRepo: MediaRepo,
 ) {
-    operator fun invoke(
+    /*operator fun invoke(
         sortColumn: String,
         isAscending: Boolean
     ): Flow<List<PlaylistInfo>> {
@@ -87,6 +85,71 @@ class GetLibraryPlaylists @Inject constructor(
                 } else {
                     playlist
                 }
+            }
+        }
+    }*/
+
+    suspend operator fun invoke(
+        sortColumn: String,
+        isAscending: Boolean
+    ): List<PlaylistInfo> {
+        var playlistsList: List<Playlist>
+        Log.i(TAG, "START --- sortColumn: $sortColumn - isAscending: $isAscending")
+
+        when (sortColumn) {
+            PlaylistSortList[0] -> { //"Name"
+                playlistsList = mediaRepo.getAllPlaylists(
+                    order = MediaStore.Audio.Playlists.NAME,
+                    ascending = isAscending
+                ).sortedBy { it.name.lowercase() }
+                if (!isAscending) playlistsList = playlistsList.reversed()
+            }
+
+            PlaylistSortList[1] -> { //"Song Count"
+                playlistsList = mediaRepo.getAllPlaylists(
+                    order = MediaStore.Audio.Playlists.NAME,
+                    ascending = isAscending
+                ).sortedBy { it.numTracks }
+                if (!isAscending) playlistsList = playlistsList.reversed()
+            }
+
+            PlaylistSortList[2] -> { //"Date Created"
+                playlistsList = mediaRepo.getAllPlaylists(
+                    order = MediaStore.Audio.Playlists.DATE_ADDED,
+                    ascending = isAscending
+                ).sortedBy { it.dateAdded }
+                if (!isAscending) playlistsList = playlistsList.reversed()
+            }
+
+            PlaylistSortList[3] -> { //"Date Last Accessed"
+                playlistsList = mediaRepo.getAllPlaylists(
+                    order = MediaStore.Audio.Playlists.DATE_MODIFIED,
+                    ascending = isAscending
+                ).sortedBy { it.dateModified }
+                if (!isAscending) playlistsList = playlistsList.reversed()
+            }
+
+            else -> {
+                playlistsList = mediaRepo.getAllPlaylists(
+                    order = MediaStore.Audio.Playlists.NAME,
+                    ascending = isAscending
+                )
+            }
+        }
+
+        Log.i(TAG, "********** Library Playlists count: ${playlistsList.size} **********")
+        return playlistsList.map { item ->
+            val playlist = item.asExternalModel()
+            Log.i(TAG, "**** Playlist: ${playlist.id} + ${playlist.name} ****")
+            if (playlist.songCount > 0) {
+                val songIds = mediaRepo.findPlaylistTracks(playlist.id, 4).map { it.audioId }
+                val songs = mediaRepo.getAudios(songIds).map { song ->
+                    song.asExternalModel()
+                }
+                Log.i(TAG, "song size: ${songs.size}")
+                playlist.copy(playlistImage = playlist.getArtworkUris(songs))
+            } else {
+                playlist
             }
         }
     }

@@ -30,10 +30,12 @@ import com.example.music.designsys.theme.NAV_DRAWER_CONTENT_PADDING
 import com.example.music.designsys.theme.NAV_DRAWER_ITEMS_HEIGHT
 import com.example.music.designsys.theme.NAV_DRAWER_MARGINS
 import com.example.music.designsys.theme.NAV_DRAWER_WIDTH
+import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.util.quantityStringResource
+import com.example.music.util.textHeightPadding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -137,28 +139,33 @@ fun NavDrawer(
                         text = "In Your Library:",
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = NAV_DRAWER_MARGINS)
-                            .padding(top = NAV_DRAWER_CONTENT_PADDING, bottom = 4.dp)
+                            .padding(top = NAV_DRAWER_CONTENT_PADDING, bottom = SMALL_PADDING)
                     )
                     Column (Modifier.padding(horizontal = NAV_DRAWER_MARGINS + NAV_DRAWER_CONTENT_PADDING)) {
                         Text(
                             text = quantityStringResource(id= R.plurals.songs, totals[0], totals[0]),
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(vertical = 4.dp)
+                            modifier = Modifier.textHeightPadding()
                         )
                         Text(
                             text = quantityStringResource(id= R.plurals.artists, totals[1], totals[1]),
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(vertical = 4.dp)
+                            modifier = Modifier.textHeightPadding()
                         )
                         Text(
                             text = quantityStringResource(id= R.plurals.albums, totals[2], totals[2]),
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(vertical = 4.dp)
+                            modifier = Modifier.textHeightPadding()
                         )
                         Text(
                             text = quantityStringResource(id= R.plurals.genres, totals[3], totals[3]),
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(vertical = 4.dp)
+                            modifier = Modifier.textHeightPadding()
+                        )
+                        Text(
+                            text = quantityStringResource(id= R.plurals.playlists, totals[4], totals[4]),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.textHeightPadding()
                         )
                     }
                 }
@@ -177,7 +184,7 @@ fun PreviewNavDrawer() {
     MusicTheme {
         NavDrawer(
             selectedLabel = "Home Page",
-            totals = listOf(6922,298,30,9),
+            totals = listOf(6922,298,30,9,85),
             navigateToHome = {},
             navigateToLibrary = {},
             navigateToSettings = {},

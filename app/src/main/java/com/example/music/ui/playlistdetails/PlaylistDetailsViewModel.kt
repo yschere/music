@@ -47,6 +47,9 @@ val PlaylistSongSortOptions = listOf(
     "Duration"
 )
 
+/**
+ * ViewModel that handles the business logic and screen state of the Playlist Details screen
+ */
 @HiltViewModel
 class PlaylistDetailsViewModel @Inject constructor(
     getPlaylistDetails: GetPlaylistDetails,

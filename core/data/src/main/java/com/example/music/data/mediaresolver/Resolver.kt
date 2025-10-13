@@ -10,15 +10,21 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import androidx.compose.runtime.Stable
+import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import com.example.music.data.mediaresolver.model.Album
 import com.example.music.data.mediaresolver.model.Artist
 import com.example.music.data.mediaresolver.model.Audio
 import com.example.music.data.mediaresolver.model.Genre
+import com.example.music.data.mediaresolver.model.Playlist
+import com.example.music.data.mediaresolver.model.PlaylistTrack
 import com.example.music.data.mediaresolver.model.toAlbum
 import com.example.music.data.mediaresolver.model.toArtist
 import com.example.music.data.mediaresolver.model.toAudio
 import com.example.music.data.mediaresolver.model.toGenre
+import com.example.music.data.mediaresolver.model.toPlaylist
+import com.example.music.data.mediaresolver.model.toPlaylistTrack
 import com.example.music.data.util.FLAG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -920,6 +926,147 @@ suspend fun ContentResolver.getGenreAudioCount(id: Long): Int = queryExt(
     it.count
 }
 
+
+/***********************************************************************************************
+ *
+ * **********  PLAYLISTS SECTION ***********
+ *
+ **********************************************************************************************/
+
+/**
+ * Projection of Playlist model in MediaStore columns
+ */
+private val PLAYLIST_PROJECTION
+    get() = arrayOf(
+        MediaStore.Audio.Playlists._ID,
+        MediaStore.Audio.Playlists.NAME,
+        MediaStore.Audio.Playlists.DISPLAY_NAME,
+        MediaStore.Audio.Playlists.DATE_ADDED,
+        MediaStore.Audio.Playlists.DATE_MODIFIED,
+        MediaStore.Audio.Playlists.DATA,
+    )
+
+private val PLAYLIST_MEMBER_PROJECTION
+    get() = arrayOf(
+        MediaStore.Audio.Playlists.Members._ID,
+        MediaStore.Audio.Playlists.Members.TITLE,
+        MediaStore.Audio.Playlists.Members.PLAYLIST_ID,
+        MediaStore.Audio.Playlists.Members.ARTIST,
+        MediaStore.Audio.Playlists.Members.ARTIST_ID,
+        MediaStore.Audio.Playlists.Members.ALBUM_ARTIST,
+        MediaStore.Audio.Playlists.Members.ALBUM,
+        MediaStore.Audio.Playlists.Members.ALBUM_ID,
+        MediaStore.Audio.Playlists.Members.DURATION,
+        MediaStore.Audio.Playlists.Members.DATE_ADDED,
+        MediaStore.Audio.Playlists.Members.DATE_MODIFIED,
+        MediaStore.Audio.Playlists.Members.PLAY_ORDER,
+        MediaStore.Audio.Playlists.Members.AUDIO_ID,
+    )
+
+/**
+ * Default query select column for media store audio table
+ */
+private const val DEFAULT_PLAYLIST_SELECTION = "${MediaStore.Audio.Playlists._ID} != 0"
+
+/**
+ * Default query order column for media store audio table
+ */
+private const val DEFAULT_PLAYLIST_ORDER = MediaStore.Audio.Playlists.DISPLAY_NAME
+private const val DEFAULT_PLAYLIST_MEMBER_ORDER = MediaStore.Audio.Playlists.Members.PLAY_ORDER
+
+/**
+ * @return list of [Audio] from the [MediaStore].
+ */
+suspend fun ContentResolver.getPlaylists(
+    order: String = DEFAULT_PLAYLIST_ORDER,
+    ascending: Boolean = true,
+    offset: Int = 0,
+    limit: Int = Int.MAX_VALUE
+): List<Playlist> = queryExt(
+    uri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+    projection = PLAYLIST_PROJECTION,
+    selection = DEFAULT_PLAYLIST_SELECTION,
+    args = null,
+    order = order,
+    ascending = ascending,
+    offset = offset,
+    limit = limit,
+    transform = { c ->
+        if (FLAG) Log.i(TAG, "Get Playlists Search:\n" +
+                "Playlist(s) count returned: ${c.count}")
+        if (c.count == 0) return emptyList()
+
+        val result = List(c.count) {
+            c.moveToPosition(it)
+            c.toPlaylist(
+                getPlaylistTrackCount(
+                    c.getLong(0)
+                )
+            )
+        }
+        c.close()
+        result
+    },
+)
+
+suspend fun ContentResolver.getPlaylist(
+    id: Long
+): Playlist  = queryExt(
+    uri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+    projection = PLAYLIST_PROJECTION,
+    selection = "${MediaStore.Audio.Playlists._ID} == ?",
+    args = arrayOf("$id"),
+    transform = { c ->
+        c.moveToFirst()
+        val result = c.toPlaylist(
+            getPlaylistTrackCount( c.getLong(0))
+        )
+        c.close()
+        if (FLAG) Log.i(TAG, "Find Playlist Search via ID: $id\n" +
+            "Name: ${result.name}\n" +
+            "Date Added: ${result.dateAdded}\n" +
+            "Date Modified: ${result.dateModified}\n" +
+            "File Path: ${result.path}")
+        result
+    },
+)
+
+suspend fun ContentResolver.findPlaylistTracks(
+    id: Long,
+    order: String = DEFAULT_PLAYLIST_MEMBER_ORDER,
+    ascending: Boolean = true,
+    limit: Int = Int.MAX_VALUE,
+): List<PlaylistTrack> {
+    return queryExt(
+        uri = MediaStore.Audio.Playlists.Members.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY, id),
+        projection = PLAYLIST_MEMBER_PROJECTION,
+        selection = "${MediaStore.Audio.Playlists.Members.PLAYLIST_ID} == ?",
+        args = arrayOf("$id"),
+        order = order,
+        ascending = ascending,
+        limit = limit,
+        transform = { c ->
+            if (c.count == 0) return emptyList()
+            if (FLAG) Log.i(TAG, "Find Playlist Tracks:\n" +
+                    "Track(s) count returned: ${c.count}")
+            val result = List(c.count) {
+                c.moveToPosition(it)
+                c.toPlaylistTrack()
+            }
+            result
+        }
+    )
+}
+
+suspend fun ContentResolver.getPlaylistTrackCount(id: Long): Int = queryExt(
+    uri = MediaStore.Audio.Playlists.Members.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY, id),
+    projection = PLAYLIST_MEMBER_PROJECTION,
+    selection = "${MediaStore.Audio.Playlists.Members.PLAYLIST_ID} == ?",
+    args = arrayOf("$id"),
+) {
+    it.moveToFirst()
+    it.count
+}
 
 /***********************************************************************************************
  *

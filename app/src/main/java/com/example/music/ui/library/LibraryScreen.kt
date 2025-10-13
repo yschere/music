@@ -1121,11 +1121,7 @@ private fun PreviewLibrary() {
             libraryGenres = PreviewGenres,
             libraryPlaylists = PreviewPlaylists,
             librarySongs = PreviewSongs,
-            totals = listOf(
-                PreviewSongs.size,
-                PreviewArtists.size,
-                PreviewAlbums.size,
-                PreviewPlaylists.size),
+            totals = listOf(6373, 990, 1427, 35, 12),
             currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,

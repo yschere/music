@@ -101,10 +101,21 @@ class MediaRepo (
             counts.add(genreCursor.count - 1) // this is to remove the 'null' row that genre counts
         }
 
+        val playlistCursor = resolver.query(
+            MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+            null,
+            null,
+            null,
+            null)
+        if (playlistCursor != null && playlistCursor.moveToFirst()) {
+            counts.add(playlistCursor.count)
+        }
+
         albumCursor?.close()
         artistCursor?.close()
         genreCursor?.close()
         songCursor?.close()
+        playlistCursor?.close()
 
         return counts
     }
@@ -579,6 +590,55 @@ class MediaRepo (
         offset: Int = 0,
         limit: Int = Integer.MAX_VALUE,
     ) = resolver.getGenreAudiosById(id, order, ascending, offset, limit)
+
+
+    /***********************************************************************************************
+     *
+     * **********  PLAYLISTS SECTION ***********
+     *
+     **********************************************************************************************/
+
+    fun mostRecentPlaylists(limit: Int) =
+        observe(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI)
+            .map {
+                resolver.queryExt(
+                    uri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+                    projection = arrayOf(MediaStore.Audio.Playlists._ID),
+                    order = MediaStore.Audio.PlaylistsColumns.DATE_ADDED,
+                    limit = limit,
+                    ascending = false,
+                ) { c ->
+                    Array(c.count) {
+                        c.moveToPosition(it)
+                        c.getLong(0)
+                    }
+                }
+            }
+
+    suspend fun getAllPlaylists(order: String, ascending: Boolean) =
+        resolver.getPlaylists(
+            order = order,
+            ascending = ascending
+        )
+    fun getAllPlaylistsFlow(order: String, ascending: Boolean) =
+        observe(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI)
+            .map {
+                resolver.getPlaylists(
+                    order = order,
+                    ascending = ascending
+                )
+            }
+
+    suspend fun getPlaylist(id: Long) =
+        resolver.getPlaylist(id)
+    fun getPlaylistFlow(id: Long) =
+        observe(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI)
+            .map {
+                resolver.getPlaylist(id)
+            }
+
+    suspend fun findPlaylistTracks(id: Long, limit: Int = Int.MAX_VALUE) =
+        resolver.findPlaylistTracks(id = id, limit = limit)
 
     //would likely get playlists here as well
     // and be able to get playlist's songs here too, ie "playlist members" or "playlist tracks"
