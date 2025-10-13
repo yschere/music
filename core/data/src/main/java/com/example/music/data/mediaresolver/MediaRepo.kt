@@ -604,7 +604,7 @@ class MediaRepo (
                 resolver.queryExt(
                     uri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
                     projection = arrayOf(MediaStore.Audio.Playlists._ID),
-                    order = MediaStore.Audio.PlaylistsColumns.DATE_ADDED,
+                    order = MediaStore.Audio.PlaylistsColumns.DATE_MODIFIED,
                     limit = limit,
                     ascending = false,
                 ) { c ->
