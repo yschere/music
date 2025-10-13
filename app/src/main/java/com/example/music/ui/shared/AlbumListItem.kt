@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.music.R
@@ -50,6 +51,7 @@ fun AlbumListItem(
     onMoreOptionsClick: () -> Unit,
     cardOrRow: Boolean = true,
     hasBackground: Boolean = false,
+    textStyle: TextStyle = MaterialTheme.typography.titleSmall,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -62,6 +64,7 @@ fun AlbumListItem(
                 AlbumItemCard(
                     album = album,
                     onMoreOptionsClick = onMoreOptionsClick,
+                    textStyle = textStyle,
                     modifier = Modifier,
                 )
             }
@@ -90,9 +93,12 @@ fun AlbumListItem(
 fun AlbumItemCard(
     album: AlbumInfo,
     onMoreOptionsClick: () -> Unit,
+    textStyle: TextStyle = MaterialTheme.typography.titleSmall,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.width(ITEM_IMAGE_CARD_SIZE)) {
+    Column(
+        modifier = modifier.width(ITEM_IMAGE_CARD_SIZE)
+    ) {
         Box(
             contentAlignment = Alignment.BottomStart,
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -107,7 +113,6 @@ fun AlbumItemCard(
             Text(
                 text = quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
                 maxLines = 1,
-                minLines = 1,
                 color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.songCountCard(MaterialTheme.colorScheme.onPrimaryContainer)
@@ -121,7 +126,7 @@ fun AlbumItemCard(
                 text = album.title,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleSmall,
+                style = textStyle,
                 modifier = Modifier.padding(start = SMALL_PADDING).weight(1f,true)
             )
             MoreOptionsBtn(onClick = onMoreOptionsClick)
@@ -162,8 +167,6 @@ fun AlbumItemRow(
                                 quantityStringResource(R.plurals.songs, album.songCount, album.songCount)
                         else quantityStringResource(R.plurals.songs, album.songCount, album.songCount),
                     maxLines = 1,
-                    minLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.textHeightPadding(),
                 )
