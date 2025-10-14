@@ -13,7 +13,7 @@ import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.usecases.FeaturedLibraryAlbums
-import com.example.music.domain.usecases.FeaturedLibraryPlaylists
+import com.example.music.domain.usecases.FeaturedLibraryItems
 import com.example.music.domain.usecases.GetAlbumDetails
 import com.example.music.domain.usecases.GetPlaylistDetails
 import com.example.music.domain.usecases.GetSongData
@@ -52,7 +52,7 @@ data class HomeScreenUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     //featuredLibraryAlbums: FeaturedLibraryAlbums,
-    featuredLibraryPlaylists: FeaturedLibraryPlaylists,
+    featuredLibraryItems: FeaturedLibraryItems,
 
     private val getAlbumDetails: GetAlbumDetails,
     private val getPlaylistDetails: GetPlaylistDetails,
@@ -64,7 +64,7 @@ class HomeViewModel @Inject constructor(
     // test version for using MediaStore, uses Album instead of playlist for now
     //private val featuredAlbumsData = featuredLibraryAlbums()
         //.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-    private val featuredPlaylistsData = featuredLibraryPlaylists()
+    private val featuredItemsData = featuredLibraryItems()
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     // Holds the song, album to show in more options modal
@@ -114,22 +114,22 @@ class HomeViewModel @Inject constructor(
             combine(
                 refreshing,
                 //featuredAlbumsData,
-                featuredPlaylistsData,
+                featuredItemsData,
                 //selectedAlbum,
                 selectedPlaylist,
                 selectedSong,
             ) {
                 refreshing,
                 //albumItems,
-                playlistItems,
+                libraryItems,
                 //selectAlbum,
                 selectPlaylist,
                 selectSong, ->
                 Log.i(TAG, "HomeUiState combine START\n" +
                     "refreshing: $refreshing\n" +
                     //"libraryItemsAlbums: ${albumItems.recentAlbums.size}\n" +
-                    "libraryItemsPlaylists: ${playlistItems.recentPlaylists.size}\n" +
-                    "libraryItemsSongs: ${playlistItems.recentlyAddedSongs.size}\n" +
+                    "libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}\n" +
+                    "libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}\n" +
                     "is SongController available: ${songController.isConnected()}")
 
                 getSongControllerState()
@@ -137,8 +137,8 @@ class HomeViewModel @Inject constructor(
                 HomeScreenUiState(
                     isLoading = refreshing,
                     //featuredAlbums = albumItems.recentAlbums,
-                    featuredPlaylists = playlistItems.recentPlaylists,
-                    featuredSongs = playlistItems.recentlyAddedSongs,
+                    featuredPlaylists = libraryItems.recentPlaylists,
+                    featuredSongs = libraryItems.recentlyAddedSongs,
                     totals = counts,
                     //selectAlbum = selectAlbum,
                     selectPlaylist = selectPlaylist,
@@ -265,21 +265,21 @@ class HomeViewModel @Inject constructor(
 
         combine(
             //featuredAlbumsData,
-            featuredPlaylistsData,
+            featuredItemsData,
             //selectedAlbum,
             selectedPlaylist,
             selectedSong,
         ) {
             //albumItems,
-            playlistItems,
+            libraryItems,
             //selectAlbum,
             selectPlaylist,
             selectSong: SongInfo,->
             Log.i(TAG, "HomeUiState combine START\n" +
                 "refreshing: ${refreshing.value}\n" +
                 //"libraryItemsAlbums: ${albumItems.recentAlbums.size}\n" +
-                "libraryItemsPlaylists: ${playlistItems.recentPlaylists.size}\n" +
-                "libraryItemsSongs: ${playlistItems.recentlyAddedSongs.size}\n" +
+                "libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}\n" +
+                "libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}\n" +
                 "is SongController available: ${songController.isConnected()}")
 
             getSongControllerState()
@@ -287,8 +287,8 @@ class HomeViewModel @Inject constructor(
             HomeScreenUiState(
                 isLoading = refreshing.value,
                 //featuredAlbums = albumItems.recentAlbums,
-                featuredPlaylists = playlistItems.recentPlaylists,
-                featuredSongs = playlistItems.recentlyAddedSongs,
+                featuredPlaylists = libraryItems.recentPlaylists,
+                featuredSongs = libraryItems.recentlyAddedSongs,
                 totals = counts,
                 //selectAlbum = selectAlbum,
                 selectPlaylist = selectPlaylist,
