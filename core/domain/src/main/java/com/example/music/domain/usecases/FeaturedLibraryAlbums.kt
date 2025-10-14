@@ -23,27 +23,23 @@ class FeaturedLibraryAlbums @Inject constructor(
     // Generates featured library items of ALBUMS and SONGS from MediaStore
     operator fun invoke(): Flow<FeaturedLibraryAlbumsFilterResult> {
         Log.i(TAG, "Start fetching most recent albums and most recent songs")
-
-        // albumItems should return albumRepo date created desc limit 5
         val albumIdsFlow = mediaRepo.mostRecentAlbumsIds(5)
-
-        // mediaItems should return songRepo date created desc limit 10
-        val mediaIdsFlow = mediaRepo.mostRecentSongsIds(10)
+        val songIdsFlow = mediaRepo.mostRecentSongsIds(10)
 
         return combine(
-            mediaIdsFlow,
-            albumIdsFlow
-        ) { mediaIds, albumIds ->
+            albumIdsFlow,
+            songIdsFlow,
+        ) { albumIds, mediaIds ->
             Log.i(TAG, "Building Featured Library from fetched IDs")
             FeaturedLibraryAlbumsFilterResult(
                 recentAlbums = albumIds.map { albumId ->
-                    if (FLAG) Log.i(TAG, "Fetch Album from AlbumID - $albumId")
+                    if (FLAG) Log.i(TAG, "Fetch Album from ID - $albumId")
                     mediaRepo.getAlbum(albumId).asExternalModel()
                 },
                 recentlyAddedSongs = mediaIds.map { mediaId ->
-                    if (FLAG) Log.i(TAG, "Fetch Song from SongID - $mediaId")
+                    if (FLAG) Log.i(TAG, "Fetch Song from ID - $mediaId")
                     val audio = mediaRepo.getAudio(mediaId)
-                    audio.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
+                    audio.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
                 },
             )
         }

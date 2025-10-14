@@ -50,7 +50,7 @@ class GetAlbumDetails @Inject constructor(
                 artist = artist.asExternalModel(),
                 songs = songs.map {
                     if (FLAG) Log.i(TAG, "SONG: ${it.title}")
-                    it.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(it.uri))
+                    it.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(it.uri))
                 },
             )
         }

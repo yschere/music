@@ -19,27 +19,27 @@ class GetSongData @Inject constructor(
     // use to build SongInfo from an Audio id
     suspend operator fun invoke(songId: Long): SongInfo {
         Log.i(TAG, "Fetching Data for single song - START\n" +
-                "songId: $songId")
+            "songId: $songId")
         val audio = mediaRepo.getAudioFlow(songId).first()
         if (FLAG) Log.i(TAG, "Found file data for song $songId\n" +
-                "Title: ${audio.title}\n" +
-                "Artist: ${audio.artist}\n" +
-                "Album: ${audio.album}")
-        return audio.asExternalModel()
-            .copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
+            "Title: ${audio.title}\n" +
+            "Artist: ${audio.artist}\n" +
+            "Album: ${audio.album}")
+        return audio.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
     }
 
     // use to build list of SongInfo from list of Audio ids
     operator fun invoke(songIds: List<Long>): Flow<List<SongInfo>> {
         Log.i(TAG, "Fetching data for multiple songs - START\n" +
-                "songs size: ${songIds.size}")
+            "songs size: ${songIds.size}")
         return mediaRepo.getAudiosFlow(songIds)
             .map { songList ->
-                if (FLAG) Log.i(TAG, "Found file data for multiple songs --- ")
                 songList.map { song ->
-                    if (FLAG) Log.i(TAG, "Song: ${song.id} - ${song.title}")
-                    song.asExternalModel()
-                        .copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
+                    if (FLAG) Log.i(TAG, "Found file data for song ${song.id}\n" +
+                        "Title: ${song.title}\n" +
+                        "Artist: ${song.artist}\n" +
+                        "Album: ${song.album}")
+                    song.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
                 }
             }
     }

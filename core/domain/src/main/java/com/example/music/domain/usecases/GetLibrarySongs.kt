@@ -85,8 +85,7 @@ class GetLibrarySongs @Inject constructor(
         Log.i(TAG,"********** Library Songs count: ${songsList.size} **********")
         return songsList.map { song ->
             if (FLAG) Log.i(TAG, "**** Song: ${song.id} + ${song.title} + ${song.artist} + ${song.album} ****")
-            song.asExternalModel()
-                //.copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
+            song.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
         }
     }
 }

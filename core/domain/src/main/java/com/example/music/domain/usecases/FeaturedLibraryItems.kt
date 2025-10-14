@@ -25,31 +25,30 @@ class FeaturedLibraryItems @Inject constructor(
     // Generates featured library items of PLAYLISTS and SONGS from MediaStore
     operator fun invoke(): Flow<FeaturedLibraryItemsFilterResult> {
         Log.i(TAG, "Start fetching most recent playlists and most recent songs")
-        val recentPlaylistsFlow = mediaRepo.mostRecentPlaylists(5)
-        val recentSongsFlow = mediaRepo.mostRecentSongsIds(10)
+        val playlistIdsFlow = mediaRepo.mostRecentPlaylists(5)
+        val songIdsFlow = mediaRepo.mostRecentSongsIds(10)
 
         return combine(
-            recentPlaylistsFlow,
-            recentSongsFlow
-        ) { recentPlaylists, featuredSongs ->
-            if (FLAG) Log.i(TAG, "playlists size: ${recentPlaylists.size} :: songs size: ${featuredSongs.size}")
+            playlistIdsFlow,
+            songIdsFlow
+        ) { playlistIds, songIds ->
+            Log.i(TAG, "Building Featured Library from fetched IDs")
+            if (FLAG) Log.i(TAG, "playlists size: ${playlistIds.size} :: songs size: ${songIds.size}")
             FeaturedLibraryItemsFilterResult(
-                recentPlaylists = recentPlaylists.map { playlistId ->
+                recentPlaylists = playlistIds.map { playlistId ->
                     if (FLAG) Log.i(TAG, "Fetch Playlist from ID - $playlistId")
                     val playlist = mediaRepo.getPlaylist(playlistId).asExternalModel()
                     val songs = mediaRepo.findPlaylistTracks(playlistId)
                         .map { track ->
                             if (FLAG) Log.i(TAG, "Track ID: ${track.id} -> Title: ${track.title}")
                             mediaRepo.getAudio(track.audioId)
-                        }.map {
-                            it.asExternalModel()
-                        }
-                    playlist.copy(playlistImage = playlist.getArtworkUris(songs))//.copy(songCount = songs.size)
+                        }.map { audio -> audio.asExternalModel() }
+                    playlist.copy(playlistImage = playlist.getArtworkUris(songs))
                 },
-                recentlyAddedSongs = featuredSongs.map { songID ->
-                    if (FLAG) Log.i(TAG, "Fetch Song from SongID - $songID")
-                    val audio = mediaRepo.getAudio(songID)
-                    audio.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
+                recentlyAddedSongs = songIds.map { songId ->
+                    if (FLAG) Log.i(TAG, "Fetch Song from ID - $songId")
+                    val audio = mediaRepo.getAudio(songId)
+                    audio.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
                 },
             )
         }
@@ -58,22 +57,22 @@ class FeaturedLibraryItems @Inject constructor(
     /* // Generates featured library items of PLAYLISTS from MusicDatabase and SONGS from MediaStore
     operator fun invoke(): Flow<FeaturedLibraryItemsFilterResult> {
         Log.i(TAG, "Start fetching most recent playlists and most recent songs")
-        val recentPlaylistsFlow = playlistRepo.sortPlaylistsByDateLastPlayedDesc(5)
-        val recentSongsFlow = mediaRepo.mostRecentSongsIds(10)
+        val playlistsFlow = playlistRepo.sortPlaylistsByDateLastPlayedDesc(5)
+        val songIdsFlow = mediaRepo.mostRecentSongsIds(10)
 
         return combine(
-            recentPlaylistsFlow,
-            recentSongsFlow
-        ) { recentPlaylists, featuredSongs ->
+            playlistsFlow,
+            songIdsFlow
+        ) { playlists, songIds ->
             FeaturedLibraryItemsFilterResult(
-                recentPlaylists = recentPlaylists.map { playlist ->
+                recentPlaylists = playlists.map { playlist ->
                     if (FLAG) Log.i(TAG, "Fetch Playlist from ID - ${playlist.playlist.id}")
                     playlist.asExternalModel()
                 },
-                recentlyAddedSongs = featuredSongs.map { songID ->
-                    if (FLAG) Log.i(TAG, "Fetch Song from SongID - $songID")
-                    val audio = mediaRepo.getAudio(songID)
-                    audio.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
+                recentlyAddedSongs = songIds.map { songId ->
+                    if (FLAG) Log.i(TAG, "Fetch Song from SongID - songId")
+                    val audio = mediaRepo.getAudio(songId)
+                    audio.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
                 },
             )
         }
