@@ -38,8 +38,8 @@ class GetPlaylistDetails @Inject constructor(
                 }
             },
         ) { playlist, audios ->
-            Log.i(TAG, "Playlist: ${playlist.name} + ${playlist.numTracks} songs")
-            Log.i(TAG, "Is audio count == Playlist.numTracks: ${audios.size == playlist.numTracks}")
+            if (FLAG) Log.i(TAG, "Playlist: ${playlist.name} + ${playlist.numTracks} songs")
+            if (FLAG) Log.i(TAG, "Is audio count == Playlist.numTracks: ${audios.size == playlist.numTracks}")
 
             val p = playlist.asExternalModel()
             if (p.songCount > 0){
