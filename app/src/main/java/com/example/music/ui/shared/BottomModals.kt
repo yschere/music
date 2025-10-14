@@ -59,6 +59,7 @@ import com.example.music.data.repository.ArtistSortList
 import com.example.music.data.repository.ComposerSortList
 import com.example.music.data.repository.GenreSortList
 import com.example.music.data.repository.PlaylistSortList
+import com.example.music.data.repository.ShuffleTypeList
 import com.example.music.data.repository.SongSortList
 import com.example.music.data.util.FLAG
 import com.example.music.designsys.component.AlbumImage
@@ -82,6 +83,7 @@ import com.example.music.ui.genredetails.GenreSongSortOptions
 import com.example.music.ui.library.LibraryCategory
 import com.example.music.ui.player.PlayerModalActions
 import com.example.music.ui.playlistdetails.PlaylistSongSortOptions
+import com.example.music.ui.settings.ThemeRadioGroupSet
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.tooling.SystemLightPreview
@@ -1128,19 +1130,41 @@ fun DetailsSortOrderBottomModal(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsBottomModal(
+fun ShuffleSettingsBottomModal(
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     onClose: () -> Unit,
-    onApply: () -> Unit,
-    content: @Composable () -> Unit,
+    onApply: (Int) -> Unit,
+    currentSelection: Int,
 ) {
+    var shuffle = currentSelection
+
     BottomModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
     ) {
-        content()
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.verticalScroll(state = rememberScrollState())
+        ) {
+            Text(
+                text = "Set Shuffle Type:",
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.fillMaxWidth().modalHeaderPadding(),
+            )
+
+            if (FLAG) Log.i(TAG, "Shuffle Type Settings Modal:\n" +
+                    "Current shuffle type: $currentSelection")
+
+            RadioGroupSet(
+                radioOptions = ShuffleTypeList,
+                initialValue = ShuffleTypeList[currentSelection],
+                onOptionSelect = { newShuf -> shuffle = ShuffleTypeList.indexOf(newShuf) },
+            )
+        }
 
         Row {
             CloseModalBtn(
@@ -1149,7 +1173,77 @@ fun SettingsBottomModal(
                 modifier = Modifier.weight(0.5f)
             )
             ApplyModalBtn(
-                onClick = onApply,
+                onClick = {
+                    Log.i(TAG, "After Apply clicked:\n" +
+                            "new shuffle type: $shuffle")
+                    onApply(shuffle)
+                },
+                text = "APPLY",
+                modifier = Modifier.weight(0.5f)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ThemeSettingsBottomModal(
+    onDismissRequest: () -> Unit,
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+
+    onClose: () -> Unit,
+    onApply: (String) -> Unit,
+    currentSelection: String,
+) {
+    var theme = currentSelection
+    val themesArray = arrayListOf(
+        Actions.ThemeDefault,
+        Actions.ThemeLight,
+        Actions.ThemeDark,
+    )
+
+    BottomModal(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.verticalScroll(state = rememberScrollState())
+        ) {
+            Text(
+                text = "Set Theme Mode:",
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.fillMaxWidth().modalHeaderPadding(),
+            )
+
+            if (FLAG) Log.i(TAG, "Theme Settings Modal:\n" +
+                    "Current theme: $currentSelection")
+
+            ThemeRadioGroupSet (
+                radioOptions = themesArray,
+                initialValue = themesArray[
+                    themesArray.indexOf(
+                        themesArray.find { it.name == currentSelection }
+                    )
+                ],
+                onOptionSelect = { newTheme -> theme = newTheme },
+            )
+        }
+
+        Row {
+            CloseModalBtn(
+                onClick = onClose,
+                text = "CANCEL",
+                modifier = Modifier.weight(0.5f)
+            )
+            ApplyModalBtn(
+                onClick = {
+                    Log.i(TAG, "After Apply clicked:\n" +
+                            "new theme: $theme")
+                    onApply(theme)
+                },
                 text = "APPLY",
                 modifier = Modifier.weight(0.5f)
             )

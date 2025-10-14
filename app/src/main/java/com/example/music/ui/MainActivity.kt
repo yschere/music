@@ -13,11 +13,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
 import androidx.media3.common.util.UnstableApi
 import com.example.music.data.database.MusicDatabase
+import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.service.MediaService
 import com.example.music.service.SongController
 import com.example.music.ui.theme.MusicTheme
@@ -28,11 +32,13 @@ import dagger.hilt.android.AndroidEntryPoint
 import org.apache.log4j.BasicConfigurator
 import javax.inject.Inject
 
-private const val APP_PREFERENCES_NAME = "app_preferences"
 private const val TAG = "Main Activity"
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var appPreferences: AppPreferencesRepo
 
     @Inject
     lateinit var musicDatabase: MusicDatabase
@@ -85,15 +91,19 @@ class MainActivity : ComponentActivity() {
         Log.i(TAG, "edge to edge enabled")
 
         setContent {
+            val currentTheme: String by appPreferences.getThemeFlow.collectAsState(initial = "System default")
             Log.i(TAG, "onCreate - setContent start")
             val displayFeatures = calculateDisplayFeatures(this)
 
             Log.i(TAG, "onCreate - setContent > MusicTheme setting MusicApp displayFeatures")
-            MusicTheme {
-                MusicApp(
-                    displayFeatures
-                )
-            }
+            Log.i(TAG, "Dark mode?: currentTheme $currentTheme ->> " +
+                "${( currentTheme == "Dark" ||
+                    ( currentTheme == "System default" && isSystemInDarkTheme() ))}")
+
+            MusicTheme(
+                darkTheme = ( currentTheme == "Dark" ||
+                    ( currentTheme == "System default" && isSystemInDarkTheme() ) )
+            ) { MusicApp(displayFeatures = displayFeatures) }
         }
     }
 

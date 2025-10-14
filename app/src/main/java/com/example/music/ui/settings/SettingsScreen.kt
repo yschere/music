@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.DrawerValue
@@ -55,6 +57,8 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.layout.DisplayFeature
 import com.example.music.R
 import com.example.music.data.repository.ShuffleType
+import com.example.music.data.repository.ThemeList
+import com.example.music.data.util.FLAG
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.LIST_ITEM_HEIGHT
 import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
@@ -65,12 +69,14 @@ import com.example.music.ui.shared.Actions
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
-import com.example.music.ui.shared.SettingsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.shared.NavDrawerBtn
+import com.example.music.ui.shared.ShuffleSettingsBottomModal
+import com.example.music.ui.shared.ThemeSettingsBottomModal
 import com.example.music.util.frontTextPadding
 import com.example.music.util.modalHeaderPadding
+import com.example.music.util.modalPadding
 import com.example.music.util.screenMargin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -103,6 +109,8 @@ fun SettingsScreen(
             isLoading = uiState.isLoading,
             displayFeatures = displayFeatures,
             totals = uiState.totals,
+            selectShuffleType = uiState.selectShuffleType,
+            selectTheme = uiState.selectThemeMode,
             onSettingsAction = viewModel::onSettingsAction,
             navigateToHome = navigateToHome,
             navigateToLibrary = navigateToLibrary,
@@ -131,6 +139,8 @@ private fun SettingsScreen(
     isLoading: Boolean,
     displayFeatures: List<DisplayFeature>,
     totals: List<Int>,
+    selectShuffleType: ShuffleType,
+    selectTheme: String,
 
     onSettingsAction: (SettingsAction) -> Unit,
     navigateToHome: () -> Unit,
@@ -178,7 +188,8 @@ private fun SettingsScreen(
                     coroutineScope = coroutineScope,
                     windowSizeClass = windowSizeClass,
                     displayFeatures = displayFeatures,
-                    //settings data store
+                    selectShuffleType = selectShuffleType,
+                    selectTheme = selectTheme,
                     onSettingsAction = onSettingsAction,
                     modifier = modifier.padding(contentPadding),
                 )
@@ -224,6 +235,8 @@ private fun SettingsContent(
     coroutineScope: CoroutineScope,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
+    selectShuffleType: ShuffleType,
+    selectTheme: String,
     onSettingsAction: (SettingsAction) -> Unit,
     modifier: Modifier = Modifier,
 
@@ -280,9 +293,7 @@ private fun SettingsContent(
             SettingRowItemWithModal(
                 "Theme Mode",
                 "Set light mode, dark mode, or system default",
-                onClick = {
-                    showThemeSheet = true
-                },
+                onClick = { showThemeSheet = true },
             )
         }
 
@@ -310,7 +321,7 @@ private fun SettingsContent(
     }
 
     if (showShuffleSheet) {
-        SettingsBottomModal(
+        ShuffleSettingsBottomModal(
             onDismissRequest = { showShuffleSheet = false },
             sheetState = sheetState,
             onClose = {
@@ -322,27 +333,24 @@ private fun SettingsContent(
                     if(!sheetState.isVisible) showShuffleSheet = false
                 }
             },
-            onApply = {
+            onApply = { newShuffleType: Int ->
                 coroutineScope.launch {
-                    Log.i(TAG, "Hide sheet state")
+                    Log.i(TAG, "Shuffle selected: $newShuffleType")
+                    onSettingsAction(
+                        SettingsAction.ShuffleTypeSelected(newShuffleType)
+                    )
                     sheetState.hide()
                 }.invokeOnCompletion {
                     Log.i(TAG, "set showShuffleSheet to FALSE")
                     if(!sheetState.isVisible) showShuffleSheet = false
                 }
             },
-        ) {
-            ShuffleModalContent(
-                onShuffleApply = {
-                    Log.i(TAG, "Shuffle selected: ${it.name}")
-                    onSettingsAction( SettingsAction.ShuffleTypeSelected( it ) )
-                }
-            )
-        }
+            currentSelection = selectShuffleType.ordinal,
+        )
     }
 
     if (showThemeSheet) {
-        SettingsBottomModal(
+        ThemeSettingsBottomModal(
             onDismissRequest = { showThemeSheet = false },
             sheetState = sheetState,
             onClose = {
@@ -354,23 +362,18 @@ private fun SettingsContent(
                     if(!sheetState.isVisible) showThemeSheet = false
                 }
             },
-            onApply = {
+            onApply = { newTheme: String ->
                 coroutineScope.launch {
-                    Log.i(TAG, "Apply clicked: does nothing right now")
+                    Log.i(TAG, "Theme selected: $newTheme")
+                    onSettingsAction(SettingsAction.ThemeModeSelected(newTheme))
                     sheetState.hide()
                 }.invokeOnCompletion {
                     Log.i(TAG, "set showThemeSheet to FALSE")
                     if(!sheetState.isVisible) showThemeSheet = false
                 }
             },
-        ) {
-            ThemeModalContent(
-                onThemeApply = {
-                    Log.i(TAG, "Theme selected: $it")
-                    onSettingsAction(SettingsAction.ThemeModeSelected(it))
-                }
-            )
-        }
+            currentSelection = selectTheme,
+        )
     }
 }
 
@@ -450,19 +453,30 @@ private fun SettingRowItemWithModal(
 
 @Composable
 private fun ShuffleModalContent(
+    currentSelection: ShuffleType,
+    onClose: () -> Unit,
+    onApply: (ShuffleType) -> Unit = { _ -> },
     onShuffleApply: (ShuffleType) -> Unit,
 ) {
-    Column(modifier = Modifier) {
+    var shuffle = currentSelection
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier.verticalScroll(state = rememberScrollState())
+    ) {
         Text(
             text = "Set Shuffle Type:",
             textAlign = TextAlign.Left,
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxWidth()
-                .modalHeaderPadding()
+            modifier = Modifier.fillMaxWidth().modalHeaderPadding(),
         )
+        if (FLAG) Log.i(TAG, "Shuffle Type Settings Modal:\n" +
+            "Current shuffle type: ${currentSelection.name}")
+
         ShuffleRadioGroupSet(
-            radioOptions = listOf(ShuffleType.ONCE, ShuffleType.ON_LOOP),
-            onSettingsAction = onShuffleApply,
+            radioOptions = ShuffleType.entries,
+            initialValue = currentSelection,
+            onOptionSelect = { newShuf -> shuffle = newShuf },
         )
     }
 }
@@ -486,7 +500,8 @@ private fun ThemeModalContent(
         )
         ThemeRadioGroupSet(
             radioOptions = themeOptions,
-            onSettingsAction = onThemeApply
+            initialValue = themeOptions.get(0),
+            onOptionSelect = onThemeApply
         )
     }
 }
@@ -494,9 +509,11 @@ private fun ThemeModalContent(
 @Composable
 private fun ShuffleRadioGroupSet(
     radioOptions: List<ShuffleType>,
-    onSettingsAction: (ShuffleType) -> Unit,
+    initialValue: ShuffleType,
+    onOptionSelect: (ShuffleType) -> Unit = {},
+    //onSettingsAction: (ShuffleType) -> Unit,
 ) {
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
+    val (selectedOption, onOptionSelected) = remember { mutableStateOf(initialValue) }
     // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
     Column(
         verticalArrangement = Arrangement.Top,
@@ -511,12 +528,13 @@ private fun ShuffleRadioGroupSet(
                     .selectable(
                         selected = (option == selectedOption),
                         onClick = {
+                            Log.i(TAG, "current option: $option")
                             onOptionSelected(option)
-                            onSettingsAction(option)
+                            onOptionSelect(option)
                         },
                         role = Role.RadioButton
                     )
-                    .padding(horizontal = MODAL_CONTENT_PADDING)
+                    .modalPadding()
             ) {
                 RadioButton(
                     selected = (option == selectedOption),
@@ -540,11 +558,12 @@ private fun ShuffleRadioGroupSet(
 }
 
 @Composable
-private fun ThemeRadioGroupSet(
+fun ThemeRadioGroupSet(
     radioOptions: List<ActionItem>,
-    onSettingsAction: (String) -> Unit,
+    initialValue: ActionItem,
+    onOptionSelect: (String) -> Unit,
 ) {
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
+    val (selectedOption, onOptionSelected) = remember { mutableStateOf(initialValue) }
     // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
     Column(
         verticalArrangement = Arrangement.Top,
@@ -560,7 +579,7 @@ private fun ThemeRadioGroupSet(
                         selected = (option == selectedOption),
                         onClick = {
                             onOptionSelected(option)
-                            onSettingsAction(option.name)
+                            onOptionSelect(option.name)
                         },
                         role = Role.RadioButton
                     )
@@ -608,6 +627,8 @@ private fun PreviewSettings() {
                 isLoading = false,
                 displayFeatures = emptyList(),
                 totals = listOf(6373, 990, 1427, 35, 9),
+                selectTheme = "System default",
+                selectShuffleType = ShuffleType.ON_LOOP,
                 onSettingsAction = {},
                 navigateToHome = {},
                 navigateToLibrary = {},
@@ -622,7 +643,7 @@ private fun PreviewSettings() {
 @Composable
 private fun SettingsModalPreview() {
     MusicTheme {
-        SettingsBottomModal(
+        ThemeSettingsBottomModal(
             onDismissRequest = {},
             sheetState = SheetState(
                 initialValue = SheetValue.Expanded,
@@ -630,10 +651,8 @@ private fun SettingsModalPreview() {
                 density = Density(1f,1f)
             ),
             onClose = {},
-            onApply = {}
-        ) {
-//            ShuffleModalContent {  }
-            ThemeModalContent {  }
-        }
+            onApply = {_ -> },
+            currentSelection = "",
+        )
     }
 }

@@ -1,11 +1,15 @@
 package com.example.music.ui.theme
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import com.example.music.designsys.theme.lightDefaultSet
 import com.example.music.designsys.theme.darkDefaultSet
 
@@ -151,23 +155,26 @@ fun MusicTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) {
-        blueDarkColorSet
-    } else {
-        blueLightColorSet
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
+        }
     }
 
-    val coolColors = if (darkTheme) {
-        coolToneDarkColorSet
-    } else {
-        coolToneLightColorSet
-    }
+    val colors =
+        if (darkTheme) blueDarkColorSet
+        else blueLightColorSet
 
-    val jetCasterColors = if (darkTheme) {
-        darkDefaultSet
-    } else {
-        lightDefaultSet
-    }
+    val coolColors =
+        if (darkTheme) coolToneDarkColorSet
+        else coolToneLightColorSet
+
+    val jetCasterColors =
+        if (darkTheme) darkDefaultSet
+        else lightDefaultSet
 
     MaterialTheme(
         colorScheme = coolColors,//colors,//jetCasterColors,//
