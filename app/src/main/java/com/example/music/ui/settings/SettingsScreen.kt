@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.DrawerValue
@@ -55,6 +57,8 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.layout.DisplayFeature
 import com.example.music.R
 import com.example.music.data.repository.ShuffleType
+import com.example.music.data.repository.ThemeList
+import com.example.music.data.util.FLAG
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.LIST_ITEM_HEIGHT
 import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
@@ -65,12 +69,15 @@ import com.example.music.ui.shared.Actions
 import com.example.music.ui.shared.Error
 import com.example.music.ui.shared.NavDrawer
 import com.example.music.ui.shared.ScreenBackground
-import com.example.music.ui.shared.SettingsBottomModal
 import com.example.music.ui.theme.MusicTheme
 import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.shared.NavDrawerBtn
+import com.example.music.ui.shared.ShuffleSettingsBottomModal
+import com.example.music.ui.shared.ThemeSettingsBottomModal
+import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.frontTextPadding
 import com.example.music.util.modalHeaderPadding
+import com.example.music.util.modalPadding
 import com.example.music.util.screenMargin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -103,6 +110,8 @@ fun SettingsScreen(
             isLoading = uiState.isLoading,
             displayFeatures = displayFeatures,
             totals = uiState.totals,
+            selectShuffleType = uiState.selectShuffleType,
+            selectTheme = uiState.selectThemeMode,
             onSettingsAction = viewModel::onSettingsAction,
             navigateToHome = navigateToHome,
             navigateToLibrary = navigateToLibrary,
@@ -131,6 +140,8 @@ private fun SettingsScreen(
     isLoading: Boolean,
     displayFeatures: List<DisplayFeature>,
     totals: List<Int>,
+    selectShuffleType: ShuffleType,
+    selectTheme: String,
 
     onSettingsAction: (SettingsAction) -> Unit,
     navigateToHome: () -> Unit,
@@ -178,7 +189,8 @@ private fun SettingsScreen(
                     coroutineScope = coroutineScope,
                     windowSizeClass = windowSizeClass,
                     displayFeatures = displayFeatures,
-                    //settings data store
+                    selectShuffleType = selectShuffleType,
+                    selectTheme = selectTheme,
                     onSettingsAction = onSettingsAction,
                     modifier = modifier.padding(contentPadding),
                 )
@@ -224,6 +236,8 @@ private fun SettingsContent(
     coroutineScope: CoroutineScope,
     windowSizeClass: WindowSizeClass,
     displayFeatures: List<DisplayFeature>,
+    selectShuffleType: ShuffleType,
+    selectTheme: String,
     onSettingsAction: (SettingsAction) -> Unit,
     modifier: Modifier = Modifier,
 
@@ -280,9 +294,7 @@ private fun SettingsContent(
             SettingRowItemWithModal(
                 "Theme Mode",
                 "Set light mode, dark mode, or system default",
-                onClick = {
-                    showThemeSheet = true
-                },
+                onClick = { showThemeSheet = true },
             )
         }
 
@@ -310,7 +322,7 @@ private fun SettingsContent(
     }
 
     if (showShuffleSheet) {
-        SettingsBottomModal(
+        ShuffleSettingsBottomModal(
             onDismissRequest = { showShuffleSheet = false },
             sheetState = sheetState,
             onClose = {
@@ -322,27 +334,24 @@ private fun SettingsContent(
                     if(!sheetState.isVisible) showShuffleSheet = false
                 }
             },
-            onApply = {
+            onApply = { newShuffleType: Int ->
                 coroutineScope.launch {
-                    Log.i(TAG, "Hide sheet state")
+                    Log.i(TAG, "Shuffle selected: $newShuffleType")
+                    onSettingsAction(
+                        SettingsAction.ShuffleTypeSelected(newShuffleType)
+                    )
                     sheetState.hide()
                 }.invokeOnCompletion {
                     Log.i(TAG, "set showShuffleSheet to FALSE")
                     if(!sheetState.isVisible) showShuffleSheet = false
                 }
             },
-        ) {
-            ShuffleModalContent(
-                onShuffleApply = {
-                    Log.i(TAG, "Shuffle selected: ${it.name}")
-                    onSettingsAction( SettingsAction.ShuffleTypeSelected( it ) )
-                }
-            )
-        }
+            currentSelection = selectShuffleType.ordinal,
+        )
     }
 
     if (showThemeSheet) {
-        SettingsBottomModal(
+        ThemeSettingsBottomModal(
             onDismissRequest = { showThemeSheet = false },
             sheetState = sheetState,
             onClose = {
@@ -354,23 +363,18 @@ private fun SettingsContent(
                     if(!sheetState.isVisible) showThemeSheet = false
                 }
             },
-            onApply = {
+            onApply = { newTheme: String ->
                 coroutineScope.launch {
-                    Log.i(TAG, "Apply clicked: does nothing right now")
+                    Log.i(TAG, "Theme selected: $newTheme")
+                    onSettingsAction(SettingsAction.ThemeModeSelected(newTheme))
                     sheetState.hide()
                 }.invokeOnCompletion {
                     Log.i(TAG, "set showThemeSheet to FALSE")
                     if(!sheetState.isVisible) showThemeSheet = false
                 }
             },
-        ) {
-            ThemeModalContent(
-                onThemeApply = {
-                    Log.i(TAG, "Theme selected: $it")
-                    onSettingsAction(SettingsAction.ThemeModeSelected(it))
-                }
-            )
-        }
+            currentSelection = selectTheme,
+        )
     }
 }
 
@@ -448,153 +452,6 @@ private fun SettingRowItemWithModal(
     }
 }
 
-@Composable
-private fun ShuffleModalContent(
-    onShuffleApply: (ShuffleType) -> Unit,
-) {
-    Column(modifier = Modifier) {
-        Text(
-            text = "Set Shuffle Type:",
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxWidth()
-                .modalHeaderPadding()
-        )
-        ShuffleRadioGroupSet(
-            radioOptions = listOf(ShuffleType.ONCE, ShuffleType.ON_LOOP),
-            onSettingsAction = onShuffleApply,
-        )
-    }
-}
-
-@Composable
-private fun ThemeModalContent(
-    onThemeApply: (String) -> Unit,
-) {
-    val themeOptions = arrayListOf(
-        Actions.ThemeDefault,
-        Actions.ThemeLight,
-        Actions.ThemeDark,
-    )
-    Column(modifier = Modifier) {
-        Text(
-            text = "Set Theme Mode:",
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxWidth()
-                .modalHeaderPadding()
-        )
-        ThemeRadioGroupSet(
-            radioOptions = themeOptions,
-            onSettingsAction = onThemeApply
-        )
-    }
-}
-
-@Composable
-private fun ShuffleRadioGroupSet(
-    radioOptions: List<ShuffleType>,
-    onSettingsAction: (ShuffleType) -> Unit,
-) {
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
-    // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier.selectableGroup()
-    ) {
-        radioOptions.forEach { option ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-                    .height(LIST_ITEM_HEIGHT)
-                    .selectable(
-                        selected = (option == selectedOption),
-                        onClick = {
-                            onOptionSelected(option)
-                            onSettingsAction(option)
-                        },
-                        role = Role.RadioButton
-                    )
-                    .padding(horizontal = MODAL_CONTENT_PADDING)
-            ) {
-                RadioButton(
-                    selected = (option == selectedOption),
-                    colors = RadioButtonDefaults.colors(
-                        selectedColor = MaterialTheme.colorScheme.primary,
-                        unselectedColor = MaterialTheme.colorScheme.onBackground,
-                    ),
-                    modifier = Modifier.padding(SMALL_PADDING),
-                    onClick = null, // null recommended for accessibility with screenreaders
-                )
-                Text(
-                    text = option.name,
-                    color =
-                        if (option == selectedOption) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.frontTextPadding(),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ThemeRadioGroupSet(
-    radioOptions: List<ActionItem>,
-    onSettingsAction: (String) -> Unit,
-) {
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
-    // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier.selectableGroup()
-    ) {
-        radioOptions.forEach { option ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-                    .height(LIST_ITEM_HEIGHT)
-                    .selectable(
-                        selected = (option == selectedOption),
-                        onClick = {
-                            onOptionSelected(option)
-                            onSettingsAction(option.name)
-                        },
-                        role = Role.RadioButton
-                    )
-                    .padding(horizontal = MODAL_CONTENT_PADDING)
-            ) {
-                RadioButton(
-                    selected = (option == selectedOption),
-                    colors = RadioButtonDefaults.colors(
-                        selectedColor = MaterialTheme.colorScheme.primary,
-                        unselectedColor = MaterialTheme.colorScheme.onBackground,
-                    ),
-                    modifier = Modifier.padding(SMALL_PADDING),
-                    onClick = null // null recommended for accessibility with screenreaders
-                )
-                Icon(
-                    imageVector = option.icon,
-                    contentDescription = option.contentDescription.toString(),
-                    tint =
-                        if (option == selectedOption) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(SMALL_PADDING),
-                )
-                Text(
-                    text = option.name,
-                    color =
-                        if (option == selectedOption) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.frontTextPadding(),
-                )
-            }
-        }
-    }
-}
-
 //private val CompactWindowSizeClass = WindowSizeClass.compute(360f, 780f)
 
 //@SystemLightPreview
@@ -608,32 +465,13 @@ private fun PreviewSettings() {
                 isLoading = false,
                 displayFeatures = emptyList(),
                 totals = listOf(6373, 990, 1427, 35, 9),
+                selectTheme = "System default",
+                selectShuffleType = ShuffleType.ON_LOOP,
                 onSettingsAction = {},
                 navigateToHome = {},
                 navigateToLibrary = {},
                 navigateToSettings = {},
             )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@SystemDarkPreview
-@Composable
-private fun SettingsModalPreview() {
-    MusicTheme {
-        SettingsBottomModal(
-            onDismissRequest = {},
-            sheetState = SheetState(
-                initialValue = SheetValue.Expanded,
-                skipPartiallyExpanded = true,
-                density = Density(1f,1f)
-            ),
-            onClose = {},
-            onApply = {}
-        ) {
-//            ShuffleModalContent {  }
-            ThemeModalContent {  }
         }
     }
 }

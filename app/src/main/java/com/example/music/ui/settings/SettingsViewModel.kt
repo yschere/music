@@ -3,7 +3,9 @@ package com.example.music.ui.settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.data.repository.ShuffleType
+import com.example.music.domain.usecases.GetAppPreferencesUserSettings
 import com.example.music.domain.usecases.GetTotalCounts
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,16 +17,24 @@ import javax.inject.Inject
 
 private const val TAG = "Settings View Model"
 
+data class SettingsUiState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val selectShuffleType: ShuffleType = ShuffleType.ONCE,
+    val selectThemeMode: String = "System default",
+    val totals: List<Int> = emptyList()
+)
+
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    //need to be able to access CurrentPreferencesDataStore
-    //need own set of ScreenActions that trigger like onClick
+    getUserSettings: GetAppPreferencesUserSettings,
     getTotalCounts: GetTotalCounts,
-) : ViewModel() {
+): ViewModel() {
 
-    private val selectedShuffleType = MutableStateFlow(ShuffleType.ONCE)
+    @Inject
+    lateinit var appPreferences: AppPreferencesRepo
 
-    private val selectedThemeMode = MutableStateFlow("System default")
+    private val settingsFlow = getUserSettings()
 
     private val _state = MutableStateFlow(SettingsUiState())
 
@@ -34,24 +44,24 @@ class SettingsViewModel @Inject constructor(
         get() = _state
 
     init{
+        Log.i(TAG, "init START")
         viewModelScope.launch {
-            Log.i(TAG, "viewModelScope launch start")
+            Log.i(TAG, "viewModelScope launch START")
             val counts = getTotalCounts()
+
             combine(
                 refreshing,
-                selectedShuffleType,
-                selectedThemeMode,
+                settingsFlow,
             ) {
                 refreshing,
-                shuffle,
-                theme, ->
+                settings, ->
+                Log.i(TAG, "Shuffle type set to: ${settings.shuffleType}")
+                Log.i(TAG, "Theme mode set to: ${settings.theme}")
 
-                Log.i(TAG, "Shuffle type set to: ${shuffle.name}")
-                Log.i(TAG, "Theme mode set to: $theme")
                 SettingsUiState(
                     isLoading = refreshing,
-                    selectedShuffleType = shuffle,
-                    selectedThemeMode = theme,
+                    selectShuffleType = settings.shuffleType,
+                    selectThemeMode = settings.theme,
                     totals = counts,
                 )
             }.catch { throwable ->
@@ -95,14 +105,17 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun onShuffleTypeSelected(shuffleType: ShuffleType){
-        Log.i(TAG, "Shuffle Type selected")
-        selectedShuffleType.value = shuffleType
+    private fun onShuffleTypeSelected(shuffleType: Int){
+        viewModelScope.launch {
+            Log.i(TAG, "Shuffle Type selected: ${ShuffleType.entries[shuffleType]}")
+            appPreferences.updateShuffleType(ShuffleType.entries[shuffleType])
+        }
     }
-
     private fun onThemeModeSelected(themeMode: String){
-        Log.i(TAG, "Theme Mode selected")
-        selectedThemeMode.value = themeMode
+        viewModelScope.launch {
+            Log.i(TAG, "Theme Mode selected: $themeMode")
+            appPreferences.updateTheme(themeMode)
+        }
     }
 
     /**
@@ -127,16 +140,8 @@ class SettingsViewModel @Inject constructor(
 }
 
 sealed interface SettingsAction {
-    data class ShuffleTypeSelected(val shuffleType: ShuffleType) : SettingsAction
+    data class ShuffleTypeSelected(val shuffleType: Int) : SettingsAction
     data class ThemeModeSelected(val themeMode: String) : SettingsAction
     data object ImportPlaylist : SettingsAction
     data object RefreshLibrary : SettingsAction
 }
-
-data class SettingsUiState(
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val selectedShuffleType: ShuffleType = ShuffleType.ONCE,
-    val selectedThemeMode: String = "System default",
-    val totals: List<Int> = emptyList()
-)

@@ -12,8 +12,8 @@ import com.example.music.data.util.combine
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
+import com.example.music.domain.usecases.FeaturedLibraryAlbums
 import com.example.music.domain.usecases.FeaturedLibraryItems
-import com.example.music.domain.usecases.FeaturedLibraryPlaylists
 import com.example.music.domain.usecases.GetAlbumDetails
 import com.example.music.domain.usecases.GetPlaylistDetails
 import com.example.music.domain.usecases.GetSongData
@@ -37,11 +37,11 @@ private const val TAG = "Home View Model"
 data class HomeScreenUiState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
-//    val featuredAlbums: List<AlbumInfo> = emptyList(),
+    //val featuredAlbums: List<AlbumInfo> = emptyList(),
     val featuredPlaylists: List<PlaylistInfo> = emptyList(),
     val featuredSongs: List<SongInfo> = emptyList(),
     val totals: List<Int> = emptyList(),
-//    val selectAlbum: AlbumInfo = AlbumInfo(),
+    //val selectAlbum: AlbumInfo = AlbumInfo(),
     val selectPlaylist: PlaylistInfo = PlaylistInfo(),
     val selectSong: SongInfo = SongInfo(),
 )
@@ -51,8 +51,8 @@ data class HomeScreenUiState(
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    //featuredLibraryItems: FeaturedLibraryItems,
-    featuredLibraryPlaylists: FeaturedLibraryPlaylists,
+    //featuredLibraryAlbums: FeaturedLibraryAlbums,
+    featuredLibraryItems: FeaturedLibraryItems,
 
     private val getAlbumDetails: GetAlbumDetails,
     private val getPlaylistDetails: GetPlaylistDetails,
@@ -62,9 +62,9 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel(), MiniPlayerState {
 
     // test version for using MediaStore, uses Album instead of playlist for now
-    //private val featuredItemsData = featuredLibraryItems()
+    //private val featuredAlbumsData = featuredLibraryAlbums()
         //.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-    private val featuredPlaylistsData = featuredLibraryPlaylists()
+    private val featuredItemsData = featuredLibraryItems()
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     // Holds the song, album to show in more options modal
@@ -113,32 +113,32 @@ class HomeViewModel @Inject constructor(
 
             combine(
                 refreshing,
-                //featuredItemsData,
-                featuredPlaylistsData,
+                //featuredAlbumsData,
+                featuredItemsData,
                 //selectedAlbum,
                 selectedPlaylist,
                 selectedSong,
             ) {
                 refreshing,
-                //libraryItems,
-                playlistItems,
+                //albumItems,
+                libraryItems,
                 //selectAlbum,
                 selectPlaylist,
                 selectSong, ->
                 Log.i(TAG, "HomeUiState combine START\n" +
                     "refreshing: $refreshing\n" +
-                    //"libraryItemsAlbums: ${libraryItems.recentAlbums.size}\n" +
-                    "libraryItemsPlaylists: ${playlistItems.recentPlaylists.size}\n" +
-                    "libraryItemsSongs: ${playlistItems.recentlyAddedSongs.size}\n" +
+                    //"libraryItemsAlbums: ${albumItems.recentAlbums.size}\n" +
+                    "libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}\n" +
+                    "libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}\n" +
                     "is SongController available: ${songController.isConnected()}")
 
                 getSongControllerState()
 
                 HomeScreenUiState(
                     isLoading = refreshing,
-                    //featuredAlbums = libraryItems.recentAlbums,
-                    featuredPlaylists = playlistItems.recentPlaylists,
-                    featuredSongs = playlistItems.recentlyAddedSongs,
+                    //featuredAlbums = albumItems.recentAlbums,
+                    featuredPlaylists = libraryItems.recentPlaylists,
+                    featuredSongs = libraryItems.recentlyAddedSongs,
                     totals = counts,
                     //selectAlbum = selectAlbum,
                     selectPlaylist = selectPlaylist,
@@ -264,31 +264,31 @@ class HomeViewModel @Inject constructor(
                 "player?: ${player?.playbackState}")
 
         combine(
-            //featuredItemsData,
-            featuredPlaylistsData,
+            //featuredAlbumsData,
+            featuredItemsData,
             //selectedAlbum,
             selectedPlaylist,
             selectedSong,
         ) {
-            //libraryItems,
-            playlistItems,
+            //albumItems,
+            libraryItems,
             //selectAlbum,
             selectPlaylist,
             selectSong: SongInfo,->
             Log.i(TAG, "HomeUiState combine START\n" +
                 "refreshing: ${refreshing.value}\n" +
-                //"libraryItemsAlbums: ${libraryItems.recentAlbums.size}\n" +
-                "libraryItemsPlaylists: ${playlistItems.recentPlaylists.size}\n" +
-                "libraryItemsSongs: ${playlistItems.recentlyAddedSongs.size}\n" +
+                //"libraryItemsAlbums: ${albumItems.recentAlbums.size}\n" +
+                "libraryItemsPlaylists: ${libraryItems.recentPlaylists.size}\n" +
+                "libraryItemsSongs: ${libraryItems.recentlyAddedSongs.size}\n" +
                 "is SongController available: ${songController.isConnected()}")
 
             getSongControllerState()
 
             HomeScreenUiState(
                 isLoading = refreshing.value,
-                //featuredAlbums = libraryItems.recentAlbums,
-                featuredPlaylists = playlistItems.recentPlaylists,
-                featuredSongs = playlistItems.recentlyAddedSongs,
+                //featuredAlbums = albumItems.recentAlbums,
+                featuredPlaylists = libraryItems.recentPlaylists,
+                featuredSongs = libraryItems.recentlyAddedSongs,
                 totals = counts,
                 //selectAlbum = selectAlbum,
                 selectPlaylist = selectPlaylist,

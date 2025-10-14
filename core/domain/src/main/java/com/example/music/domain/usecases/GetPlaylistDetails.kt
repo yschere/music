@@ -1,12 +1,12 @@
 package com.example.music.domain.usecases
 
 import android.util.Log
-import com.example.music.data.repository.PlaylistRepo
 import com.example.music.domain.model.PlaylistDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.Playlist
 import com.example.music.data.mediaresolver.model.uri
+import com.example.music.data.util.FLAG
 import com.example.music.domain.model.getArtworkUris
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -17,11 +17,9 @@ private const val TAG = "Get Playlist Details"
 
 /**
  * Use case to retrieve data for [PlaylistDetailsFilterResult] domain model for PlaylistDetailsScreen UI.
- * @property playlistRepo The repository for accessing Playlist data
  * @property mediaRepo Content Resolver for MediaStore
  */
 class GetPlaylistDetails @Inject constructor(
-//    private val playlistRepo: PlaylistRepo,
     private val mediaRepo: MediaRepo,
 ) {
     operator fun invoke(playlistId: Long): Flow<PlaylistDetailsFilterResult> {
@@ -31,14 +29,13 @@ class GetPlaylistDetails @Inject constructor(
         return combine(
             playlistFlow,
             playlistFlow.map {
-                Log.i(TAG, "Fetching songs from playlist $playlistId")
                 mediaRepo.findPlaylistTracks(playlistId).map { track ->
                     mediaRepo.getAudio(track.audioId)
                 }
             },
         ) { playlist, audios ->
-            Log.i(TAG, "playlist: ${playlist.name} + ${playlist.numTracks} songs")
-            Log.i(TAG, "playlist songs: $audios.size")
+            if (FLAG) Log.i(TAG, "Playlist: ${playlist.name} :: ${playlist.numTracks} songs\n" +
+                "Is audio count == Playlist.numTracks? ${audios.size == playlist.numTracks}")
 
             val p = playlist.asExternalModel()
             if (p.songCount > 0){

@@ -59,6 +59,7 @@ import com.example.music.data.repository.ArtistSortList
 import com.example.music.data.repository.ComposerSortList
 import com.example.music.data.repository.GenreSortList
 import com.example.music.data.repository.PlaylistSortList
+import com.example.music.data.repository.ShuffleTypeList
 import com.example.music.data.repository.SongSortList
 import com.example.music.data.util.FLAG
 import com.example.music.designsys.component.AlbumImage
@@ -67,6 +68,7 @@ import com.example.music.designsys.theme.DEFAULT_PADDING
 import com.example.music.designsys.theme.ICON_SIZE
 import com.example.music.designsys.theme.ITEM_IMAGE_ROW_SIZE
 import com.example.music.designsys.theme.LIST_ITEM_HEIGHT
+import com.example.music.designsys.theme.MODAL_CONTENT_PADDING
 import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
@@ -293,7 +295,6 @@ private fun RadioGroupSet(
     radioOptions: List<String>,
     initialValue: String,
     onOptionSelect: (String) -> Unit = {},
-    //radio button content: @Composable () -> Unit,
 ) {
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[radioOptions.indexOf(initialValue)]) }
     // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
@@ -1124,23 +1125,45 @@ fun DetailsSortOrderBottomModal(
  **********************************************************************************************/
 
 /**
- * Bottom Modal for Settings Screen to display preference options
+ * Bottom Modal for Settings Screen to display Shuffle Type options
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsBottomModal(
+fun ShuffleSettingsBottomModal(
     onDismissRequest: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 
     onClose: () -> Unit,
-    onApply: () -> Unit,
-    content: @Composable () -> Unit,
+    onApply: (Int) -> Unit,
+    currentSelection: Int,
 ) {
+    var shuffle = currentSelection
+
     BottomModal(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
     ) {
-        content()
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.verticalScroll(state = rememberScrollState())
+        ) {
+            Text(
+                text = "Set Shuffle Type:",
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.fillMaxWidth().modalHeaderPadding(),
+            )
+
+            if (FLAG) Log.i(TAG, "Shuffle Type Settings Modal:\n" +
+                "Current shuffle type: $currentSelection")
+
+            RadioGroupSet(
+                radioOptions = ShuffleTypeList,
+                initialValue = ShuffleTypeList[currentSelection],
+                onOptionSelect = { newShuf -> shuffle = ShuffleTypeList.indexOf(newShuf) },
+            )
+        }
 
         Row {
             CloseModalBtn(
@@ -1149,10 +1172,144 @@ fun SettingsBottomModal(
                 modifier = Modifier.weight(0.5f)
             )
             ApplyModalBtn(
-                onClick = onApply,
+                onClick = {
+                    Log.i(TAG, "After Apply clicked:\n" +
+                        "new shuffle type: $shuffle")
+                    onApply(shuffle)
+                },
                 text = "APPLY",
                 modifier = Modifier.weight(0.5f)
             )
+        }
+    }
+}
+
+/**
+ * Bottom Modal for Settings Screen to display Theme mode options
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ThemeSettingsBottomModal(
+    onDismissRequest: () -> Unit,
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+
+    onClose: () -> Unit,
+    onApply: (String) -> Unit,
+    currentSelection: String,
+) {
+    var theme = currentSelection
+    val themesArray = arrayListOf(
+        Actions.ThemeDefault,
+        Actions.ThemeLight,
+        Actions.ThemeDark,
+    )
+
+    BottomModal(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.verticalScroll(state = rememberScrollState())
+        ) {
+            Text(
+                text = "Set Theme Mode:",
+                textAlign = TextAlign.Left,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.fillMaxWidth().modalHeaderPadding(),
+            )
+
+            if (FLAG) Log.i(TAG, "Theme Settings Modal:\n" +
+                    "Current theme: $currentSelection")
+
+            ThemeRadioGroupSet (
+                radioOptions = themesArray,
+                initialValue = themesArray[
+                    themesArray.indexOf(
+                        themesArray.find { it.name == currentSelection }
+                    )
+                ],
+                onOptionSelect = { newTheme -> theme = newTheme },
+            )
+        }
+
+        Row {
+            CloseModalBtn(
+                onClick = onClose,
+                text = "CANCEL",
+                modifier = Modifier.weight(0.5f)
+            )
+            ApplyModalBtn(
+                onClick = {
+                    Log.i(TAG, "After Apply clicked:\n" +
+                            "new theme: $theme")
+                    onApply(theme)
+                },
+                text = "APPLY",
+                modifier = Modifier.weight(0.5f)
+            )
+        }
+    }
+}
+
+/**
+ * Bottom Sheet Modal Support function to display ActionItems as RadioButton options
+ * for Theme Settings Bottom Modal
+ */
+@Composable
+private fun ThemeRadioGroupSet(
+    radioOptions: List<ActionItem>,
+    initialValue: ActionItem,
+    onOptionSelect: (String) -> Unit,
+) {
+    val (selectedOption, onOptionSelected) = remember { mutableStateOf(initialValue) }
+    // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
+    Column(
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier.selectableGroup()
+    ) {
+        radioOptions.forEach { option ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+                    .height(LIST_ITEM_HEIGHT)
+                    .selectable(
+                        selected = (option == selectedOption),
+                        onClick = {
+                            onOptionSelected(option)
+                            onOptionSelect(option.name)
+                        },
+                        role = Role.RadioButton
+                    )
+                    .padding(horizontal = MODAL_CONTENT_PADDING)
+            ) {
+                RadioButton(
+                    selected = (option == selectedOption),
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = MaterialTheme.colorScheme.primary,
+                        unselectedColor = MaterialTheme.colorScheme.onBackground,
+                    ),
+                    modifier = Modifier.padding(SMALL_PADDING),
+                    onClick = null // null recommended for accessibility with screenreaders
+                )
+                Icon(
+                    imageVector = option.icon,
+                    contentDescription = option.contentDescription.toString(),
+                    tint =
+                        if (option == selectedOption) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(SMALL_PADDING),
+                )
+                Text(
+                    text = option.name,
+                    color =
+                        if (option == selectedOption) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.frontTextPadding(),
+                )
+            }
         }
     }
 }
@@ -1288,8 +1445,14 @@ private fun BottomModal(
     }
 }
 
+/***********************************************************************************************
+ *
+ * ********** PREVIEW COMPOSABLES ***********
+ *
+ **********************************************************************************************/
+
 @OptIn(ExperimentalMaterial3Api::class)
-@SystemDarkPreview
+//@SystemDarkPreview
 @Composable
 fun PreviewSortModal() {
     MusicTheme {
@@ -1319,7 +1482,7 @@ fun PreviewSortModal() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SystemLightPreview
+//@SystemLightPreview
 @Composable
 fun PreviewMoreOptionsModal() {
     MusicTheme {
@@ -1337,7 +1500,26 @@ fun PreviewMoreOptionsModal() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SystemDarkPreview
+//@SystemDarkPreview
+@Composable
+private fun SettingsModalPreview() {
+    MusicTheme {
+        ThemeSettingsBottomModal(
+            onDismissRequest = {},
+            sheetState = SheetState(
+                initialValue = SheetValue.Expanded,
+                skipPartiallyExpanded = true,
+                density = Density(1f,1f)
+            ),
+            onClose = {},
+            onApply = {_ -> },
+            currentSelection = "Dark",
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+//@SystemDarkPreview
 @Composable
 fun PreviewCreatePlaylistModal() {
     MusicTheme {

@@ -7,6 +7,7 @@ import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.model.Audio
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.repository.SongSortList
+import com.example.music.data.util.FLAG
 import javax.inject.Inject
 
 private const val TAG = "Get Library Songs"
@@ -83,9 +84,8 @@ class GetLibrarySongs @Inject constructor(
 
         Log.i(TAG,"********** Library Songs count: ${songsList.size} **********")
         return songsList.map { song ->
-            Log.i(TAG, "**** Song: ${song.id} + ${song.title} + ${song.artist} + ${song.album} ****")
-            song.asExternalModel()
-                //.copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
+            if (FLAG) Log.i(TAG, "**** Song: ${song.id} + ${song.title} + ${song.artist} + ${song.album} ****")
+            song.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
         }
     }
 }

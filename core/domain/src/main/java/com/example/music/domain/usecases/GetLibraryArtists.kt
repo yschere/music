@@ -7,6 +7,7 @@ import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.model.Artist
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.repository.ArtistSortList
+import com.example.music.data.util.FLAG
 import javax.inject.Inject
 
 private const val TAG = "Get Library Artists"
@@ -62,7 +63,7 @@ class GetLibraryArtists @Inject constructor(
 
         Log.i(TAG, "********** Library Artists count: ${artistsList.size} **********")
         return artistsList.map { artist ->
-            Log.i(TAG, "**** Artist: ${artist.id} + ${artist.name} ****")
+            if (FLAG) Log.i(TAG, "**** Artist: ${artist.id} + ${artist.name} ****")
             artist.asExternalModel()
         }
     }

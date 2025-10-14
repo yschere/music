@@ -7,6 +7,7 @@ import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.model.Genre
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.repository.GenreSortList
+import com.example.music.data.util.FLAG
 import javax.inject.Inject
 
 private const val TAG = "Get Library Genres"
@@ -48,7 +49,7 @@ class GetLibraryGenres @Inject constructor(
 
         Log.i(TAG, "********** Library Genres count: ${genresList.size} **********")
         return genresList.map { genre ->
-            Log.i(TAG, "**** Genre: ${genre.id} + ${genre.name} + ${genre.numTracks} ****")
+            if (FLAG) Log.i(TAG, "**** Genre: ${genre.id} + ${genre.name} + ${genre.numTracks} ****")
             genre.asExternalModel()
         }
     }

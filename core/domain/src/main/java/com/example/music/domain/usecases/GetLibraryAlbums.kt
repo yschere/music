@@ -78,7 +78,7 @@ class GetLibraryAlbums @Inject constructor(
 
         Log.i(TAG, "********** Library Albums count: ${albumsList.size} **********")
         return albumsList.map { album ->
-            Log.i(TAG, "**** Album: ${album.id} + ${album.title} ****")
+            if (FLAG) Log.i(TAG, "**** Album: ${album.id} + ${album.title} ****")
             album.asExternalModel()
         }
     }
