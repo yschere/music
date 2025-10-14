@@ -74,6 +74,7 @@ import com.example.music.ui.tooling.SystemDarkPreview
 import com.example.music.ui.shared.NavDrawerBtn
 import com.example.music.ui.shared.ShuffleSettingsBottomModal
 import com.example.music.ui.shared.ThemeSettingsBottomModal
+import com.example.music.ui.tooling.SystemLightPreview
 import com.example.music.util.frontTextPadding
 import com.example.music.util.modalHeaderPadding
 import com.example.music.util.modalPadding
@@ -451,169 +452,6 @@ private fun SettingRowItemWithModal(
     }
 }
 
-@Composable
-private fun ShuffleModalContent(
-    currentSelection: ShuffleType,
-    onClose: () -> Unit,
-    onApply: (ShuffleType) -> Unit = { _ -> },
-    onShuffleApply: (ShuffleType) -> Unit,
-) {
-    var shuffle = currentSelection
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier.verticalScroll(state = rememberScrollState())
-    ) {
-        Text(
-            text = "Set Shuffle Type:",
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxWidth().modalHeaderPadding(),
-        )
-        if (FLAG) Log.i(TAG, "Shuffle Type Settings Modal:\n" +
-            "Current shuffle type: ${currentSelection.name}")
-
-        ShuffleRadioGroupSet(
-            radioOptions = ShuffleType.entries,
-            initialValue = currentSelection,
-            onOptionSelect = { newShuf -> shuffle = newShuf },
-        )
-    }
-}
-
-@Composable
-private fun ThemeModalContent(
-    onThemeApply: (String) -> Unit,
-) {
-    val themeOptions = arrayListOf(
-        Actions.ThemeDefault,
-        Actions.ThemeLight,
-        Actions.ThemeDark,
-    )
-    Column(modifier = Modifier) {
-        Text(
-            text = "Set Theme Mode:",
-            textAlign = TextAlign.Left,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxWidth()
-                .modalHeaderPadding()
-        )
-        ThemeRadioGroupSet(
-            radioOptions = themeOptions,
-            initialValue = themeOptions.get(0),
-            onOptionSelect = onThemeApply
-        )
-    }
-}
-
-@Composable
-private fun ShuffleRadioGroupSet(
-    radioOptions: List<ShuffleType>,
-    initialValue: ShuffleType,
-    onOptionSelect: (ShuffleType) -> Unit = {},
-    //onSettingsAction: (ShuffleType) -> Unit,
-) {
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(initialValue) }
-    // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier.selectableGroup()
-    ) {
-        radioOptions.forEach { option ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-                    .height(LIST_ITEM_HEIGHT)
-                    .selectable(
-                        selected = (option == selectedOption),
-                        onClick = {
-                            Log.i(TAG, "current option: $option")
-                            onOptionSelected(option)
-                            onOptionSelect(option)
-                        },
-                        role = Role.RadioButton
-                    )
-                    .modalPadding()
-            ) {
-                RadioButton(
-                    selected = (option == selectedOption),
-                    colors = RadioButtonDefaults.colors(
-                        selectedColor = MaterialTheme.colorScheme.primary,
-                        unselectedColor = MaterialTheme.colorScheme.onBackground,
-                    ),
-                    modifier = Modifier.padding(SMALL_PADDING),
-                    onClick = null, // null recommended for accessibility with screenreaders
-                )
-                Text(
-                    text = option.name,
-                    color =
-                        if (option == selectedOption) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.frontTextPadding(),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ThemeRadioGroupSet(
-    radioOptions: List<ActionItem>,
-    initialValue: ActionItem,
-    onOptionSelect: (String) -> Unit,
-) {
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(initialValue) }
-    // Note that Modifier. selectableGroup() is essential to ensure correct accessibility behavior
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier.selectableGroup()
-    ) {
-        radioOptions.forEach { option ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-                    .height(LIST_ITEM_HEIGHT)
-                    .selectable(
-                        selected = (option == selectedOption),
-                        onClick = {
-                            onOptionSelected(option)
-                            onOptionSelect(option.name)
-                        },
-                        role = Role.RadioButton
-                    )
-                    .padding(horizontal = MODAL_CONTENT_PADDING)
-            ) {
-                RadioButton(
-                    selected = (option == selectedOption),
-                    colors = RadioButtonDefaults.colors(
-                        selectedColor = MaterialTheme.colorScheme.primary,
-                        unselectedColor = MaterialTheme.colorScheme.onBackground,
-                    ),
-                    modifier = Modifier.padding(SMALL_PADDING),
-                    onClick = null // null recommended for accessibility with screenreaders
-                )
-                Icon(
-                    imageVector = option.icon,
-                    contentDescription = option.contentDescription.toString(),
-                    tint =
-                        if (option == selectedOption) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(SMALL_PADDING),
-                )
-                Text(
-                    text = option.name,
-                    color =
-                        if (option == selectedOption) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.frontTextPadding(),
-                )
-            }
-        }
-    }
-}
-
 //private val CompactWindowSizeClass = WindowSizeClass.compute(360f, 780f)
 
 //@SystemLightPreview
@@ -635,24 +473,5 @@ private fun PreviewSettings() {
                 navigateToSettings = {},
             )
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@SystemDarkPreview
-@Composable
-private fun SettingsModalPreview() {
-    MusicTheme {
-        ThemeSettingsBottomModal(
-            onDismissRequest = {},
-            sheetState = SheetState(
-                initialValue = SheetValue.Expanded,
-                skipPartiallyExpanded = true,
-                density = Density(1f,1f)
-            ),
-            onClose = {},
-            onApply = {_ -> },
-            currentSelection = "",
-        )
     }
 }
