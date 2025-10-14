@@ -23,7 +23,7 @@ import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.domain.usecases.GetAlbumDetails
-import com.example.music.domain.usecases.GetAppPreferencesUseCase
+import com.example.music.domain.usecases.GetAppPreferencesLibrarySort
 import com.example.music.domain.usecases.GetArtistDetails
 import com.example.music.domain.usecases.GetGenreDetails
 import com.example.music.domain.usecases.GetLibraryAlbums
@@ -67,7 +67,7 @@ data class LibraryScreenUiState(
  */
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    getAppPreferences: GetAppPreferencesUseCase,
+    getSortOrderPreferences: GetAppPreferencesLibrarySort,
     getLibraryAlbums: GetLibraryAlbums,
     getLibraryArtists: GetLibraryArtists,
     getLibraryComposers: GetLibraryComposers,
@@ -85,6 +85,7 @@ class LibraryViewModel @Inject constructor(
 
     @Inject
     lateinit var appPreferences: AppPreferencesRepo
+    private val sortOrdersFlow = getSortOrderPreferences()
 
     // Holds the currently all available library categories
     private val libraryCategories = MutableStateFlow(LibraryCategory.entries)
@@ -92,8 +93,6 @@ class LibraryViewModel @Inject constructor(
     // Holds our currently selected category
     private val selectedLibraryCategory = MutableStateFlow(LibraryCategory.Playlists)
     private var selectedSortOrder by mutableStateOf(Pair("", false))
-
-    private val appPreferencesFlow = getAppPreferences()
 
     // bottom player section
     override var currentSong by mutableStateOf(SongInfo())
@@ -137,12 +136,12 @@ class LibraryViewModel @Inject constructor(
                 refreshing,
                 libraryCategories,
                 selectedLibraryCategory,
-                appPreferencesFlow,
+                sortOrdersFlow,
             ) {
                 refreshing,
                 libraryCategories,
                 libraryCategory,
-                appPreferences, ->
+                sortOrders, ->
                 Log.i(TAG, "LibraryScreenUiState combine START:\n" +
                     "isLoading: $refreshing\n" +
                     "libraryCategories: $libraryCategories\n" +
@@ -157,29 +156,28 @@ class LibraryViewModel @Inject constructor(
 
                 when (libraryCategory) {
                     LibraryCategory.Albums -> {
-                        selectedSortOrder = Pair(appPreferences.albumSortColumn, appPreferences.isAlbumAsc)
-                        libraryAlbums = getLibraryAlbums(appPreferences.albumSortColumn, appPreferences.isAlbumAsc)
+                        selectedSortOrder = Pair(sortOrders.albumSortColumn, sortOrders.isAlbumAsc)
+                        libraryAlbums = getLibraryAlbums(sortOrders.albumSortColumn, sortOrders.isAlbumAsc)
                     }
                     LibraryCategory.Artists -> {
-                        selectedSortOrder = Pair(appPreferences.artistSortColumn, appPreferences.isArtistAsc)
-                        libraryArtists = getLibraryArtists(appPreferences.artistSortColumn, appPreferences.isArtistAsc)
+                        selectedSortOrder = Pair(sortOrders.artistSortColumn, sortOrders.isArtistAsc)
+                        libraryArtists = getLibraryArtists(sortOrders.artistSortColumn, sortOrders.isArtistAsc)
                     }
                     LibraryCategory.Composers -> {
-                        selectedSortOrder = Pair(appPreferences.composerSortColumn, appPreferences.isComposerAsc)
+                        selectedSortOrder = Pair(sortOrders.composerSortColumn, sortOrders.isComposerAsc)
                         libraryComposers = getLibraryComposers(selectedSortOrder.first, selectedSortOrder.second).first()
                     }
                     LibraryCategory.Genres -> {
-                        selectedSortOrder = Pair(appPreferences.genreSortColumn, appPreferences.isGenreAsc)
-                        libraryGenres = getLibraryGenres(appPreferences.genreSortColumn, appPreferences.isGenreAsc)
+                        selectedSortOrder = Pair(sortOrders.genreSortColumn, sortOrders.isGenreAsc)
+                        libraryGenres = getLibraryGenres(sortOrders.genreSortColumn, sortOrders.isGenreAsc)
                     }
                     LibraryCategory.Playlists -> {
-                        selectedSortOrder = Pair(appPreferences.playlistSortColumn, appPreferences.isPlaylistAsc)
-                        libraryPlaylists = getLibraryPlaylists(appPreferences.playlistSortColumn, appPreferences.isPlaylistAsc)
-//                        libraryPlaylists = getLibraryPlaylists(selectedSortOrder.first, selectedSortOrder.second).first()
+                        selectedSortOrder = Pair(sortOrders.playlistSortColumn, sortOrders.isPlaylistAsc)
+                        libraryPlaylists = getLibraryPlaylists(sortOrders.playlistSortColumn, sortOrders.isPlaylistAsc)
                     }
                     LibraryCategory.Songs -> {
-                        selectedSortOrder = Pair(appPreferences.songSortColumn, appPreferences.isSongAsc)
-                        librarySongs = getLibrarySongs(appPreferences.songSortColumn, appPreferences.isSongAsc)
+                        selectedSortOrder = Pair(sortOrders.songSortColumn, sortOrders.isSongAsc)
+                        librarySongs = getLibrarySongs(sortOrders.songSortColumn, sortOrders.isSongAsc)
                     }
                 }
 
