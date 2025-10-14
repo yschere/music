@@ -22,6 +22,7 @@ import androidx.core.app.ActivityCompat
 import androidx.media3.common.util.UnstableApi
 import com.example.music.data.database.MusicDatabase
 import com.example.music.data.repository.AppPreferencesRepo
+import com.example.music.data.util.FLAG
 import com.example.music.service.MediaService
 import com.example.music.service.SongController
 import com.example.music.ui.theme.MusicTheme
@@ -96,7 +97,7 @@ class MainActivity : ComponentActivity() {
             val displayFeatures = calculateDisplayFeatures(this)
 
             Log.i(TAG, "onCreate - setContent > MusicTheme setting MusicApp displayFeatures")
-            Log.i(TAG, "Dark mode?: currentTheme $currentTheme ->> " +
+            if (FLAG) Log.i(TAG, "Dark mode?: currentTheme $currentTheme ->> " +
                 "${( currentTheme == "Dark" ||
                     ( currentTheme == "System default" && isSystemInDarkTheme() ))}")
 
