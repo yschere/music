@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music.data.repository.AppPreferencesRepo
 import com.example.music.data.repository.ShuffleType
+import com.example.music.data.util.FLAG
 import com.example.music.domain.usecases.GetAppPreferencesUserSettings
 import com.example.music.domain.usecases.GetTotalCounts
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,8 +56,10 @@ class SettingsViewModel @Inject constructor(
             ) {
                 refreshing,
                 settings, ->
-                Log.i(TAG, "Shuffle type set to: ${settings.shuffleType}")
-                Log.i(TAG, "Theme mode set to: ${settings.theme}")
+                Log.i(TAG, "Settings State combine START\n" +
+                    "Shuffle type: ${settings.shuffleType}\n" +
+                    "Theme mode: ${settings.theme}\n" +
+                    "isReady?: ${!refreshing}")
 
                 SettingsUiState(
                     isLoading = refreshing,
@@ -65,26 +68,25 @@ class SettingsViewModel @Inject constructor(
                     totals = counts,
                 )
             }.catch { throwable ->
+                Log.e(TAG, "Error Caught: ${throwable.message}")
                 emit(
                     SettingsUiState(
                         isLoading = false,
                         errorMessage = throwable.message
                     )
                 )
-            }.collect {
-                _state.value = it
-            }
+            }.collect { _state.value = it }
         }
+
         refresh(force = false)
         Log.i(TAG, "init end")
     }
 
     fun refresh(force: Boolean = true) {
-        Log.i(TAG, "Refresh call")
-        Log.i(TAG, "refreshing: ${refreshing.value}")
+        Log.i(TAG, "Refresh call -> refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
-                Log.i(TAG, "Refresh runCatching")
+                if (FLAG) Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
             }.onFailure {
                 Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")

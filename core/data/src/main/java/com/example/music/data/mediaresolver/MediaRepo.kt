@@ -12,6 +12,7 @@ import com.example.music.data.mediaresolver.model.Album
 import com.example.music.data.mediaresolver.model.Artist
 import com.example.music.data.mediaresolver.model.Audio
 import com.example.music.data.mediaresolver.model.Genre
+import com.example.music.data.util.FLAG
 import com.example.music.data.util.combine
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -128,7 +129,7 @@ class MediaRepo (
         try {
             resolver.loadThumbnail(uri, Size(640, 480), null)
         } catch (e: Exception) {
-            Log.i(TAG, "ContentResolver error caught: $e", e)
+            Log.e(TAG, "ContentResolver error caught: $e", e)
             null
         }
 
@@ -168,7 +169,7 @@ class MediaRepo (
         order: String,
         ascending: Boolean
     ): List<Audio> {
-        Log.i(TAG, "Get All Audios")
+        if (FLAG) Log.i(TAG, "Get All Audios")
         return resolver.getAudios(
             order = order,
             ascending = ascending
@@ -185,7 +186,7 @@ class MediaRepo (
     ): Flow<List<Audio>> =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                Log.i(TAG, "Flow Get All Audios: observe MediaStore result: $it")
+                if (FLAG) Log.i(TAG, "Flow Get All Audios: observe MediaStore result: $it")
                 resolver.getAudios(
                     order = order,
                     ascending = ascending
@@ -205,7 +206,7 @@ class MediaRepo (
     fun getAudioFlow(id: Long) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                Log.i(TAG, "Flow Get Audio by ID: $id; observe MediaStore result: $it")
+                if (FLAG) Log.i(TAG, "Flow Get Audio by ID: $id; observe MediaStore result: $it")
                 resolver.findAudio(id)
             }
 
@@ -215,7 +216,7 @@ class MediaRepo (
      */
     suspend fun getAudios(ids: List<Long>) =
         ids.map { id ->
-            Log.i(TAG, "Get Audios by ID: $id")
+            if (FLAG) Log.i(TAG, "Get Audios by ID: $id")
             resolver.findAudio(id)
         }
 
@@ -227,7 +228,7 @@ class MediaRepo (
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
                 ids.map { id ->
-                    Log.i(TAG, "Flow Get Audios by ID: $id")
+                    if (FLAG) Log.i(TAG, "Flow Get Audios by ID: $id")
                     resolver.findAudio(id)
                 }
             }
@@ -258,7 +259,7 @@ class MediaRepo (
         order: String,
         ascending: Boolean
     ): List<Artist> {
-        Log.i(TAG, "Get All Artists")
+        if (FLAG) Log.i(TAG, "Get All Artists")
         return resolver.getArtists(
             order = order,
             ascending = ascending,
@@ -275,7 +276,7 @@ class MediaRepo (
     ): Flow<List<Artist>> =
         observe(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI)
             .map {
-                Log.i(TAG, "Flow Get All Artists: observe Media Store result: $it")
+                if (FLAG) Log.i(TAG, "Flow Get All Artists: observe Media Store result: $it")
                 resolver.getArtists(
                     order = order,
                     ascending = ascending,
@@ -314,7 +315,7 @@ class MediaRepo (
         artistId: Long
     ): Flow<Artist> = observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
         .map {
-            Log.i(TAG, "Flow Get Artist by ID: $artistId")
+            if (FLAG) Log.i(TAG, "Flow Get Artist by ID: $artistId")
             resolver.getArtist(artistId)
         }
 
@@ -325,9 +326,9 @@ class MediaRepo (
     suspend fun getArtistByAlbumId(
         albumId: Long
     ): Artist {
-        Log.i(TAG, "Get Artist by Album ID: $albumId")
+        if (FLAG) Log.i(TAG, "Get Artist by Album ID: $albumId")
         val album = resolver.findAlbum(albumId)
-        Log.i(TAG, "Get Artist by AlbumArtistId: ${album.artistId}")
+        if (FLAG) Log.i(TAG, "Get Artist by AlbumArtistId: ${album.artistId}")
         return resolver.getArtist(album.artistId)
     }
 
@@ -339,9 +340,9 @@ class MediaRepo (
         id: Long
     ): Flow<Artist> = observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
         .map {
-            Log.i(TAG, "Flow Get Artist by Album ID: $id")
+            if (FLAG) Log.i(TAG, "Flow Get Artist by Album ID: $id")
             val album = resolver.findAlbum(id)
-            Log.i(TAG, "Flow Get Artist by AlbumArtistId: ${album.artistId}")
+            if (FLAG) Log.i(TAG, "Flow Get Artist by AlbumArtistId: ${album.artistId}")
             resolver.getArtist(album.artistId)
         }
 
@@ -480,7 +481,7 @@ class MediaRepo (
     fun getAlbumFlow(id: Long) =
         observe(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI)
             .map {
-                Log.i(TAG, "Flow Get Album by ID: $id")
+                if (FLAG) Log.i(TAG, "Flow Get Album by ID: $id")
                 resolver.findAlbum(id)
             }
 
@@ -552,7 +553,7 @@ class MediaRepo (
     fun getGenreFlow(id: Long) =
         observe(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
             .map {
-                Log.i(TAG, "Flow Get Genre by ID: $id")
+                if (FLAG) Log.i(TAG, "Flow Get Genre by ID: $id")
                 resolver.findGenre(id)
             }
 

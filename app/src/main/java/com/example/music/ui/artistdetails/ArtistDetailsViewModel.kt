@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
+import com.example.music.data.util.FLAG
 import com.example.music.data.util.combine
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
@@ -73,7 +74,6 @@ class ArtistDetailsViewModel @Inject constructor(
     private val _artistId: String = savedStateHandle.get<String>(Screen.ARG_ARTIST_ID)!!
     private val artistId = _artistId.toLong()
 
-    //private val getArtistDetailsData = getArtistDetailsUseCase(artistId)
     private val getArtistDetailsData = getArtistDetails(artistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
@@ -217,7 +217,7 @@ class ArtistDetailsViewModel @Inject constructor(
                     selectSongSortOrder = selectSongSort,
                 )
             }.catch { throwable ->
-                Log.i(TAG, "Error Caught: ${throwable.message}")
+                Log.e(TAG, "Error Caught: ${throwable.message}")
                 emit(
                     ArtistUiState(
                         isReady = true,
@@ -305,11 +305,10 @@ class ArtistDetailsViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        Log.i(TAG, "Refresh call")
-        Log.i(TAG, "refreshing: ${refreshing.value}")
+        Log.i(TAG, "Refresh call -> refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
-                Log.i(TAG, "Refresh runCatching")
+                if (FLAG) Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
             }.onFailure {
                 Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")

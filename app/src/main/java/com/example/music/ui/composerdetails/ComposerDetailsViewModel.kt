@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
+import com.example.music.data.util.FLAG
 import com.example.music.domain.usecases.GetComposerDetailsUseCase
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.SongInfo
@@ -109,7 +110,7 @@ class ComposerDetailsViewModel @Inject constructor(
                     songs = composerDetailsFilterResult.songs,
                 )
             }.catch { throwable ->
-                Log.i(TAG, "Error Caught: ${throwable.message}")
+                Log.e(TAG, "Error Caught: ${throwable.message}")
                 emit(
                     ComposerUiState(
                         isReady = true,
@@ -199,11 +200,10 @@ class ComposerDetailsViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        Log.i(TAG, "Refresh call")
-        Log.i(TAG, "refreshing: ${refreshing.value}")
+        Log.i(TAG, "Refresh call -> refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
-                Log.i(TAG, "Refresh runCatching")
+                if (FLAG) Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
             }.onFailure {
                 Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")

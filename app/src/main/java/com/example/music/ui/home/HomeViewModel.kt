@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
+import com.example.music.data.util.FLAG
 import com.example.music.data.util.combine
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.PlaylistInfo
@@ -145,7 +146,7 @@ class HomeViewModel @Inject constructor(
                     selectSong = selectSong,
                 )
             }.catch { throwable ->
-                Log.i(TAG, "Error Caught: ${throwable.message}")
+                Log.e(TAG, "Error Caught: ${throwable.message}")
                 emit(
                     HomeScreenUiState(
                         isLoading = false,
@@ -237,11 +238,10 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        Log.i(TAG, "Refresh call")
-        Log.i(TAG, "refreshing: ${refreshing.value}")
+        Log.i(TAG, "Refresh call -> refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
-                Log.i(TAG, "Refresh runCatching")
+                if (FLAG) Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
             }.onFailure {
                 Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")
@@ -295,7 +295,7 @@ class HomeViewModel @Inject constructor(
                 selectSong = selectSong,
             )
         }.catch { throwable ->
-            Log.i(TAG, "Error Caught: ${throwable.message}")
+            Log.e(TAG, "Error Caught: ${throwable.message}")
             emit(
                 HomeScreenUiState(
                     isLoading = false,
