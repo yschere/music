@@ -6,6 +6,7 @@ import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.Album
 import com.example.music.data.mediaresolver.model.Artist
 import com.example.music.data.mediaresolver.model.uri
+import com.example.music.data.util.FLAG
 import com.example.music.domain.model.AlbumDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +49,7 @@ class GetAlbumDetails @Inject constructor(
                 album = album.asExternalModel(),
                 artist = artist.asExternalModel(),
                 songs = songs.map {
-                    Log.i(TAG, "SONG: ${it.title}")
+                    if (FLAG) Log.i(TAG, "SONG: ${it.title}")
                     it.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(it.uri))
                 },
             )

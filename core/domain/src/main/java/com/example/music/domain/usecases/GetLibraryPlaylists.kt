@@ -7,6 +7,7 @@ import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.Playlist
 import com.example.music.data.repository.PlaylistRepo
 import com.example.music.data.repository.PlaylistSortList
+import com.example.music.data.util.FLAG
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.model.getArtworkUris
@@ -140,13 +141,13 @@ class GetLibraryPlaylists @Inject constructor(
         Log.i(TAG, "********** Library Playlists count: ${playlistsList.size} **********")
         return playlistsList.map { item ->
             val playlist = item.asExternalModel()
-            Log.i(TAG, "**** Playlist: ${playlist.id} + ${playlist.name} ****")
+            if (FLAG) Log.i(TAG, "**** Playlist: ${playlist.id} + ${playlist.name} ****")
             if (playlist.songCount > 0) {
                 val songIds = mediaRepo.findPlaylistTracks(playlist.id, 4).map { it.audioId }
                 val songs = mediaRepo.getAudios(songIds).map { song ->
                     song.asExternalModel()
                 }
-                Log.i(TAG, "song size: ${songs.size}")
+                if (FLAG) Log.i(TAG, "song size: ${songs.size}")
                 playlist.copy(playlistImage = playlist.getArtworkUris(songs))
             } else {
                 playlist

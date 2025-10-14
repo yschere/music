@@ -7,6 +7,7 @@ import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.Playlist
 import com.example.music.data.mediaresolver.model.uri
+import com.example.music.data.util.FLAG
 import com.example.music.domain.model.getArtworkUris
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -31,14 +32,14 @@ class GetPlaylistDetails @Inject constructor(
         return combine(
             playlistFlow,
             playlistFlow.map {
-                Log.i(TAG, "Fetching songs from playlist $playlistId")
+                if (FLAG) Log.i(TAG, "Fetching songs from playlist $playlistId")
                 mediaRepo.findPlaylistTracks(playlistId).map { track ->
                     mediaRepo.getAudio(track.audioId)
                 }
             },
         ) { playlist, audios ->
-            Log.i(TAG, "playlist: ${playlist.name} + ${playlist.numTracks} songs")
-            Log.i(TAG, "playlist songs: $audios.size")
+            Log.i(TAG, "Playlist: ${playlist.name} + ${playlist.numTracks} songs")
+            Log.i(TAG, "Is audio count == Playlist.numTracks: ${audios.size == playlist.numTracks}")
 
             val p = playlist.asExternalModel()
             if (p.songCount > 0){

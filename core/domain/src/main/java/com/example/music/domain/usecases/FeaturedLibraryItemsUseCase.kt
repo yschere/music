@@ -5,6 +5,7 @@ import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.uri
 import com.example.music.data.repository.PlaylistRepo
 import com.example.music.data.repository.SongRepo
+import com.example.music.data.util.FLAG
 import com.example.music.domain.model.FeaturedLibraryItemsFilterResult
 import com.example.music.domain.model.asExternalModel
 import javax.inject.Inject
@@ -33,11 +34,11 @@ class FeaturedLibraryItemsUseCase @Inject constructor(
         ) { recentPlaylists, featuredSongs ->
             FeaturedLibraryItemsFilterResult(
                 recentPlaylists = recentPlaylists.map { playlist ->
-                    Log.i(TAG, "Fetch Playlist from ID - ${playlist.playlist.id}")
+                    if (FLAG) Log.i(TAG, "Fetch Playlist from ID - ${playlist.playlist.id}")
                     playlist.asExternalModel()
                 },
                 recentlyAddedSongs = featuredSongs.map { songID ->
-                    Log.i(TAG, "Fetch Song from SongID - $songID")
+                    if (FLAG) Log.i(TAG, "Fetch Song from SongID - $songID")
                     val audio = mediaRepo.getAudio(songID)
                     audio.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
                 },

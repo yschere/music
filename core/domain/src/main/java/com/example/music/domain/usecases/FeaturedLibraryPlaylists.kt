@@ -33,11 +33,11 @@ class FeaturedLibraryPlaylists @Inject constructor(
             if (FLAG) Log.i(TAG, "playlists size: ${recentPlaylists.size} :: songs size: ${featuredSongs.size}")
             FeaturedLibraryItemsFilterResult(
                 recentPlaylists = recentPlaylists.map { playlistId ->
-                    Log.i(TAG, "Fetch Playlist from ID - $playlistId")
+                    if (FLAG) Log.i(TAG, "Fetch Playlist from ID - $playlistId")
                     val playlist = mediaRepo.getPlaylist(playlistId).asExternalModel()
                     val songs = mediaRepo.findPlaylistTracks(playlistId)
                         .map { track ->
-                            Log.i(TAG, "Track ID: ${track.id} -> Title: ${track.title}")
+                            if (FLAG) Log.i(TAG, "Track ID: ${track.id} -> Title: ${track.title}")
                             mediaRepo.getAudio(track.audioId)
                         }.map {
                             it.asExternalModel()
@@ -45,7 +45,7 @@ class FeaturedLibraryPlaylists @Inject constructor(
                     playlist.copy(playlistImage = playlist.getArtworkUris(songs))//.copy(songCount = songs.size)
                 },
                 recentlyAddedSongs = featuredSongs.map { songID ->
-                    Log.i(TAG, "Fetch Song from SongID - $songID")
+                    if (FLAG) Log.i(TAG, "Fetch Song from SongID - $songID")
                     val audio = mediaRepo.getAudio(songID)
                     audio.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
                 },

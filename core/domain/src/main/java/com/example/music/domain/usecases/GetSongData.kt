@@ -5,6 +5,7 @@ import com.example.music.domain.model.SongInfo
 import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.uri
+import com.example.music.data.util.FLAG
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -20,7 +21,7 @@ class GetSongData @Inject constructor(
         Log.i(TAG, "Fetching Data for single song - START\n" +
                 "songId: $songId")
         val audio = mediaRepo.getAudioFlow(songId).first()
-        Log.i(TAG, "Found file data for song $songId\n" +
+        if (FLAG) Log.i(TAG, "Found file data for song $songId\n" +
                 "Title: ${audio.title}\n" +
                 "Artist: ${audio.artist}\n" +
                 "Album: ${audio.album}")
@@ -34,9 +35,9 @@ class GetSongData @Inject constructor(
                 "songs size: ${songIds.size}")
         return mediaRepo.getAudiosFlow(songIds)
             .map { songList ->
-                Log.i(TAG, "Found file data for multiple songs --- ")
+                if (FLAG) Log.i(TAG, "Found file data for multiple songs --- ")
                 songList.map { song ->
-                    Log.i(TAG, "Song: ${song.id} - ${song.title}")
+                    if (FLAG) Log.i(TAG, "Song: ${song.id} - ${song.title}")
                     song.asExternalModel()
                         .copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
                 }
