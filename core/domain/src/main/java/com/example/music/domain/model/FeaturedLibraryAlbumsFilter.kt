@@ -5,7 +5,7 @@ package com.example.music.domain.model
  * separate recently added albums.
  * Used in the UI for displaying HomeScreen.
  */
-data class FeaturedLibraryItemsFilter(
+data class FeaturedLibraryAlbumsFilter(
     val recentAlbums: List<AlbumInfo> = emptyList(),
     val recentlyAddedSongs: List<SongInfo> = emptyList()
 )

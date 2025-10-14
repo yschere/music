@@ -4,7 +4,7 @@ import android.util.Log
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.uri
 import com.example.music.data.util.FLAG
-import com.example.music.domain.model.FeaturedLibraryItemsFilter
+import com.example.music.domain.model.FeaturedLibraryAlbumsFilter
 import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -15,10 +15,10 @@ private const val TAG = "Featured Library Items"
 /**
  * Generates featured library items of ALBUMS and SONGS from MediaStore
  */
-class FeaturedLibraryItems @Inject constructor(
+class FeaturedLibraryAlbums @Inject constructor(
     private val mediaRepo: MediaRepo,
 ) {
-    operator fun invoke(): Flow<FeaturedLibraryItemsFilter> {
+    operator fun invoke(): Flow<FeaturedLibraryAlbumsFilter> {
         Log.i(TAG, "Start fetching most recent albums and most recent songs")
 
         // albumItems should return albumRepo date created desc limit 5
@@ -32,7 +32,7 @@ class FeaturedLibraryItems @Inject constructor(
             albumIdsFlow
         ) { mediaIds, albumIds ->
             Log.i(TAG, "Building Featured Library from fetched IDs")
-            FeaturedLibraryItemsFilter(
+            FeaturedLibraryAlbumsFilter(
                 recentAlbums = albumIds.map { albumId ->
                     if (FLAG) Log.i(TAG, "Fetch Album from AlbumID - $albumId")
                     mediaRepo.getAlbum(albumId).asExternalModel()
