@@ -7,20 +7,22 @@ import com.example.music.data.util.FLAG
 import com.example.music.domain.model.FeaturedLibraryItemsFilterResult
 import com.example.music.domain.model.asExternalModel
 import com.example.music.domain.model.getArtworkUris
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import javax.inject.Inject
 
-private const val TAG = "Featured Library Playlists"
+private const val TAG = "Featured Library Items"
 
 /**
- * Goal: to create use case which returns the most recently played playlists and the most recently added songs to populate the Home screen
- *
- * Generates featured library items of PLAYLISTS and SONGS from MediaStore
+ * Use case to retrieve data for [FeaturedLibraryItemsFilterResult] domain model which returns
+ * the most recently modified playlists and the most recently added songs to populate the
+ * Home screen.
  */
-class FeaturedLibraryPlaylists @Inject constructor(
-    private val mediaRepo: MediaRepo
+class FeaturedLibraryItems @Inject constructor(
+    private val mediaRepo: MediaRepo,
+    //private val playlistRepo: PlaylistRepo
 ) {
+    // Generates featured library items of PLAYLISTS and SONGS from MediaStore
     operator fun invoke(): Flow<FeaturedLibraryItemsFilterResult> {
         Log.i(TAG, "Start fetching most recent playlists and most recent songs")
         val recentPlaylistsFlow = mediaRepo.mostRecentPlaylists(5)
@@ -52,4 +54,28 @@ class FeaturedLibraryPlaylists @Inject constructor(
             )
         }
     }
+
+    /* // Generates featured library items of PLAYLISTS from MusicDatabase and SONGS from MediaStore
+    operator fun invoke(): Flow<FeaturedLibraryItemsFilterResult> {
+        Log.i(TAG, "Start fetching most recent playlists and most recent songs")
+        val recentPlaylistsFlow = playlistRepo.sortPlaylistsByDateLastPlayedDesc(5)
+        val recentSongsFlow = mediaRepo.mostRecentSongsIds(10)
+
+        return combine(
+            recentPlaylistsFlow,
+            recentSongsFlow
+        ) { recentPlaylists, featuredSongs ->
+            FeaturedLibraryItemsFilterResult(
+                recentPlaylists = recentPlaylists.map { playlist ->
+                    if (FLAG) Log.i(TAG, "Fetch Playlist from ID - ${playlist.playlist.id}")
+                    playlist.asExternalModel()
+                },
+                recentlyAddedSongs = featuredSongs.map { songID ->
+                    if (FLAG) Log.i(TAG, "Fetch Song from SongID - $songID")
+                    val audio = mediaRepo.getAudio(songID)
+                    audio.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
+                },
+            )
+        }
+    }*/
 }
