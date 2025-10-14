@@ -3,6 +3,7 @@ package com.example.music.domain.usecases
 import android.util.Log
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.uri
+import com.example.music.data.util.FLAG
 import com.example.music.domain.model.FeaturedLibraryItemsFilter
 import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
@@ -33,11 +34,11 @@ class FeaturedLibraryItems @Inject constructor(
             Log.i(TAG, "Building Featured Library from fetched IDs")
             FeaturedLibraryItemsFilter(
                 recentAlbums = albumIds.map { albumId ->
-                    Log.i(TAG, "Fetch Album from AlbumID - $albumId")
+                    if (FLAG) Log.i(TAG, "Fetch Album from AlbumID - $albumId")
                     mediaRepo.getAlbum(albumId).asExternalModel()
                 },
                 recentlyAddedSongs = mediaIds.map { mediaId ->
-                    Log.i(TAG, "Fetch Song from SongID - $mediaId")
+                    if (FLAG) Log.i(TAG, "Fetch Song from SongID - $mediaId")
                     val audio = mediaRepo.getAudio(mediaId)
                     audio.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
                 },
