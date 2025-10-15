@@ -30,7 +30,7 @@ class GetSongData @Inject constructor(
             "Title: ${audio.title}\n" +
             "Artist: ${audio.artist}\n" +
             "Album: ${audio.album}")
-        return audio.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
+        return audio.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
     }
 
     // use to build list of SongInfo from list of Audio ids
@@ -44,7 +44,7 @@ class GetSongData @Inject constructor(
                         "Title: ${song.title}\n" +
                         "Artist: ${song.artist}\n" +
                         "Album: ${song.album}")
-                    song.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
+                    song.asExternalModel().copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
                 }
             }
     }
