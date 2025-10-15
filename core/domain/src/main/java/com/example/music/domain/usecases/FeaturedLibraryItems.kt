@@ -17,6 +17,7 @@ private const val TAG = "Featured Library Items"
  * Use case to retrieve data for [FeaturedLibraryItemsFilterResult] domain model which returns
  * the most recently modified playlists and the most recently added songs to populate the
  * Home screen.
+ * @property mediaRepo Content Resolver Repository for MediaStore
  */
 class FeaturedLibraryItems @Inject constructor(
     private val mediaRepo: MediaRepo,
@@ -33,17 +34,16 @@ class FeaturedLibraryItems @Inject constructor(
             songIdsFlow
         ) { playlistIds, songIds ->
             Log.i(TAG, "Building Featured Library from fetched IDs")
-            if (FLAG) Log.i(TAG, "playlists size: ${playlistIds.size} :: songs size: ${songIds.size}")
             FeaturedLibraryItemsFilterResult(
                 recentPlaylists = playlistIds.map { playlistId ->
                     if (FLAG) Log.i(TAG, "Fetch Playlist from ID - $playlistId")
-                    val playlist = mediaRepo.getPlaylist(playlistId).asExternalModel()
-                    val songs = mediaRepo.findPlaylistTracks(playlistId)
-                        .map { track ->
+                    var playlist = mediaRepo.getPlaylist(playlistId).asExternalModel()
+                    val songs = mediaRepo.findPlaylistTracks(playlistId)?.map { track ->
                             if (FLAG) Log.i(TAG, "Track ID: ${track.id} -> Title: ${track.title}")
                             mediaRepo.getAudio(track.audioId)
-                        }.map { audio -> audio.asExternalModel() }
-                    playlist.copy(playlistImage = playlist.getArtworkUris(songs))
+                        }?.map { audio -> audio.asExternalModel() }
+                    if (songs != null) playlist = playlist.copy(playlistImage = playlist.getArtworkUris(songs))
+                    playlist
                 },
                 recentlyAddedSongs = songIds.map { songId ->
                     if (FLAG) Log.i(TAG, "Fetch Song from ID - $songId")
