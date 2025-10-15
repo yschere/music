@@ -6,6 +6,7 @@ import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.uri
 import com.example.music.data.util.FLAG
+import com.example.music.domain.model.PlaylistDetailsFilterResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -13,6 +14,10 @@ import javax.inject.Inject
 
 private const val TAG = "Get Song Data"
 
+/**
+ * Use case to retrieve [SongInfo] or list of [SongInfo] data from MediaStore
+ * @property mediaRepo Content Resolver Repository for MediaStore
+ */
 class GetSongData @Inject constructor(
     private val mediaRepo: MediaRepo
 ) {
