@@ -39,7 +39,7 @@ class GetAlbumDetails @Inject constructor(
                 "Album Title: ${album.title}\n" +
                 "Artist: ${album.artist}"
             )
-            Log.i(TAG, "ALBUM ARTIST: $artist ---\n" +
+            if (FLAG) Log.i(TAG, "ALBUM ARTIST: $artist ---\n" +
                 "Artist ID: ${artist.id}\n" +
                 "Artist Name: ${artist.name}\n" +
                 "Number Albums: ${artist.numAlbums}\n" +
@@ -48,9 +48,9 @@ class GetAlbumDetails @Inject constructor(
             AlbumDetailsFilterResult(
                 album = album.asExternalModel(),
                 artist = artist.asExternalModel(),
-                songs = songs.map {
-                    if (FLAG) Log.i(TAG, "SONG: ${it.title}")
-                    it.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(it.uri))
+                songs = songs.map { song ->
+                    if (FLAG) Log.i(TAG, "SONG: ${song.title}")
+                    song.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
                 },
             )
         }

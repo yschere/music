@@ -34,12 +34,18 @@ class GetPlaylistDetails @Inject constructor(
                 }
             },
         ) { playlist, audios ->
-            if (FLAG) Log.i(TAG, "Playlist: ${playlist.name} :: ${playlist.numTracks} songs\n" +
-                "Is audio count == Playlist.numTracks? ${audios.size == playlist.numTracks}")
+            Log.i(TAG, "PLAYLIST: $playlist ---\n" +
+                "Playlist ID: ${playlist.id}\n" +
+                "Playlist Name: ${playlist.name}\n" +
+                "Number Songs: ${playlist.numTracks}"
+            )
 
             val p = playlist.asExternalModel()
             if (p.songCount > 0){
-                val songs = audios.map { it.asExternalModel()/*.copy(artworkBitmap = mediaRepo.loadThumbnail(it.uri))*/ }
+                val songs = audios.map { song ->
+                    if (FLAG) Log.i(TAG, "SONG: ${song.title}")
+                    song.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
+                }
                 PlaylistDetailsFilterResult(
                     playlist = p.copy(playlistImage = p.getArtworkUris(songs)),
                     songs = songs,

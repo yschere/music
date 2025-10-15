@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.music.data.database.model.ComposerWithExtraInfo
 import com.example.music.data.repository.ComposerRepo
 import com.example.music.data.repository.ComposerSortList
+import com.example.music.data.util.FLAG
 import com.example.music.domain.model.ComposerInfo
 import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
@@ -46,10 +47,11 @@ class GetLibraryComposers @Inject constructor(
             }
         }
 
-        return composersList.map { items ->
-            Log.i(TAG, "********** Library Composers count: ${items.size} **********")
-            items.map { item ->
-                item.asExternalModel()
+        return composersList.map { composers ->
+            Log.i(TAG, "********** Library Composers count: ${composers.size} **********")
+            composers.map { composer ->
+                if (FLAG) Log.i(TAG, "**** Composer: ${composer.composer.id} + ${composer.composer.name} ****")
+                composer.asExternalModel()
             }
         }
     }

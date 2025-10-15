@@ -141,13 +141,12 @@ class GetLibraryPlaylists @Inject constructor(
         Log.i(TAG, "********** Library Playlists count: ${playlistsList.size} **********")
         return playlistsList.map { item ->
             val playlist = item.asExternalModel()
-            if (FLAG) Log.i(TAG, "**** Playlist: ${playlist.id} + ${playlist.name} ****")
+            if (FLAG) Log.i(TAG, "**** Playlist: ${playlist.id} + ${playlist.name} + ${playlist.songCount} ****")
             if (playlist.songCount > 0) {
                 val songIds = mediaRepo.findPlaylistTracks(playlist.id, 4).map { it.audioId }
                 val songs = mediaRepo.getAudios(songIds).map { song ->
                     song.asExternalModel()
                 }
-                if (FLAG) Log.i(TAG, "song size: ${songs.size}")
                 playlist.copy(playlistImage = playlist.getArtworkUris(songs))
             } else {
                 playlist

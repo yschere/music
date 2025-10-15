@@ -7,6 +7,7 @@ import com.example.music.domain.model.asExternalModel
 import com.example.music.data.mediaresolver.model.Genre
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.uri
+import com.example.music.data.util.FLAG
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -24,17 +25,21 @@ class GetGenreDetails @Inject constructor(
         return combine(
             genreItem,
             genreItem.map {
-                Log.i(TAG, "Fetching songs from genre $genreId")
-                mediaRepo.getGenreAudios(it.id, order = MediaStore.Audio.AudioColumns.TITLE)
+                mediaRepo.getGenreAudios(
+                    id = it.id,
+                    order = MediaStore.Audio.AudioColumns.TITLE
+                )
             }
         ) { genre, songs ->
-            Log.i(TAG, "GENRE: $genre --- \n" +
-                "Genre Name: ${genre.name}")
+            Log.i(TAG, "GENRE: $genre ---\n" +
+                "Genre ID: ${genre.id}\n" +
+                "Genre Name: ${genre.name}"
+            )
             GenreDetailsFilterResult(
                 genre = genre.asExternalModel(),
-                songs = songs.map {
-                    Log.i(TAG, "SONG: ${it.title}")
-                    it.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(it.uri))
+                songs = songs.map { song ->
+                    if (FLAG) Log.i(TAG, "SONG: ${song.title}")
+                    song.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
                 },
             )
         }
