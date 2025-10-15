@@ -21,21 +21,21 @@ class SearchQuery @Inject constructor(
 
         val audios = mediaRepo.findAudios(
             query = query,
-            limit = 20,
+            //limit = 20,
         )?.map { audio ->
             audio.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
         } ?: emptyList()
 
         val artists = mediaRepo.findArtists(
             query = query,
-            limit = 20,
+            //limit = 20,
         )?.map { artist ->
             artist.asExternalModel()
         } ?: emptyList()
 
         val albums = mediaRepo.findAlbums(
             query = query,
-            limit = 20,
+            //limit = 20,
         )?.map { album ->
             album.asExternalModel()
         } ?: emptyList()
@@ -47,8 +47,11 @@ class SearchQuery @Inject constructor(
 
         return SearchQueryFilterResult(
             songs = audios,
+            songCount = audios.size,
             artists = artists,
+            artistCount = artists.size,
             albums = albums,
+            albumCount = albums.size,
         )
     }
 }
