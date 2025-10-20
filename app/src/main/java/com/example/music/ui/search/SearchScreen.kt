@@ -46,7 +46,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.music.R
 import com.example.music.designsys.theme.CONTENT_PADDING
@@ -72,12 +71,13 @@ import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
 import com.example.music.util.screenMargin
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 private const val TAG = "Search Screen"
 
 /**
- * Stateful version of Search Screen.
+ * Stateful version of Search Screen
  */
 @Composable
 fun SearchScreen(
@@ -89,21 +89,37 @@ fun SearchScreen(
 ) {
     // contains the View / Ui state of the screen
     val uiState = viewModel.state.collectAsState().value
+    if (uiState == SearchUiState.Error) {
+        Log.e(TAG, "SearchUiState Error")
+        SearchError(onRetry = { /* TODO: determine error state handling */})
+    }
 
     Surface(color = Color.Transparent) {
-        SearchScreenReady(
+        SearchScreen(
             uiState = uiState,
-            viewModel = viewModel,
+            queryText = viewModel.queryText.collectAsState().value,
+            resultView = viewModel.resultView.collectAsState().value,
+            selectSong = viewModel.selectedSong.collectAsState().value,
+            selectArtist = viewModel.selectedArtist.collectAsState().value,
+            selectAlbum = viewModel.selectedAlbum.collectAsState().value,
+
+            onSongMoreOptionsClick = viewModel::onSongMoreOptionsClick,
+            onArtistMoreOptionsClick = viewModel::onArtistMoreOptionsClick,
+            onAlbumMoreOptionsClick = viewModel::onAlbumMoreOptionsClick,
+            onMoreOptionsAction = viewModel::onMoreOptionsAction,
+            searchActions = SearchActions(
+                clearQuery = viewModel::clearQuery,
+                sendQuery = viewModel::sendQuery,
+                updateQuery = viewModel::updateQuery,
+            ),
+            updateResultView = viewModel::updateResultView,
+
             navigateBack = navigateBack,
             navigateToPlayer = navigateToPlayer,
             navigateToArtistDetails = navigateToArtistDetails,
             navigateToAlbumDetails = navigateToAlbumDetails,
             modifier = Modifier.fillMaxSize(),
         )
-        if (uiState == SearchUiState.Error) {
-            Log.e(TAG, "SearchUiState Error")
-            SearchError(onRetry = {})
-        }
     }
 }
 
@@ -116,46 +132,13 @@ private fun SearchError(
     modifier: Modifier = Modifier
 ) { Error(onRetry = onRetry, modifier = modifier) }
 
-@Composable
-fun SearchScreenReady(
-    uiState: SearchUiState,
-    viewModel: SearchQueryViewModel,
-    navigateBack: () -> Unit,
-    navigateToPlayer: () -> Unit,
-    navigateToArtistDetails: (Long) -> Unit,
-    navigateToAlbumDetails: (Long) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    SearchScreen(
-        uiState = uiState,
-        queryText = viewModel.queryText.collectAsState().value,
-        resultView = viewModel.resultView.collectAsState().value,
-        selectSong = viewModel.selectedSong.collectAsState().value,
-        selectArtist = viewModel.selectedArtist.collectAsState().value,
-        selectAlbum = viewModel.selectedAlbum.collectAsState().value,
-
-        onMoreOptionsAction = viewModel::onMoreOptionsAction,
-        searchActions = SearchActions(
-            updateQuery = viewModel::updateQuery,
-            clearQuery = viewModel::clearQuery,
-            sendQuery = viewModel::sendQuery,
-        ),
-        onSongMoreOptionsClick = viewModel::onSongMoreOptionsClick,
-        onArtistMoreOptionsClick = viewModel::onArtistMoreOptionsClick,
-        onAlbumMoreOptionsClick = viewModel::onAlbumMoreOptionsClick,
-        onMoreResultsClick = viewModel::onMoreQuery,
-
-        navigateBack = navigateBack,
-        navigateToPlayer = navigateToPlayer,
-        navigateToArtistDetails = navigateToArtistDetails,
-        navigateToAlbumDetails = navigateToAlbumDetails,
-        modifier = modifier,
-    )
-}
-
+/**
+ * Stateful version of Search Screen with viewModel properties needed to render the
+ * components of the page.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(
+private fun SearchScreen(
     uiState: SearchUiState,
     queryText: String,
     resultView: ResultView,
@@ -163,12 +146,12 @@ fun SearchScreen(
     selectArtist: ArtistInfo,
     selectAlbum: AlbumInfo,
 
-    onMoreOptionsAction: (MoreOptionsAction) -> Unit,
-    searchActions: SearchActions,
     onSongMoreOptionsClick: (SongInfo) -> Unit,
     onArtistMoreOptionsClick: (ArtistInfo) -> Unit,
     onAlbumMoreOptionsClick: (AlbumInfo) -> Unit,
-    onMoreResultsClick: (ResultView) -> Unit,
+    onMoreOptionsAction: (MoreOptionsAction) -> Unit,
+    searchActions: SearchActions,
+    updateResultView: (ResultView) -> Unit,
 
     navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
@@ -176,14 +159,15 @@ fun SearchScreen(
     navigateToAlbumDetails: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    Log.i(TAG, "Search Screen START")
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     //val snackBarText = stringResource(id = R.string.sbt_song_added_to_your_queue)
 
     val sheetState = rememberModalBottomSheetState(true)
-    var showAlbumMoreOptions by remember { mutableStateOf(false) }
-    var showArtistMoreOptions by remember { mutableStateOf(false) }
     var showSongMoreOptions by remember { mutableStateOf(false) }
+    var showArtistMoreOptions by remember { mutableStateOf(false) }
+    var showAlbumMoreOptions by remember { mutableStateOf(false) }
 
     ScreenBackground(modifier = modifier) {
         Scaffold(
@@ -194,6 +178,7 @@ fun SearchScreen(
             contentColor = contentColorFor(MaterialTheme.colorScheme.background)
         ) { contentPadding ->
             SearchContent(
+                coroutineScope = coroutineScope,
                 navigateBack = navigateBack,
                 uiState = uiState,
                 queryText = queryText,
@@ -228,10 +213,156 @@ fun SearchScreen(
                         onAlbumMoreOptionsClick(album)
                         showAlbumMoreOptions = true
                     },
-                    onMoreResultsClick = onMoreResultsClick,
+                    updateResultView = updateResultView,
                 ),
                 modifier = Modifier.padding(contentPadding),
             )
+
+            if (showSongMoreOptions) {
+                Log.i(TAG, "Settings Content -> Song More Options is TRUE")
+                SongMoreOptionsBottomModal(
+                    onDismissRequest = { showSongMoreOptions = false },
+                    sheetState = sheetState,
+                    song = selectSong,
+                    songActions = SongActions(
+                        play = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> Play Song clicked :: ${selectSong.title}")
+                                onMoreOptionsAction(MoreOptionsAction.PlaySong(selectSong))
+                                navigateToPlayer()
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showSongMoreOptions to FALSE")
+                                if (!sheetState.isVisible) showSongMoreOptions = false
+                            }
+                        },
+                        playNext = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> Play Song Next clicked :: ${selectSong.title}")
+                                onMoreOptionsAction(MoreOptionsAction.PlaySongNext(selectSong))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showSongMoreOptions to FALSE")
+                                if (!sheetState.isVisible) showSongMoreOptions = false
+                            }
+                        },
+                        addToQueue = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> Queue Song clicked :: ${selectSong.title}")
+                                onMoreOptionsAction(MoreOptionsAction.QueueSong(selectSong))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showSongMoreOptions to FALSE")
+                                if (!sheetState.isVisible) showSongMoreOptions = false
+                            }
+                        },
+                        goToArtist = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> Go To Artist clicked :: ${selectSong.artistId}")
+                                navigateToArtistDetails(selectSong.artistId)
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showSongMoreOptions to FALSE")
+                                if (!sheetState.isVisible) showSongMoreOptions = false
+                            }
+                        },
+                        goToAlbum = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Song More Options Modal -> Go To Album clicked :: ${selectSong.albumId}")
+                                navigateToAlbumDetails(selectSong.albumId)
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showSongMoreOptions to FALSE")
+                                if (!sheetState.isVisible) showSongMoreOptions = false
+                            }
+                        },
+                    ),
+                    onClose = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Hide sheet state")
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showSongMoreOptions to FALSE")
+                            if (!sheetState.isVisible) showSongMoreOptions = false
+                        }
+                    },
+                    context = "Search"
+                )
+            }
+
+            if (showArtistMoreOptions) {
+                Log.i(TAG, "Settings Content -> Artist More Options is TRUE")
+                ArtistMoreOptionsBottomModal(
+                    onDismissRequest = { showArtistMoreOptions = false },
+                    sheetState = sheetState,
+                    artist = selectArtist,
+                    artistActions = ArtistActions(
+                        play = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> Play Artist clicked :: ${selectArtist.name}")
+                                onMoreOptionsAction(MoreOptionsAction.PlayArtist(selectArtist))
+                                sheetState.hide()
+                                navigateToPlayer()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) showArtistMoreOptions = false
+                            }
+                        },
+                        playNext = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> Play Artist Next clicked :: ${selectArtist.name}")
+                                onMoreOptionsAction(MoreOptionsAction.PlayArtistNext(selectArtist))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) showArtistMoreOptions = false
+                            }
+                        },
+                        shuffle = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> Shuffle Artist clicked :: ${selectArtist.name}")
+                                onMoreOptionsAction(MoreOptionsAction.ShuffleArtist(selectArtist))
+                                sheetState.hide()
+                                navigateToPlayer()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) showArtistMoreOptions = false
+                            }
+                        },
+                        addToQueue = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> Queue Artist clicked :: ${selectArtist.name}")
+                                onMoreOptionsAction(MoreOptionsAction.QueueArtist(selectArtist))
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) showArtistMoreOptions = false
+                            }
+                        },
+                        goToArtist = {
+                            coroutineScope.launch {
+                                Log.i(TAG, "Artist More Options Modal -> Play Artist clicked :: ${selectArtist.name}")
+                                onMoreOptionsAction(MoreOptionsAction.PlayArtist(selectArtist))
+                                sheetState.hide()
+                                navigateToArtistDetails(selectArtist.id)
+                            }.invokeOnCompletion {
+                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                                if(!sheetState.isVisible) showArtistMoreOptions = false
+                            }
+                        },
+                    ),
+                    onClose = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Hide sheet state")
+                            sheetState.hide()
+                        }.invokeOnCompletion {
+                            Log.i(TAG, "set showArtistMoreOptions to FALSE")
+                            if (!sheetState.isVisible) showArtistMoreOptions = false
+                        }
+                    },
+                    context = "Search",
+                )
+            }
 
             if (showAlbumMoreOptions) {
                 Log.i(TAG, "Settings Content -> Album More Options is TRUE")
@@ -315,158 +446,16 @@ fun SearchScreen(
                     context = "Search",
                 )
             }
-
-            if (showArtistMoreOptions) {
-                Log.i(TAG, "Settings Content -> Artist More Options is TRUE")
-                ArtistMoreOptionsBottomModal(
-                    onDismissRequest = { showArtistMoreOptions = false },
-                    sheetState = sheetState,
-                    artist = selectArtist,
-                    artistActions = ArtistActions(
-                        play = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Artist More Options Modal -> Play Artist clicked :: ${selectArtist.name}")
-                                onMoreOptionsAction(MoreOptionsAction.PlayArtist(selectArtist))
-                                sheetState.hide()
-                                navigateToPlayer()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
-                                if(!sheetState.isVisible) showArtistMoreOptions = false
-                            }
-                        },
-                        playNext = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Artist More Options Modal -> Play Artist Next clicked :: ${selectArtist.name}")
-                                onMoreOptionsAction(MoreOptionsAction.PlayArtistNext(selectArtist))
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
-                                if(!sheetState.isVisible) showArtistMoreOptions = false
-                            }
-                        },
-                        shuffle = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Artist More Options Modal -> Shuffle Artist clicked :: ${selectArtist.name}")
-                                onMoreOptionsAction(MoreOptionsAction.ShuffleArtist(selectArtist))
-                                sheetState.hide()
-                                navigateToPlayer()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
-                                if(!sheetState.isVisible) showArtistMoreOptions = false
-                            }
-                        },
-                        addToQueue = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Artist More Options Modal -> Queue Artist clicked :: ${selectArtist.name}")
-                                onMoreOptionsAction(MoreOptionsAction.QueueArtist(selectArtist))
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
-                                if(!sheetState.isVisible) showArtistMoreOptions = false
-                            }
-                        },
-                        goToArtist = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Artist More Options Modal -> Play Artist clicked :: ${selectArtist.name}")
-                                onMoreOptionsAction(MoreOptionsAction.PlayArtist(selectArtist))
-                                sheetState.hide()
-                                navigateToArtistDetails(selectArtist.id)
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showArtistMoreOptions to FALSE")
-                                if(!sheetState.isVisible) showArtistMoreOptions = false
-                            }
-                        },
-                    ),
-                    onClose = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Hide sheet state")
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showArtistMoreOptions to FALSE")
-                            if (!sheetState.isVisible) showArtistMoreOptions = false
-                        }
-                    },
-                    context = "Search",
-                )
-            }
-
-            if (showSongMoreOptions) {
-                Log.i(TAG, "Settings Content -> Song More Options is TRUE")
-                SongMoreOptionsBottomModal(
-                    onDismissRequest = { showSongMoreOptions = false },
-                    sheetState = sheetState,
-                    song = selectSong,
-                    songActions = SongActions(
-                        play = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> Play Song clicked :: ${selectSong.title}")
-                                onMoreOptionsAction(MoreOptionsAction.PlaySong(selectSong))
-                                navigateToPlayer()
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showSongMoreOptions to FALSE")
-                                if (!sheetState.isVisible) showSongMoreOptions = false
-                            }
-                        },
-                        playNext = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> Play Song Next clicked :: ${selectSong.title}")
-                                onMoreOptionsAction(MoreOptionsAction.PlaySongNext(selectSong))
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showSongMoreOptions to FALSE")
-                                if (!sheetState.isVisible) showSongMoreOptions = false
-                            }
-                        },
-                        addToQueue = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> Queue Song clicked :: ${selectSong.title}")
-                                onMoreOptionsAction(MoreOptionsAction.QueueSong(selectSong))
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showSongMoreOptions to FALSE")
-                                if (!sheetState.isVisible) showSongMoreOptions = false
-                            }
-                        },
-                        goToArtist = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> Go To Artist clicked :: ${selectSong.artistId}")
-                                navigateToArtistDetails(selectSong.artistId)
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showSongMoreOptions to FALSE")
-                                if (!sheetState.isVisible) showSongMoreOptions = false
-                            }
-                        },
-                        goToAlbum = {
-                            coroutineScope.launch {
-                                Log.i(TAG, "Song More Options Modal -> Go To Album clicked :: ${selectSong.albumId}")
-                                navigateToAlbumDetails(selectSong.albumId)
-                                sheetState.hide()
-                            }.invokeOnCompletion {
-                                Log.i(TAG, "set showSongMoreOptions to FALSE")
-                                if (!sheetState.isVisible) showSongMoreOptions = false
-                            }
-                        },
-                    ),
-                    onClose = {
-                        coroutineScope.launch {
-                            Log.i(TAG, "Hide sheet state")
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            Log.i(TAG, "set showSongMoreOptions to FALSE")
-                            if (!sheetState.isVisible) showSongMoreOptions = false
-                        }
-                    },
-                    context = "Search"
-                )
-            }
         }
     }
 }
 
+/**
+ * Composable for Search Screen Content
+ */
 @Composable
 fun SearchContent(
+    coroutineScope: CoroutineScope,
     navigateBack: () -> Unit,
     uiState: SearchUiState,
     queryText: String,
@@ -475,21 +464,275 @@ fun SearchContent(
     resultActions: ResultActions,
     modifier: Modifier = Modifier,
 ) {
-    Log.i(TAG, "Search Content START")
+    Log.i(TAG, "SearchContent START")
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp)
-    ) {
+    val scrollState = rememberScrollState()
+    val displayButton = remember { derivedStateOf {
+        scrollState.value > TOP_BAR_EXPANDED_HEIGHT.value.toInt()
+    } }
+
+    Column(modifier = modifier.fillMaxSize().screenMargin()) {
         SearchField(
-            navigateBack,
-            uiState,
-            queryText,
-            resultView,
-            searchActions,
-            resultActions,
-        )
+            navigateBack = navigateBack,
+            queryText = queryText,
+            searchActions = searchActions,
+        ) {
+            Box(Modifier.fillMaxSize()) {
+                Column(Modifier.fillMaxSize().verticalScroll(scrollState)) {
+                    when (uiState) {
+                        SearchUiState.Loading -> {
+                            LinearProgressIndicator(Modifier.fillMaxWidth().screenMargin())
+                        }
+                        SearchUiState.NoResults -> {
+                            Text(
+                                text = "Nothing found,\nplease try a different search",
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(SCREEN_PADDING)
+                            )
+                        }
+                        is SearchUiState.SearchResultsFound -> {
+                            when (resultView) {
+                                ResultView.ALL -> {
+                                    Spacer(Modifier.padding(CONTENT_PADDING))
+                                    if (uiState.results.songs.isNotEmpty()) {
+                                        val songResult =
+                                            if (uiState.results.songs.size > 20)
+                                                uiState.results.songs.subList(0, 20)
+                                            else uiState.results.songs
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = "Songs",
+                                                style = MaterialTheme.typography.titleLarge,
+                                                modifier = Modifier.padding(SCREEN_PADDING),
+                                            )
+                                            Text(
+                                                text = "(${uiState.results.songCount})",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                            )
+                                            Spacer(Modifier.weight(1f))
+                                            if (uiState.results.songCount > 20)
+                                                ShowMoreBtn(onClick = {
+                                                    resultActions.updateResultView(ResultView.SONG)
+                                                    coroutineScope.launch {
+                                                        scrollState.animateScrollTo(value = 0)
+                                                    }
+                                                })
+                                        }
+                                        songResult.forEach { song ->
+                                            SongListItem(
+                                                song = song,
+                                                onClick = { resultActions.onSongClick(song) },
+                                                onMoreOptionsClick = {
+                                                    resultActions.onSongMoreOptionsClick(song)
+                                                },
+                                                showArtistName = true,
+                                                showAlbumTitle = true,
+                                                showAlbumImage = true,
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            text = "No Songs Found",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier.padding(SCREEN_PADDING),
+                                        )
+                                    }
+
+                                    Spacer(Modifier.padding(CONTENT_PADDING))
+                                    if (uiState.results.artists.isNotEmpty()) {
+                                        val artistResult =
+                                            if (uiState.results.artists.size > 20)
+                                                uiState.results.artists.subList(0, 20)
+                                            else uiState.results.artists
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = "Artists",
+                                                style = MaterialTheme.typography.titleLarge,
+                                                modifier = Modifier.padding(SCREEN_PADDING),
+                                            )
+                                            Text(
+                                                text = "(${uiState.results.artistCount})",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                            )
+                                            Spacer(Modifier.weight(1f))
+                                            if (uiState.results.artistCount > 20)
+                                                ShowMoreBtn(onClick = {
+                                                    resultActions.updateResultView(ResultView.ARTIST)
+                                                    coroutineScope.launch {
+                                                        scrollState.animateScrollTo(value = 0)
+                                                    }
+                                                })
+                                        }
+                                        artistResult.forEach { artist ->
+                                            ArtistListItem(
+                                                artist = artist,
+                                                navigateToArtistDetails = { resultActions.onArtistClick(artist) },
+                                                onMoreOptionsClick = { resultActions.onArtistMoreOptionsClick(artist) },
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            text = "No Artists Found",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier.padding(SCREEN_PADDING),
+                                        )
+                                    }
+
+                                    Spacer(Modifier.padding(CONTENT_PADDING))
+                                    if (uiState.results.albums.isNotEmpty()) {
+                                        val albumResult =
+                                            if (uiState.results.albums.size > 20)
+                                                uiState.results.albums.subList(0, 20)
+                                            else uiState.results.albums
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = "Albums",
+                                                style = MaterialTheme.typography.titleLarge,
+                                                modifier = Modifier.padding(SCREEN_PADDING),
+                                            )
+                                            Text(
+                                                text = "(${uiState.results.albumCount})",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                            )
+                                            Spacer(Modifier.weight(1f))
+                                            if (uiState.results.albumCount > 20)
+                                                ShowMoreBtn(onClick = {
+                                                    resultActions.updateResultView(ResultView.ALBUM)
+                                                    coroutineScope.launch {
+                                                        scrollState.animateScrollTo(value = 0)
+                                                    }
+                                                })
+                                        }
+                                        albumResult.forEach { album ->
+                                            AlbumListItem(
+                                                album = album,
+                                                navigateToAlbumDetails = {
+                                                    resultActions.onAlbumClick(album)
+                                                },
+                                                onMoreOptionsClick = {
+                                                    resultActions.onAlbumMoreOptionsClick(album)
+                                                },
+                                                cardOrRow = false,
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            text = "No Albums Found",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier.padding(SCREEN_PADDING),
+                                        )
+                                    }
+                                }
+                                ResultView.SONG -> {
+                                    Spacer(Modifier.padding(CONTENT_PADDING))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "All Songs",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            modifier = Modifier.padding(SCREEN_PADDING),
+                                        )
+                                        Text(
+                                            text = "(${uiState.results.songCount})",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                        )
+                                        Spacer(Modifier.weight(1f))
+                                        ShowLessBtn(onClick = {
+                                            resultActions.updateResultView(ResultView.ALL)
+                                        })
+                                    }
+                                    uiState.results.songs.forEach { song ->
+                                        SongListItem(
+                                            song = song,
+                                            onClick = { resultActions.onSongClick(song) },
+                                            onMoreOptionsClick = {
+                                                resultActions.onSongMoreOptionsClick(song)
+                                            },
+                                            showArtistName = true,
+                                            showAlbumTitle = true,
+                                            showAlbumImage = true,
+                                        )
+                                    }
+                                }
+                                ResultView.ARTIST -> {
+                                    Spacer(Modifier.padding(CONTENT_PADDING))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "All Artists",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            modifier = Modifier.padding(SCREEN_PADDING),
+                                        )
+                                        Text(
+                                            text = "(${uiState.results.artistCount})",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                        )
+                                        Spacer(Modifier.weight(1f))
+                                        ShowLessBtn(onClick = {
+                                            resultActions.updateResultView(ResultView.ALL)
+                                        })
+                                    }
+                                    uiState.results.artists.forEach { artist ->
+                                        ArtistListItem(
+                                            artist = artist,
+                                            navigateToArtistDetails = {
+                                                resultActions.onArtistClick(artist)
+                                            },
+                                            onMoreOptionsClick = {
+                                                resultActions.onArtistMoreOptionsClick(artist)
+                                            },
+                                        )
+                                    }
+                                }
+                                ResultView.ALBUM -> {
+                                    Spacer(Modifier.padding(CONTENT_PADDING))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "All Albums",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            modifier = Modifier.padding(SCREEN_PADDING),
+                                        )
+                                        Text(
+                                            text = "(${uiState.results.albumCount})",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                        )
+                                        Spacer(Modifier.weight(1f))
+                                        ShowLessBtn(onClick = {
+                                            resultActions.updateResultView(ResultView.ALL)
+                                        })
+                                    }
+                                    uiState.results.albums.forEach { album ->
+                                        AlbumListItem(
+                                            album = album,
+                                            navigateToAlbumDetails = {
+                                                resultActions.onAlbumClick(album)
+                                            },
+                                            onMoreOptionsClick = {
+                                                resultActions.onAlbumMoreOptionsClick(album)
+                                            },
+                                            cardOrRow = false,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        else -> { Spacer(Modifier.fillMaxSize()) }
+                    }
+                }
+
+                ScrollToTopFAB(
+                    displayButton = displayButton,
+                    isActive = false,
+                    onClick = {
+                        coroutineScope.launch {
+                            Log.i(TAG, "Scroll to Top btn clicked")
+                            scrollState.animateScrollTo(value = 0)
+                        }
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -497,19 +740,13 @@ fun SearchContent(
 @Composable
 fun SearchField(
     navigateBack: () -> Unit,
-    uiState: SearchUiState,
     queryText: String,
-    resultView: ResultView,
     searchActions: SearchActions,
-    resultActions: ResultActions,
+    content: @Composable () -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val interactionSource = remember { MutableInteractionSource() }
-
-    val scrollState = rememberScrollState()
-    val displayButton = remember { derivedStateOf { scrollState.value > TOP_BAR_EXPANDED_HEIGHT.value.toInt() } }
 
     SearchBar(
         inputField = {
@@ -535,9 +772,7 @@ fun SearchField(
                         )
                     }
                 },
-                trailingIcon = {
-                    if (isExpanded) ClearFieldBtn(onClick = searchActions.clearQuery)
-                },
+                trailingIcon = { if (isExpanded) ClearFieldBtn(onClick = searchActions.clearQuery) },
                 interactionSource = interactionSource,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -550,330 +785,6 @@ fun SearchField(
         ),
         modifier = Modifier.semantics { traversalIndex = 0f }
     ) {
-        Box(Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-            ) {
-                when (uiState) {
-                    SearchUiState.Loading -> {
-                        LinearProgressIndicator(
-                            Modifier
-                                .fillMaxWidth()
-                                .screenMargin()
-                        )
-                    }
-
-                    SearchUiState.NoResults -> {
-                        Text(
-                            text = "Nothing found,\nplease try a different search",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(SCREEN_PADDING)
-                        )
-                    }
-
-                    is SearchUiState.SearchResultsFound -> {
-                        when (resultView) {
-                            ResultView.ALL -> {
-                                Spacer(Modifier.padding(CONTENT_PADDING))
-                                if (uiState.results.songs.isNotEmpty()) {
-                                    val songResult =
-                                        if (uiState.results.songs.size > 20) uiState.results.songs.subList(0, 20)
-                                        else uiState.results.songs
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "Songs",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            modifier = Modifier.padding(SCREEN_PADDING),
-                                        )
-                                        Text(
-                                            text = "(${uiState.results.songCount})",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                        )
-                                        Spacer(Modifier.weight(1f))
-                                        if (uiState.results.songCount > 20)
-                                            ShowMoreBtn(onClick = {
-                                                resultActions.onMoreResultsClick(ResultView.SONG)
-                                                coroutineScope.launch { scrollState.animateScrollTo(value = 0) }
-                                            })
-                                    }
-
-                                    songResult.forEach { song ->
-                                        SongListItem(
-                                            song = song,
-                                            onClick = { resultActions.onSongClick(song) },
-                                            onMoreOptionsClick = { resultActions.onSongMoreOptionsClick(song) },
-                                            showArtistName = true,
-                                            showAlbumTitle = true,
-                                            showAlbumImage = true,
-                                        )
-                                    }
-                                } else {
-                                    Text(
-                                        text = "No Songs Found",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(SCREEN_PADDING),
-                                    )
-                                }
-
-                                Spacer(Modifier.padding(CONTENT_PADDING))
-                                if (uiState.results.artists.isNotEmpty()) {
-                                    val artistResult =
-                                        if (uiState.results.artists.size > 20) uiState.results.artists.subList(0, 20)
-                                        else uiState.results.artists
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "Artists",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            modifier = Modifier.padding(SCREEN_PADDING),
-                                        )
-                                        Text(
-                                            text = "(${uiState.results.artistCount})",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                        )
-                                        Spacer(Modifier.weight(1f))
-                                        if (uiState.results.artistCount > 20)
-                                            ShowMoreBtn(onClick = {
-                                                resultActions.onMoreResultsClick(ResultView.ARTIST)
-                                                coroutineScope.launch { scrollState.animateScrollTo(value = 0) }
-                                            })
-                                    }
-                                    artistResult.forEach { artist ->
-                                        ArtistListItem(
-                                            artist = artist,
-                                            navigateToArtistDetails = { resultActions.onArtistClick(artist) },
-                                            onMoreOptionsClick = { resultActions.onArtistMoreOptionsClick(artist) },
-                                        )
-                                    }
-                                } else {
-                                    Text(
-                                        text = "No Artists Found",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(SCREEN_PADDING),
-                                    )
-                                }
-
-                                Spacer(Modifier.padding(CONTENT_PADDING))
-                                if (uiState.results.albums.isNotEmpty()) {
-                                    val albumResult =
-                                        if (uiState.results.albums.size > 20) uiState.results.albums.subList(0, 20)
-                                        else uiState.results.albums
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = "Albums",
-                                            style = MaterialTheme.typography.titleLarge,
-                                            modifier = Modifier.padding(SCREEN_PADDING),
-                                        )
-                                        Text(
-                                            text = "(${uiState.results.albumCount})",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                        )
-                                        Spacer(Modifier.weight(1f))
-                                        if (uiState.results.albumCount > 20)
-                                            ShowMoreBtn(onClick = {
-                                                resultActions.onMoreResultsClick(ResultView.ALBUM)
-                                                coroutineScope.launch { scrollState.animateScrollTo(value = 0) }
-                                            })
-                                    }
-                                    albumResult.forEach { album ->
-                                        AlbumListItem(
-                                            album = album,
-                                            navigateToAlbumDetails = { resultActions.onAlbumClick(album) },
-                                            onMoreOptionsClick = { resultActions.onAlbumMoreOptionsClick(album) },
-                                            cardOrRow = false,
-                                        )
-                                    }
-                                } else {
-                                    Text(
-                                        text = "No Albums Found",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(SCREEN_PADDING),
-                                    )
-                                }
-                            }
-                            ResultView.SONG -> {
-                                Spacer(Modifier.padding(CONTENT_PADDING))
-                                val songResult = uiState.results.songs
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "All Songs",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        modifier = Modifier.padding(SCREEN_PADDING),
-                                    )
-                                    Spacer(Modifier.weight(1f))
-                                    ShowLessBtn(onClick = { resultActions.onMoreResultsClick(ResultView.ALL) })
-                                }
-
-                                songResult.forEach { song ->
-                                    SongListItem(
-                                        song = song,
-                                        onClick = { resultActions.onSongClick(song) },
-                                        onMoreOptionsClick = { resultActions.onSongMoreOptionsClick(song) },
-                                        showArtistName = true,
-                                        showAlbumTitle = true,
-                                        showAlbumImage = true,
-                                    )
-                                }
-                            }
-                            ResultView.ARTIST -> {
-                                Spacer(Modifier.padding(CONTENT_PADDING))
-                                val artistResult = uiState.results.artists
-
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "All Artists",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        modifier = Modifier.padding(SCREEN_PADDING),
-                                    )
-                                    Spacer(Modifier.weight(1f))
-                                    ShowLessBtn(onClick = { resultActions.onMoreResultsClick(ResultView.ALL) })
-                                }
-                                artistResult.forEach { artist ->
-                                    ArtistListItem(
-                                        artist = artist,
-                                        navigateToArtistDetails = { resultActions.onArtistClick(artist) },
-                                        onMoreOptionsClick = { resultActions.onArtistMoreOptionsClick(artist) },
-                                    )
-                                }
-                            }
-                            ResultView.ALBUM -> {
-                                Spacer(Modifier.padding(CONTENT_PADDING))
-                                val albumResult = uiState.results.albums
-
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "All Albums",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        modifier = Modifier.padding(SCREEN_PADDING),
-                                    )
-                                    Spacer(Modifier.weight(1f))
-                                    ShowLessBtn(onClick = { resultActions.onMoreResultsClick(ResultView.ALL) })
-                                }
-                                albumResult.forEach { album ->
-                                    AlbumListItem(
-                                        album = album,
-                                        navigateToAlbumDetails = { resultActions.onAlbumClick(album) },
-                                        onMoreOptionsClick = { resultActions.onAlbumMoreOptionsClick(album) },
-                                        cardOrRow = false,
-                                    )
-                                }
-                            }
-                        }
-
-                        /* // original results section
-                        Spacer(Modifier.padding(CONTENT_PADDING))
-                        if (uiState.results.songs.isNotEmpty()) {
-                            val songResult = uiState.results.songs
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Songs",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    modifier = Modifier.padding(SCREEN_PADDING),
-                                )
-                                Spacer(Modifier.weight(1f))
-                                if (songResult.size > 20)
-                                    ShowMoreBtn(onClick = { resultActions.onMoreResultsClick(ResultView.SONG) })
-                            }
-
-                            songResult.forEach { song ->
-                                SongListItem(
-                                    song = song,
-                                    onClick = { resultActions.onSongClick(song) },
-                                    onMoreOptionsClick = { resultActions.onSongMoreOptionsClick(song) },
-                                    showArtistName = true,
-                                    showAlbumTitle = true,
-                                    showAlbumImage = true,
-                                )
-                            }
-                        }
-                        else if (uiState.results.songs.isEmpty()) {
-                            Text(
-                                text = "No Songs Found",
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(SCREEN_PADDING),
-                            )
-                        }
-
-                        Spacer(Modifier.padding(CONTENT_PADDING))
-                        if (uiState.results.artists.isNotEmpty()) {
-                            val artistResult = uiState.results.artists
-
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Artists",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    modifier = Modifier.padding(SCREEN_PADDING),
-                                )
-                                Spacer(Modifier.weight(1f))
-                                if (artistResult.size > 20)
-                                    ShowMoreBtn(onClick = { resultActions.onMoreResultsClick(ResultView.ARTIST) })
-                                }
-                            artistResult.forEach { artist ->
-                                ArtistListItem(
-                                    artist = artist,
-                                    navigateToArtistDetails = { resultActions.onArtistClick(artist) },
-                                    onMoreOptionsClick = { resultActions.onArtistMoreOptionsClick(artist) },
-                                )
-                            }
-                        }
-                        else if (uiState.results.artists.isEmpty()) {
-                            Text(
-                                text = "No Artists Found",
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(SCREEN_PADDING),
-                            )
-                        }
-
-                        Spacer(Modifier.padding(CONTENT_PADDING))
-                        if (uiState.results.albums.isNotEmpty()) {
-                            val albumResult = uiState.results.albums
-
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "Albums",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    modifier = Modifier.padding(SCREEN_PADDING),
-                                )
-                                Spacer(Modifier.weight(1f))
-                                if (albumResult.size > 20)
-                                    ShowMoreBtn(onClick = { resultActions.onMoreResultsClick(ResultView.ALBUM) })
-                            }
-                            albumResult.forEach { album ->
-                                AlbumListItem(
-                                    album = album,
-                                    navigateToAlbumDetails = { resultActions.onAlbumClick(album) },
-                                    onMoreOptionsClick = { resultActions.onAlbumMoreOptionsClick(album) },
-                                    cardOrRow = false,
-                                )
-                            }
-                        }
-                        else if (uiState.results.albums.isEmpty()) {
-                            Text(
-                                text = "No Albums Found",
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(SCREEN_PADDING),
-                            )
-                        }*/
-                    }
-
-                    else -> { Spacer(modifier = Modifier.fillMaxSize()) }
-                }
-            }
-
-            ScrollToTopFAB(
-                displayButton = displayButton,
-                isActive = false,
-                onClick = {
-                    coroutineScope.launch {
-                        Log.i(TAG, "Scroll to Top btn clicked")
-                        scrollState.animateScrollTo(value = 0)
-                    }
-                }
-            )
-        }
+        content()
     }
 }
