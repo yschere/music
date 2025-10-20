@@ -345,7 +345,10 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
-    private fun onAppPreferencesUpdate(libraryCategory: LibraryCategory, newSort: Pair<String, Boolean>) {
+    private fun onAppPreferencesUpdate(
+        libraryCategory: LibraryCategory,
+        newSort: Pair<String, Boolean>
+    ) {
         viewModelScope.launch {
             when(libraryCategory) {
                 LibraryCategory.Albums -> {
@@ -530,13 +533,14 @@ class LibraryViewModel @Inject constructor(
     }
 }
 
-enum class LibraryCategory {
-    Playlists, Songs, Artists, Albums, Genres, Composers
-}
+enum class LibraryCategory { Playlists, Songs, Artists, Albums, Genres, Composers }
 
 @Immutable
 sealed interface LibraryAction {
-    data class AppPreferencesUpdate(val libraryCategory: LibraryCategory, val newSort: Pair<String, Boolean>) : LibraryAction
+    data class AppPreferencesUpdate(
+        val libraryCategory: LibraryCategory,
+        val newSort: Pair<String, Boolean>
+    ) : LibraryAction
     data class LibraryCategorySelected(val libraryCategory: LibraryCategory) : LibraryAction
 
     data class PlaySong(val song: SongInfo) : LibraryAction
