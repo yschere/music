@@ -12,6 +12,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.example.music.data.repository.RepeatType
+import com.example.music.data.util.FLAG
 import com.example.music.domain.model.SongInfo
 import com.example.music.service.SongController
 import com.example.music.domain.usecases.GetSongData
@@ -117,6 +118,8 @@ class PlayerViewModel @Inject constructor(
                 }
             }
         }
+
+        refresh(force = false)
         Log.i(TAG, "init END")
     }
 
@@ -191,17 +194,16 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        Log.e(TAG, "Refresh call")
-        Log.e(TAG, "refreshing: ${refreshing.value}")
+        Log.i(TAG, "Refresh call -> refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
-                Log.e(TAG,"Refresh runCatching")
+                if (FLAG) Log.i(TAG,"Refresh runCatching")
                 refreshing.value = true
             }.onFailure {
                 Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")
             }
 
-            Log.e(TAG,"refresh to be false -> sets screen to ready state")
+            Log.i(TAG,"refresh to be false -> sets screen to ready state")
             refreshing.value = false
         }
     }

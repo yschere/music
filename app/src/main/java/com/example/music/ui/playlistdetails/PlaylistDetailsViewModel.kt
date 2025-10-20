@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
+import com.example.music.data.util.FLAG
 import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.model.SongInfo
 import com.example.music.ui.Screen
@@ -64,14 +65,6 @@ class PlaylistDetailsViewModel @Inject constructor(
 
     private val getPlaylistDetailsData = getPlaylistDetails(playlistId)
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    /* ---- Initial version that uses playlistRepo directly to retrieve Flow data for Playlist Details
-    val playlist = playlistRepo.getPlaylistWithExtraInfo(playlistId)
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    // original version for getting Song objects
-    val songs = playlistRepo.sortSongsInPlaylistByTrackNumberAsc(playlistId)
-        .shareIn(viewModelScope, SharingStarted.WhileSubscribed())*/
 
     private val selectedSong = MutableStateFlow(SongInfo())
 
@@ -132,6 +125,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                     "isReady?: ${!refreshing}")
 
                 getSongControllerState()
+
                 val sortedSongs = when(selectSort.first) {
                     "Track Number" -> {
                         if (selectSort.second) playlistDetailsFilterResult.songs
@@ -197,7 +191,7 @@ class PlaylistDetailsViewModel @Inject constructor(
                 )
             }
             .catch { throwable ->
-                Log.i(TAG, "Error Caught: ${throwable.message}")
+                Log.e(TAG, "Error Caught: ${throwable.message}")
                 emit(
                     PlaylistUiState(
                         isReady = true,
@@ -285,11 +279,10 @@ class PlaylistDetailsViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        Log.i(TAG, "Refresh call")
-        Log.i(TAG, "refreshing: ${refreshing.value}")
+        Log.i(TAG, "Refresh call -> refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
-                Log.i(TAG, "Refresh runCatching")
+                if (FLAG) Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
             }.onFailure {
                 Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")

@@ -24,40 +24,40 @@ class GetLibraryArtists @Inject constructor(
 
         when (sortColumn) {
             ArtistSortList[0] -> { //"Name"
-                artistsList = mediaRepo.getAllArtists(
+                artistsList = mediaRepo.findAllArtists(
                     order = MediaStore.Audio.Artists.ARTIST,
                     ascending = isAscending,
-                ).sortedBy { it.name.lowercase() }
+                )?.sortedBy { it.name.lowercase() } ?: emptyList()
                 if (!isAscending) artistsList = artistsList.reversed()
             }
 
             ArtistSortList[1] -> { //"Album Count"
-                artistsList = mediaRepo.getAllArtists(
+                artistsList = mediaRepo.findAllArtists(
                     order = MediaStore.Audio.Artists.NUMBER_OF_ALBUMS,
                     ascending = isAscending,
-                ).sortedWith(
+                )?.sortedWith(
                     compareBy<Artist> { it.numAlbums }
                         .thenBy { it.name.lowercase() }
-                )
+                ) ?: emptyList()
                 if (!isAscending) artistsList = artistsList.reversed()
             }
 
             ArtistSortList[2] -> { //"Song Count"
-                artistsList = mediaRepo.getAllArtists(
+                artistsList = mediaRepo.findAllArtists(
                     order = MediaStore.Audio.Artists.NUMBER_OF_TRACKS,
                     ascending = isAscending,
-                ).sortedWith(
+                )?.sortedWith(
                     compareBy<Artist> { it.numTracks }
                         .thenBy { it.name.lowercase() }
-                )
+                ) ?: emptyList()
                 if (!isAscending) artistsList = artistsList.reversed()
             }
 
             else -> {
-                artistsList = mediaRepo.getAllArtists(
+                artistsList = mediaRepo.findAllArtists(
                     order = MediaStore.Audio.Artists.ARTIST,
                     ascending = isAscending,
-                )
+                ) ?: emptyList()
             }
         }
 

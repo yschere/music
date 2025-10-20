@@ -4,19 +4,23 @@ import android.provider.MediaStore
 import android.util.Log
 import com.example.music.data.mediaresolver.MediaRepo
 import com.example.music.data.mediaresolver.model.Album
-import com.example.music.data.mediaresolver.model.Artist
 import com.example.music.data.mediaresolver.model.uri
 import com.example.music.data.util.FLAG
 import com.example.music.domain.model.AlbumDetailsFilterResult
 import com.example.music.domain.model.asExternalModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 private const val TAG = "Get Album Details"
 
+/**
+ * Use case to retrieve data for [AlbumDetailsFilterResult] domain model which returns
+ * the AlbumInfo data, the album's ArtistInfo, and the album's track list as list of SongInfo
+ * to populate the AlbumDetails screen.
+ * @property mediaRepo Content Resolver Repository for MediaStore
+ */
 class GetAlbumDetails @Inject constructor(
     private val mediaRepo: MediaRepo,
 ) {
@@ -39,7 +43,7 @@ class GetAlbumDetails @Inject constructor(
                 "Album Title: ${album.title}\n" +
                 "Artist: ${album.artist}"
             )
-            Log.i(TAG, "ALBUM ARTIST: $artist ---\n" +
+            if (FLAG) Log.i(TAG, "ALBUM ARTIST: $artist ---\n" +
                 "Artist ID: ${artist.id}\n" +
                 "Artist Name: ${artist.name}\n" +
                 "Number Albums: ${artist.numAlbums}\n" +
@@ -48,9 +52,9 @@ class GetAlbumDetails @Inject constructor(
             AlbumDetailsFilterResult(
                 album = album.asExternalModel(),
                 artist = artist.asExternalModel(),
-                songs = songs.map {
-                    if (FLAG) Log.i(TAG, "SONG: ${it.title}")
-                    it.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(it.uri))
+                songs = songs.map { song ->
+                    if (FLAG) Log.i(TAG, "SONG: ${song.title}")
+                    song.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(song.uri))
                 },
             )
         }

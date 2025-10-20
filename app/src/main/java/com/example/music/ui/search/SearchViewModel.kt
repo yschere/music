@@ -22,6 +22,16 @@ import javax.inject.Inject
 
 private const val TAG = "Search View Model"
 
+sealed interface SearchUiState {
+    data object Idle : SearchUiState
+    data object Loading : SearchUiState
+    data object Error : SearchUiState
+    data object NoResults : SearchUiState
+    data class SearchResultsFound(
+        val results: SearchQueryFilterResult
+    ) : SearchUiState
+}
+
 @HiltViewModel
 class SearchQueryViewModel @Inject constructor(
     private val getAlbumDetails: GetAlbumDetails,
@@ -29,6 +39,15 @@ class SearchQueryViewModel @Inject constructor(
     private val searchQuery: SearchQuery,
     private val songController: SongController,
 ) : ViewModel() {
+
+    private val _queryText: MutableStateFlow<String> =
+        MutableStateFlow("")
+    val queryText: StateFlow<String>
+        get() = _queryText
+
+    private val _resultView: MutableStateFlow<ResultView> = MutableStateFlow(ResultView.ALL)
+    val resultView: StateFlow<ResultView>
+        get() = _resultView
 
     private val _selectedSong = MutableStateFlow(SongInfo())
     val selectedSong: StateFlow<SongInfo>
@@ -47,11 +66,6 @@ class SearchQueryViewModel @Inject constructor(
     val state: StateFlow<SearchUiState>
         get() = _state
 
-    private val _queryText: MutableStateFlow<String> =
-        MutableStateFlow("")
-    val queryText: StateFlow<String>
-        get() = _queryText
-
     init {
         Log.i(TAG, "init START --- query string: ${queryText.value}")
         viewModelScope.launch {
@@ -65,39 +79,17 @@ class SearchQueryViewModel @Inject constructor(
         }
     }
 
-    fun updateQuery(newQuery: String) {
-        Log.i(TAG, "Update Query START -> $newQuery")
-        _queryText.update { newQuery }
-
-        if (newQuery.blankOrEmpty()) {
-            Log.i(TAG, "Update Query: newQuery is blank/empty -> set uiState to Idle")
-            _state.update { SearchUiState.Idle }
-        }
-    }
-
-    private fun resetUiState() {
-        Log.i(TAG, "Reset UI State START: set uiState to Idle")
-        _state.update { SearchUiState.Idle }
-    }
-
-    // use to reset the queryText and update field state
-    // called when tap on clear icon
-    fun clearQuery() {
-        Log.i(TAG, "Clear Query START: reset query to empty string")
-        _queryText.update { "" }
-        resetUiState()
-    }
-
     fun sendQuery() {
         Log.i(TAG, "Send Query START -> query string: ${queryText.value}\n" +
-            "set uiState to Loading")
+            "set uiState to Loading & reset resultView to ALL")
         _state.update { SearchUiState.Loading }
+        _resultView.value = ResultView.ALL
         viewModelScope.launch {
             val results = searchQuery(queryText.value)
             Log.i(TAG, "Query Search Results:\n" +
-                "${results.songs.size} songs\n" +
-                "${results.artists.size} artists\n" +
-                "${results.albums.size} albums")
+                "${results.songCount} songs\n" +
+                "${results.artistCount} artists\n" +
+                "${results.albumCount} albums")
             if ( results.songs.isEmpty() &&
                 results.artists.isEmpty() &&
                 results.albums.isEmpty()
@@ -111,18 +103,47 @@ class SearchQueryViewModel @Inject constructor(
             }
         }
     }
+    fun updateQuery(newQuery: String) {
+        Log.i(TAG, "Update Query START -> $newQuery")
+        _queryText.update { newQuery }
 
-    fun onMoreQuery(item: String) {
-        Log.i(TAG, "onMoreQuery: ${queryText.value} -> $item")
-        when (item) {
-            "Songs" -> {}
-            "Artists" -> {}
-            "Albums" -> {}
+        if (newQuery.blankOrEmpty()) {
+            Log.i(TAG, "Update Query: newQuery is blank/empty ->\n" +
+                "set uiState to Idle & reset resultView to ALL")
+            _state.update { SearchUiState.Idle }
+            updateResultView(ResultView.ALL)
         }
+    }
+    fun clearQuery() {
+        Log.i(TAG, "Clear Query START: reset query to empty string")
+        _queryText.update { "" }
+        resetUiState()
+    }
+    private fun resetUiState() {
+        Log.i(TAG, "Reset UI State START: set uiState to Idle & reset resultView to ALL")
+        _state.update { SearchUiState.Idle }
+        _resultView.value = ResultView.ALL
+    }
+
+    fun onSongMoreOptionsClick(song: SongInfo) {
+        Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
+        _selectedSong.update { song }
+    }
+    fun onArtistMoreOptionsClick(artist: ArtistInfo) {
+        Log.i(TAG, "onArtistMoreOptionsClick -> ${artist.name}")
+        _selectedArtist.update { artist }
+    }
+    fun onAlbumMoreOptionsClick(album: AlbumInfo) {
+        Log.i(TAG, "onAlbumMoreOptionsClick -> ${album.title}")
+        _selectedAlbum.update { album }
+    }
+    fun updateResultView(newView: ResultView) {
+        Log.i(TAG, "Update Result View START -> ${newView.name}")
+        _resultView.value = newView
     }
 
     fun onMoreOptionsAction(action: MoreOptionsAction) {
-        Log.i(TAG, "onSearchMoreOptionsAction - $action")
+        Log.i(TAG, "onMoreOptionsAction - $action")
         when (action) {
             is MoreOptionsAction.PlaySong -> onPlaySong(action.song)
             is MoreOptionsAction.PlaySongNext -> onPlaySongNext(action.song)
@@ -138,19 +159,6 @@ class SearchQueryViewModel @Inject constructor(
             is MoreOptionsAction.ShuffleAlbum -> onShuffleAlbum(action.album)
             is MoreOptionsAction.QueueAlbum -> onQueueAlbum(action.album)
         }
-    }
-
-    fun onSongMoreOptionsClick(song: SongInfo) {
-        Log.i(TAG, "onSongMoreOptionsClick -> ${song.title}")
-        _selectedSong.update { song }
-    }
-    fun onArtistMoreOptionsClick(artist: ArtistInfo) {
-        Log.i(TAG, "onArtistMoreOptionsClick -> ${artist.name}")
-        _selectedArtist.update { artist }
-    }
-    fun onAlbumMoreOptionsClick(album: AlbumInfo) {
-        Log.i(TAG, "onAlbumMoreOptionsClick -> ${album.title}")
-        _selectedAlbum.update { album }
     }
 
     private fun onPlaySong(song: SongInfo) {
@@ -227,16 +235,6 @@ class SearchQueryViewModel @Inject constructor(
     private fun String.blankOrEmpty() = this.isBlank() || this.isEmpty()
 }
 
-sealed interface SearchUiState {
-    data object Idle : SearchUiState
-    data object Loading : SearchUiState
-    data object Error : SearchUiState
-    data object NoResults : SearchUiState
-    data class SearchResultsFound(
-        val results: SearchQueryFilterResult
-    ) : SearchUiState
-}
-
 sealed interface MoreOptionsAction {
     data class PlaySong(val song: SongInfo) : MoreOptionsAction
     data class PlaySongNext(val song: SongInfo) : MoreOptionsAction
@@ -254,9 +252,9 @@ sealed interface MoreOptionsAction {
 }
 
 data class SearchActions (
+    val sendQuery: () -> Unit,
     val updateQuery: (String) -> Unit,
     val clearQuery: () -> Unit,
-    val sendQuery: () -> Unit,
 )
 
 data class ResultActions (
@@ -266,5 +264,7 @@ data class ResultActions (
     val onArtistMoreOptionsClick: (ArtistInfo) -> Unit,
     val onAlbumClick: (AlbumInfo) -> Unit,
     val onAlbumMoreOptionsClick: (AlbumInfo) -> Unit,
-    val onMoreResultsClick: (String) -> Unit,
+    val updateResultView: (ResultView) -> Unit,
 )
+
+enum class ResultView { ALL, SONG, ARTIST, ALBUM }

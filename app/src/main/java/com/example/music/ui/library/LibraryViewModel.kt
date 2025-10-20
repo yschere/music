@@ -15,6 +15,7 @@ import com.example.music.data.repository.ComposerSortList
 import com.example.music.data.repository.GenreSortList
 import com.example.music.data.repository.PlaylistSortList
 import com.example.music.data.repository.SongSortList
+import com.example.music.data.util.FLAG
 import com.example.music.data.util.combine
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
@@ -197,7 +198,7 @@ class LibraryViewModel @Inject constructor(
                     totals = counts,
                 )
             }.catch { throwable ->
-                Log.i(TAG, "Error Caught: ${throwable.message}")
+                Log.e(TAG, "Error Caught: ${throwable.message}")
                 emit(
                     LibraryScreenUiState(
                         isLoading = false,
@@ -287,14 +288,13 @@ class LibraryViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        Log.i(TAG, "Refresh call")
-        Log.i(TAG, "refreshing: ${refreshing.value}")
+        Log.i(TAG, "Refresh call -> refreshing: ${refreshing.value}")
         viewModelScope.launch {
             runCatching {
-                Log.i(TAG, "Refresh runCatching")
+                if (FLAG) Log.i(TAG, "Refresh runCatching")
                 refreshing.value = true
             }.onFailure {
-                Log.i(TAG, "$it ::: runCatching failed (not sure what this means)")
+                Log.e(TAG, "$it ::: runCatching failed (not sure what this means)")
             }
 
             Log.i(TAG, "refresh to be false -> sets screen to ready state")
@@ -345,7 +345,10 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
-    private fun onAppPreferencesUpdate(libraryCategory: LibraryCategory, newSort: Pair<String, Boolean>) {
+    private fun onAppPreferencesUpdate(
+        libraryCategory: LibraryCategory,
+        newSort: Pair<String, Boolean>
+    ) {
         viewModelScope.launch {
             when(libraryCategory) {
                 LibraryCategory.Albums -> {
@@ -530,13 +533,14 @@ class LibraryViewModel @Inject constructor(
     }
 }
 
-enum class LibraryCategory {
-    Playlists, Songs, Artists, Albums, Genres, Composers
-}
+enum class LibraryCategory { Playlists, Songs, Artists, Albums, Genres, Composers }
 
 @Immutable
 sealed interface LibraryAction {
-    data class AppPreferencesUpdate(val libraryCategory: LibraryCategory, val newSort: Pair<String, Boolean>) : LibraryAction
+    data class AppPreferencesUpdate(
+        val libraryCategory: LibraryCategory,
+        val newSort: Pair<String, Boolean>
+    ) : LibraryAction
     data class LibraryCategorySelected(val libraryCategory: LibraryCategory) : LibraryAction
 
     data class PlaySong(val song: SongInfo) : LibraryAction

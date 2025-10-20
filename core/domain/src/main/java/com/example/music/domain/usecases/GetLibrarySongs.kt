@@ -24,61 +24,61 @@ class GetLibrarySongs @Inject constructor(
 
         when (sortColumn) {
             SongSortList[0] -> { // "Title"
-                songsList = mediaRepo.getAllAudios(
+                songsList = mediaRepo.findAllAudios(
                     order = MediaStore.Audio.Media.TITLE,
                     ascending = isAscending,
-                ).sortedBy { it.title.lowercase() }
+                )?.sortedBy { it.title.lowercase() } ?: emptyList()
                 if (!isAscending) songsList = songsList.reversed()
             }
 
             SongSortList[1] -> { // "Artist"
-                songsList = mediaRepo.getAllAudios(
+                songsList = mediaRepo.findAllAudios(
                     order = MediaStore.Audio.Media.ARTIST,
                     ascending = isAscending,
-                ).sortedWith(
+                )?.sortedWith(
                     compareBy<Audio> { it.artist.lowercase() }
                         .thenBy { it.title.lowercase() }
-                )
+                ) ?: emptyList()
                 if (!isAscending) songsList = songsList.reversed()
             }
 
             SongSortList[2] -> { // "Album"
-                songsList = mediaRepo.getAllAudios(
+                songsList = mediaRepo.findAllAudios(
                     order = MediaStore.Audio.Media.ALBUM,
                     ascending = isAscending,
-                ).sortedWith(
+                )?.sortedWith(
                     compareBy<Audio> { it.album.lowercase() }
                         .thenBy { it.title.lowercase() }
-                )
+                ) ?: emptyList()
                 if (!isAscending) songsList = songsList.reversed()
             }
 
             SongSortList[3] -> { // "Date Added"
-                songsList = mediaRepo.getAllAudios(
+                songsList = mediaRepo.findAllAudios(
                     order = MediaStore.Audio.Media.DATE_ADDED,
                     ascending = isAscending,
-                )
+                ) ?: emptyList()
             }
 
             SongSortList[4] -> { // "Date Modified"
-                songsList = mediaRepo.getAllAudios(
+                songsList = mediaRepo.findAllAudios(
                     order = MediaStore.Audio.Media.DATE_MODIFIED,
                     ascending = isAscending,
-                )
+                ) ?: emptyList()
             }
 
             SongSortList[5] -> { // "Duration"
-                songsList = mediaRepo.getAllAudios(
+                songsList = mediaRepo.findAllAudios(
                     order = MediaStore.Audio.Media.DURATION,
                     ascending = isAscending,
-                )
+                ) ?: emptyList()
             }
 
             else -> {
-                songsList = mediaRepo.getAllAudios(
+                songsList = mediaRepo.findAllAudios(
                     order = MediaStore.Audio.Media.TITLE,
                     ascending = isAscending,
-                )
+                ) ?: emptyList()
             }
         }
 

@@ -9,7 +9,8 @@ import javax.inject.Inject
 private const val TAG = "App Pref :: User Settings"
 
 /**
- * Function for Accessing User Settings from App Preferences DataStore
+ * Use case for accessing User Settings saved to data store
+ * @property appRepo Repository for App Preferences DataStore
  */
 class GetAppPreferencesUserSettings @Inject constructor(
     private val appRepo: AppPreferencesRepo,

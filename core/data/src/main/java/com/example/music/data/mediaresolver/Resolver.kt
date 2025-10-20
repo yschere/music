@@ -41,7 +41,6 @@ private const val DEFAULT_MEDIA_SELECTION = "${MediaStore.Audio.Media._ID} != 0"
  *
  **********************************************************************************************/
 
-
 /**
  * Extension on Content Resolver's query to more easily specify parameters for queries
  * to MediaStore to retrieve Cursor containing query result.
@@ -204,180 +203,177 @@ private const val DEFAULT_AUDIO_ORDER = MediaStore.Audio.Media.TITLE
 /**
  * @return list of [Audio] from the [MediaStore].
  */
-suspend fun ContentResolver.getAudios(
+suspend fun ContentResolver.findAudios(
     sQuery: String? = null,
     order: String = DEFAULT_AUDIO_ORDER,
     ascending: Boolean = true,
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
-): List<Audio> {
-    val id = MediaStore.Audio.Media._ID
-    val title = MediaStore.Audio.Media.TITLE
+): List<Audio>? = queryExt(
+    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+    projection = AUDIO_PROJECTION,
+    selection = DEFAULT_AUDIO_SELECTION +
+        if (sQuery != null) " AND ${MediaStore.Audio.Media.TITLE} LIKE ?"
+        else "",
+    args =
+        if (sQuery != null) arrayOf("%$sQuery%")
+        else null,
+    order = order,
+    ascending = ascending,
+    offset = offset,
+    limit = limit,
+    transform = { c ->
+        val s = when (sQuery) {
+            null -> "-no filter given-"
+            else -> "on '$sQuery'"
+        }
+        if (FLAG) Log.i(TAG, "Find Audios Search $s:\n" +
+            "Audio(s) count returned: ${c.count}")
+        if (c.count == 0) return null
 
-    return queryExt(
-        uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-        projection = AUDIO_PROJECTION,
-        selection = DEFAULT_AUDIO_SELECTION +
-            if (sQuery != null) " AND $id || $title LIKE ?"
-            else "",
-        args =
-            if (sQuery != null) arrayOf("%$sQuery%")
-            else null,
-        order = order,
-        ascending = ascending,
-        offset = offset,
-        limit = limit,
-        transform = { c ->
-            val s = when (sQuery) {
-                null -> "-no filter given-"
-                else -> "on '$sQuery'"
-            }
-            if (FLAG) Log.i(TAG, "Get Audios Search $s:\n" +
-                "Audio(s) count returned: ${c.count}")
-            if (c.count == 0) return emptyList()
-
-            val result = List(c.count) {
-                c.moveToPosition(it)
-                c.toAudio()
-            }
-            c.close()
-            result
-        },
-    )
-}
+        val result = List(c.count) {
+            c.moveToPosition(it)
+            c.toAudio()
+        }
+        c.close()
+        result
+    },
+)
 
 /**
  * @return list of [Audio] from given bucket/directory
  */
-private suspend inline fun ContentResolver.getBucketAudios(
+private suspend inline fun ContentResolver.findBucketAudios(
     selection: String,
     args: Array<String>? = null,
     order: String = DEFAULT_AUDIO_ORDER,
     ascending: Boolean = true,
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
-): List<Audio> {
-    return queryExt(
-        uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-        projection = AUDIO_PROJECTION,
-        selection = selection,
-        args = args,
-        order = order,
-        ascending = ascending,
-        offset = offset,
-        limit = limit,
-        transform = {  c ->
-            if (FLAG) Log.i(TAG, "Get Bucket Audios Search on selection $selection:\n" +
-                "Audio(s) count returned: ${c.count}")
-            if (c.count == 0) return emptyList()
+): List<Audio>? = queryExt(
+    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+    projection = AUDIO_PROJECTION,
+    selection = selection,
+    args = args,
+    order = order,
+    ascending = ascending,
+    offset = offset,
+    limit = limit,
+    transform = { c ->
+        if (FLAG) Log.i(TAG, "Find Bucket Audios Search on selection $selection:\n" +
+            "Audio(s) count returned: ${c.count}")
+        if (c.count == 0) return null
 
-            val result = List(c.count) {
-                c.moveToPosition(it)
-                c.toAudio()
-            }
-            c.close()
-            result
+        val result = List(c.count) {
+            c.moveToPosition(it)
+            c.toAudio()
         }
-    )
-}
+        c.close()
+        result
+    }
+)
 
 /**
  * Search for [Audio] on [MediaStore.Audio.Media._ID]
- * @param id audio _id
+ * @param id audio id
  * @return [Cursor] transformed to [Audio]
  */
-suspend fun ContentResolver.findAudio(id: Long): Audio =
-    queryExt(
-        uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-        projection = AUDIO_PROJECTION,
-        selection = "${MediaStore.Audio.Media._ID} == ?",
-        args = arrayOf("$id"),
-        transform = { c ->
-            c.moveToFirst()
-            val result = c.toAudio()
-            c.close()
-            if (FLAG) Log.i(TAG, "Find Audio Search via audioId $id - AUDIO DATA:\n" +
-                "ID: ${result.id}\n" +
-                "Title: ${result.title}\n" +
-                "Artist: ${result.artist}\n" +
-                "Album: ${result.album}\n" +
-                "Genre: ${result.genre}\n" +
-                "Date Added: ${result.dateAdded}\n" +
-                "Date Modified: ${result.dateModified}\n" +
-                "CD TrackNumber: ${result.cdTrackNumber}\n" +
-                "Disc Number: ${result.discNumber}\n" +
-                "File Path: ${result.path}\n" +
-                "File Size: ${result.size}\n" +
-                "Year: ${result.year}")
-            result
-        },
-    )
+suspend fun ContentResolver.getAudio(
+    id: Long
+): Audio = queryExt(
+    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+    projection = AUDIO_PROJECTION,
+    selection = "${MediaStore.Audio.Media._ID} == ?",
+    args = arrayOf("$id"),
+    transform = { c ->
+        c.moveToFirst()
+        val result = c.toAudio()
+        c.close()
+        if (FLAG) Log.i(TAG, "Get Audio via audioId $id - AUDIO DATA:\n" +
+            "ID: ${result.id}\n" +
+            "Title: ${result.title}\n" +
+            "Artist: ${result.artist}\n" +
+            "Album: ${result.album}\n" +
+            "Genre: ${result.genre}\n" +
+            "Date Added: ${result.dateAdded}\n" +
+            "Date Modified: ${result.dateModified}\n" +
+            "CD TrackNumber: ${result.cdTrackNumber}\n" +
+            "Disc Number: ${result.discNumber}\n" +
+            "File Path: ${result.path}\n" +
+            "File Size: ${result.size}\n" +
+            "Year: ${result.year}"
+        )
+        result
+    },
+)
 
 /**
  * Search for [Audio] on [MediaStore.Audio.Media.DATA], limit 1
  * @param path audio file path
  * @return [Cursor] transformed to [Audio]
  */
-suspend fun ContentResolver.findAudio(path: String): Audio =
-    queryExt(
-        uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-        projection = AUDIO_PROJECTION,
-        selection = "${MediaStore.Audio.Media.DATA} == ?",
-        args = arrayOf(path),
-        limit = 1,
-        transform = { c ->
-            c.moveToFirst()
-            val result = c.toAudio()
-            c.close()
-            if (FLAG) Log.i(TAG, "Find Audio Search via filepath $path - AUDIO DATA: \n" +
-                "ID: ${result.id} \n" +
-                "Title: ${result.title} \n" +
-                "Artist: ${result.artist} \n" +
-                "Album: ${result.album} \n" +
-                "Genre: ${result.genre} \n" +
-                "Date Added: ${result.dateAdded} \n" +
-                "Date Modified: ${result.dateModified} \n" +
-                "CD TrackNumber: ${result.cdTrackNumber} \n" +
-                "Disc Number: ${result.discNumber} \n" +
-                "File Path: ${result.path} \n" +
-                "File Size: ${result.size} \n" +
-                "Year: ${result.year}"
-            )
-            result
-        },
-    )
+suspend fun ContentResolver.getAudio(
+    path: String
+): Audio = queryExt(
+    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+    projection = AUDIO_PROJECTION,
+    selection = "${MediaStore.Audio.Media.DATA} == ?",
+    args = arrayOf(path),
+    limit = 1,
+    transform = { c ->
+        c.moveToFirst()
+        val result = c.toAudio()
+        c.close()
+        if (FLAG) Log.i(TAG, "Get Audio via filepath $path - AUDIO DATA:\n" +
+            "ID: ${result.id}\n" +
+            "Title: ${result.title}\n" +
+            "Artist: ${result.artist}\n" +
+            "Album: ${result.album}\n" +
+            "Genre: ${result.genre}\n" +
+            "Date Added: ${result.dateAdded}\n" +
+            "Date Modified: ${result.dateModified}\n" +
+            "CD TrackNumber: ${result.cdTrackNumber}\n" +
+            "Disc Number: ${result.discNumber}\n" +
+            "File Path: ${result.path}\n" +
+            "File Size: ${result.size}\n" +
+            "Year: ${result.year}"
+        )
+        result
+    },
+)
 
 /**
- * Search for [Audio] on uri, limit 1
+ * Search for [Audio] on Audio.uri, limit 1
  * @param uri audio uri
  * @return [Cursor] transformed to [Audio]
  */
-suspend fun ContentResolver.findAudio(uri: Uri): Audio =
-    queryExt(
-        uri = uri,
-        projection = AUDIO_PROJECTION,
-        limit = 1,
-        transform = { c ->
-            c.moveToFirst()
-            val result = c.toAudio()
-            c.close()
-            if (FLAG) Log.i(TAG, "Find Audio search via uri $uri - AUDIO DATA: \n" +
-                "ID: ${result.id} \n" +
-                "Title: ${result.title} \n" +
-                "Artist: ${result.artist} \n" +
-                "Album: ${result.album} \n" +
-                "Genre: ${result.genre} \n" +
-                "Date Added: ${result.dateAdded} \n" +
-                "Date Modified: ${result.dateModified} \n" +
-                "CD TrackNumber: ${result.cdTrackNumber?:" null "} \n" +
-                "Disc Number: ${result.discNumber?:" null "} \n" +
-                "File Path: ${result.path} \n" +
-                "File Size: ${result.size} \n" +
-                "Year: ${result.year}"
-            )
-            result
-        },
-    )
+suspend fun ContentResolver.getAudio(
+    uri: Uri
+): Audio = queryExt(
+    uri = uri,
+    projection = AUDIO_PROJECTION,
+    limit = 1,
+    transform = { c ->
+        c.moveToFirst()
+        val result = c.toAudio()
+        c.close()
+        if (FLAG) Log.i(TAG, "Get Audio via Uri $uri - AUDIO DATA:\n" +
+            "ID: ${result.id}\n" +
+            "Title: ${result.title}\n" +
+            "Artist: ${result.artist}\n" +
+            "Album: ${result.album}\n" +
+            "Genre: ${result.genre}\n" +
+            "Date Added: ${result.dateAdded}\n" +
+            "Date Modified: ${result.dateModified}\n" +
+            "CD TrackNumber: ${result.cdTrackNumber?:" null "}\n" +
+            "Disc Number: ${result.discNumber?:" null "}\n" +
+            "File Path: ${result.path}\n" +
+            "File Size: ${result.size}\n" +
+            "Year: ${result.year}"
+        )
+        result
+    },
+)
 
 
 /***********************************************************************************************
@@ -405,13 +401,13 @@ private const val DEFAULT_ARTIST_ORDER = MediaStore.Audio.Artists.ARTIST
 /**
  * @return list of [Artist] from the [MediaStore].
  */
-suspend fun ContentResolver.getArtists(
+suspend fun ContentResolver.findArtists(
     sQuery: String? = null,
     order: String = DEFAULT_ARTIST_ORDER,
     ascending: Boolean = true,
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
-): List<Artist> = queryExt(
+): List<Artist>? = queryExt(
     uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
     projection = ARTIST_PROJECTION,
     selection =
@@ -431,7 +427,7 @@ suspend fun ContentResolver.getArtists(
         }
         if (FLAG) Log.i(TAG, "Get Artists Search $s:\n" +
             "Artist(s) count returned: ${c.count}")
-        if (c.count == 0) return emptyList()
+        if (c.count == 0) return null
 
         val result = List(c.count) {
             c.moveToPosition(it)
@@ -443,16 +439,18 @@ suspend fun ContentResolver.getArtists(
 )
 
 /**
- * @return list of [Audio] based on Artist
+ * @param name artist's name
+ * @param sQuery audio title query string
+ * @return list of [Audio] based on Artist name
  */
-suspend fun ContentResolver.getArtistAudios(
+suspend fun ContentResolver.findArtistAudios(
     name: String,
     sQuery: String? = null,
     order: String = MediaStore.Audio.Media.TITLE,
     ascending: Boolean = true,
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
-): List<Audio> {
+): List<Audio>? {
     val like =
         if (sQuery != null) " AND ${MediaStore.Audio.Media.TITLE} LIKE ?"
         else ""
@@ -461,31 +459,60 @@ suspend fun ContentResolver.getArtistAudios(
         if (sQuery != null) arrayOf(name, "%$sQuery%")
         else arrayOf(name)
     if (FLAG) Log.i(TAG, "Get Artist Audios - selection: $selection + args: $args")
-    return getBucketAudios(selection, args, order, ascending, offset, limit)
+    return findBucketAudios(selection, args, order, ascending, offset, limit)
 }
 
 /**
  * @return list of [Audio] based on Artist Id
  */
 suspend fun ContentResolver.getArtistAudiosById(
-    id: Long,
+    artistId: Long,
     order: String = MediaStore.Audio.Media.TITLE,
     ascending: Boolean = true,
     offset: Int = 0,
-    limit: Int = Int.MAX_VALUE
+    limit: Int = Int.MAX_VALUE,
 ): List<Audio> {
     val selection = "${MediaStore.Audio.Media.ARTIST_ID} == ?"
-    val args = arrayOf("$id")
+    val args = arrayOf("$artistId")
     if (FLAG) Log.i(TAG, "Get Artist Audios via ID - selection: $selection + args: $args")
-    return getBucketAudios(selection, args, order, ascending, offset, limit)
+    return findBucketAudios(selection, args, order, ascending, offset, limit) ?: emptyList()
 }
+
+/**
+ * @return list of [Album] based on Artist Id
+ */
+suspend fun ContentResolver.findArtistAlbums(
+    artistId: Long,
+    order: String = MediaStore.Audio.Albums.ALBUM,
+    ascending: Boolean = true,
+): List<Album>? = queryExt(
+    uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+    projection = arrayOf(MediaStore.Audio.Albums.ALBUM_ID),
+    selection = "${MediaStore.Audio.Albums.ARTIST_ID} == ?",
+    args = arrayOf("$artistId"),
+    order = order,
+    ascending = ascending,
+    transform = { c ->
+        if (c.count == 0) return null
+        val result = Array(c.count) {
+            c.moveToPosition(it)
+            c.getLong(0)
+        }.map { id ->
+            getAlbum(id)
+        }
+        c.close()
+        result
+    }
+)
 
 /**
  * Search for [Artist] on name, limit 1
  * @param name
  * @return [Cursor] transformed to [Artist]?
  */
-suspend fun ContentResolver.findArtist(name: String?): Artist? {
+suspend fun ContentResolver.findArtist(
+    name: String?
+): Artist? {
     if (name == null) return null
     return queryExt(
         uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
@@ -514,7 +541,9 @@ suspend fun ContentResolver.findArtist(name: String?): Artist? {
  * @param id
  * @return [Cursor] transformed to [Artist]
  */
-suspend fun ContentResolver.getArtist(id: Long): Artist = queryExt(
+suspend fun ContentResolver.getArtist(
+    id: Long
+): Artist = queryExt(
     uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
     projection = ARTIST_PROJECTION,
     selection = "${MediaStore.Audio.Artists._ID} == ?",
@@ -539,20 +568,22 @@ suspend fun ContentResolver.getArtist(id: Long): Artist = queryExt(
  * @param albumId
  * @return [Cursor] transformed to [Artist]?
  */
-suspend fun ContentResolver.findArtistByAlbumId(albumId: Long): Artist = queryExt(
+suspend fun ContentResolver.findArtistByAlbumId(
+    albumId: Long
+): Artist? = queryExt(
     uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI,
     projection = ARTIST_PROJECTION,
     selection = "${MediaStore.Audio.Albums.ALBUM_ID} == ?",
     args = arrayOf("$albumId"),
     limit = 1,
     transform = { c ->
-        c.moveToFirst()
+        if (!c.moveToFirst()) return null
         val result = c.toArtist()
         c.close()
         if (FLAG) Log.i(TAG, "Find Artist Search via albumId $albumId - ARTIST DATA: \n" +
-            "ID: ${result.id} \n" +
-            "Name: ${result.name} \n" +
-            "Album count: ${result.numAlbums} \n" +
+            "ID: ${result.id}\n" +
+            "Name: ${result.name}\n" +
+            "Album count: ${result.numAlbums}\n" +
             "Track count: ${result.numTracks}"
         )
         result
@@ -587,13 +618,13 @@ private const val DEFAULT_ALBUM_ORDER = MediaStore.Audio.Albums.ALBUM
 /**
  * @return list of [Album] from the [MediaStore].
  */
-suspend fun ContentResolver.getAlbums(
+suspend fun ContentResolver.findAlbums(
     sQuery: String? = null,
     order: String = DEFAULT_ALBUM_ORDER,
     ascending: Boolean = true,
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
-): List<Album> = queryExt(
+): List<Album>? = queryExt(
     uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
     projection = ALBUM_PROJECTION,
     selection =
@@ -613,12 +644,12 @@ suspend fun ContentResolver.getAlbums(
         }
         if (FLAG) Log.i(TAG, "Get Albums Search $s:\n" +
             "Album(s) count returned: ${c.count}")
-        if (c.count == 0) return emptyList()
+        if (c.count == 0) return null
 
         val result = List(c.count) {
             c.moveToPosition(it)
             var album = c.toAlbum()
-            val firstTrackAlbumArtist = findFirstTrackAlbumArtist(id = album.id)
+            val firstTrackAlbumArtist = findFirstTrackAlbumArtist(album.id)
             if (album.artist != firstTrackAlbumArtist) {
                 val artist = findArtist(firstTrackAlbumArtist)
                 album = album.copy(
@@ -636,14 +667,14 @@ suspend fun ContentResolver.getAlbums(
 /**
  * @return list of [Audio] based on Album
  */
-suspend fun ContentResolver.getAlbumAudios(
+suspend fun ContentResolver.findAlbumAudios(
     title: String,
     sQuery: String? = null,
     order: String = MediaStore.Audio.Media.TITLE,
     ascending: Boolean = true,
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
-): List<Audio> {
+): List<Audio>? {
     val like =
         if (sQuery != null) " AND ${MediaStore.Audio.Media.TITLE} LIKE ?"
         else ""
@@ -652,30 +683,30 @@ suspend fun ContentResolver.getAlbumAudios(
         if (sQuery != null) arrayOf(title, "%$sQuery%")
         else arrayOf(title)
     if (FLAG) Log.i(TAG, "Get Album Audios - selection: $selection + args $args")
-    return getBucketAudios(selection, args, order, ascending, offset, limit)
+    return findBucketAudios(selection, args, order, ascending, offset, limit)
 }
 
 /**
  * @return list of [Audio] based on Album Id
  */
 suspend fun ContentResolver.getAlbumAudiosById(
-    id: Long,
+    albumId: Long,
     order: String = MediaStore.Audio.Media.TITLE,
     ascending: Boolean = true,
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
 ): List<Audio> {
     val selection = "${MediaStore.Audio.Media.ALBUM_ID} == ?"
-    val args = arrayOf("$id")
+    val args = arrayOf("$albumId")
     if (FLAG) Log.i(TAG, "Get Album Audios By ID - selection: $selection + args: $args")
-    return getBucketAudios(selection, args, order, ascending, offset, limit)
+    return findBucketAudios(selection, args, order, ascending, offset, limit) ?: emptyList()
 }
 
 /**
  * @return album artist from the first track of an album based on album's id
  */
 suspend fun ContentResolver.findFirstTrackAlbumArtist(
-    id: Long
+    albumId: Long
 ): String? = queryExt(
     uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
     projection = arrayOf(
@@ -684,14 +715,14 @@ suspend fun ContentResolver.findFirstTrackAlbumArtist(
         MediaStore.Audio.Media.ALBUM_ARTIST,
     ),
     selection = "${MediaStore.Audio.Media.ALBUM_ID} == ?",
-    args = arrayOf("$id"),
+    args = arrayOf("$albumId"),
     order = MediaStore.Audio.Media.TRACK,
     limit = 1,
     transform = { c ->
         c.moveToFirst()
         val result = c.getStringOrNull(2)
         c.close()
-        if (FLAG) Log.i(TAG, "From Album $id -> Get First Track Album Artist: $result")
+        if (FLAG) Log.i(TAG, "From Album $albumId -> Get First Track Album Artist: $result")
         result
     }
 )
@@ -701,7 +732,9 @@ suspend fun ContentResolver.findFirstTrackAlbumArtist(
  * @param id
  * @return [Cursor] transformed to [Album]
  */
-suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
+suspend fun ContentResolver.getAlbum(
+    id: Long
+): Album = queryExt(
     uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
     projection = ALBUM_PROJECTION,
     selection = "${MediaStore.Audio.Albums.ALBUM_ID} == ?",
@@ -711,7 +744,7 @@ suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
         c.moveToFirst()
         var result = c.toAlbum()
         c.close()
-        val firstTrackAlbumArtist = findFirstTrackAlbumArtist(id = result.id)
+        val firstTrackAlbumArtist = findFirstTrackAlbumArtist(result.id)
         if (result.artist != firstTrackAlbumArtist) {
             val artist = findArtist(firstTrackAlbumArtist)
             result = result.copy(
@@ -719,7 +752,7 @@ suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
                 artistId = artist?.id ?: result.artistId ?: 0L
             )
         }
-        if (FLAG) Log.i(TAG, "Find Album Search via albumId $id - ALBUM DATA: \n" +
+        if (FLAG) Log.i(TAG, "Get Album via albumId $id - ALBUM DATA: \n" +
             "ID: ${result.id} \n" +
             "Title: ${result.title} \n" +
             "ArtistId: ${result.artistId} \n" +
@@ -732,26 +765,36 @@ suspend fun ContentResolver.findAlbum(id: Long): Album = queryExt(
 )
 
 /**
- * Search for [Album] on title, limit 1
+ * Search for [Album] on [MediaStore.Audio.Albums.ALBUM], limit 1
  * @param title
  * @return [Cursor] transformed to [Album]
  */
-suspend fun ContentResolver.findAlbum(title: String): Album = queryExt(
+suspend fun ContentResolver.findAlbum(
+    title: String
+): Album? = queryExt(
     uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
     projection = ALBUM_PROJECTION,
     selection = "${MediaStore.Audio.Albums.ALBUM} == ?",
     args = arrayOf(title),
     limit = 1,
     transform = { c ->
-        c.moveToFirst()
-        val result = c.toAlbum()
+        if (!c.moveToFirst()) return null
+        var result = c.toAlbum()
         c.close()
-        if (FLAG) Log.i(TAG, "Find Album Search via title $title - ALBUM DATA: \n" +
-            "ID: ${result.id} \n" +
-            "Title: ${result.title} \n" +
-            "ArtistId: ${result.artistId} \n" +
-            "Artist Name: ${result.artist} \n" +
-            "Year: ${result.lastYear} \n" +
+        val firstTrackAlbumArtist = findFirstTrackAlbumArtist(result.id)
+        if (result.artist != firstTrackAlbumArtist) {
+            val artist = findArtist(firstTrackAlbumArtist)
+            result = result.copy(
+                artist = artist?.name ?: result.artist ?: "null",
+                artistId = artist?.id ?: result.artistId ?: 0L
+            )
+        }
+        if (FLAG) Log.i(TAG, "Find Album Search via title $title - ALBUM DATA:\n" +
+            "ID: ${result.id}\n" +
+            "Title: ${result.title}\n" +
+            "ArtistId: ${result.artistId}\n" +
+            "Artist Name: ${result.artist}\n" +
+            "Year: ${result.lastYear}\n" +
             "Track count: ${result.numTracks}"
         )
         result
@@ -782,13 +825,13 @@ private const val DEFAULT_GENRE_ORDER = MediaStore.Audio.Genres.NAME
 /**
  * @return list of [Genre] from the [MediaStore].
  */
-suspend fun ContentResolver.getGenres(
+suspend fun ContentResolver.findGenres(
     sQuery: String? = null,
     order: String = DEFAULT_GENRE_ORDER,
     ascending: Boolean = true,
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
-): List<Genre> = queryExt(
+): List<Genre>? = queryExt(
     uri = MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI,
     projection = GENRE_PROJECTION,
     selection =
@@ -808,14 +851,12 @@ suspend fun ContentResolver.getGenres(
         }
         if (FLAG) Log.i(TAG, "Get Genres Search $s:\n" +
             "Genre(s) count returned: ${c.count}")
-        if (c.count == 0) return emptyList()
+        if (c.count == 0) return null
 
         val result = List(c.count) {
             c.moveToPosition(it)
             c.toGenre(
-                getGenreAudioCount(
-                    c.getLong(0)
-                )
+                getGenreAudioCount( c.getLong(0) )
             )
         }
         c.close()
@@ -829,14 +870,14 @@ suspend fun ContentResolver.getGenres(
  * Last builds list of Audios from Audio ids
  * @return list of [Audio] based on Genre
  */
-suspend fun ContentResolver.getGenreAudios(
+suspend fun ContentResolver.findGenreAudios(
     name: String,
     sQuery: String? = null,
     order: String = MediaStore.Audio.Media.TITLE,
     ascending: Boolean = true,
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
-): List<Audio> {
+): List<Audio>? {
     // find the genre id using parameter name
     val genreId = queryExt(
         uri = MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI,
@@ -845,7 +886,7 @@ suspend fun ContentResolver.getGenreAudios(
         args = arrayOf(name),
         limit = 1
     ) { c ->
-        if (c.count == 0) return emptyList()
+        if (c.count == 0) return null
         c.moveToPosition(0)
         val temp = c.getLong(0)
         c.close()
@@ -857,7 +898,7 @@ suspend fun ContentResolver.getGenreAudios(
         uri = MediaStore.Audio.Genres.Members.getContentUri("external", genreId),
         projection = arrayOf(MediaStore.Audio.Genres.Members.AUDIO_ID),
     ) { c ->
-        if (c.count == 0) return emptyList()
+        if (c.count == 0) return null
         val buffer = StringBuilder()
         while (c.moveToNext()) {
             if (!c.isFirst) buffer.append(",")
@@ -878,7 +919,7 @@ suspend fun ContentResolver.getGenreAudios(
         else null
 
     if (FLAG) Log.i(TAG, "Get Genre Audios - selection: $selection + args $args")
-    return getBucketAudios(selection, args, order, ascending, offset, limit)
+    return findBucketAudios(selection, args, order, ascending, offset, limit)
 }
 
 /**
@@ -894,37 +935,48 @@ suspend fun ContentResolver.getGenreAudiosById(
     val selection = "${MediaStore.Audio.Media.GENRE_ID} == ?"
     val args = arrayOf("$id")
     if (FLAG) Log.i(TAG, "Get Genre Audios By Genre ID - selection: $selection + args $args")
-    return getBucketAudios(selection, args, order, ascending, offset, limit)
+    return findBucketAudios(selection, args, order, ascending, offset, limit) ?: emptyList()
 }
 
 /**
- * Find genre via genre id
+ * Get genre via genre id
  * @return [Genre]
  */
-suspend fun ContentResolver.findGenre(id: Long): Genre = queryExt(
+suspend fun ContentResolver.getGenre(
+    id: Long
+): Genre = queryExt(
     uri = MediaStore.Audio.Genres.EXTERNAL_CONTENT_URI,
     projection = GENRE_PROJECTION,
     selection = "${MediaStore.Audio.Genres._ID} == ?",
     args = arrayOf("$id"),
     limit = 1,
-) {
-    it.moveToFirst()
-    val result = it.toGenre(
-        getGenreAudioCount( it.getLong(0) )
-    )
-    it.close()
-    result
-}
+    transform = { c ->
+        c.moveToFirst()
+        val result = c.toGenre(
+            getGenreAudioCount( c.getLong(0) )
+        )
+        c.close()
+        result
+    }
+)
 
-suspend fun ContentResolver.getGenreAudioCount(id: Long): Int = queryExt(
+/**
+ * @return count of [Audio] for [Genre] via [id] from the [MediaStore].
+ */
+suspend fun ContentResolver.getGenreAudioCount(
+    id: Long
+): Int = queryExt(
     uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
     projection = arrayOf(MediaStore.Audio.Media._ID),
     selection = "${MediaStore.Audio.Media.GENRE_ID} == ?",
     args = arrayOf("$id"),
-) {
-    it.moveToFirst()
-    it.count
-}
+    transform = { c ->
+        c.moveToFirst()
+        val result = c.count
+        c.close()
+        result
+    }
+)
 
 
 /***********************************************************************************************
@@ -946,6 +998,9 @@ private val PLAYLIST_PROJECTION
         MediaStore.Audio.Playlists.DATA,
     )
 
+/**
+ * Projection of Playlist Track Member model in MediaStore columns
+ */
 private val PLAYLIST_MEMBER_PROJECTION
     get() = arrayOf(
         MediaStore.Audio.Playlists.Members._ID,
@@ -964,25 +1019,29 @@ private val PLAYLIST_MEMBER_PROJECTION
     )
 
 /**
- * Default query select column for media store audio table
+ * Default query select column for media store playlist table
  */
 private const val DEFAULT_PLAYLIST_SELECTION = "${MediaStore.Audio.Playlists._ID} != 0"
 
 /**
- * Default query order column for media store audio table
+ * Default query order column for media store playlist table
  */
 private const val DEFAULT_PLAYLIST_ORDER = MediaStore.Audio.Playlists.DISPLAY_NAME
+
+/**
+ * Default query order column for media store playlist member table
+ */
 private const val DEFAULT_PLAYLIST_MEMBER_ORDER = MediaStore.Audio.Playlists.Members.PLAY_ORDER
 
 /**
- * @return list of [Audio] from the [MediaStore].
+ * @return list of [Playlist] from the [MediaStore].
  */
-suspend fun ContentResolver.getPlaylists(
+suspend fun ContentResolver.findPlaylists(
     order: String = DEFAULT_PLAYLIST_ORDER,
     ascending: Boolean = true,
     offset: Int = 0,
     limit: Int = Int.MAX_VALUE
-): List<Playlist> = queryExt(
+): List<Playlist>? = queryExt(
     uri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
     projection = PLAYLIST_PROJECTION,
     selection = DEFAULT_PLAYLIST_SELECTION,
@@ -994,14 +1053,12 @@ suspend fun ContentResolver.getPlaylists(
     transform = { c ->
         if (FLAG) Log.i(TAG, "Get Playlists Search:\n" +
                 "Playlist(s) count returned: ${c.count}")
-        if (c.count == 0) return emptyList()
+        if (c.count == 0) return null
 
         val result = List(c.count) {
             c.moveToPosition(it)
             c.toPlaylist(
-                getPlaylistTrackCount(
-                    c.getLong(0)
-                )
+                getPlaylistTrackCount( c.getLong(0) )
             )
         }
         c.close()
@@ -1009,6 +1066,9 @@ suspend fun ContentResolver.getPlaylists(
     },
 )
 
+/**
+ * @return [Playlist] via [id] from the [MediaStore].
+ */
 suspend fun ContentResolver.getPlaylist(
     id: Long
 ): Playlist  = queryExt(
@@ -1019,7 +1079,7 @@ suspend fun ContentResolver.getPlaylist(
     transform = { c ->
         c.moveToFirst()
         val result = c.toPlaylist(
-            getPlaylistTrackCount( c.getLong(0))
+            getPlaylistTrackCount( c.getLong(0) )
         )
         c.close()
         if (FLAG) Log.i(TAG, "Find Playlist Search via ID: $id\n" +
@@ -1031,42 +1091,52 @@ suspend fun ContentResolver.getPlaylist(
     },
 )
 
+/**
+ * @return list of [PlaylistTrack] for [Playlist] via [id] from the [MediaStore].
+ */
 suspend fun ContentResolver.findPlaylistTracks(
     id: Long,
     order: String = DEFAULT_PLAYLIST_MEMBER_ORDER,
     ascending: Boolean = true,
     limit: Int = Int.MAX_VALUE,
-): List<PlaylistTrack> {
-    return queryExt(
-        uri = MediaStore.Audio.Playlists.Members.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY, id),
-        projection = PLAYLIST_MEMBER_PROJECTION,
-        selection = "${MediaStore.Audio.Playlists.Members.PLAYLIST_ID} == ?",
-        args = arrayOf("$id"),
-        order = order,
-        ascending = ascending,
-        limit = limit,
-        transform = { c ->
-            if (c.count == 0) return emptyList()
-            if (FLAG) Log.i(TAG, "Find Playlist Tracks:\n" +
-                    "Track(s) count returned: ${c.count}")
-            val result = List(c.count) {
-                c.moveToPosition(it)
-                c.toPlaylistTrack()
-            }
-            result
-        }
-    )
-}
-
-suspend fun ContentResolver.getPlaylistTrackCount(id: Long): Int = queryExt(
-    uri = MediaStore.Audio.Playlists.Members.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY, id),
+): List<PlaylistTrack>? = queryExt(
+    uri = MediaStore.Audio.Playlists.Members.getContentUri("external", id),
     projection = PLAYLIST_MEMBER_PROJECTION,
     selection = "${MediaStore.Audio.Playlists.Members.PLAYLIST_ID} == ?",
     args = arrayOf("$id"),
-) {
-    it.moveToFirst()
-    it.count
-}
+    order = order,
+    ascending = ascending,
+    limit = limit,
+    transform = { c ->
+        if (c.count == 0) return null
+        if (FLAG) Log.i(TAG, "Find Playlist Tracks:\n" +
+                "Track(s) count returned: ${c.count}")
+        val result = List(c.count) {
+            c.moveToPosition(it)
+            c.toPlaylistTrack()
+        }
+        result
+    }
+)
+
+/**
+ * @return count of [PlaylistTrack] for [Playlist] via [id] from the [MediaStore].
+ */
+suspend fun ContentResolver.getPlaylistTrackCount(
+    id: Long
+): Int = queryExt(
+    uri = MediaStore.Audio.Playlists.Members.getContentUri("external", id),
+    projection = PLAYLIST_MEMBER_PROJECTION,
+    selection = "${MediaStore.Audio.Playlists.Members.PLAYLIST_ID} == ?",
+    args = arrayOf("$id"),
+    transform = { c ->
+        c.moveToFirst()
+        val result = c.count
+        c.close()
+        result
+    }
+)
+
 
 /***********************************************************************************************
  *
@@ -1114,6 +1184,37 @@ internal suspend fun ContentResolver.fetchContentUri(vararg ids: Long): List<Uri
     )
 }
 
+/**
+ * Delete entry from media store by id
+ */
+/*suspend fun ContentResolver.deleteFile(id: Long) {
+    val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+    //val selection = "${MediaStore.Audio.Media._ID} == ?"
+    //val args = arrayOf("1003104264")
+    val args = arrayOf("$id")
+    return withContext(Dispatchers.Default) {
+        // Use the modern query approach for devices running Android 10 and above
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Compose the arguments for the query
+            val args2 = Bundle().apply {
+                // Set the limit and offset for pagination
+                putInt(ContentResolver.QUERY_ARG_LIMIT, 1)
+                putInt(ContentResolver.QUERY_ARG_OFFSET, 0)
+
+                // Set the selection arguments and selection string
+                if (args != null)
+                    putStringArray(
+                        ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS,
+                        args
+                    )
+                //putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection)
+                putString(ContentResolver.QUERY_ARG_SQL_SELECTION, "${MediaStore.Audio.Media._ID} == ?")
+
+            }
+            delete(uri, args2)
+        }
+    } ?: throw NullPointerException("Can't retrieve cursor for $uri")
+}*/
 
 /**
  * Deletes list uri from the device persistently.

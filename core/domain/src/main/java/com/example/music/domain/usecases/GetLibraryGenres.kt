@@ -24,26 +24,26 @@ class GetLibraryGenres @Inject constructor(
 
         when (sortColumn) {
             GenreSortList[0] -> { // "Name"
-                genresList = mediaRepo.getAllGenres(
+                genresList = mediaRepo.findAllGenres(
                     order = MediaStore.Audio.Genres.NAME,
                     ascending = isAscending
-                ).sortedBy { it.name.lowercase() }
+                )?.sortedBy { it.name.lowercase() } ?: emptyList()
                 if (!isAscending) genresList = genresList.reversed()
             }
 
             GenreSortList[1] -> { // "Song Count"
-                genresList = mediaRepo.getAllGenres(
+                genresList = mediaRepo.findAllGenres(
                     order = MediaStore.Audio.Genres.NAME,
                     ascending = isAscending
-                ).sortedBy { it.numTracks }
+                )?.sortedBy { it.numTracks } ?: emptyList()
                 if (!isAscending) genresList = genresList.reversed()
             }
 
             else -> {
-                genresList = mediaRepo.getAllGenres(
+                genresList = mediaRepo.findAllGenres(
                     order = MediaStore.Audio.Genres.NAME,
                     ascending = isAscending
-                )
+                ) ?: emptyList()
             }
         }
 

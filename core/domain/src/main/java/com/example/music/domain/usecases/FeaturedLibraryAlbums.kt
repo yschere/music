@@ -16,6 +16,7 @@ private const val TAG = "Featured Library Albums"
  * Use case to retrieve data for [FeaturedLibraryAlbumsFilterResult] domain model which returns
  * the most recently modified albums and the most recently added songs to populate the
  * Home screen.
+ * @property mediaRepo Content Resolver Repository for MediaStore
  */
 class FeaturedLibraryAlbums @Inject constructor(
     private val mediaRepo: MediaRepo,

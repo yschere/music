@@ -9,7 +9,8 @@ import javax.inject.Inject
 private const val TAG = "App Pref :: Library Sort"
 
 /**
- * Function for Accessing Library Sort Orders from App Preferences DataStore
+ * Use case for accessing Library Sort Orders saved to data store
+ * @property appRepo Repository for App Preferences DataStore
  */
 class GetAppPreferencesLibrarySort @Inject constructor(
     private val appRepo: AppPreferencesRepo,

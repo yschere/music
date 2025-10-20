@@ -24,43 +24,43 @@ class GetLibraryAlbums @Inject constructor(
 
         when (sortColumn) {
             AlbumSortList[0] -> { //"Title"
-                albumsList = mediaRepo.getAllAlbums(
+                albumsList = mediaRepo.findAllAlbums(
                     order = MediaStore.Audio.Albums.ALBUM,
                     ascending = isAscending
-                ).sortedBy { it.title.lowercase() }
+                )?.sortedBy { it.title.lowercase() } ?: emptyList()
                 if (!isAscending) albumsList = albumsList.reversed()
             }
 
             AlbumSortList[1] -> { //"Artist"
-                albumsList = mediaRepo.getAllAlbums(
+                albumsList = mediaRepo.findAllAlbums(
                     order = MediaStore.Audio.Albums.ARTIST,
                     ascending = isAscending
-                ).sortedWith(
+                )?.sortedWith(
                     compareBy<Album> { it.artist.lowercase() }
                         .thenBy { it.title.lowercase() }
-                )
+                ) ?: emptyList()
                 if (!isAscending) albumsList = albumsList.reversed()
             }
 
             AlbumSortList[2] -> { //"Song Count"
-                albumsList = mediaRepo.getAllAlbums(
+                albumsList = mediaRepo.findAllAlbums(
                     order = MediaStore.Audio.Albums.NUMBER_OF_SONGS,
                     ascending = isAscending
-                ).sortedWith(
+                )?.sortedWith(
                     compareBy<Album> { it.numTracks }
                         .thenBy { it.title.lowercase() }
-                )
+                ) ?: emptyList()
                 if (!isAscending) albumsList = albumsList.reversed()
             }
 
             AlbumSortList[3] -> { //"Year"
-                albumsList = mediaRepo.getAllAlbums(
+                albumsList = mediaRepo.findAllAlbums(
                     order = MediaStore.Audio.Albums.ALBUM,
                     ascending = isAscending
-                ).sortedWith(
+                )?.sortedWith(
                     compareBy<Album, Int?>(nullsLast(), { it.lastYear })
                         .thenBy { it.title.lowercase() }
-                )
+                ) ?: emptyList()
                 if (!isAscending) albumsList = albumsList
                     .sortedWith(
                         compareByDescending<Album, Int?> (nullsFirst(),{ it.lastYear })
@@ -69,10 +69,10 @@ class GetLibraryAlbums @Inject constructor(
             }
 
             else -> {
-                albumsList = mediaRepo.getAllAlbums(
+                albumsList = mediaRepo.findAllAlbums(
                     order = MediaStore.Audio.Albums.ALBUM,
                     ascending = isAscending
-                )
+                ) ?: emptyList()
             }
         }
 
