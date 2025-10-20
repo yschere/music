@@ -81,8 +81,9 @@ class SearchQueryViewModel @Inject constructor(
 
     fun sendQuery() {
         Log.i(TAG, "Send Query START -> query string: ${queryText.value}\n" +
-            "set uiState to Loading")
+            "set uiState to Loading & reset resultView to ALL")
         _state.update { SearchUiState.Loading }
+        _resultView.value = ResultView.ALL
         viewModelScope.launch {
             val results = searchQuery(queryText.value)
             Log.i(TAG, "Query Search Results:\n" +
