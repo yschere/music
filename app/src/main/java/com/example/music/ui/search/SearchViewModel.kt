@@ -3,6 +3,7 @@ package com.example.music.ui.search
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.music.data.database.model.Song
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SearchQueryFilterResult
@@ -52,6 +53,10 @@ class SearchQueryViewModel @Inject constructor(
     val queryText: StateFlow<String>
         get() = _queryText
 
+    private val _resultView: MutableStateFlow<ResultView> = MutableStateFlow(ResultView.ALL)
+    val resultView: StateFlow<ResultView>
+        get() = _resultView
+
     init {
         Log.i(TAG, "init START --- query string: ${queryText.value}")
         viewModelScope.launch {
@@ -95,9 +100,9 @@ class SearchQueryViewModel @Inject constructor(
         viewModelScope.launch {
             val results = searchQuery(queryText.value)
             Log.i(TAG, "Query Search Results:\n" +
-                "${results.songs.size} songs\n" +
-                "${results.artists.size} artists\n" +
-                "${results.albums.size} albums")
+                "${results.songCount} songs\n" +
+                "${results.artistCount} artists\n" +
+                "${results.albumCount} albums")
             if ( results.songs.isEmpty() &&
                 results.artists.isEmpty() &&
                 results.albums.isEmpty()
@@ -112,13 +117,9 @@ class SearchQueryViewModel @Inject constructor(
         }
     }
 
-    fun onMoreQuery(item: String) {
-        Log.i(TAG, "onMoreQuery: ${queryText.value} -> $item")
-        when (item) {
-            "Songs" -> {}
-            "Artists" -> {}
-            "Albums" -> {}
-        }
+    fun onMoreQuery(newView: ResultView) {
+        Log.i(TAG, "onMoreQuery: ${queryText.value} -> $newView")
+        _resultView.value = newView
     }
 
     fun onMoreOptionsAction(action: MoreOptionsAction) {
@@ -266,5 +267,7 @@ data class ResultActions (
     val onArtistMoreOptionsClick: (ArtistInfo) -> Unit,
     val onAlbumClick: (AlbumInfo) -> Unit,
     val onAlbumMoreOptionsClick: (AlbumInfo) -> Unit,
-    val onMoreResultsClick: (String) -> Unit,
+    val onMoreResultsClick: (ResultView) -> Unit,
 )
+
+enum class ResultView { ALL, SONG, ARTIST, ALBUM }

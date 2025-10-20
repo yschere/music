@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
@@ -169,6 +171,64 @@ fun RowScope.NavToMoreBtn(
         Text(
             text = "More",
             style = MaterialTheme.typography.titleMedium
+        )
+    }
+}
+
+/**
+ * More button that will navigate to a longer list of the shown items
+ * @param onClick defines the action to take when the button is clicked
+ * @param modifier defines any modifiers to apply to button
+ */
+@Composable
+fun RowScope.ShowLessBtn(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.padding(horizontal = MARGIN_PADDING)
+            .align(Alignment.CenterVertically),
+        colors = ButtonDefaults.buttonColors(
+            contentColor = MaterialTheme.colorScheme.inversePrimary,
+        ),
+    ) {
+        Icon (
+            imageVector = Icons.Filled.KeyboardDoubleArrowLeft,
+            contentDescription = null,
+        )
+        Text(
+            text = "Back",
+            style = MaterialTheme.typography.titleMedium
+        )
+    }
+}
+
+/**
+ * More button that will navigate to a longer list of the shown items
+ * @param onClick defines the action to take when the button is clicked
+ * @param modifier defines any modifiers to apply to button
+ */
+@Composable
+fun RowScope.ShowMoreBtn(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.padding(horizontal = MARGIN_PADDING)
+            .align(Alignment.CenterVertically),
+        colors = ButtonDefaults.buttonColors(
+            contentColor = MaterialTheme.colorScheme.inversePrimary,
+        ),
+    ) {
+        Text(
+            text = "More",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Icon (
+            imageVector = Icons.Filled.KeyboardDoubleArrowRight,
+            contentDescription = null,
         )
     }
 }

@@ -2,6 +2,7 @@ package com.example.music.ui.search
 
 import android.util.Log
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +31,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +51,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.music.R
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.SCREEN_PADDING
+import com.example.music.designsys.theme.TOP_BAR_EXPANDED_HEIGHT
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.model.ArtistInfo
 import com.example.music.domain.model.SongInfo
@@ -58,14 +61,16 @@ import com.example.music.ui.shared.AlbumMoreOptionsBottomModal
 import com.example.music.ui.shared.ArtistActions
 import com.example.music.ui.shared.ArtistListItem
 import com.example.music.ui.shared.ArtistMoreOptionsBottomModal
+import com.example.music.ui.shared.BackNavBtn
+import com.example.music.ui.shared.ClearFieldBtn
 import com.example.music.ui.shared.Error
+import com.example.music.ui.shared.ShowLessBtn
+import com.example.music.ui.shared.ShowMoreBtn
 import com.example.music.ui.shared.ScreenBackground
+import com.example.music.ui.shared.ScrollToTopFAB
 import com.example.music.ui.shared.SongActions
 import com.example.music.ui.shared.SongListItem
 import com.example.music.ui.shared.SongMoreOptionsBottomModal
-import com.example.music.ui.shared.BackNavBtn
-import com.example.music.ui.shared.ClearFieldBtn
-import com.example.music.ui.shared.NavToMoreBtn
 import com.example.music.util.screenMargin
 import kotlinx.coroutines.launch
 
@@ -124,6 +129,7 @@ fun SearchScreenReady(
     SearchScreen(
         uiState = uiState,
         queryText = viewModel.queryText.collectAsState().value,
+        resultView = viewModel.resultView.collectAsState().value,
         selectSong = viewModel.selectedSong.collectAsState().value,
         selectArtist = viewModel.selectedArtist.collectAsState().value,
         selectAlbum = viewModel.selectedAlbum.collectAsState().value,
@@ -152,6 +158,7 @@ fun SearchScreenReady(
 fun SearchScreen(
     uiState: SearchUiState,
     queryText: String,
+    resultView: ResultView,
     selectSong: SongInfo,
     selectArtist: ArtistInfo,
     selectAlbum: AlbumInfo,
@@ -161,7 +168,7 @@ fun SearchScreen(
     onSongMoreOptionsClick: (SongInfo) -> Unit,
     onArtistMoreOptionsClick: (ArtistInfo) -> Unit,
     onAlbumMoreOptionsClick: (AlbumInfo) -> Unit,
-    onMoreResultsClick: (String) -> Unit,
+    onMoreResultsClick: (ResultView) -> Unit,
 
     navigateBack: () -> Unit,
     navigateToPlayer: () -> Unit,
@@ -190,6 +197,7 @@ fun SearchScreen(
                 navigateBack = navigateBack,
                 uiState = uiState,
                 queryText = queryText,
+                resultView = resultView,
                 searchActions = searchActions,
                 resultActions = ResultActions(
                     onSongClick = { song: SongInfo ->
@@ -462,6 +470,7 @@ fun SearchContent(
     navigateBack: () -> Unit,
     uiState: SearchUiState,
     queryText: String,
+    resultView: ResultView,
     searchActions: SearchActions,
     resultActions: ResultActions,
     modifier: Modifier = Modifier,
@@ -477,6 +486,7 @@ fun SearchContent(
             navigateBack,
             uiState,
             queryText,
+            resultView,
             searchActions,
             resultActions,
         )
@@ -489,12 +499,17 @@ fun SearchField(
     navigateBack: () -> Unit,
     uiState: SearchUiState,
     queryText: String,
+    resultView: ResultView,
     searchActions: SearchActions,
     resultActions: ResultActions,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val interactionSource = remember { MutableInteractionSource() }
+
+    val scrollState = rememberScrollState()
+    val displayButton = remember { derivedStateOf { scrollState.value > TOP_BAR_EXPANDED_HEIGHT.value.toInt() } }
 
     SearchBar(
         inputField = {
@@ -522,7 +537,6 @@ fun SearchField(
                 },
                 trailingIcon = {
                     if (isExpanded) ClearFieldBtn(onClick = searchActions.clearQuery)
-                    else null
                 },
                 interactionSource = interactionSource,
                 modifier = Modifier.fillMaxWidth(),
@@ -536,133 +550,330 @@ fun SearchField(
         ),
         modifier = Modifier.semantics { traversalIndex = 0f }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            if (uiState == SearchUiState.Loading) {
-                LinearProgressIndicator(
-                    Modifier
-                        .fillMaxWidth()
-                        .screenMargin()
-                )
-            }
-            when (uiState) {
-                SearchUiState.NoResults -> {
-                    Text(
-                        text = "Nothing found,\nplease try a different search",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(SCREEN_PADDING)
-                    )
+        Box(Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+            ) {
+                when (uiState) {
+                    SearchUiState.Loading -> {
+                        LinearProgressIndicator(
+                            Modifier
+                                .fillMaxWidth()
+                                .screenMargin()
+                        )
+                    }
+
+                    SearchUiState.NoResults -> {
+                        Text(
+                            text = "Nothing found,\nplease try a different search",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(SCREEN_PADDING)
+                        )
+                    }
+
+                    is SearchUiState.SearchResultsFound -> {
+                        when (resultView) {
+                            ResultView.ALL -> {
+                                Spacer(Modifier.padding(CONTENT_PADDING))
+                                if (uiState.results.songs.isNotEmpty()) {
+                                    val songResult =
+                                        if (uiState.results.songs.size > 20) uiState.results.songs.subList(0, 20)
+                                        else uiState.results.songs
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "Songs",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            modifier = Modifier.padding(SCREEN_PADDING),
+                                        )
+                                        Text(
+                                            text = "(${uiState.results.songCount})",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                        )
+                                        Spacer(Modifier.weight(1f))
+                                        if (uiState.results.songCount > 20)
+                                            ShowMoreBtn(onClick = {
+                                                resultActions.onMoreResultsClick(ResultView.SONG)
+                                                coroutineScope.launch { scrollState.animateScrollTo(value = 0) }
+                                            })
+                                    }
+
+                                    songResult.forEach { song ->
+                                        SongListItem(
+                                            song = song,
+                                            onClick = { resultActions.onSongClick(song) },
+                                            onMoreOptionsClick = { resultActions.onSongMoreOptionsClick(song) },
+                                            showArtistName = true,
+                                            showAlbumTitle = true,
+                                            showAlbumImage = true,
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        text = "No Songs Found",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.padding(SCREEN_PADDING),
+                                    )
+                                }
+
+                                Spacer(Modifier.padding(CONTENT_PADDING))
+                                if (uiState.results.artists.isNotEmpty()) {
+                                    val artistResult =
+                                        if (uiState.results.artists.size > 20) uiState.results.artists.subList(0, 20)
+                                        else uiState.results.artists
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "Artists",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            modifier = Modifier.padding(SCREEN_PADDING),
+                                        )
+                                        Text(
+                                            text = "(${uiState.results.artistCount})",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                        )
+                                        Spacer(Modifier.weight(1f))
+                                        if (uiState.results.artistCount > 20)
+                                            ShowMoreBtn(onClick = {
+                                                resultActions.onMoreResultsClick(ResultView.ARTIST)
+                                                coroutineScope.launch { scrollState.animateScrollTo(value = 0) }
+                                            })
+                                    }
+                                    artistResult.forEach { artist ->
+                                        ArtistListItem(
+                                            artist = artist,
+                                            navigateToArtistDetails = { resultActions.onArtistClick(artist) },
+                                            onMoreOptionsClick = { resultActions.onArtistMoreOptionsClick(artist) },
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        text = "No Artists Found",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.padding(SCREEN_PADDING),
+                                    )
+                                }
+
+                                Spacer(Modifier.padding(CONTENT_PADDING))
+                                if (uiState.results.albums.isNotEmpty()) {
+                                    val albumResult =
+                                        if (uiState.results.albums.size > 20) uiState.results.albums.subList(0, 20)
+                                        else uiState.results.albums
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "Albums",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            modifier = Modifier.padding(SCREEN_PADDING),
+                                        )
+                                        Text(
+                                            text = "(${uiState.results.albumCount})",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                        )
+                                        Spacer(Modifier.weight(1f))
+                                        if (uiState.results.albumCount > 20)
+                                            ShowMoreBtn(onClick = {
+                                                resultActions.onMoreResultsClick(ResultView.ALBUM)
+                                                coroutineScope.launch { scrollState.animateScrollTo(value = 0) }
+                                            })
+                                    }
+                                    albumResult.forEach { album ->
+                                        AlbumListItem(
+                                            album = album,
+                                            navigateToAlbumDetails = { resultActions.onAlbumClick(album) },
+                                            onMoreOptionsClick = { resultActions.onAlbumMoreOptionsClick(album) },
+                                            cardOrRow = false,
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        text = "No Albums Found",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.padding(SCREEN_PADDING),
+                                    )
+                                }
+                            }
+                            ResultView.SONG -> {
+                                Spacer(Modifier.padding(CONTENT_PADDING))
+                                val songResult = uiState.results.songs
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "All Songs",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.padding(SCREEN_PADDING),
+                                    )
+                                    Spacer(Modifier.weight(1f))
+                                    ShowLessBtn(onClick = { resultActions.onMoreResultsClick(ResultView.ALL) })
+                                }
+
+                                songResult.forEach { song ->
+                                    SongListItem(
+                                        song = song,
+                                        onClick = { resultActions.onSongClick(song) },
+                                        onMoreOptionsClick = { resultActions.onSongMoreOptionsClick(song) },
+                                        showArtistName = true,
+                                        showAlbumTitle = true,
+                                        showAlbumImage = true,
+                                    )
+                                }
+                            }
+                            ResultView.ARTIST -> {
+                                Spacer(Modifier.padding(CONTENT_PADDING))
+                                val artistResult = uiState.results.artists
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "All Artists",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.padding(SCREEN_PADDING),
+                                    )
+                                    Spacer(Modifier.weight(1f))
+                                    ShowLessBtn(onClick = { resultActions.onMoreResultsClick(ResultView.ALL) })
+                                }
+                                artistResult.forEach { artist ->
+                                    ArtistListItem(
+                                        artist = artist,
+                                        navigateToArtistDetails = { resultActions.onArtistClick(artist) },
+                                        onMoreOptionsClick = { resultActions.onArtistMoreOptionsClick(artist) },
+                                    )
+                                }
+                            }
+                            ResultView.ALBUM -> {
+                                Spacer(Modifier.padding(CONTENT_PADDING))
+                                val albumResult = uiState.results.albums
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "All Albums",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.padding(SCREEN_PADDING),
+                                    )
+                                    Spacer(Modifier.weight(1f))
+                                    ShowLessBtn(onClick = { resultActions.onMoreResultsClick(ResultView.ALL) })
+                                }
+                                albumResult.forEach { album ->
+                                    AlbumListItem(
+                                        album = album,
+                                        navigateToAlbumDetails = { resultActions.onAlbumClick(album) },
+                                        onMoreOptionsClick = { resultActions.onAlbumMoreOptionsClick(album) },
+                                        cardOrRow = false,
+                                    )
+                                }
+                            }
+                        }
+
+                        /* // original results section
+                        Spacer(Modifier.padding(CONTENT_PADDING))
+                        if (uiState.results.songs.isNotEmpty()) {
+                            val songResult = uiState.results.songs
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Songs",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier.padding(SCREEN_PADDING),
+                                )
+                                Spacer(Modifier.weight(1f))
+                                if (songResult.size > 20)
+                                    ShowMoreBtn(onClick = { resultActions.onMoreResultsClick(ResultView.SONG) })
+                            }
+
+                            songResult.forEach { song ->
+                                SongListItem(
+                                    song = song,
+                                    onClick = { resultActions.onSongClick(song) },
+                                    onMoreOptionsClick = { resultActions.onSongMoreOptionsClick(song) },
+                                    showArtistName = true,
+                                    showAlbumTitle = true,
+                                    showAlbumImage = true,
+                                )
+                            }
+                        }
+                        else if (uiState.results.songs.isEmpty()) {
+                            Text(
+                                text = "No Songs Found",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(SCREEN_PADDING),
+                            )
+                        }
+
+                        Spacer(Modifier.padding(CONTENT_PADDING))
+                        if (uiState.results.artists.isNotEmpty()) {
+                            val artistResult = uiState.results.artists
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Artists",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier.padding(SCREEN_PADDING),
+                                )
+                                Spacer(Modifier.weight(1f))
+                                if (artistResult.size > 20)
+                                    ShowMoreBtn(onClick = { resultActions.onMoreResultsClick(ResultView.ARTIST) })
+                                }
+                            artistResult.forEach { artist ->
+                                ArtistListItem(
+                                    artist = artist,
+                                    navigateToArtistDetails = { resultActions.onArtistClick(artist) },
+                                    onMoreOptionsClick = { resultActions.onArtistMoreOptionsClick(artist) },
+                                )
+                            }
+                        }
+                        else if (uiState.results.artists.isEmpty()) {
+                            Text(
+                                text = "No Artists Found",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(SCREEN_PADDING),
+                            )
+                        }
+
+                        Spacer(Modifier.padding(CONTENT_PADDING))
+                        if (uiState.results.albums.isNotEmpty()) {
+                            val albumResult = uiState.results.albums
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Albums",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier.padding(SCREEN_PADDING),
+                                )
+                                Spacer(Modifier.weight(1f))
+                                if (albumResult.size > 20)
+                                    ShowMoreBtn(onClick = { resultActions.onMoreResultsClick(ResultView.ALBUM) })
+                            }
+                            albumResult.forEach { album ->
+                                AlbumListItem(
+                                    album = album,
+                                    navigateToAlbumDetails = { resultActions.onAlbumClick(album) },
+                                    onMoreOptionsClick = { resultActions.onAlbumMoreOptionsClick(album) },
+                                    cardOrRow = false,
+                                )
+                            }
+                        }
+                        else if (uiState.results.albums.isEmpty()) {
+                            Text(
+                                text = "No Albums Found",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(SCREEN_PADDING),
+                            )
+                        }*/
+                    }
+
+                    else -> { Spacer(modifier = Modifier.fillMaxSize()) }
                 }
+            }
 
-                is SearchUiState.SearchResultsFound -> {
-                    if (queryText != "" && uiState.results.songs.isNotEmpty()) {
-                        val songResult = uiState.results.songs
-
-                        Spacer(Modifier.padding(CONTENT_PADDING))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Songs",
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(SCREEN_PADDING),
-                            )
-                            Spacer(Modifier.weight(1f))
-                            if (songResult.size > 20)
-                                NavToMoreBtn(onClick = { resultActions.onMoreResultsClick("Songs") })
-                        }
-
-                        songResult.forEach { song ->
-                            SongListItem(
-                                song = song,
-                                onClick = { resultActions.onSongClick(song) },
-                                onMoreOptionsClick = { resultActions.onSongMoreOptionsClick(song) },
-                                showArtistName = true,
-                                showAlbumTitle = true,
-                                showAlbumImage = true,
-                            )
-                        }
-                    }
-                    else if (queryText != "" && uiState.results.songs.isEmpty()) {
-                        Spacer(Modifier.padding(CONTENT_PADDING))
-                        Text(
-                            text = "No Songs Found",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(SCREEN_PADDING),
-                        )
-                    }
-
-                    if (queryText != "" && uiState.results.artists.isNotEmpty()) {
-                        val artistResult = uiState.results.artists
-
-                        Spacer(Modifier.padding(CONTENT_PADDING))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Artists",
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(SCREEN_PADDING),
-                            )
-                            Spacer(Modifier.weight(1f))
-                            if (artistResult.size > 20)
-                                NavToMoreBtn(onClick = { resultActions.onMoreResultsClick("Artists") })
-                        }
-                        artistResult.forEach { artist ->
-                            ArtistListItem(
-                                artist = artist,
-                                navigateToArtistDetails = { resultActions.onArtistClick(artist) },
-                                onMoreOptionsClick = { resultActions.onArtistMoreOptionsClick(artist) },
-                            )
-                        }
-                    }
-                    else if (queryText != "" && uiState.results.artists.isEmpty()) {
-                        Spacer(Modifier.padding(CONTENT_PADDING))
-                        Text(
-                            text = "No Artists Found",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(SCREEN_PADDING),
-                        )
-                    }
-
-                    if (queryText != "" && uiState.results.albums.isNotEmpty()) {
-                        val albumResult = uiState.results.albums
-
-                        Spacer(Modifier.padding(CONTENT_PADDING))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Albums",
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(SCREEN_PADDING),
-                            )
-                            Spacer(Modifier.weight(1f))
-                            if (albumResult.size > 20)
-                                NavToMoreBtn(onClick = { resultActions.onMoreResultsClick("Albums") })
-                        }
-                        albumResult.forEach { album ->
-                            AlbumListItem(
-                                album = album,
-                                navigateToAlbumDetails = { resultActions.onAlbumClick(album) },
-                                onMoreOptionsClick = { resultActions.onAlbumMoreOptionsClick(album) },
-                                cardOrRow = false,
-                            )
-                        }
-                    }
-                    else if (queryText != "" && uiState.results.albums.isEmpty()) {
-                        Spacer(Modifier.padding(CONTENT_PADDING))
-                        Text(
-                            text = "No Albums Found",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(SCREEN_PADDING),
-                        )
+            ScrollToTopFAB(
+                displayButton = displayButton,
+                isActive = false,
+                onClick = {
+                    coroutineScope.launch {
+                        Log.i(TAG, "Scroll to Top btn clicked")
+                        scrollState.animateScrollTo(value = 0)
                     }
                 }
-
-                else -> { Spacer(modifier = Modifier.fillMaxSize()) }
-            }
+            )
         }
     }
 }
