@@ -112,7 +112,7 @@ fun FeaturedAlbumsCarousel(
 fun FeaturedPlaylistsCarousel(
     pagerState: PagerState,
     items: PersistentList<PlaylistInfo>,
-    onClick: (PlaylistInfo) -> Unit,
+    onClick: (Long) -> Unit,
     onMoreOptionsClick: (PlaylistInfo) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -137,7 +137,7 @@ fun FeaturedPlaylistsCarousel(
                 Log.i(TAG, "Generating Playlist Carousel Item: $page")
                 PlaylistItem(
                     playlist = playlist,
-                    navigateToPlaylistDetails = { onClick(playlist) },
+                    navigateToPlaylistDetails = { onClick(playlist.id) },
                     onMoreOptionsClick = { onMoreOptionsClick(playlist) },
                     cardOrRow = true,
                     textStyle = MaterialTheme.typography.titleMedium,

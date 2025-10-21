@@ -100,7 +100,7 @@ fun MainScreen(
     navigateToSettings: () -> Unit,
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    navigateToPlaylistDetails: (Long) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     Log.i(TAG, "Main Screen START")
@@ -150,7 +150,7 @@ private fun HomeScreenReady(
     navigateToSettings: () -> Unit,
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    navigateToPlaylistDetails: (Long) -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     Log.i(TAG, "Home Screen Ready START")
@@ -213,7 +213,7 @@ private fun HomeScreen(
     navigateToSettings: () -> Unit,
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    navigateToPlaylistDetails: (Long) -> Unit,
     miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
 ) {
@@ -342,7 +342,7 @@ private fun HomeContent(
     onHomeAction: (HomeAction) -> Unit,
     navigateToAlbumDetails: (Long) -> Unit,
     navigateToArtistDetails: (Long) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    navigateToPlaylistDetails: (Long) -> Unit,
     navigateToPlayer: () -> Unit,
 ) {
     Log.i(TAG, "HomeContent START\n" +
@@ -509,7 +509,7 @@ private fun HomeContent(
                     coroutineScope.launch {
                         Log.i(TAG, "Playlist More Options Modal -> GoToPlaylist clicked :: ${selectPlaylist.id}")
                         sheetState.hide()
-                        navigateToArtistDetails(selectPlaylist.id)
+                        navigateToPlaylistDetails(selectPlaylist.id)
                     }.invokeOnCompletion {
                         Log.i(TAG, "set showPlaylistMoreOptions to FALSE")
                         if(!sheetState.isVisible) showPlaylistMoreOptions = false
@@ -615,7 +615,7 @@ private fun HomeContentGrid(
     onPlaylistMoreOptionsClick: () -> Unit,
     onSongMoreOptionsClick: () -> Unit,
     //navigateToAlbumDetails: (Long) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    navigateToPlaylistDetails: (Long) -> Unit,
     navigateToPlayer: () -> Unit,
 ) {
     LazyVerticalGrid(

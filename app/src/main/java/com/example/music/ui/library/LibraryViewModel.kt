@@ -33,6 +33,7 @@ import com.example.music.domain.usecases.GetLibraryComposers
 import com.example.music.domain.usecases.GetLibraryGenres
 import com.example.music.domain.usecases.GetLibraryPlaylists
 import com.example.music.domain.usecases.GetLibrarySongs
+import com.example.music.domain.usecases.GetPlaylistDetails
 import com.example.music.domain.usecases.GetSongData
 import com.example.music.domain.usecases.GetTotalCounts
 import com.example.music.service.SongController
@@ -80,6 +81,7 @@ class LibraryViewModel @Inject constructor(
     private val getAlbumDetails: GetAlbumDetails,
     private val getArtistDetails: GetArtistDetails,
     private val getGenreDetails: GetGenreDetails,
+    private val getPlaylistDetails: GetPlaylistDetails,
     private val getSongData: GetSongData,
     private val songController: SongController
 ) : ViewModel(), MiniPlayerState {
@@ -342,6 +344,11 @@ class LibraryViewModel @Inject constructor(
             is LibraryAction.PlayGenreNext -> onPlayGenreNext(action.genre)
             is LibraryAction.ShuffleGenre -> onShuffleGenre(action.genre)
             is LibraryAction.QueueGenre -> onQueueGenre(action.genre)
+
+            is LibraryAction.PlayPlaylist -> onPlayPlaylist(action.playlist)
+            is LibraryAction.PlayPlaylistNext -> onPlayPlaylistNext(action.playlist)
+            is LibraryAction.ShufflePlaylist -> onShufflePlaylist(action.playlist)
+            is LibraryAction.QueuePlaylist -> onQueuePlaylist(action.playlist)
         }
     }
 
@@ -531,6 +538,35 @@ class LibraryViewModel @Inject constructor(
             songController.addToQueue(songs)
         }
     }
+
+    private fun onPlayPlaylist(playlist: PlaylistInfo) {
+        Log.i(TAG, "onPlayPlaylist -> ${playlist.name}")
+        viewModelScope.launch {
+            val songs = getPlaylistDetails(playlist.id).first().songs
+            songController.play(songs)
+        }
+    }
+    private fun onPlayPlaylistNext(playlist: PlaylistInfo) {
+        Log.i(TAG, "onPlayPlaylistNext -> ${playlist.name}")
+        viewModelScope.launch {
+            val songs = getPlaylistDetails(playlist.id).first().songs
+            songController.addToQueueNext(songs)
+        }
+    }
+    private fun onShufflePlaylist(playlist: PlaylistInfo) {
+        Log.i(TAG, "onShufflePlaylist -> ${playlist.name}")
+        viewModelScope.launch {
+            val songs = getPlaylistDetails(playlist.id).first().songs
+            songController.shuffle(songs)
+        }
+    }
+    private fun onQueuePlaylist(playlist: PlaylistInfo) {
+        Log.i(TAG, "onQueuePlaylist -> ${playlist.name}")
+        viewModelScope.launch {
+            val songs = getPlaylistDetails(playlist.id).first().songs
+            songController.addToQueue(songs)
+        }
+    }
 }
 
 enum class LibraryCategory { Playlists, Songs, Artists, Albums, Genres, Composers }
@@ -565,4 +601,9 @@ sealed interface LibraryAction {
     data class PlayGenreNext(val genre: GenreInfo) : LibraryAction
     data class ShuffleGenre(val genre: GenreInfo) : LibraryAction
     data class QueueGenre(val genre: GenreInfo) : LibraryAction
+
+    data class PlayPlaylist(val playlist: PlaylistInfo) : LibraryAction
+    data class PlayPlaylistNext(val playlist: PlaylistInfo) : LibraryAction
+    data class ShufflePlaylist(val playlist: PlaylistInfo) : LibraryAction
+    data class QueuePlaylist(val playlist: PlaylistInfo) : LibraryAction
 }

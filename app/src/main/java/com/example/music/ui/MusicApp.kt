@@ -63,8 +63,9 @@ fun MusicApp(
                         Log.i(TAG, "id: $artistId")
                         appState.navigateToArtistDetails(artistId, backStackEntry)
                     },
-                    navigateToPlaylistDetails = { playlist ->
-                        appState.navigateToPlaylistDetails(playlist.id, backStackEntry)
+                    navigateToPlaylistDetails = { playlistId ->
+                        Log.i(TAG, "id: $playlistId")
+                        appState.navigateToPlaylistDetails(playlistId, backStackEntry)
                     },
                 )
             }
@@ -94,8 +95,9 @@ fun MusicApp(
                     navigateToComposerDetails = { composer ->
                         appState.navigateToComposerDetails(composer.id, backStackEntry)
                     },
-                    navigateToPlaylistDetails = { playlist ->
-                        appState.navigateToPlaylistDetails(playlist.id, backStackEntry)
+                    navigateToPlaylistDetails = { playlistId ->
+                        Log.i(TAG, "id: $playlistId")
+                        appState.navigateToPlaylistDetails(playlistId, backStackEntry)
                     },
                 )
             }

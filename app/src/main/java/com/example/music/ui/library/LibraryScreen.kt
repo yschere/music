@@ -120,7 +120,7 @@ fun LibraryScreen(
     navigateToArtistDetails: (Long) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToGenreDetails: (Long) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    navigateToPlaylistDetails: (Long) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
@@ -208,13 +208,13 @@ private fun LibraryScreen(
     navigateToArtistDetails: (Long) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToGenreDetails: (Long) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    navigateToPlaylistDetails: (Long) -> Unit,
     miniPlayerControlActions: MiniPlayerControlActions,
     modifier: Modifier = Modifier
 ) {
     Log.i(TAG, "Library Screen START\n" +
-            "currentSong? ${currentSong.title}\n" +
-            "isActive? $isActive")
+        "currentSong? ${currentSong.title}\n" +
+        "isActive? $isActive")
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -356,7 +356,7 @@ private fun LibraryContent(
     navigateToArtistDetails: (Long) -> Unit,
     navigateToComposerDetails: (ComposerInfo) -> Unit,
     navigateToGenreDetails: (Long) -> Unit,
-    navigateToPlaylistDetails: (PlaylistInfo) -> Unit,
+    navigateToPlaylistDetails: (Long) -> Unit,
     navigateToPlayer: () -> Unit,
 ) {
     Log.i(TAG, "LibraryContent START")
@@ -573,7 +573,7 @@ private fun LibraryContent(
                         playlists = libraryPlaylists,
                         navigateToPlaylistDetails = { playlist: PlaylistInfo ->
                             Log.i(TAG, "Playlist clicked: ${playlist.name} :: ${playlist.id}")
-                            navigateToPlaylistDetails(playlist)
+                            navigateToPlaylistDetails(playlist.id)
                         },
                         onPlaylistMoreOptionsClick = { playlist: PlaylistInfo ->
                             Log.i(TAG, "Playlist More Option clicked: ${playlist.name} :: ${playlist.id}")
@@ -599,11 +599,7 @@ private fun LibraryContent(
         ScrollToTopFAB(
             displayButton = displayButton,
             isActive = isActive,
-            onClick = {
-                coroutineScope.launch {
-                    listState.animateScrollToItem(0)
-                }
-            }
+            onClick = { coroutineScope.launch { listState.animateScrollToItem(0) } }
         )
     }
 
@@ -882,7 +878,7 @@ private fun LibraryContent(
                 play = {
                     coroutineScope.launch {
                         Log.i(TAG, "Playlist More Options Modal -> Play Playlist clicked :: ${selectedPlaylist.name}")
-                        //onLibraryAction(LibraryAction.PlayPlaylist(selectedPlaylist))
+                        onLibraryAction(LibraryAction.PlayPlaylist(selectedPlaylist))
                         navigateToPlayer()
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -893,7 +889,7 @@ private fun LibraryContent(
                 playNext = {
                     coroutineScope.launch {
                         Log.i(TAG, "Playlist More Options Modal -> Play Playlist Next clicked :: ${selectedPlaylist.name}")
-                        //onLibraryAction(LibraryAction.PlayPlaylistNext(selectedPlaylist))
+                        onLibraryAction(LibraryAction.PlayPlaylistNext(selectedPlaylist))
                         sheetState.hide()
                     }.invokeOnCompletion {
                         Log.i(TAG, "set PlaylistMoreOptions to FALSE")
@@ -903,7 +899,7 @@ private fun LibraryContent(
                 shuffle = {
                     coroutineScope.launch {
                         Log.i(TAG, "Playlist More Options Modal -> Shuffle Playlist clicked :: ${selectedPlaylist.name}")
-                        //onLibraryAction(LibraryAction.ShufflePlaylist(selectedPlaylist))
+                        onLibraryAction(LibraryAction.ShufflePlaylist(selectedPlaylist))
                         navigateToPlayer()
                         sheetState.hide()
                     }.invokeOnCompletion {
@@ -914,7 +910,7 @@ private fun LibraryContent(
                 addToQueue = {
                     coroutineScope.launch {
                         Log.i(TAG, "Playlist More Options Modal -> Queue Playlist clicked :: ${selectedPlaylist.name}")
-                        //onLibraryAction(LibraryAction.QueuePlaylist(selectedPlaylist))
+                        onLibraryAction(LibraryAction.QueuePlaylist(selectedPlaylist))
                         sheetState.hide()
                     }.invokeOnCompletion {
                         Log.i(TAG, "set PlaylistMoreOptions to FALSE")
@@ -924,7 +920,7 @@ private fun LibraryContent(
                 goToPlaylist = {
                     coroutineScope.launch {
                         Log.i(TAG, "Playlist More Options Modal -> Go To Playlist clicked :: ${selectedPlaylist.name}")
-                        navigateToPlaylistDetails(selectedPlaylist)
+                        navigateToPlaylistDetails(selectedPlaylist.id)
                         sheetState.hide()
                     }.invokeOnCompletion {
                         Log.i(TAG, "set PlaylistMoreOptions to FALSE")
