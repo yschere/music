@@ -44,9 +44,7 @@ fun LazyListScope.albumItems(
     }
 
     // Album List
-    items(
-        items = albums
-    ) { album ->
+    items(items = albums) { album ->
         AlbumListItem(
             album = album,
             navigateToAlbumDetails = { navigateToAlbumDetails(album) },

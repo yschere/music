@@ -78,15 +78,11 @@ class PlayerViewModel @Inject constructor(
 
     override var isShuffled: Boolean
         get() = _isShuffled
-        set(value) {
-            _isShuffled = value
-        }
+        set(value) { _isShuffled = value }
 
     override var repeatState: RepeatType
         get() = _repeatState
-        set(value) {
-            _repeatState = value
-        }
+        set(value) { _repeatState = value }
 
     private var timerJob: Job? = null
 
@@ -113,9 +109,7 @@ class PlayerViewModel @Inject constructor(
                     return@collect
                 }
                 // else, repeat the onPlayerEvent call to enact each event
-                repeat(it.size()) { index ->
-                    onPlayerEvent(it.get(index))
-                }
+                repeat(it.size()) { index -> onPlayerEvent(it.get(index)) }
             }
         }
 
@@ -133,9 +127,7 @@ class PlayerViewModel @Inject constructor(
             // Event for checking if the SongController is loaded and ready to read
             Player.EVENT_IS_LOADING_CHANGED -> {
                 val loaded = songController.loaded
-                if (loaded.equals(true)) {
-                    refreshing.value = false
-                }
+                if (loaded.equals(true)) { refreshing.value = false }
                 Log.d(TAG, "isPlaying set to $isPlaying")
             }
 
@@ -160,9 +152,7 @@ class PlayerViewModel @Inject constructor(
                 }
             }
 
-            Player.EVENT_TRACKS_CHANGED -> {
-                songController.logTrackNumber()
-            }
+            Player.EVENT_TRACKS_CHANGED -> { songController.logTrackNumber() }
 
             // Event for checking if play when ready has changed
             Player.EVENT_PLAY_WHEN_READY_CHANGED -> {
@@ -175,9 +165,7 @@ class PlayerViewModel @Inject constructor(
             }
 
             // Event for checking if the current playback timer has changed
-            Player.EVENT_TIMELINE_CHANGED -> {
-                updateTimer()
-            }
+            Player.EVENT_TIMELINE_CHANGED -> { updateTimer() }
 
             // Event for checking if the repeat state has changed
             Player.EVENT_REPEAT_MODE_CHANGED -> {
@@ -299,39 +287,22 @@ class PlayerViewModel @Inject constructor(
     private fun logPlayerEvent(event: Int) {
         var s = ""
         when (event) {
-            Player.EVENT_TIMELINE_CHANGED -> {
-                s = "event timeline changed"
-            } // 0
+            Player.EVENT_TIMELINE_CHANGED -> { s = "event timeline changed" } // 0
             Player.EVENT_MEDIA_ITEM_TRANSITION -> {
-                s = "event current media item changed or current item repeating"
-            } // 1
-            Player.EVENT_TRACKS_CHANGED -> {
-                s = "event tracks changed"
-            } // 2
-            Player.EVENT_IS_LOADING_CHANGED -> {
-                s = "event is loading changed"
-            } // 3
-            Player.EVENT_PLAYBACK_STATE_CHANGED -> {
-                s = "event playback state changed"
-            } // 4
-            Player.EVENT_PLAY_WHEN_READY_CHANGED -> {
-                s = "event play when ready changed"
-            } // 5
+                s = "event current media item changed or current item repeating" } // 1
+            Player.EVENT_TRACKS_CHANGED -> { s = "event tracks changed" } // 2
+            Player.EVENT_IS_LOADING_CHANGED -> { s = "event is loading changed" } // 3
+            Player.EVENT_PLAYBACK_STATE_CHANGED -> { s = "event playback state changed" } // 4
+            Player.EVENT_PLAY_WHEN_READY_CHANGED -> { s = "event play when ready changed" } // 5
             Player.EVENT_PLAYBACK_SUPPRESSION_REASON_CHANGED -> {
                 s = "event playback suppression reason changed"
             } // 6
-            Player.EVENT_IS_PLAYING_CHANGED -> {
-                s = "event is playing changed"
-            } // 7
-            Player.EVENT_REPEAT_MODE_CHANGED -> {
-                s = "event repeat mode changed"
-            } // 8
+            Player.EVENT_IS_PLAYING_CHANGED -> { s = "event is playing changed" } // 7
+            Player.EVENT_REPEAT_MODE_CHANGED -> { s = "event repeat mode changed" } // 8
             Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED -> {
                 s = "event shuffle mode enabled changed"
             } // 9
-            Player.EVENT_PLAYER_ERROR -> {
-                s = "event player error occurred"
-            } // 10
+            Player.EVENT_PLAYER_ERROR -> { s = "event player error occurred" } // 10
             Player.EVENT_POSITION_DISCONTINUITY -> {
                 s = "event position discontinuity occurred"
                 /** Note:
@@ -348,9 +319,7 @@ class PlayerViewModel @Inject constructor(
             Player.EVENT_AVAILABLE_COMMANDS_CHANGED -> {
                 s = "event player's command(s) availability changed"
             } // 13
-            Player.EVENT_MEDIA_METADATA_CHANGED -> {
-                s = "event media metadata changed"
-            } // 14
+            Player.EVENT_MEDIA_METADATA_CHANGED -> { s = "event media metadata changed" } // 14
             Player.EVENT_PLAYLIST_METADATA_CHANGED -> {
                 s = "event playlist metadata changed"
             } // 15
@@ -366,15 +335,9 @@ class PlayerViewModel @Inject constructor(
             Player.EVENT_TRACK_SELECTION_PARAMETERS_CHANGED -> {
                 s = "event track selection parameters changed"
             } // 19
-            Player.EVENT_AUDIO_ATTRIBUTES_CHANGED -> {
-                s = "event audio attributes changed"
-            } // 20
-            Player.EVENT_AUDIO_SESSION_ID -> {
-                s = "event audio session id set"
-            } // 21
-            Player.EVENT_VOLUME_CHANGED -> {
-                s = "event volume changed"
-            } // 22
+            Player.EVENT_AUDIO_ATTRIBUTES_CHANGED -> { s = "event audio attributes changed" } // 20
+            Player.EVENT_AUDIO_SESSION_ID -> { s = "event audio session id set" } // 21
+            Player.EVENT_VOLUME_CHANGED -> { s = "event volume changed" } // 22
             Player.EVENT_SKIP_SILENCE_ENABLED_CHANGED -> {
                 s = "event skip silence enabled changed"
             } // 23
@@ -402,18 +365,10 @@ class PlayerViewModel @Inject constructor(
                  * So this shouldn't occur.
                  */
             } // 26
-            Player.EVENT_CUES -> {
-                s = "event cues changed"
-            } // 27
-            Player.EVENT_METADATA -> {
-                s = "event metadata playback changed"
-            } // 28
-            Player.EVENT_DEVICE_INFO_CHANGED -> {
-                s = "event device info changed"
-            } // 29
-            Player.EVENT_DEVICE_VOLUME_CHANGED -> {
-                s = "event device volume changed"
-            } // 30
+            Player.EVENT_CUES -> { s = "event cues changed" } // 27
+            Player.EVENT_METADATA -> { s = "event metadata playback changed" } // 28
+            Player.EVENT_DEVICE_INFO_CHANGED -> { s = "event device info changed" } // 29
+            Player.EVENT_DEVICE_VOLUME_CHANGED -> { s = "event device volume changed" } // 30
         }
         Log.d(TAG, "SongController onEvent: -> $event :: $s")
     }

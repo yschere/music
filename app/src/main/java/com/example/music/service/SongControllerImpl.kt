@@ -34,7 +34,9 @@ import kotlin.reflect.KProperty
 private const val TAG = "SongControllerImpl"
 
 @OptIn(UnstableApi::class)
-private fun Context.mediaController(listener: MediaController.Listener) : ListenableFuture<MediaController> {
+private fun Context.mediaController(
+    listener: MediaController.Listener
+): ListenableFuture<MediaController> {
     Log.d(TAG, "calling Context.mediaController Builder")
     return MediaController.Builder(this, SessionToken(this, ComponentName(this, MediaService::class.java)))
         .setListener(listener)
@@ -45,11 +47,12 @@ private fun Context.mediaController(listener: MediaController.Listener) : Listen
 class SongControllerImpl @Inject constructor(
     context: Context,
     mainDispatcher: CoroutineDispatcher
-) : SongController, MediaController.Listener {
+): SongController, MediaController.Listener {
 
     private val coroutineScope = CoroutineScope(mainDispatcher)
 
-    private var mediaControllerFuture: ListenableFuture<MediaController> = context.mediaController(this)
+    private var mediaControllerFuture: ListenableFuture<MediaController> =
+        context.mediaController(this)
     private val mediaController: MediaController?
         get() = if (mediaControllerFuture.isDone) mediaControllerFuture.get() else null
 
@@ -70,21 +73,18 @@ class SongControllerImpl @Inject constructor(
     override val events: Flow<Player.Events?>
         get() = callbackFlow {
             val observer = object : Player.Listener {
-                override fun onEvents(player: Player, events: Player.Events) {
-                    trySend(events)
-                }
+                override fun onEvents(player: Player, events: Player.Events) { trySend(events) }
             }
             val controller = mediaControllerFuture.await()
             trySend(null)
             controller.addListener(observer)
-            awaitClose {
-                controller.removeListener(observer)
-            }
+            awaitClose { controller.removeListener(observer) }
         }.flowOn(Dispatchers.Main)
     override val loaded: Flow<Boolean>
         get() = events.map { currentSong != null }
     override val isActive: Boolean
-        get() = (mediaController?.playbackState == Player.STATE_READY) || (mediaController?.playbackState == Player.STATE_BUFFERING)
+        get() = (mediaController?.playbackState == Player.STATE_READY) ||
+                (mediaController?.playbackState == Player.STATE_BUFFERING)
 
     override val isShuffled: Boolean
         get() = mediaController?.shuffleModeEnabled ?: false

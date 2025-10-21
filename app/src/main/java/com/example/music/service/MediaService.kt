@@ -125,7 +125,8 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
             mediaPlayer.repeatMode = appPreferences.getRepeatTypeAsInt()
 
             if (mediaPlayer.mediaItems.isNotEmpty()) {
-                Log.i(TAG, "mediaPlayer's mediaItems is not empty -> setting media items to media player")
+                Log.i(TAG, "mediaPlayer's mediaItems is not empty ->" +
+                    "setting media items to media player")
                 mediaPlayer.setMediaItems(mediaPlayer.mediaItems)
             }
 
@@ -138,16 +139,15 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
 
             Log.i(TAG, "onCreate: scope launch end")
         }
-
         Log.i(TAG, "onCreate: END")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i(TAG, "onStartCommand: Start\n" +
-                "Intent action: ${intent?.action}\n" +
-                "Intent data: ${intent?.data}\n" +
-                "Flags: $flags\n" +
-                "Start ID: $startId")
+            "Intent action: ${intent?.action}\n" +
+            "Intent data: ${intent?.data}\n" +
+            "Flags: $flags\n" +
+            "Start ID: $startId")
         val action = intent?.action
 
         if (action == null) {
@@ -196,32 +196,23 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
         // updating local datastore with metadata about recently played items would begin here
         when (reason) {
             Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> {
-                Log.i(TAG, "onMediaItemTransition:\n" +
-                    "onMediaItemTransition reason -> automatic")
+                Log.i(TAG, "onMediaItemTransition reason -> automatic")
             }
             Player. MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED -> {
-                Log.i(TAG, "onMediaItemTransition:\n" +
-                    "onMediaItemTransition reason -> playlist changed")
+                Log.i(TAG, "onMediaItemTransition reason -> playlist changed")
             }
             Player. MEDIA_ITEM_TRANSITION_REASON_REPEAT -> {
-                Log.i(TAG, "onMediaItemTransition:\n" +
-                    "onMediaItemTransition reason -> repeat play")
+                Log.i(TAG, "onMediaItemTransition reason -> repeat play")
             }
             Player. MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
-                Log.i(TAG, "onMediaItemTransition:\n" +
-                    "onMediaItemTransition reason -> seek to different item")
+                Log.i(TAG, "onMediaItemTransition reason -> seek to different item")
             }
         }
         super.onMediaItemTransition(mediaItem, reason)
     }
 
-    override fun onRepeatModeChanged(
-        repeatMode: Int
-    ) {
-        scope.launch {
-            appPreferences.updateRepeatType(RepeatType.entries[repeatMode])
-            // set the dataStore repeat type to new repeatMode
-        }
+    override fun onRepeatModeChanged(repeatMode: Int) {
+        scope.launch { appPreferences.updateRepeatType(RepeatType.entries[repeatMode]) }
         super.onRepeatModeChanged(repeatMode)
     }
 
@@ -275,22 +266,28 @@ class MediaService : MediaSessionService(), Callback, Player.Listener {
             "isPlaying: $isPlaying\n")
         when (reason) {
             Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST -> {
-                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback set by user to $isPlaying")
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> " +
+                    "playback set by user to $isPlaying")
             }
             Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS -> {
-                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback paused from loss of audio focus")
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> " +
+                    "playback paused from loss of audio focus")
             }
             Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY -> {
-                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback paused to avoid becoming noisy")
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> " +
+                    "playback paused to avoid becoming noisy")
             }
             Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE -> {
-                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback started / paused from remote change")
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> " +
+                    "playback started / paused from remote change")
             }
             Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM -> {
-                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback paused at end of media item")
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> " +
+                    "playback paused at end of media item")
             }
             Player.PLAY_WHEN_READY_CHANGE_REASON_SUPPRESSED_TOO_LONG -> {
-                Log.i(TAG, "onPlayWhenReadyChanged reason -> playback paused from suppression for too long")
+                Log.i(TAG, "onPlayWhenReadyChanged reason -> " +
+                    "playback paused from suppression for too long")
             }
         }
 

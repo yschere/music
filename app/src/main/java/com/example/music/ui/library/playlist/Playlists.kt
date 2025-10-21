@@ -46,9 +46,7 @@ fun LazyListScope.playlistItems(
         )
     }
 
-    items(
-        items = playlists
-    ) { playlist ->
+    items(items = playlists) { playlist ->
         PlaylistItem(
             playlist = playlist,
             navigateToPlaylistDetails = { navigateToPlaylistDetails(playlist) },

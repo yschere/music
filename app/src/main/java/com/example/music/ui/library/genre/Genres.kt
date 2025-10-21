@@ -42,9 +42,7 @@ fun LazyListScope.genreItems(
     }
 
     // Genre List
-    items(
-        items = genres
-    ) { genre ->
+    items(items = genres) { genre ->
         GenreListItem(
             genre = genre,
             navigateToGenreDetails = { navigateToGenreDetails(genre) },

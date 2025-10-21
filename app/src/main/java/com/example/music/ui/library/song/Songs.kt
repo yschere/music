@@ -53,9 +53,7 @@ fun LazyListScope.songItems(
     }
 
     // Song List
-    items(
-        items = songs,
-    ) { song ->
+    items(items = songs,) { song ->
         SongListItem(
             song = song,
             onClick = { navigateToPlayer(song) },

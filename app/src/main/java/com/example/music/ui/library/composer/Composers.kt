@@ -64,9 +64,7 @@ fun LazyListScope.composerItems(
     }
 
     // Composer List
-    items(
-        items = composers
-    ) { composer ->
+    items(items = composers) { composer ->
         ComposerListItem(
             composer = composer,
             navigateToComposerDetails = { navigateToComposerDetails(composer) },
