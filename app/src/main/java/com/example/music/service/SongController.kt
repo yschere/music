@@ -156,6 +156,9 @@ interface SongController {
      */
     fun pause()
 
+    /**
+     * Shuffles a specified list of songs.
+     */
     fun shuffle(songs: List<SongInfo>)
 
     /**

@@ -352,6 +352,7 @@ class HomeViewModel @Inject constructor(
         selectedAlbum.value = album
     }
     private fun onPlaylistMoreOptionsClick(playlist: PlaylistInfo) {
+        Log.i(TAG, "onPlaylistMoreOptionsClick -> ${playlist.name}")
         selectedPlaylist.value = playlist
     }
     private fun onSongMoreOptionsClick(song: SongInfo) {

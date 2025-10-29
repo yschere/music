@@ -55,7 +55,7 @@ internal suspend fun <T> ListenableFuture<T>.await(): T {
 private class ToContinuation<T>(
     val futureToObserve: ListenableFuture<T>,
     val continuation: CancellableContinuation<T>
-) : Runnable {
+): Runnable {
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun run() {
         if (futureToObserve.isCancelled) {

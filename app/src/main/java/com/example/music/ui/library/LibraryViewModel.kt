@@ -68,13 +68,13 @@ data class LibraryScreenUiState(
  */
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    getSortOrderPreferences: GetAppPreferencesLibrarySort,
     getLibraryAlbums: GetLibraryAlbums,
     getLibraryArtists: GetLibraryArtists,
     getLibraryComposers: GetLibraryComposers,
     getLibraryGenres: GetLibraryGenres,
     getLibraryPlaylists: GetLibraryPlaylists,
     getLibrarySongs: GetLibrarySongs,
+    getSortOrderPreferences: GetAppPreferencesLibrarySort,
     getTotalCounts: GetTotalCounts,
 
     private val getAlbumDetails: GetAlbumDetails,
