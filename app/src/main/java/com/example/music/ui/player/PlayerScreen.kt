@@ -23,8 +23,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -68,8 +71,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -83,7 +84,6 @@ import com.example.music.designsys.component.AlbumImageBm
 import com.example.music.designsys.component.ImageBackgroundColorFilter_Bm
 import com.example.music.designsys.theme.CONTENT_PADDING
 import com.example.music.designsys.theme.PRIMARY_BUTTON_SIZE
-import com.example.music.designsys.theme.SCREEN_PADDING
 import com.example.music.designsys.theme.SIDE_BUTTON_SIZE
 import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.SongInfo
@@ -150,6 +150,14 @@ fun PlayerScreen(
     // TODO: determine another invocation point for error handling
     if (state.errorMessage != null) { PlayerScreenError(onRetry = viewModel::refresh) }*/
 }
+
+/**
+ * Loading Screen with circular progress indicator in center
+ */
+@Composable
+private fun PlayerLoadingScreen(
+    modifier: Modifier = Modifier
+) { Loading(modifier = modifier) }
 
 /**
  * Error Screen
@@ -286,14 +294,6 @@ private fun PlayerScreen(
 }
 
 /**
- * Loading Screen with circular progress indicator in center
- */
-@Composable
-private fun PlayerLoadingScreen(
-    modifier: Modifier = Modifier
-) { Loading(modifier = modifier) }
-
-/**
  * Composable for Player Screen's Top App Bar.
  * FixMe: determine expected functionality for queue icon onClick
  */
@@ -370,9 +370,7 @@ fun PlayerContentWithBackground(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        PlayerBackground(
-            currentSong = currentSong,
-        )
+        PlayerBackground(currentSong = currentSong)
         PlayerContent(
             currentSong = currentSong,
             isPlaying = isPlaying,
@@ -430,9 +428,7 @@ fun PlayerContent(
     }
 
     // else, use default. currently set as the version that would be under isCompact
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         PlayerContentRegular (
             currentSong = currentSong,
             isPlaying = isPlaying,
@@ -474,43 +470,34 @@ private fun PlayerContentRegular(
     val hasLyrics by remember { mutableStateOf(false) }
     var showLyrics by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .screenMargin()
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+    Column(modifier = modifier.fillMaxSize().screenMargin()) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             SongLyricsSwitcher(
                 hasLyrics = hasLyrics,
                 swapVisual = { showLyrics = !showLyrics },
                 modifier = Modifier.weight(0.1f)
             )
 
-            // song section
+            Spacer(modifier = Modifier.weight(1f))
             if (!showLyrics) {
-                Spacer(modifier = Modifier.weight(1f))
                 PlayerImageBm(
                     albumImage = currentSong.artworkBitmap,
                     modifier = Modifier.weight(10f).background(Color.Transparent)
                 )
-                Spacer(modifier = Modifier.height(32.dp))
-
-                SongDetails(
-                    songTitle = currentSong.title,
-                    artistName = currentSong.artistName,
-                    albumTitle = currentSong.albumTitle
-                )
-            } // song section end
-            else {
-                Spacer(modifier = Modifier.weight(1f))
+            } else {
                 LyricsVisual(
                     currentSong = currentSong,
                     lyrics = lyric,
-                    modifier = Modifier,
+                    modifier = Modifier.weight(10f),
                 )
-            } // show lyrics end
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+            SongDetails(
+                songTitle = currentSong.title,
+                artistName = currentSong.artistName,
+                albumTitle = currentSong.albumTitle
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
             Column(
@@ -613,38 +600,33 @@ private fun SongLyricsSwitcher(
     }
 }
 
+/**
+ * Composable that defines scrollable lyrics section for Player Screen
+ */
 @Composable
 private fun LyricsVisual(
     currentSong: SongInfo,
     lyrics: String = "",
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.padding(12.dp)
+    Box(
+        modifier = modifier.requiredSize(width = 300.dp, height = 250.dp)
             .animateContentSize(
                 animationSpec = tween(
                     durationMillis = 200,
                     easing = EaseOutExpo
                 )
             )
+            .clip(MaterialTheme.shapes.small)
+            .background(color = Color.Gray.copy(alpha = 0.6f))
     ) {
-        Text(
-            text = currentSong.title,
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Text(
-            text = currentSong.artistName,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = lyrics,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                textDecoration = TextDecoration.Underline,
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(start = SCREEN_PADDING)
-                .align(Alignment.Start)
-        )
+        Column(modifier = Modifier.verticalScroll(state = rememberScrollState())) {
+            Text(
+                text = lyrics,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(CONTENT_PADDING).align(Alignment.Start)
+            )
+        }
     }
 }
 
@@ -678,7 +660,7 @@ private fun PlayerImageBm(
     AlbumImageBm(
         albumImage = albumImage,
         contentDescription = null,
-        contentScale = ContentScale.Fit,
+        contentScale = ContentScale.Crop,
         modifier = modifier
             .listItemIconMod(250.dp, MaterialTheme.shapes.extraLarge)
             .aspectRatio(1f)
@@ -839,11 +821,10 @@ fun PlayerButtons(
                 contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = sideButtonsModifier
-                    .clickable { onShuffle() }
                     .clip(CircleShape)
+                    .clickable { onShuffle() }
             )
-        }
-        else {
+        } else {
             //determined that the current state IS NOT shuffled (isShuffled is false)
             Image(
                 imageVector = Icons.Filled.Shuffle,
@@ -851,7 +832,7 @@ fun PlayerButtons(
                 contentScale = ContentScale.Inside,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = sideButtonsModifier
-                        .clip(CircleShape)
+                    .clip(CircleShape)
                     .clickable { onShuffle() }
             )
         }
@@ -877,11 +858,10 @@ fun PlayerButtons(
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = primaryButtonModifier
                     .padding(CONTENT_PADDING)
-                        .clip(CircleShape)
+                    .clip(CircleShape)
                     .clickable { onPause() }
             )
-        }
-        else {
+        } else {
             //determined that the current state is paused (isPlaying is false)
             Image(
                 imageVector = Icons.Filled.PlayArrow,
@@ -890,7 +870,7 @@ fun PlayerButtons(
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.inversePrimary),
                 modifier = primaryButtonModifier
                     .padding(CONTENT_PADDING)
-                        .clip(CircleShape)
+                    .clip(CircleShape)
                     .clickable { onPlay() }
             )
         }
@@ -910,7 +890,6 @@ fun PlayerButtons(
         // Repeat btn
         when (repeatState){
             RepeatType.OFF -> {
-            //"OFF" -> {
                 Image( //shows unfilled icon (because it is set to off)
                     imageVector = Icons.Filled.Repeat,
                     contentDescription = stringResource(R.string.pb_repeat_off),
@@ -922,7 +901,6 @@ fun PlayerButtons(
                 )
             }
             RepeatType.ONE -> {
-            //"ONE" -> {
                 Image( //shows the icon with 1 in center (because its set to repeat one song only)
                     imageVector = Icons.Filled.RepeatOneOn,
                     contentDescription = stringResource(R.string.pb_repeat_one_on),
@@ -934,7 +912,6 @@ fun PlayerButtons(
                 )
             }
             RepeatType.ON -> {
-            //"ON" -> {
                 Image( //shows the icon as the filled version (because its set to on)
                     imageVector = Icons.Filled.RepeatOn,
                     contentDescription = stringResource(R.string.pb_repeat_on),
@@ -980,7 +957,7 @@ fun PlayerScreenPreview() {
                 isPlaying = true,
                 isShuffled = true,
                 repeatState = RepeatType.ON,
-                progress =  154604L / ( PreviewSongs[0].duration.toMillis() ) .toFloat(),
+                progress =  154604L / (PreviewSongs[0].duration.toMillis()).toFloat(),
                 timeElapsed = 154604L,
                 hasNext = true,
                 clearQueue = {},
@@ -1003,4 +980,4 @@ fun PlayerScreenPreview() {
     }
 }
 
-private const val lyric = "Lorem ipsum odor amet, consectetuer adipiscing elit. Ligula hendrerit nunc semper varius iaculis molestie. Aenean dapibus lorem fusce consectetur venenatis. Id aliquet primis non arcu phasellus potenti nostra per. Enim massa mollis sociosqu, libero mi vivamus. Duis diam pulvinar semper, lorem ridiculus interdum molestie ipsum convallis. Facilisis laoreet et nascetur sollicitudin ornare vehicula pretium. Nunc cubilia quisque class lacus lobortis blandit aliquam mi. Tincidunt arcu proin aliquam nullam himenaeos tempor vivamus. Mattis auctor consequat praesent, cursus cras metus. Elementum lacinia nulla aliquam taciti netus dis. Sit fringilla lacinia pulvinar massa ullamcorper, sollicitudin class elit. Primis rutrum tristique congue maximus potenti suscipit fusce suscipit."
+private const val lyric = "Lorem ipsum odor amet, consectetuer adipiscing elit. \nLigula hendrerit nunc semper varius iaculis molestie. \nAenean dapibus lorem fusce consectetur venenatis. \nId aliquet primis non arcu phasellus potenti nostra per. \nEnim massa mollis sociosqu, libero mi vivamus. \nDuis diam pulvinar semper, lorem ridiculus interdum molestie ipsum convallis. \nFacilisis laoreet et nascetur sollicitudin ornare vehicula pretium. \nNunc cubilia quisque class lacus lobortis blandit aliquam mi. \nTincidunt arcu proin aliquam nullam himenaeos tempor vivamus. \nMattis auctor consequat praesent, cursus cras metus. \nElementum lacinia nulla aliquam taciti netus dis. \nSit fringilla lacinia pulvinar massa ullamcorper, sollicitudin class elit. \nPrimis rutrum tristique congue maximus potenti suscipit fusce suscipit."
