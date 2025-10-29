@@ -12,8 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.example.music.R
+import com.example.music.designsys.theme.SCREEN_PADDING
 
 /**
  * Composable for Error Screen: full screen with central retry message
@@ -27,17 +27,19 @@ fun Error(
         color = Color.Transparent,
         modifier = modifier
     ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Text(
-                text = stringResource(id = R.string.an_error_has_occurred),
-                modifier = Modifier.padding(16.dp)
-            )
-            Button(onClick = onRetry) {
-                Text(text = stringResource(id = R.string.retry_label))
+        ScreenBackground(modifier = modifier) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Text(
+                    text = stringResource(id = R.string.an_error_has_occurred),
+                    modifier = Modifier.padding(SCREEN_PADDING)
+                )
+                Button(onClick = onRetry) {
+                    Text(text = stringResource(id = R.string.retry_label))
+                }
             }
         }
     }

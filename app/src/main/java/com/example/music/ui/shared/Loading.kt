@@ -20,8 +20,10 @@ fun Loading(
         color = Color.Transparent,
         modifier = modifier
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        ScreenBackground(modifier = modifier) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
         }
     }
 }
