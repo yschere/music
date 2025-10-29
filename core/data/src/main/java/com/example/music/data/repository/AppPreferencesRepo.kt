@@ -44,6 +44,7 @@ data class LibrarySortOrders(
     val isPlaylistAsc: Boolean, // if playlist list is in ascending or descending order
     val isSongAsc: Boolean, // if song list is in ascending or descending order
 )
+
 data class UserSettings(
     val shuffleType: ShuffleType,
     val theme: String,
@@ -52,49 +53,25 @@ data class UserSettings(
 class AppPreferencesRepo @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) {
-    private companion object {
-        val REPEAT_TYPE = stringPreferencesKey("repeat_type")
-        val SHUFFLE_TYPE = stringPreferencesKey("shuffle_type")
-        val THEME = stringPreferencesKey("theme")
-
-        val ALBUM_SORT_COLUMN = stringPreferencesKey("album_sort_column")
-        val ARTIST_SORT_COLUMN = stringPreferencesKey("artist_sort_column")
-        val COMPOSER_SORT_COLUMN = stringPreferencesKey("composer_sort_column")
-        val GENRE_SORT_COLUMN = stringPreferencesKey("genre_sort_column")
-        val PLAYLIST_SORT_COLUMN = stringPreferencesKey("playlist_sort_column")
-        val SONG_SORT_COLUMN = stringPreferencesKey("song_sort_column")
-
-        val IS_ALBUM_ASC = booleanPreferencesKey("is_album_asc")
-        val IS_ARTIST_ASC = booleanPreferencesKey("is_artist_asc")
-        val IS_COMPOSER_ASC = booleanPreferencesKey("is_composer_asc")
-        val IS_GENRE_ASC = booleanPreferencesKey("is_genre_asc")
-        val IS_PLAYLIST_ASC = booleanPreferencesKey("is_playlist_asc")
-        val IS_SONG_ASC = booleanPreferencesKey("is_song_asc")
-    }
-
     /******************
      * Media Controller Settings Section - Repeat Type
      ******************/
 
-    // used by MediaService to set mediaPlayer's repeat mode
     suspend fun getRepeatTypeAsInt(): Int =
         RepeatType.valueOf(dataStore.data.first()[REPEAT_TYPE] ?: RepeatType.OFF.name).ordinal
     val getRepeatTypeFlow: Flow<RepeatType> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
+            if (exception is IOException) { emit(emptyPreferences()) }
+            else throw exception
         }
         .map { preferences ->
             RepeatType.valueOf(preferences[REPEAT_TYPE] ?: RepeatType.OFF.name)
-        }.distinctUntilChanged()
+        }
+        .distinctUntilChanged()
+
     suspend fun updateRepeatType(rpType: RepeatType) {
         Log.i(TAG, "Update Repeat Type -> $rpType")
-        dataStore.edit { preferences ->
-            preferences[REPEAT_TYPE] = rpType.name
-        }
+        dataStore.edit { preferences -> preferences[REPEAT_TYPE] = rpType.name }
     }
 
     /******************
@@ -103,11 +80,8 @@ class AppPreferencesRepo @Inject constructor(
 
     val userSettingsFlow: Flow<UserSettings> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
+            if (exception is IOException) { emit(emptyPreferences()) }
+            else throw exception
         }
         .map { preferences ->
             val shuffleType = ShuffleType.valueOf(preferences[SHUFFLE_TYPE] ?: ShuffleType.ONCE.name)
@@ -120,37 +94,31 @@ class AppPreferencesRepo @Inject constructor(
         ShuffleType.valueOf(dataStore.data.first()[SHUFFLE_TYPE] ?: ShuffleType.ONCE.name)
     val getShuffleTypeFlow: Flow<ShuffleType> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
+            if (exception is IOException) { emit(emptyPreferences()) }
+            else throw exception
         }
         .map { preferences ->
             ShuffleType.valueOf(preferences[SHUFFLE_TYPE] ?: ShuffleType.ONCE.name)
-        }.distinctUntilChanged()
+        }
+        .distinctUntilChanged()
+
     suspend fun updateShuffleType(shType: ShuffleType) {
         Log.i(TAG, "Update Shuffle Type -> $shType")
-        dataStore.edit { preferences ->
-            preferences[SHUFFLE_TYPE] = shType.name
-        }
+        dataStore.edit { preferences -> preferences[SHUFFLE_TYPE] = shType.name }
     }
 
     suspend fun getTheme(): String = dataStore.data.first()[THEME] ?: ThemeList[0]
     val getThemeFlow: Flow<String> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
+            if (exception is IOException) { emit(emptyPreferences()) }
+            else throw exception
         }
-        .map { preferences -> preferences[THEME] ?: ThemeList[0] }.distinctUntilChanged()
+        .map { preferences -> preferences[THEME] ?: ThemeList[0] }
+        .distinctUntilChanged()
+
     suspend fun updateTheme(theme: String) {
         Log.i(TAG, "Update Theme -> $theme")
-        dataStore.edit { preferences ->
-            preferences[THEME] = theme
-        }
+        dataStore.edit { preferences -> preferences[THEME] = theme }
     }
 
     /******************
@@ -159,11 +127,8 @@ class AppPreferencesRepo @Inject constructor(
 
     val librarySortOrdersFlow: Flow<LibrarySortOrders> = dataStore.data
         .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
+            if (exception is IOException) { emit(emptyPreferences()) }
+            else throw exception
         }
         .map { preferences ->
             val albumSortColumn = preferences[ALBUM_SORT_COLUMN] ?: AlbumSortList[0]
@@ -261,5 +226,25 @@ class AppPreferencesRepo @Inject constructor(
         dataStore.edit { preferences ->
             preferences[SONG_SORT_COLUMN] = sort
         }
+    }
+
+    private companion object {
+        val REPEAT_TYPE = stringPreferencesKey("repeat_type")
+        val SHUFFLE_TYPE = stringPreferencesKey("shuffle_type")
+        val THEME = stringPreferencesKey("theme")
+
+        val ALBUM_SORT_COLUMN = stringPreferencesKey("album_sort_column")
+        val ARTIST_SORT_COLUMN = stringPreferencesKey("artist_sort_column")
+        val COMPOSER_SORT_COLUMN = stringPreferencesKey("composer_sort_column")
+        val GENRE_SORT_COLUMN = stringPreferencesKey("genre_sort_column")
+        val PLAYLIST_SORT_COLUMN = stringPreferencesKey("playlist_sort_column")
+        val SONG_SORT_COLUMN = stringPreferencesKey("song_sort_column")
+
+        val IS_ALBUM_ASC = booleanPreferencesKey("is_album_asc")
+        val IS_ARTIST_ASC = booleanPreferencesKey("is_artist_asc")
+        val IS_COMPOSER_ASC = booleanPreferencesKey("is_composer_asc")
+        val IS_GENRE_ASC = booleanPreferencesKey("is_genre_asc")
+        val IS_PLAYLIST_ASC = booleanPreferencesKey("is_playlist_asc")
+        val IS_SONG_ASC = booleanPreferencesKey("is_song_asc")
     }
 }
