@@ -19,26 +19,21 @@ class SearchQuery @Inject constructor(
     suspend operator fun invoke(query: String): SearchQueryFilterResult {
         Log.i(TAG, "START --- query: $query")
 
-        val audios = mediaRepo.findAudios(
-            query = query,
-            //limit = 20,
-        )?.map { audio ->
-            audio.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
-        } ?: emptyList()
+        val audios = mediaRepo.findAudios(query = query)
+            ?.sortedBy { it.title.lowercase() }
+            ?.map { audio ->
+                audio.asExternalModel()//.copy(artworkBitmap = mediaRepo.loadThumbnail(audio.uri))
+            } ?: emptyList()
 
-        val artists = mediaRepo.findArtists(
-            query = query,
-            //limit = 20,
-        )?.map { artist ->
-            artist.asExternalModel()
-        } ?: emptyList()
+        val artists = mediaRepo.findArtists(query = query)
+            ?.sortedBy { it.name.lowercase() }
+            ?.map { artist -> artist.asExternalModel() }
+            ?: emptyList()
 
-        val albums = mediaRepo.findAlbums(
-            query = query,
-            //limit = 20,
-        )?.map { album ->
-            album.asExternalModel()
-        } ?: emptyList()
+        val albums = mediaRepo.findAlbums(query = query)
+            ?.sortedBy { it.title.lowercase() }
+            ?.map { album -> album.asExternalModel() }
+            ?: emptyList()
 
         Log.i(TAG, "Results:\n" +
             "Songs list: ${audios.size}\n" +
