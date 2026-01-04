@@ -161,7 +161,8 @@ private fun HomeScreenReady(
             //featuredAlbums = uiState.featuredAlbums,
             featuredPlaylists = uiState.featuredPlaylists,
             featuredSongs = uiState.featuredSongs,
-            totals = uiState.totals,
+//            totals = uiState.totals,
+            totals = listOf(1,4,5,2,4), // temporary
             //selectAlbum = uiState.selectAlbum,
             selectPlaylist = uiState.selectPlaylist,
             selectSong = uiState.selectSong,

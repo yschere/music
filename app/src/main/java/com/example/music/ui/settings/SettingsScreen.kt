@@ -109,7 +109,8 @@ fun SettingsScreen(
             windowSizeClass = windowSizeClass,
             isLoading = uiState.isLoading,
             displayFeatures = displayFeatures,
-            totals = uiState.totals,
+//            totals = uiState.totals,
+            totals = listOf(1,4,5,2,4), // temporary
             selectShuffleType = uiState.selectShuffleType,
             selectTheme = uiState.selectThemeMode,
             onSettingsAction = viewModel::onSettingsAction,

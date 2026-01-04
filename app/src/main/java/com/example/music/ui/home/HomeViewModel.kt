@@ -41,7 +41,8 @@ data class HomeScreenUiState(
     //val featuredAlbums: List<AlbumInfo> = emptyList(),
     val featuredPlaylists: List<PlaylistInfo> = emptyList(),
     val featuredSongs: List<SongInfo> = emptyList(),
-    val totals: List<Int> = emptyList(),
+//    val totals: List<Int> = emptyList()
+    val totals: Map<String,Int> = emptyMap(),
     //val selectAlbum: AlbumInfo = AlbumInfo(),
     val selectPlaylist: PlaylistInfo = PlaylistInfo(),
     val selectSong: SongInfo = SongInfo(),
@@ -108,6 +109,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             Log.i(TAG, "viewModelScope launch START")
             val counts = getTotalCounts()
+            counts.forEach{
+                Log.i(TAG, "count: ${it.key} -> ${it.value}")
+            }
             Log.i(TAG, "SongController status:\n" +
                 "isActive?: $isActive\n" +
                 "player?: ${player?.playbackState}")

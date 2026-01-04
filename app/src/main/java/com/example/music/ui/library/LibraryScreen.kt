@@ -142,7 +142,8 @@ fun LibraryScreen(
             libraryGenres = uiState.libraryGenres,
             libraryPlaylists = uiState.libraryPlaylists,
             librarySongs = uiState.librarySongs,
-            totals = uiState.totals,
+//            totals = uiState.totals,
+            totals = listOf(1,4,5,2,4), // temporary
             currentSong = viewModel.currentSong,
             isActive = viewModel.isActive, // if playback is active
             isPlaying = viewModel.isPlaying,

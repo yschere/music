@@ -60,7 +60,8 @@ data class LibraryScreenUiState(
     val libraryGenres: List<GenreInfo> = emptyList(),
     val libraryPlaylists: List<PlaylistInfo> = emptyList(),
     val librarySongs: List<SongInfo> = emptyList(),
-    val totals: List<Int> = emptyList(),
+//    val totals: List<Int> = emptyList()
+    val totals: Map<String,Int> = emptyMap()
 )
 
 /**

@@ -23,7 +23,8 @@ data class SettingsUiState(
     val errorMessage: String? = null,
     val selectShuffleType: ShuffleType = ShuffleType.ONCE,
     val selectThemeMode: String = "System default",
-    val totals: List<Int> = emptyList()
+//    val totals: List<Int> = emptyList()
+    val totals: Map<String,Int> = emptyMap()
 )
 
 @HiltViewModel

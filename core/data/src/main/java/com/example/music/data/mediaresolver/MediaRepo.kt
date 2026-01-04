@@ -61,8 +61,10 @@ class MediaRepo (
     /**
      * Inspect the MediaStore to retrieve the total counts of songs, artists, albums and genres.
      */
-    fun inspectMediaStore(): MutableList<Int> {
+//    fun inspectMediaStore(): MutableList<Int> {
+    fun inspectMediaStore(): MutableMap<String,Int> {
         val counts = mutableListOf<Int>()
+        val cou = mutableMapOf<String,Int>()
 
         val songCursor = resolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -72,6 +74,7 @@ class MediaRepo (
             null)
         if (songCursor != null && songCursor.moveToFirst()) {
             counts.add(songCursor.count)
+            cou["songs"] = songCursor.count
         }
 
         val artistCursor = resolver.query(
@@ -82,6 +85,7 @@ class MediaRepo (
             null)
         if (artistCursor != null && artistCursor.moveToFirst()) {
             counts.add(artistCursor.count)
+            cou["artists"] = artistCursor.count
         }
 
         val albumCursor = resolver.query(
@@ -92,6 +96,7 @@ class MediaRepo (
             null)
         if (albumCursor != null && albumCursor.moveToFirst()) {
             counts.add(albumCursor.count)
+            cou["albums"] = albumCursor.count
         }
 
         val genreCursor = resolver.query(
@@ -102,6 +107,7 @@ class MediaRepo (
             null)
         if (genreCursor != null && genreCursor.moveToFirst()) {
             counts.add(genreCursor.count - 1) // this is to remove the 'null' row that genre counts
+            cou["genres"] = genreCursor.count - 1
         }
 
         val playlistCursor = resolver.query(
@@ -112,6 +118,7 @@ class MediaRepo (
             null)
         if (playlistCursor != null && playlistCursor.moveToFirst()) {
             counts.add(playlistCursor.count)
+            cou["playlists"] = playlistCursor.count
         }
 
         albumCursor?.close()
@@ -120,7 +127,8 @@ class MediaRepo (
         songCursor?.close()
         playlistCursor?.close()
 
-        return counts
+        //return counts
+        return cou
     }
 
     /**

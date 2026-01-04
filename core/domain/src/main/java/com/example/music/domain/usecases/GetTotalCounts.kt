@@ -13,8 +13,8 @@ private const val TAG = "Get Total Counts"
 class GetTotalCounts @Inject constructor(
     private val mediaRepo: MediaRepo,
 ) {
-    operator fun invoke(): List<Int> {
+    operator fun invoke(): Map<String,Int> {
         Log.i(TAG,"Get Media Totals from Media Store START")
-        return mediaRepo.inspectMediaStore().toList()
+        return mediaRepo.inspectMediaStore().toMap()//.toList()
     }
 }

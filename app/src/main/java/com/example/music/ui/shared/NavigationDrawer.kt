@@ -162,11 +162,13 @@ fun NavDrawer(
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.textHeightPadding()
                         )
-                        Text(
-                            text = quantityStringResource(id= R.plurals.playlists, totals[4], totals[4]),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.textHeightPadding()
-                        )
+                        if (totals.size > 4) {
+                            Text(
+                                text = quantityStringResource(id= R.plurals.playlists, totals[4], totals[4]),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.textHeightPadding()
+                            )
+                        }
                     }
                 }
             }
