@@ -46,7 +46,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun NavDrawer(
     selectedLabel: String,
-    totals: List<Int>,
+    totals: Map<String,Int>,
     navigateToHome: () -> Unit,
     navigateToLibrary: () -> Unit,
     navigateToSettings: () -> Unit,
@@ -142,29 +142,37 @@ fun NavDrawer(
                             .padding(top = NAV_DRAWER_CONTENT_PADDING, bottom = SMALL_PADDING)
                     )
                     Column (Modifier.padding(horizontal = NAV_DRAWER_MARGINS + NAV_DRAWER_CONTENT_PADDING)) {
-                        Text(
-                            text = quantityStringResource(id= R.plurals.songs, totals[0], totals[0]),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.textHeightPadding()
-                        )
-                        Text(
-                            text = quantityStringResource(id= R.plurals.artists, totals[1], totals[1]),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.textHeightPadding()
-                        )
-                        Text(
-                            text = quantityStringResource(id= R.plurals.albums, totals[2], totals[2]),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.textHeightPadding()
-                        )
-                        Text(
-                            text = quantityStringResource(id= R.plurals.genres, totals[3], totals[3]),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.textHeightPadding()
-                        )
-                        if (totals.size > 4) {
+                        if (totals["songs"] != null) {
                             Text(
-                                text = quantityStringResource(id= R.plurals.playlists, totals[4], totals[4]),
+                                text = quantityStringResource(id= R.plurals.songs, totals["songs"]!!, totals["songs"]!!),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.textHeightPadding()
+                            )
+                        }
+                        if (totals["artists"] != null) {
+                            Text(
+                                text = quantityStringResource(id= R.plurals.artists, totals["artists"]!!, totals["artists"]!!),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.textHeightPadding()
+                            )
+                        }
+                        if (totals["albums"] != null) {
+                            Text(
+                                text = quantityStringResource(id= R.plurals.albums, totals["albums"]!!, totals["albums"]!!),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.textHeightPadding()
+                            )
+                        }
+                        if (totals["genres"] != null) {
+                            Text(
+                                text = quantityStringResource(id= R.plurals.genres, totals["genres"]!!, totals["genres"]!!),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.textHeightPadding()
+                            )
+                        }
+                        if (totals["playlists"] != null) {
+                            Text(
+                                text = quantityStringResource(id= R.plurals.playlists, totals["playlists"]!!, totals["playlists"]!!),
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.textHeightPadding()
                             )
@@ -186,7 +194,13 @@ fun PreviewNavDrawer() {
     MusicTheme {
         NavDrawer(
             selectedLabel = "Home Page",
-            totals = listOf(6373, 990, 1427, 35, 9),
+            totals = mapOf(
+                Pair("songs",6373),
+                Pair("artists", 990),
+                Pair("albums", 1427),
+                Pair("genres", 35),
+                Pair("playlists", 9),
+            ),
             navigateToHome = {},
             navigateToLibrary = {},
             navigateToSettings = {},

@@ -142,8 +142,7 @@ fun LibraryScreen(
             libraryGenres = uiState.libraryGenres,
             libraryPlaylists = uiState.libraryPlaylists,
             librarySongs = uiState.librarySongs,
-//            totals = uiState.totals,
-            totals = listOf(1,4,5,2,4), // temporary
+            totals = uiState.totals,
             currentSong = viewModel.currentSong,
             isActive = viewModel.isActive, // if playback is active
             isPlaying = viewModel.isPlaying,
@@ -194,7 +193,7 @@ private fun LibraryScreen(
     libraryGenres: List<GenreInfo>,
     libraryPlaylists: List<PlaylistInfo>,
     librarySongs: List<SongInfo>,
-    totals: List<Int>,
+    totals: Map<String,Int>,
     currentSong: SongInfo,
     isActive: Boolean,
     isPlaying: Boolean,
@@ -1122,7 +1121,13 @@ private fun PreviewLibrary() {
             libraryGenres = PreviewGenres,
             libraryPlaylists = PreviewPlaylists,
             librarySongs = PreviewSongs,
-            totals = listOf(6373, 990, 1427, 35, 9),
+            totals = mapOf(
+                Pair("songs",6373),
+                Pair("artists", 990),
+                Pair("albums", 1427),
+                Pair("genres", 35),
+                Pair("playlists", 9),
+            ),
             currentSong = PreviewSongs[0],
             isActive = true,
             isPlaying = true,

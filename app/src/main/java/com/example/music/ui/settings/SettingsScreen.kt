@@ -109,8 +109,7 @@ fun SettingsScreen(
             windowSizeClass = windowSizeClass,
             isLoading = uiState.isLoading,
             displayFeatures = displayFeatures,
-//            totals = uiState.totals,
-            totals = listOf(1,4,5,2,4), // temporary
+            totals = uiState.totals,
             selectShuffleType = uiState.selectShuffleType,
             selectTheme = uiState.selectThemeMode,
             onSettingsAction = viewModel::onSettingsAction,
@@ -140,7 +139,7 @@ private fun SettingsScreen(
     windowSizeClass: WindowSizeClass,
     isLoading: Boolean,
     displayFeatures: List<DisplayFeature>,
-    totals: List<Int>,
+    totals: Map<String,Int>,
     selectShuffleType: ShuffleType,
     selectTheme: String,
 
@@ -465,7 +464,13 @@ private fun PreviewSettings() {
                 windowSizeClass = WindowSizeClass.compute(maxWidth.value, maxHeight.value),
                 isLoading = false,
                 displayFeatures = emptyList(),
-                totals = listOf(6373, 990, 1427, 35, 9),
+                totals = mapOf(
+                    Pair("songs",6373),
+                    Pair("artists", 990),
+                    Pair("albums", 1427),
+                    Pair("genres", 35),
+                    Pair("playlists", 9),
+                ),
                 selectTheme = "System default",
                 selectShuffleType = ShuffleType.ON_LOOP,
                 onSettingsAction = {},
