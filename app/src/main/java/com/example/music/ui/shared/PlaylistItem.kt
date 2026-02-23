@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
@@ -27,6 +26,7 @@ import com.example.music.domain.model.PlaylistInfo
 import com.example.music.domain.testing.PreviewPlaylists
 import com.example.music.ui.playlistdetails.PlaylistDetailsThumbnails
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.util.frontTextPadding
 import com.example.music.util.listItemIconMod
 import com.example.music.util.listItemRowPadding
@@ -184,7 +184,7 @@ private fun PlaylistItemRow(
     }
 }
 
-@Preview
+@CompLightPreview
 @Composable
 fun PlaylistItem_CARDPreview() {
     MusicTheme {
@@ -198,7 +198,7 @@ fun PlaylistItem_CARDPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@CompLightPreview
 @Composable
 fun PlaylistItem_ROWPreview() {
     MusicTheme {

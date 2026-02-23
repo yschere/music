@@ -15,12 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.music.R
 import com.example.music.designsys.theme.ICON_SIZE
 import com.example.music.domain.model.GenreInfo
 import com.example.music.domain.testing.PreviewGenres
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.util.frontTextPadding
 import com.example.music.util.listItemIconMod
 import com.example.music.util.listItemRowPadding
@@ -116,7 +116,7 @@ private fun GenreListItemIcon(
     }
 }
 
-@Preview
+@CompLightPreview
 @Composable
 fun PreviewGenreItem() {
     MusicTheme {

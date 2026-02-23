@@ -12,6 +12,9 @@ private const val TAG = "GenreInfo"
  * External data layer representation of a genre.
  * Intent: to represent a Genre for the UI, with the ability to
  * order genres by song count.
+ * @property id The genre's unique ID
+ * @property name The name of the genre
+ * @property songCount The amount of songs in the genre
  */
 data class GenreInfo(
     var id: Long = 0,

@@ -1,6 +1,5 @@
 package com.example.music.ui.shared
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.music.R
 import com.example.music.designsys.component.AlbumImage
 import com.example.music.designsys.theme.ITEM_IMAGE_CARD_SIZE
@@ -26,6 +24,7 @@ import com.example.music.designsys.theme.SMALL_PADDING
 import com.example.music.domain.model.AlbumInfo
 import com.example.music.domain.testing.PreviewAlbums
 import com.example.music.ui.theme.MusicTheme
+import com.example.music.ui.tooling.CompLightPreview
 import com.example.music.util.frontTextPadding
 import com.example.music.util.listItemIconMod
 import com.example.music.util.listItemRowPadding
@@ -176,7 +175,7 @@ fun AlbumItemRow(
     }
 }
 
-@Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
+@CompLightPreview
 @Composable
 private fun AlbumListItem_CARDPreview() {
     MusicTheme {
@@ -190,7 +189,7 @@ private fun AlbumListItem_CARDPreview() {
     }
 }
 
-@Preview( name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO )
+@CompLightPreview
 @Composable
 private fun AlbumListItem_ROWPreview() {
     MusicTheme {
